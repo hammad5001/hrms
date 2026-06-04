@@ -1,0 +1,10 @@
+{
+    "device_ip": "125.209.68.118",
+    "device_port": 4370,
+    "start_date": "2026-02-01",
+    "end_date": "2026-06-30",
+    "auto_refresh_interval": 15,
+    "night_shift_start": 18,
+    "night_shift_end": 4,
+    "grace_minutes": 10
+}

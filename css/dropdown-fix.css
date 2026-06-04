@@ -1,0 +1,103 @@
+/* Prevent parent overflow from clipping native select dropdowns */
+.form-card,
+.qr-section,
+.stat-card,
+.control-panel,
+.filter-row,
+.advanced-filters,
+.filter-group,
+.filter-buttons,
+.month-selector,
+.form-grid,
+.user-form-panel,
+.form-row,
+.card,
+.panel,
+.header {
+    overflow: visible !important;
+}
+
+/* Table areas: only inner wrapper scrolls horizontally */
+.table-container {
+    overflow: visible !important;
+}
+
+.table-wrapper {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+}
+
+.form-group {
+    position: relative;
+    z-index: 1;
+}
+
+.form-group:focus-within {
+    z-index: 100;
+}
+
+.advanced-filters > *,
+.filter-row > *,
+.filter-group > * {
+    position: relative;
+    z-index: 1;
+}
+
+.advanced-filters > *:focus-within,
+.filter-row > *:focus-within,
+.filter-group > *:focus-within {
+    z-index: 200;
+}
+
+select,
+.form-control[type="date"],
+.form-group select,
+.filter-select,
+select.form-control,
+.modal select,
+.modal-body select {
+    position: relative;
+    z-index: 2;
+    appearance: auto !important;
+    -webkit-appearance: menulist !important;
+    background-image: none !important;
+    min-height: 44px;
+    min-width: 140px;
+    cursor: pointer;
+}
+
+.filter-select {
+    padding-right: 28px !important;
+}
+
+.filter-select option,
+.form-group select option,
+select.form-control option,
+.modal select option {
+    background: #1a1c2c;
+    color: #fff;
+    padding: 8px;
+}
+
+[data-theme="light"] .filter-select option,
+[data-theme="light"] .form-group select option,
+[data-theme="light"] select.form-control option {
+    background: #ffffff;
+    color: #0f172a;
+}
+
+/* Modals: allow select menus to extend outside; scroll body only */
+.modal.active .modal-content {
+    overflow: visible !important;
+}
+
+.modal-body {
+    overflow: visible !important;
+    max-height: none;
+}
+
+.modal.active .modal-body.scrollable {
+    max-height: 70vh;
+    overflow-y: auto !important;
+    overflow-x: visible !important;
+}

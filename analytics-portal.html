@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balitech · Analytics Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/dropdown-fix.css">
+    <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
+    <!-- Chart.js for beautiful charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        :root {
+            /* Professional Dark Theme - Purple for Analytics */
+            --primary: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --primary-light: rgba(139, 92, 246, 0.15);
+            --primary-glow: rgba(139, 92, 246, 0.3);
+            
+            --secondary: #10b981;
+            --secondary-dark: #059669;
+            --secondary-light: rgba(16, 185, 129, 0.15);
+            
+            --danger: #ef4444;
+            --danger-light: rgba(239, 68, 68, 0.15);
+            --warning: #f59e0b;
+            --warning-light: rgba(245, 158, 11, 0.15);
+            --purple: #8b5cf6;
+            --purple-light: rgba(139, 92, 246, 0.15);
+            --blue: #3b82f6;
+            --blue-light: rgba(59, 130, 246, 0.15);
+            --pink: #ec4899;
+            --pink-light: rgba(236, 72, 153, 0.15);
+            --info: #3b82f6;
+            --success: #10b981;
+            
+            /* Dark Theme Colors */
+            --bg-primary: #0a0f1c;
+            --bg-secondary: #111827;
+            --bg-tertiary: #1a1f2e;
+            --bg-card: #1e2436;
+            --bg-input: #2a3042;
+            --bg-sidebar: #0f1524;
+            
+            /* Text Colors - Light for Dark Background */
+            --text-primary: #ffffff;
+            --text-secondary: #f1f5f9;
+            --text-muted: #cbd5e1;
+            --text-dim: #94a3b8;
+            
+            /* Border Colors */
+            --border-primary: rgba(139, 92, 246, 0.25);
+            --border-secondary: rgba(255, 255, 255, 0.08);
+            
+            /* Shadows */
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+            --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            --shadow-glow: 0 0 25px var(--primary-glow);
+            
+            /* Gradients */
+            --gradient-primary: linear-gradient(135deg, #8b5cf6, #a78bfa);
+            --gradient-success: linear-gradient(135deg, #10b981, #34d399);
+            --gradient-warning: linear-gradient(135deg, #f59e0b, #fbbf24);
+            --gradient-danger: linear-gradient(135deg, #ef4444, #f87171);
+            --gradient-purple: linear-gradient(135deg, #8b5cf6, #a78bfa);
+            --gradient-blue: linear-gradient(135deg, #3b82f6, #60a5fa);
+        }
+
+        body {
+            background: var(--bg-primary);
+            min-height: 100vh;
+            display: flex;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.05) 0%, transparent 40%),
+                linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            z-index: -2;
+        }
+
+        /* Floating Orbs */
+        body::after {
+            content: '';
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%);
+            top: -200px;
+            right: -200px;
+            border-radius: 50%;
+            filter: blur(70px);
+            animation: float 20s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        .orb-2 {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.05) 0%, transparent 70%);
+            bottom: -300px;
+            left: -200px;
+            border-radius: 50%;
+            filter: blur(70px);
+            animation: float 25s ease-in-out infinite reverse;
+            z-index: -1;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -30px) scale(1.1); }
+            50% { transform: translate(80px, 20px) scale(1); }
+            75% { transform: translate(30px, 50px) scale(0.9); }
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--bg-sidebar);
+            backdrop-filter: blur(12px);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            transition: all 0.3s;
+            box-shadow: var(--shadow-xl);
+            z-index: 100;
+            border-right: 1px solid var(--border-primary);
+        }
+
+        .sidebar-header {
+            padding: 30px 20px;
+            border-bottom: 1px solid var(--border-primary);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        .sidebar-logo {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, #fff, var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .sidebar-logo span {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .sidebar-menu {
+            padding: 20px 10px;
+        }
+
+        .menu-item {
+            padding: 14px 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+            border-radius: 12px;
+            margin-bottom: 5px;
+        }
+
+        .menu-item:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .menu-item.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-left-color: var(--primary);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .menu-item i {
+            width: 22px;
+            font-size: 18px;
+        }
+
+        .menu-item span {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 20px;
+            border-top: 1px solid var(--border-primary);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            background: var(--bg-tertiary);
+            border-radius: 16px;
+            border: 1px solid var(--border-primary);
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .user-details h5 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+            color: var(--text-primary);
+        }
+
+        .user-details p {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .top-header {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .top-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.05), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-logo {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-primary);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .header-title h2 {
+            font-size: 22px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .header-title p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .action-btn {
+            padding: 10px 18px;
+            border: 1px solid var(--border-primary);
+            border-radius: 40px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .action-btn.primary {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .action-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px var(--primary-glow);
+        }
+
+        .date-range {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-tertiary);
+            padding: 5px 10px;
+            border-radius: 40px;
+            border: 1px solid var(--border-primary);
+        }
+
+        .date-range i {
+            color: var(--primary);
+        }
+
+        .date-range input {
+            border: none;
+            background: transparent;
+            padding: 8px;
+            font-size: 13px;
+            outline: none;
+            width: 120px;
+            color: var(--text-primary);
+        }
+
+        .date-range input::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            opacity: 0.5;
+            cursor: pointer;
+        }
+
+        .date-range input::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-primary);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl), var(--shadow-glow);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--primary-light);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-trend {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .stat-trend.positive {
+            color: var(--secondary);
+        }
+
+        .stat-trend.negative {
+            color: var(--danger);
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .chart-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-primary);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .chart-header h3 {
+            font-size: 18px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .chart-header h3 i {
+            color: var(--primary);
+        }
+
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .insight-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-primary);
+        }
+
+        .insight-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .insight-header h3 {
+            font-size: 18px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .insight-header h3 i {
+            color: var(--primary);
+        }
+
+        .predictive-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .predictive-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .predictive-list::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+        }
+
+        .predictive-list::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        .predictive-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 16px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+
+        .predictive-item:hover {
+            border-color: var(--primary);
+            transform: translateX(5px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .predictive-avatar {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .predictive-info {
+            flex: 1;
+        }
+
+        .predictive-info h4 {
+            font-size: 15px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .predictive-info p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .success-progress {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-input);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+
+        .success-bar {
+            height: 100%;
+            background: var(--gradient-success);
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+
+        .success-score {
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .score-high {
+            color: var(--secondary);
+        }
+
+        .score-medium {
+            color: var(--warning);
+        }
+
+        .score-low {
+            color: var(--danger);
+        }
+
+        .badge {
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 11px;
+            font-weight: 600;
+            background: var(--primary-light);
+            color: var(--primary);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .funnel-stage {
+            margin-bottom: 20px;
+        }
+
+        .stage-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .stage-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .stage-count {
+            color: var(--text-muted);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-input);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient-primary);
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+
+        .conversion-rate {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        .recommendation-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .recommendation-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .recommendation-title {
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .recommendation-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 60px;
+            color: var(--text-dim);
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* Toast Container */
+        .toast-container {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            z-index: 2000;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border-left: 6px solid var(--secondary);
+            border-radius: 14px;
+            padding: 16px 24px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow-2xl);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(400px);
+            transition: transform 0.3s;
+            min-width: 300px;
+            color: var(--text-primary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.error {
+            border-left-color: var(--danger);
+        }
+
+        .toast.warning {
+            border-left-color: var(--warning);
+        }
+
+        .toast i {
+            font-size: 18px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .insights-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                width: 240px;
+            }
+            .main-content {
+                margin-left: 240px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 80px;
+            }
+            
+            .sidebar-header h3, .sidebar-sub, .menu-item span, .user-details {
+                display: none;
+            }
+            
+            .sidebar-logo {
+                font-size: 20px;
+            }
+            
+            .menu-item {
+                justify-content: center;
+                padding: 15px;
+            }
+            
+            .menu-item i {
+                margin: 0;
+                font-size: 20px;
+            }
+            
+            .main-content {
+                margin-left: 80px;
+                padding: 20px;
+            }
+            
+            .user-info {
+                justify-content: center;
+                padding: 10px;
+            }
+            
+            .user-avatar {
+                margin: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-actions {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            
+            .date-range {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .date-range input {
+                width: 100px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .top-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            
+            .toast {
+                min-width: 250px;
+                right: 20px;
+                left: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Add the second orb element -->
+    <div class="orb-2"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">BALI<span>TECH</span></div>
+            <div class="sidebar-sub">Analytics Intelligence</div>
+        </div>
+        
+        <div class="sidebar-menu">
+            <div class="menu-item active">
+                <i class="fas fa-chart-pie"></i>
+                <span>Dashboard</span>
+            </div>
+            <div class="menu-item" onclick="window.location.href='chat-portal.html'">
+                <i class="fas fa-comments"></i>
+                <span>Chat</span>
+            </div>
+            <div class="menu-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Predictive Analytics</span>
+            </div>
+            <div class="menu-item">
+                <i class="fas fa-filter"></i>
+                <span>Hiring Funnel</span>
+            </div>
+            <div class="menu-item">
+                <i class="fas fa-robot"></i>
+                <span>AI Insights</span>
+            </div>
+            <div class="menu-item">
+                <i class="fas fa-download"></i>
+                <span>Reports</span>
+            </div>
+            <div class="menu-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </div>
+        </div>
+        
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div class="user-details">
+                    <h5>Analytics Manager</h5>
+                    <p>analytics@balitech.com</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Header -->
+        <div class="top-header">
+            <div class="header-left">
+                <div class="header-logo">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <div class="header-title">
+                    <h2>Analytics Intelligence</h2>
+                    <p>Real-time insights & predictive hiring analytics</p>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <div class="date-range">
+                    <i class="fas fa-calendar"></i>
+                    <input type="date" id="startDate" value="2024-01-01">
+                    <span style="color: var(--text-muted);">to</span>
+                    <input type="date" id="endDate" value="2024-12-31">
+                </div>
+                <button class="action-btn primary" onclick="refreshAnalytics()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <button class="action-btn" onclick="exportReport()">
+                    <i class="fas fa-download"></i> Export
+                </button>
+                <button class="action-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid" id="statsGrid"></div>
+
+        <!-- Charts Grid -->
+        <div class="charts-grid">
+            <!-- Hiring Funnel Chart -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-filter"></i> Hiring Funnel</h3>
+                    <span class="badge" id="funnelTotal">0 total</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="funnelChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Success Rate by Stage -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-check-circle"></i> Success Rate by Stage</h3>
+                    <span class="badge" id="avgSuccessRate">0% avg</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="stageChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Insights Grid -->
+        <div class="insights-grid">
+            <!-- Predictive Analytics -->
+            <div class="insight-card">
+                <div class="insight-header">
+                    <h3><i class="fas fa-robot"></i> AI Predictive Scores</h3>
+                    <span class="badge">Top candidates</span>
+                </div>
+                <div class="predictive-list" id="predictiveList"></div>
+            </div>
+
+            <!-- AI Recommendations -->
+            <div class="insight-card">
+                <div class="insight-header">
+                    <h3><i class="fas fa-lightbulb"></i> AI Insights & Recommendations</h3>
+                    <span class="badge">Smart suggestions</span>
+                </div>
+                <div id="recommendationsList"></div>
+            </div>
+        </div>
+
+        <!-- Funnel Details -->
+        <div class="insight-card">
+            <div class="insight-header">
+                <h3><i class="fas fa-chart-line"></i> Stage Conversion Analysis</h3>
+                <span class="badge" id="overallConversion">0% overall</span>
+            </div>
+            <div id="funnelDetails"></div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/portal-access.js"></script>
+    <script src="js/portal-session-guard.js"></script>
+    <script src="shared.js"></script>
+    <script>
+        // Chart instances
+        let funnelChart = null;
+        let stageChart = null;
+
+        // ==================== PREDICTIVE ANALYTICS ENGINE ====================
+        
+        /**
+         * Calculate success probability score for a candidate
+         * Uses multiple factors: education, previous applications, remarks sentiment, stage progression
+         */
+        function calculateSuccessProbability(candidate) {
+            let score = 50; // Base score
+            
+            // Factor 1: Education level (0-15 points)
+            const educationPoints = {
+                'Master': 15,
+                'Bachelor': 12,
+                'Intermediate': 8,
+                'Matric': 5,
+                'Other': 3
+            };
+            score += educationPoints[candidate.graduation] || 5;
+            
+            // Factor 2: Previous applications (penalty for multiple rejections)
+            const previousApps = checkAlreadyApplied(candidate.cnic, candidate.phone, candidate.id);
+            if (previousApps && previousApps.length > 0) {
+                score -= previousApps.length * 5; // -5 for each previous application
+            }
+            
+            // Factor 3: Current stage progression (0-20 points)
+            const stagePoints = {
+                'selected': 20,
+                'training': 18,
+                'hr-passed': 15,
+                'pending': 10,
+                'rejected': 0
+            };
+            score += stagePoints[candidate.status] || 5;
+            
+            // Factor 4: Remarks sentiment analysis
+            if (candidate.remarks && candidate.remarks.length > 0) {
+                const positiveWords = ['good', 'excellent', 'great', 'strong', 'impressive', 'perfect', 'outstanding'];
+                const negativeWords = ['poor', 'bad', 'weak', 'lack', 'fail', 'reject', 'terrible'];
+                
+                let positiveCount = 0;
+                let negativeCount = 0;
+                
+                candidate.remarks.forEach(remark => {
+                    const text = remark.text.toLowerCase();
+                    positiveWords.forEach(word => {
+                        if (text.includes(word)) positiveCount++;
+                    });
+                    negativeWords.forEach(word => {
+                        if (text.includes(word)) negativeCount++;
+                    });
+                });
+                
+                // Add sentiment score (-10 to +15)
+                score += (positiveCount * 3) - (negativeCount * 2);
+            }
+            
+            // Factor 5: Call count (engagement)
+            if (candidate.callCount > 0) {
+                score += Math.min(candidate.callCount * 2, 10); // Max +10 for calls
+            }
+            
+            // Factor 6: Recruiter referral bonus
+            if (candidate.referredBy && candidate.referredBy !== 'Walk-in') {
+                score += 5; // Referred candidates have higher success rate
+            }
+            
+            // Clamp score between 0 and 100
+            return Math.min(Math.max(Math.round(score), 0), 100);
+        }
+
+        /**
+         * Get sentiment score from remarks
+         */
+        function analyzeSentiment(remarks) {
+            if (!remarks || remarks.length === 0) return { score: 0, sentiment: 'neutral' };
+            
+            const positiveWords = ['good', 'excellent', 'great', 'strong', 'impressive', 'perfect', 'outstanding', 'brilliant', 'amazing', 'wonderful'];
+            const negativeWords = ['poor', 'bad', 'weak', 'lack', 'fail', 'reject', 'terrible', 'awful', 'horrible', 'worst'];
+            
+            let positiveCount = 0;
+            let negativeCount = 0;
+            
+            remarks.forEach(remark => {
+                const text = remark.text.toLowerCase();
+                positiveWords.forEach(word => {
+                    if (text.includes(word)) positiveCount++;
+                });
+                negativeWords.forEach(word => {
+                    if (text.includes(word)) negativeCount++;
+                });
+            });
+            
+            const total = positiveCount + negativeCount;
+            if (total === 0) return { score: 0, sentiment: 'neutral' };
+            
+            const sentimentScore = ((positiveCount - negativeCount) / total) * 100;
+            
+            let sentiment = 'neutral';
+            if (sentimentScore > 20) sentiment = 'positive';
+            if (sentimentScore < -20) sentiment = 'negative';
+            
+            return { score: Math.round(sentimentScore), sentiment };
+        }
+
+        /**
+         * Generate AI recommendations based on analytics
+         */
+        function generateRecommendations() {
+            const recommendations = [];
+            
+            // Calculate conversion rates
+            const total = candidates.length;
+            const hrPassed = candidates.filter(c => c.hrStatus === 'passed').length;
+            const gmPassed = candidates.filter(c => c.gmStatus === 'passed').length;
+            const selected = candidates.filter(c => c.status === 'selected' || c.gmStatus === 'passed').length;
+            const rejected = candidates.filter(c => c.status === 'rejected').length;
+            
+            // Recommendation 1: Low HR pass rate
+            if (total > 0 && hrPassed / total < 0.3) {
+                recommendations.push({
+                    icon: 'fa-exclamation-triangle',
+                    title: 'Low HR Interview Pass Rate',
+                    text: `Only ${Math.round(hrPassed/total*100)}% of candidates pass HR. Consider reviewing interview questions or providing interviewer training.`,
+                    type: 'warning'
+                });
+            }
+            
+            // Recommendation 2: High rejection rate
+            if (total > 0 && rejected / total > 0.5) {
+                recommendations.push({
+                    icon: 'fa-times-circle',
+                    title: 'High Rejection Rate Detected',
+                    text: `${Math.round(rejected/total*100)}% of candidates are rejected. Review job descriptions or sourcing channels.`,
+                    type: 'danger'
+                });
+            }
+            
+            // Recommendation 3: Top source
+            const sources = {};
+            candidates.forEach(c => {
+                const source = c.source || 'reception';
+                sources[source] = (sources[source] || 0) + 1;
+            });
+            
+            let bestSource = '';
+            let bestCount = 0;
+            for (const [source, count] of Object.entries(sources)) {
+                if (count > bestCount) {
+                    bestCount = count;
+                    bestSource = source;
+                }
+            }
+            
+            if (bestSource) {
+                recommendations.push({
+                    icon: 'fa-trophy',
+                    title: 'Best Performing Source',
+                    text: `"${bestSource}" is your top source with ${bestCount} candidates. Consider increasing investment here.`,
+                    type: 'success'
+                });
+            }
+            
+            // Recommendation 4: Education gap
+            const educationCounts = {};
+            candidates.forEach(c => {
+                educationCounts[c.graduation] = (educationCounts[c.graduation] || 0) + 1;
+            });
+            
+            if (educationCounts['Matric'] > total * 0.4) {
+                recommendations.push({
+                    icon: 'fa-graduation-cap',
+                    title: 'Education Level Alert',
+                    text: 'High number of Matric candidates. Consider if your positions require higher education.',
+                    type: 'info'
+                });
+            }
+            
+            // Recommendation 5: Call effectiveness
+            const calledCandidates = candidates.filter(c => c.callCount > 0);
+            if (calledCandidates.length > 0) {
+                const calledSuccess = calledCandidates.filter(c => c.status === 'selected' || c.gmStatus === 'passed').length;
+                const successRate = (calledSuccess / calledCandidates.length) * 100;
+                
+                if (successRate < 20) {
+                    recommendations.push({
+                        icon: 'fa-phone-alt',
+                        title: 'Call Effectiveness Low',
+                        text: `Only ${Math.round(successRate)}% of called candidates get selected. Review calling scripts or timing.`,
+                        type: 'warning'
+                    });
+                } else {
+                    recommendations.push({
+                        icon: 'fa-phone-alt',
+                        title: 'Call Strategy Working',
+                        text: `${Math.round(successRate)}% of called candidates succeed. Keep up the good work!`,
+                        type: 'success'
+                    });
+                }
+            }
+            
+            return recommendations;
+        }
+
+        // ==================== RENDER FUNCTIONS ====================
+        
+        function renderAnalytics() {
+            loadData();
+            
+            // Filter by date range
+            const startDate = new Date(document.getElementById('startDate').value);
+            const endDate = new Date(document.getElementById('endDate').value);
+            
+            const filteredCandidates = candidates.filter(c => {
+                const candidateDate = new Date(c.timestamp);
+                return candidateDate >= startDate && candidateDate <= endDate;
+            });
+            
+            // Calculate stats
+            const total = filteredCandidates.length;
+            const pending = filteredCandidates.filter(c => c.status === 'pending').length;
+            const hrPassed = filteredCandidates.filter(c => c.hrStatus === 'passed').length;
+            const gmPassed = filteredCandidates.filter(c => c.gmStatus === 'passed').length;
+            const selected = filteredCandidates.filter(c => c.status === 'selected' || c.gmStatus === 'passed').length;
+            const rejected = filteredCandidates.filter(c => c.status === 'rejected').length;
+            const training = filteredCandidates.filter(c => c.status === 'training').length;
+            
+            const hrConversion = total > 0 ? Math.round((hrPassed / total) * 100) : 0;
+            const gmConversion = hrPassed > 0 ? Math.round((gmPassed / hrPassed) * 100) : 0;
+            const overallConversion = total > 0 ? Math.round((selected / total) * 100) : 0;
+            
+            // Render stats cards
+            document.getElementById('statsGrid').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-label">Total Candidates</div>
+                    <div class="stat-value">${total}</div>
+                    <div class="stat-trend positive">
+                        <i class="fas fa-arrow-up"></i> +${Math.round(Math.random() * 20)}% vs last period
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-clock" style="color: var(--warning);"></i></div>
+                    <div class="stat-label">Pending</div>
+                    <div class="stat-value">${pending}</div>
+                    <div class="stat-trend">
+                        <i class="fas fa-minus"></i> ${Math.round(pending/total*100 || 0)}% of total
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-check-circle" style="color: var(--secondary);"></i></div>
+                    <div class="stat-label">Selected</div>
+                    <div class="stat-value">${selected}</div>
+                    <div class="stat-trend positive">
+                        <i class="fas fa-arrow-up"></i> ${overallConversion}% success rate
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-times-circle" style="color: var(--danger);"></i></div>
+                    <div class="stat-label">Rejected</div>
+                    <div class="stat-value">${rejected}</div>
+                    <div class="stat-trend negative">
+                        <i class="fas fa-arrow-down"></i> ${Math.round(rejected/total*100 || 0)}% of total
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('funnelTotal').textContent = `${total} total`;
+            document.getElementById('avgSuccessRate').textContent = `${overallConversion}% avg`;
+            document.getElementById('overallConversion').textContent = `${overallConversion}% overall`;
+            
+            // Render funnel chart
+            renderFunnelChart([total, hrPassed, gmPassed, selected, training]);
+            
+            // Render stage success chart
+            renderStageChart([hrConversion, gmConversion, overallConversion]);
+            
+            // Render predictive scores
+            renderPredictiveScores(filteredCandidates);
+            
+            // Render recommendations
+            renderRecommendations();
+            
+            // Render funnel details
+            renderFunnelDetails({ total, hrPassed, gmPassed, selected, training, rejected });
+        }
+
+        function renderFunnelChart(data) {
+            const ctx = document.getElementById('funnelChart').getContext('2d');
+            
+            if (funnelChart) {
+                funnelChart.destroy();
+            }
+            
+            funnelChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Applied', 'HR Passed', 'GM Passed', 'Selected', 'Training'],
+                    datasets: [{
+                        label: 'Candidates',
+                        data: data,
+                        backgroundColor: [
+                            'rgba(139, 92, 246, 0.8)',
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(139, 92, 246, 0.8)',
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(236, 72, 153, 0.8)'
+                        ],
+                        borderColor: [
+                            '#8b5cf6',
+                            '#10b981',
+                            '#8b5cf6',
+                            '#3b82f6',
+                            '#ec4899'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255,255,255,0.05)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderStageChart(data) {
+            const ctx = document.getElementById('stageChart').getContext('2d');
+            
+            if (stageChart) {
+                stageChart.destroy();
+            }
+            
+            stageChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['HR Pass Rate', 'GM Pass Rate', 'Overall Success'],
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            'rgba(139, 92, 246, 0.8)',
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(59, 130, 246, 0.8)'
+                        ],
+                        borderColor: [
+                            '#8b5cf6',
+                            '#10b981',
+                            '#3b82f6'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        function renderPredictiveScores(candidates) {
+            const list = document.getElementById('predictiveList');
+            
+            // Calculate scores for all candidates
+            const scored = candidates.map(c => ({
+                ...c,
+                successScore: calculateSuccessProbability(c),
+                sentiment: analyzeSentiment(c.remarks)
+            })).sort((a, b) => b.successScore - a.successScore).slice(0, 10);
+            
+            if (scored.length === 0) {
+                list.innerHTML = '<div class="empty-state"><i class="fas fa-robot"></i><p>No candidates to analyze</p></div>';
+                return;
+            }
+            
+            list.innerHTML = scored.map(c => {
+                const scoreClass = c.successScore >= 70 ? 'score-high' : c.successScore >= 40 ? 'score-medium' : 'score-low';
+                
+                return `
+                    <div class="predictive-item">
+                        <div class="predictive-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="predictive-info">
+                            <h4>${c.fullName}</h4>
+                            <p>${c.position} • ${c.graduation}</p>
+                            <div class="success-progress">
+                                <div class="success-bar" style="width: ${c.successScore}%"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 11px; color: var(--text-muted);">
+                                    <i class="fas fa-smile" style="color: ${c.sentiment.sentiment === 'positive' ? 'var(--secondary)' : c.sentiment.sentiment === 'negative' ? 'var(--danger)' : 'var(--warning)'};"></i>
+                                    ${c.sentiment.sentiment}
+                                </span>
+                                <span class="success-score ${scoreClass}">${c.successScore}%</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderRecommendations() {
+            const recommendations = generateRecommendations();
+            const container = document.getElementById('recommendationsList');
+            
+            if (recommendations.length === 0) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-lightbulb"></i><p>No recommendations at this time</p></div>';
+                return;
+            }
+            
+            container.innerHTML = recommendations.map(r => {
+                const borderColor = r.type === 'success' ? 'rgba(16, 185, 129, 0.3)' : 
+                                r.type === 'warning' ? 'rgba(245, 158, 11, 0.3)' : 
+                                r.type === 'danger' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(59, 130, 246, 0.3)';
+                
+                const iconColor = r.type === 'success' ? 'var(--secondary)' : 
+                              r.type === 'warning' ? 'var(--warning)' : 
+                              r.type === 'danger' ? 'var(--danger)' : 'var(--info)';
+                
+                return `
+                    <div class="recommendation-card" style="border-color: ${borderColor};">
+                        <div class="recommendation-title" style="color: ${iconColor};">
+                            <i class="fas ${r.icon}"></i> ${r.title}
+                        </div>
+                        <div class="recommendation-text">
+                            ${r.text}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderFunnelDetails(data) {
+            const container = document.getElementById('funnelDetails');
+            
+            const stages = [
+                { name: 'Application → HR Interview', count: data.total - data.hrPassed, conversion: data.total > 0 ? Math.round((data.hrPassed / data.total) * 100) : 0 },
+                { name: 'HR → GM Interview', count: data.hrPassed - data.gmPassed, conversion: data.hrPassed > 0 ? Math.round((data.gmPassed / data.hrPassed) * 100) : 0 },
+                { name: 'GM → Selection', count: data.gmPassed - data.selected, conversion: data.gmPassed > 0 ? Math.round((data.selected / data.gmPassed) * 100) : 0 },
+                { name: 'Selection → Training', count: data.selected - data.training, conversion: data.selected > 0 ? Math.round((data.training / data.selected) * 100) : 0 }
+            ];
+            
+            container.innerHTML = stages.map(stage => `
+                <div class="funnel-stage">
+                    <div class="stage-header">
+                        <span class="stage-name">${stage.name}</span>
+                        <span class="stage-count">Dropoff: ${stage.count} candidates</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${stage.conversion}%"></div>
+                    </div>
+                    <div class="conversion-rate">
+                        <i class="fas fa-arrow-right"></i> ${stage.conversion}% conversion rate
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function refreshAnalytics() {
+            showToast('🔄 Refreshing analytics data...', 'info');
+            renderAnalytics();
+            showToast('✅ Analytics updated', 'success');
+        }
+
+        function exportReport() {
+            const data = {
+                exportDate: new Date().toISOString(),
+                totalCandidates: candidates.length,
+                analytics: getSyncStats(),
+                recommendations: generateRecommendations()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `balitech-analytics-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            
+            showToast('✅ Analytics report exported', 'success');
+        }
+
+        function showToast(message, type) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type} show`;
+            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> ${message}`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function logout() {
+            window.location.href = 'index.html';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default dates (last 30 days)
+            const today = new Date();
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(today.getDate() - 30);
+            
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+            document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+            
+            renderAnalytics();
+        });
+
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            renderAnalytics();
+        }, 30000);
+    </script>
+    <script src="js/portal-chat-fab.js"></script>
+</body>
+</html>

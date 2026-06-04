@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Balitech · Nexus Recruiter Command Center</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="recruiter-portal.css?v=1.4">
+  <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
+  <link rel="stylesheet" href="css/portal-chat-fab.css">
+</head>
+<body>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+  
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <div class="logo-icon-box"><i class="fas fa-chart-line"></i></div>
+          <div class="logo-text"><h2>BALITECH</h2><p>NEXUS RECRUITER</p></div>
+        </div>
+      </div>
+      
+      <div class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-label">Main</div>
+          <div class="nav-item active" data-view="dashboard" onclick="showDashboard()">
+            <i class="fas fa-chart-pie"></i> <span>Intelligence Hub</span>
+          </div>
+          <div class="nav-item" data-view="myLeads" onclick="showMyLeads()">
+            <i class="fas fa-users"></i> <span>Pipeline Manager</span>
+            <span class="nav-badge" id="navPendingBadge">0</span>
+          </div>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-label">My HR</div>
+          <div class="nav-item" data-view="myHrms" onclick="showMyHrms()">
+            <i class="fas fa-id-card"></i> <span>My Profile</span>
+          </div>
+          <div class="nav-item" data-view="myAttendance" onclick="showMyAttendance()">
+            <i class="fas fa-fingerprint"></i> <span>Attendance</span>
+          </div>
+          <div class="nav-item" data-view="myPayroll" onclick="showMyPayroll()">
+            <i class="fas fa-wallet"></i> <span>Payroll</span>
+          </div>
+          <div class="nav-item" onclick="window.location.href='chat-portal.html'">
+            <i class="fas fa-comments"></i> <span>Chat</span>
+          </div>
+          <a class="nav-item nav-item-link" href="employee-portal.html" style="text-decoration:none;">
+            <i class="fas fa-calendar-minus"></i> <span>Apply Leave</span>
+          </a>
+        </div>
+        
+        <div class="nav-section super-only" style="display:none">
+          <div class="nav-label">Super Admin</div>
+          <div class="nav-item" data-view="allLeads" onclick="showAllLeads()">
+            <i class="fas fa-database"></i> <span>Master Database</span>
+          </div>
+          <div class="nav-item" data-view="distribute" onclick="showDistributeLeads()">
+            <i class="fas fa-share-alt"></i> <span>Smart Distribution</span>
+          </div>
+          <div class="nav-item" data-view="import" onclick="showImportLeads()">
+            <i class="fas fa-cloud-upload-alt"></i> <span>Bulk Import</span>
+          </div>
+          <div class="nav-item" data-view="manageRec" onclick="showRecruitersList()">
+            <i class="fas fa-users-cog"></i> <span>Team Management</span>
+          </div>
+        </div>
+        
+        <div class="nav-section">
+          <div class="nav-label">Account</div>
+          <div class="nav-item" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i> <span style="color:var(--danger)">Secure Logout</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="sidebar-footer">
+        <div class="user-card">
+          <div class="user-avatar" id="sidebarAvatar">?</div>
+          <div class="user-info">
+            <h5 id="sidebarName">Loading...</h5>
+            <p id="sidebarRole">Connecting...</p>
+          </div>
+          <div class="online-dot"></div>
+        </div>
+      </div>
+    </aside>
+    
+    <main class="main-content" id="mainContent">
+      <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Initializing Nexus Intelligence Engine...</p>
+      </div>
+    </main>
+  </div>
+  
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="js/portal-access.js"></script>
+  <script src="js/portal-session-guard.js"></script>
+  <script src="js/portal-performance.js"></script>
+  <script src="recruiter-portal-core.js"></script>
+  <script src="recruiter-portal-actions.js"></script>
+  <script src="recruiter-portal-hrms.js"></script>
+  <script src="recruiter-portal-views.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+  <script src="js/portal-chat-fab.js"></script>
+</body>
+</html>

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Balitech · Mobile Application</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        :root {
+            --primary: #f97316;
+            --primary-dark: #ea580c;
+            --primary-light: #fff4e6;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --dark-900: #0a0a0a;
+            --dark-800: #1a1a1a;
+            --dark-700: #2a2a2a;
+            --dark-600: #3a3a3a;
+            --light-900: #f8f9fa;
+            --light-800: #e9ecef;
+            --border-color: #e2e8f0;
+            --white: #ffffff;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary-light), white);
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .mobile-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .logo span {
+            color: var(--primary);
+        }
+
+        .subtitle {
+            color: var(--dark-600);
+            font-size: 14px;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .form-card h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--dark-800);
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .form-card h2 i {
+            color: var(--primary);
+            background: var(--primary-light);
+            padding: 8px;
+            border-radius: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--dark-700);
+        }
+
+        .form-group label i {
+            color: var(--primary);
+            width: 18px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 14px;
+            padding-right: 45px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width: 400px) {
+            .row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            margin-top: 15px;
+        }
+
+        .btn-submit:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -8px var(--primary);
+        }
+
+        .footer {
+            text-align: center;
+            color: var(--dark-400);
+            font-size: 12px;
+            margin-top: 20px;
+        }
+
+        .success-message {
+            display: none;
+            background: var(--secondary);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading i {
+            font-size: 30px;
+            color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="header">
+            <div class="logo">BALI<span>TECH</span></div>
+            <div class="subtitle">Mobile Application Form</div>
+        </div>
+
+        <div class="success-message" id="successMessage">
+            <i class="fas fa-check-circle"></i> Application submitted successfully!
+        </div>
+
+        <div class="loading" id="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p style="margin-top: 10px;">Submitting...</p>
+        </div>
+
+        <div class="form-card">
+            <h2><i class="fas fa-pen-alt"></i> Apply Now</h2>
+            
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> Full Name *</label>
+                <input type="text" class="form-control" id="fullName" placeholder="Enter your full name">
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-user-tie"></i> Father's Name *</label>
+                <input type="text" class="form-control" id="fatherName" placeholder="Enter father's name">
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label><i class="fas fa-phone"></i> Phone *</label>
+                    <input type="tel" class="form-control" id="phone" maxlength="11" placeholder="03001234567">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> Email *</label>
+                    <input type="email" class="form-control" id="email" placeholder="name@example.com">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label><i class="fas fa-id-card"></i> CNIC *</label>
+                    <input type="text" class="form-control" id="cnic" maxlength="13" placeholder="1234512345671">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-city"></i> City *</label>
+                    <input type="text" class="form-control" id="city" placeholder="Enter city">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label><i class="fas fa-calendar"></i> Date of Birth *</label>
+                    <input type="date" class="form-control" id="dob">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-graduation-cap"></i> Graduation *</label>
+                    <select class="form-control" id="graduation">
+                        <option value="">Select</option>
+                        <option value="Matric">Matric</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Bachelor">Bachelor's</option>
+                        <option value="Master">Master's</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label><i class="fas fa-briefcase"></i> Position *</label>
+                    <select class="form-control" id="position">
+                        <option value="">Select</option>
+                        <option value="ACA Campaign">ACA Campaign</option>
+                        <option value="Medicare Campaign">Medicare Campaign</option>
+                        <option value="MedAlert Campaign">MedAlert Campaign</option>
+                        <option value="IT Department">IT Department</option>
+                        <option value="QA Department">QA Department</option>
+                        <option value="Developer Team">Developer Team</option>
+                        <option value="HR Team">HR Team</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-calendar-check"></i> Joining Date *</label>
+                    <input type="date" class="form-control" id="joiningDate">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-user-plus"></i> Referred By</label>
+                <select class="form-control" id="referredBy">
+                    <option value="">Select</option>
+                    <option value="Danish Khan">Danish Khan</option>
+                    <option value="Naina Fareed">Naina Fareed</option>
+                    <option value="Zoya">Zoya</option>
+                    <option value="Bushra">Bushra</option>
+                    <option value="Walk-in">Walk-in</option>
+                </select>
+            </div>
+
+            <button class="btn-submit" onclick="submitMobileApplication()">
+                <i class="fas fa-paper-plane"></i> Submit Application
+            </button>
+        </div>
+
+        <div class="footer">
+            <i class="fas fa-shield-alt"></i> Secure form · Powered by Balitech
+        </div>
+    </div>
+
+    <script src="shared.js"></script>
+    <script>
+        window.submitMobileApplication = async function() {
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            
+            // Get values
+            const fullName = document.getElementById('fullName')?.value?.trim();
+            const fatherName = document.getElementById('fatherName')?.value?.trim();
+            const phone = document.getElementById('phone')?.value?.trim();
+            const email = document.getElementById('email')?.value?.trim();
+            const cnic = document.getElementById('cnic')?.value?.trim();
+            const city = document.getElementById('city')?.value?.trim();
+            const dob = document.getElementById('dob')?.value;
+            const graduation = document.getElementById('graduation')?.value;
+            const position = document.getElementById('position')?.value;
+            const joiningDate = document.getElementById('joiningDate')?.value;
+            const referredBy = document.getElementById('referredBy')?.value || 'Walk-in';
+
+            // Validate
+            if (!fullName || !fatherName || !phone || !email || !cnic || !city || !dob || !graduation || !position || !joiningDate) {
+                alert('Please fill all required fields');
+                document.getElementById('loading').style.display = 'none';
+                return;
+            }
+
+            if (!/^\d{11}$/.test(phone)) {
+                alert('Please enter 11-digit phone number');
+                document.getElementById('loading').style.display = 'none';
+                return;
+            }
+
+            if (!/^\d{13}$/.test(cnic)) {
+                alert('Please enter 13-digit CNIC number');
+                document.getElementById('loading').style.display = 'none';
+                return;
+            }
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                alert('Please enter valid email address');
+                document.getElementById('loading').style.display = 'none';
+                return;
+            }
+
+            // Create candidate
+            const candidate = {
+                id: Date.now(),
+                fullName, fatherName, phone, email, cnic, city, dob, graduation,
+                position, joiningDate, referredBy,
+                timestamp: new Date().toISOString(),
+                status: 'pending',
+                interviewLevel: 'hr',
+                hrStatus: 'pending',
+                gmStatus: 'pending',
+                trainingStatus: 'pending',
+                callCount: 0,
+                source: 'mobile'
+            };
+
+            try {
+                const res = await fetch('api/update_candidate_global.php', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phone: phone,
+                        fullName: fullName,
+                        fatherName: fatherName,
+                        email: email,
+                        cnic: cnic,
+                        city: city,
+                        dob: dob,
+                        graduation: graduation,
+                        position: position,
+                        referredBy: referredBy,
+                        new_stage: 'interview_scheduled',
+                        action: 'mobile_apply',
+                        source: 'mobile',
+                        remark: 'Application submitted via mobile form — awaiting reception'
+                    })
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    alert(data.error || 'Could not save to database');
+                    document.getElementById('loading').style.display = 'none';
+                    return;
+                }
+            } catch (e) {
+                alert('Network error — could not save application');
+                document.getElementById('loading').style.display = 'none';
+                return;
+            }
+
+            candidates.push(candidate);
+            saveData();
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'block';
+            
+            // Clear form
+            document.getElementById('fullName').value = '';
+            document.getElementById('fatherName').value = '';
+            document.getElementById('phone').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('cnic').value = '';
+            document.getElementById('city').value = '';
+            document.getElementById('dob').value = '';
+            document.getElementById('graduation').value = '';
+            document.getElementById('position').value = '';
+            document.getElementById('joiningDate').value = '';
+            document.getElementById('referredBy').value = '';
+
+            // Hide success message after 3 seconds
+            setTimeout(() => {
+                document.getElementById('successMessage').style.display = 'none';
+            }, 3000);
+        };
+    </script>
+</body>
+</html>

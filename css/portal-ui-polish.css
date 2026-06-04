@@ -1,0 +1,463 @@
+/**
+ * Balitech portal UI polish — refines existing design (no layout/color scheme changes).
+ * Load after portal-specific styles.
+ */
+
+/* —— Rendering & base —— */
+html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+::selection {
+    background: rgba(249, 115, 22, 0.35);
+    color: #fff;
+}
+
+[data-theme="light"] ::selection {
+    background: rgba(249, 115, 22, 0.25);
+    color: #0f172a;
+}
+
+/* —— Scrollbars (unified) —— */
+::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(249, 115, 22, 0.85), rgba(234, 88, 12, 0.85));
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #fb923c, #ea580c);
+}
+
+/* —— Focus & accessibility —— */
+:focus {
+    outline: none;
+}
+
+:focus-visible {
+    outline: 2px solid var(--primary, #f97316);
+    outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+.nav-item:focus-visible,
+.hrms-nav-item:focus-visible,
+[role="button"]:focus-visible {
+    outline-offset: 3px;
+}
+
+/* —— Typography rhythm —— */
+h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+}
+
+p, .modal-body, .panel, .card-body {
+    line-height: 1.55;
+}
+
+small,
+.stat-label,
+.stat-title,
+.nav-label,
+.hrms-lbl {
+    letter-spacing: 0.04em;
+}
+
+/* —— Cards & panels —— */
+.stat-card,
+.stat-box,
+.panel,
+.card,
+.content-card,
+.candidate-card,
+.lead-card,
+.table-container,
+.control-panel,
+.hrms-user-chip {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.stat-card:hover,
+.stat-box:hover,
+.candidate-card:hover,
+.lead-card:hover {
+    transform: translateY(-1px);
+}
+
+.stat-card,
+.stat-box,
+.panel,
+.card,
+.content-card,
+.table-container {
+    box-shadow: var(--shadow-md, 0 10px 15px -3px rgba(0, 0, 0, 0.3));
+}
+
+/* —— Buttons —— */
+.btn,
+.modal-btn,
+.login-btn,
+button[type="submit"]:not(.hrms-nav-item):not(.nav-item) {
+    transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.btn:hover:not(:disabled),
+.modal-btn:hover:not(:disabled),
+.login-btn:hover:not(:disabled) {
+    filter: brightness(1.06);
+}
+
+.btn:active:not(:disabled),
+.modal-btn:active:not(:disabled),
+.login-btn:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.btn:disabled,
+.modal-btn:disabled,
+button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.btn-primary,
+.modal-btn-primary,
+.btn-success,
+.modal-btn-success {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.btn-primary:hover,
+.modal-btn-primary:hover,
+.btn-success:hover,
+.modal-btn-success:hover {
+    box-shadow: 0 6px 20px rgba(249, 115, 22, 0.25);
+}
+
+/* —— Form controls —— */
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea,
+.form-control,
+.search-box input,
+.filter-select {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):hover,
+select:hover,
+textarea:hover,
+.form-control:hover {
+    border-color: rgba(249, 115, 22, 0.35);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):focus,
+select:focus,
+textarea:focus,
+.form-control:focus,
+.search-box input:focus {
+    border-color: var(--primary, #f97316) !important;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-muted, #94a3b8);
+    opacity: 0.85;
+}
+
+/* Autofill (dark portals) */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--text-primary, #fff);
+    -webkit-box-shadow: 0 0 0 1000px rgba(15, 21, 36, 0.95) inset;
+    transition: background-color 9999s ease-out 0s;
+}
+
+[data-theme="light"] input:-webkit-autofill,
+[data-theme="light"] input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #0f172a;
+    -webkit-box-shadow: 0 0 0 1000px #f8fafc inset;
+}
+
+/* —— Tables —— */
+table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+thead th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--text-muted, #94a3b8);
+}
+
+tbody tr {
+    transition: background 0.15s ease;
+}
+
+tbody tr:hover {
+    background: rgba(249, 115, 22, 0.06);
+}
+
+tbody td {
+    vertical-align: middle;
+}
+
+/* —— Sidebar & nav —— */
+.sidebar,
+.hrms-sidebar {
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35);
+}
+
+.nav-item,
+.hrms-nav-item,
+.sidebar-nav a {
+    transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.nav-item.active,
+.hrms-nav-item.active {
+    font-weight: 600;
+}
+
+.nav-item:active:not(.active),
+.hrms-nav-item:active:not(.active) {
+    transform: scale(0.99);
+}
+
+/* —— Modals —— */
+.modal-overlay {
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    animation: portalFadeIn 0.2s ease;
+}
+
+.modal,
+.modal-content {
+    animation: portalModalIn 0.28s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+@keyframes portalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes portalModalIn {
+    from {
+        opacity: 0;
+        transform: scale(0.96) translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--border-light, rgba(255, 255, 255, 0.08));
+}
+
+.modal-close {
+    transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+    border-radius: 8px;
+}
+
+.modal-close:hover {
+    transform: rotate(90deg);
+}
+
+/* —— Toasts —— */
+.toast-container {
+    pointer-events: none;
+}
+
+.toast {
+    pointer-events: auto;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-weight: 500;
+    line-height: 1.45;
+}
+
+.toast.show {
+    animation: portalToastIn 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+@keyframes portalToastIn {
+    from {
+        opacity: 0;
+        transform: translateX(24px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* —— Badges & pills —— */
+.badge,
+.status-badge,
+.status-pill,
+.role-badge,
+.nav-badge,
+.stage-new,
+[class*="stage-"],
+[class*="badge"] {
+    font-feature-settings: "tnum";
+}
+
+.status-badge,
+.status-pill,
+.role-badge {
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+/* —— Search & filters —— */
+.search-box {
+    transition: box-shadow 0.2s ease;
+}
+
+.search-box:focus-within {
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+}
+
+.search-box i {
+    opacity: 0.7;
+    transition: color 0.2s ease;
+}
+
+.search-box:focus-within i {
+    color: var(--primary, #f97316);
+    opacity: 1;
+}
+
+/* —— Action icons —— */
+.action-icon,
+.action-icons .action-icon {
+    transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.action-icon:hover {
+    transform: scale(1.08);
+}
+
+.action-icon:active {
+    transform: scale(0.95);
+}
+
+/* —— Loading states —— */
+.loading-state,
+.loading-spinner,
+.fa-spinner {
+    opacity: 0.9;
+}
+
+.loading-state p {
+    color: var(--text-muted, #94a3b8);
+    margin-top: 12px;
+    font-size: 14px;
+}
+
+/* —— Admin portal view banner —— */
+#adminPortalBanner {
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.02em;
+    backdrop-filter: blur(8px);
+}
+
+body:has(#adminPortalBanner) {
+    scroll-padding-top: 48px;
+}
+
+/* —— Images & media —— */
+img, video {
+    max-width: 100%;
+    height: auto;
+}
+
+/* —— Reduced motion —— */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .bg-orb {
+        animation: none !important;
+    }
+}
+
+/* —— Responsive touch targets —— */
+@media (max-width: 768px) {
+    .btn,
+    .nav-item,
+    .hrms-nav-item,
+    .action-icon,
+    select,
+    .filter-select {
+        min-height: 44px;
+    }
+
+    .modal {
+        max-height: 92vh;
+        margin: 12px;
+    }
+
+    .toast-container {
+        left: 12px;
+        right: 12px;
+        max-width: none;
+    }
+}
+
+/* —— Print —— */
+@media print {
+    .sidebar,
+    .hrms-sidebar,
+    .bg-orb,
+    .toast-container,
+    #adminPortalBanner {
+        display: none !important;
+    }
+
+    .main-content,
+    .hrms-main {
+        margin-left: 0 !important;
+    }
+}

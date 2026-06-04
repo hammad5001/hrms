@@ -1,0 +1,1298 @@
+user_id,name,check_in,check_out,hours,status,has_check_out
+1,S.Naqi,18:38,---,0.00,Late (38min),No
+2,Ahmed Sabaoon,---,---,0.00,Absent,No
+3,ZaCk,---,---,0.00,Absent,No
+4,Muhammad Ehtesham,17:36,---,0.00,Present,No
+5,"Abdullah,Ishar",---,---,0.00,Absent,No
+6,Hassan Asif,18:47,---,0.00,Late (47min),No
+7,Waqar Ahmed,17:47,---,0.00,Present,No
+8,Maswar Minhas,17:23,---,0.00,Present,No
+9,"Amir,Shareef",---,---,0.00,Absent,No
+10,Hamza Farooq,17:55,---,0.00,Present,No
+11,Muhammad Umer,17:37,---,0.00,Present,No
+12,Hanna Emmanuel,---,---,0.00,Absent,No
+13,"Hilal,Muneeb",---,---,0.00,Absent,No
+14,"Haroon,Khan",---,---,0.00,Absent,No
+15,"Ahmed,Noor",---,---,0.00,Absent,No
+16,M.Uzair,---,---,0.00,Absent,No
+17,"M,Tanees",---,---,0.00,Absent,No
+18,Arslan Basharat,---,---,0.00,Absent,No
+19,Maryam Sadheer,17:48,---,0.00,Present,No
+20,Ahmad Farid,17:51,---,0.00,Present,No
+21,"Muhammad,Rehman",---,---,0.00,Absent,No
+22,"Zubash,Akhlaq",---,---,0.00,Absent,No
+23,"Adil,Mehmood",---,---,0.00,Absent,No
+24,"Naeem,Sajjad",---,---,0.00,Absent,No
+25,"Sharyar,Manzoor",---,---,0.00,Absent,No
+26,Asghar Ayub,---,---,0.00,Absent,No
+27,Ali Hassnain,---,---,0.00,Absent,No
+28,Shehroz Ahmed,---,---,0.00,Absent,No
+29,Nadima Mehr,---,---,0.00,Absent,No
+30,"Munzir,Ali",---,---,0.00,Absent,No
+31,Jahangir Ahmed,---,---,0.00,Absent,No
+32,"Adna,Safeer",17:55,---,0.00,Present,No
+33,Farhan Khaliq,---,---,0.00,Absent,No
+34,"Shahzad,Ali",---,---,0.00,Absent,No
+35,Mehboob Ali,17:40,---,0.00,Present,No
+36,"Saqlain,Arshad",---,---,0.00,Absent,No
+37,Zimmel Shahid,---,---,0.00,Absent,No
+38,Malik Abdullah Siddique,17:34,---,0.00,Present,No
+39,Arslan Abbasi,17:56,---,0.00,Present,No
+40,Malik Umer Jalal,---,---,0.00,Absent,No
+41,"Musharaf,Islam",17:50,---,0.00,Present,No
+42,"Ahsan,Ali",---,---,0.00,Absent,No
+43,"Zain,Mughal",---,---,0.00,Absent,No
+44,"Wasif,Abbasi",---,---,0.00,Absent,No
+45,"Musaddiq,hussain",17:41,---,0.00,Present,No
+46,Hooria Shahid,---,---,0.00,Absent,No
+47,Hassan Multani,---,---,0.00,Absent,No
+48,Khan,---,---,0.00,Absent,No
+49,Shujja Uddin,17:57,---,0.00,Present,No
+50,Ali Bashir,---,---,0.00,Absent,No
+51,Noman Raheel,---,---,0.00,Absent,No
+52,Murtaza Jadoon,---,---,0.00,Absent,No
+53,Zara,---,---,0.00,Absent,No
+54,"Muhammad,Hassan",17:57,---,0.00,Present,No
+55,"Ahmad,Fawad",17:45,---,0.00,Present,No
+56,M.Gulzar,---,---,0.00,Absent,No
+57,Anees,---,---,0.00,Absent,No
+58,Mubashir,17:34,---,0.00,Present,No
+59,M.Ibrar,17:55,---,0.00,Present,No
+60,"Iftikhar,Abbasi",---,---,0.00,Absent,No
+61,"Hafiz,Arslan",---,---,0.00,Absent,No
+62,"Junaid,Liaqat",---,---,0.00,Absent,No
+63,"Nabeel,Iftikhar",---,---,0.00,Absent,No
+64,"M,Zubair",18:03,21:50,3.79,Present,Yes
+65,"Aniqa,Malik",---,---,0.00,Absent,No
+66,"Sebghat,Ullah",---,---,0.00,Absent,No
+67,"KhawAja,Shanawar",---,---,0.00,Absent,No
+68,"Adeel,Khurshid",17:20,---,0.00,Present,No
+69,"Muhaib,Ullah",---,---,0.00,Absent,No
+70,"Sharoon,qamar",---,---,0.00,Absent,No
+71,"Abdullah,Khan",---,---,0.00,Absent,No
+72,"Hammad,Jamil",---,---,0.00,Absent,No
+73,"Anwar,Zaibshah",---,---,0.00,Absent,No
+74,"Abdul,Wahab",---,---,0.00,Absent,No
+75,"Sharjeel,Ramazan",---,---,0.00,Absent,No
+76,"S,Ali,kazmi",---,---,0.00,Absent,No
+77,"Abdul,Wahid",---,---,0.00,Absent,No
+78,"Malik,Hamza",---,---,0.00,Absent,No
+79,"Hammad,Liaqat",---,---,0.00,Absent,No
+80,"Osama,Hadi",---,---,0.00,Absent,No
+81,"Fasahat,Saghir",---,---,0.00,Absent,No
+82,"M,Shoaib",19:21,---,0.00,Late (81min),No
+83,Aliha,---,---,0.00,Absent,No
+84,"M,Hassan,Shahzad",---,---,0.00,Absent,No
+85,"Faiq,Malik",---,---,0.00,Absent,No
+86,Elmer,---,---,0.00,Absent,No
+87,"Alven,Sarfraz",---,---,0.00,Absent,No
+88,"Noureen,Akhtar",---,---,0.00,Absent,No
+89,"Waleed,Nisar",---,---,0.00,Absent,No
+90,"Afzaal,Ahmed",18:02,---,0.00,Present,No
+91,"Abdul,Qadir",---,---,0.00,Absent,No
+92,"Muhammad,Wasi",---,---,0.00,Absent,No
+93,"Sawera,Sajjad",---,---,0.00,Absent,No
+94,"Kaleem,baig",---,---,0.00,Absent,No
+95,"Adnan,Tariq",---,---,0.00,Absent,No
+96,"Umar,Qadeer",---,---,0.00,Absent,No
+97,"Basim,Ahmad",---,---,0.00,Absent,No
+98,"Hafeez,Ullah",18:00,---,0.00,Present,No
+99,"Naila,Kousar",---,---,0.00,Absent,No
+100,"Hamza,Saif",---,---,0.00,Absent,No
+101,"Zohaib,Ishfaq",---,---,0.00,Absent,No
+102,"Waqas,Bali",17:54,---,0.00,Present,No
+103,"Tauqeer,Abbasi",---,---,0.00,Absent,No
+104,"Sattar,Ali,Shah",---,---,0.00,Absent,No
+105,"Ehtisham,Abbasi",---,---,0.00,Absent,No
+106,"Zohaib,Javed",17:52,---,0.00,Present,No
+107,"Kashan,Akhtar",---,---,0.00,Absent,No
+108,"Imran,Khan",---,---,0.00,Absent,No
+109,"Jawad,Javed",---,---,0.00,Absent,No
+110,"Shaheryar,Javaid",---,---,0.00,Absent,No
+111,"Zain,Ijaz",---,---,0.00,Absent,No
+112,"Awais,Jahangir",17:44,---,0.00,Present,No
+113,"Muzamil,Khan",---,---,0.00,Absent,No
+114,"Farha,Raheel",---,---,0.00,Absent,No
+115,"Sarah,Hassan",---,---,0.00,Absent,No
+116,"Arooj,Malek",---,---,0.00,Absent,No
+117,"Inshal,Zohaib",---,---,0.00,Absent,No
+118,"Asma,Hameed",---,---,0.00,Absent,No
+119,"Shahgee,kazmi",---,---,0.00,Absent,No
+120,"Asadullah,BugTi",---,---,0.00,Absent,No
+121,"Naeem,Nadeem",---,---,0.00,Absent,No
+122,"Hussain,Kazmi",---,---,0.00,Absent,No
+123,"Mohsin,Nazir",17:40,---,0.00,Present,No
+124,"Dayaan,Ahmer",---,---,0.00,Absent,No
+125,"Bushra,qaiser",---,---,0.00,Absent,No
+126,"Sana,Qaisar",---,---,0.00,Absent,No
+127,"Shaffat,abbasi",18:04,---,0.00,Present,No
+128,"Arooj,Qamer",---,---,0.00,Absent,No
+129,"Abdul,Wajid,Shah",---,---,0.00,Absent,No
+130,"Usman,ayaz",---,---,0.00,Absent,No
+131,Aryan Amir,---,---,0.00,Absent,No
+132,Qadir Joshi,---,---,0.00,Absent,No
+133,Huraira Kamal,---,---,0.00,Absent,No
+134,Saqib Ali,---,---,0.00,Absent,No
+135,"Muhammad,Akmal",16:46,---,0.00,Present,No
+136,"Abdullah,Riaz",17:33,---,0.00,Present,No
+137,"Muhammad,Ibrar",18:20,---,0.00,Late (20min),No
+138,"Hira,Shah",17:23,---,0.00,Present,No
+139,"Muneeb,Khan",---,---,0.00,Absent,No
+140,"Shahan,Akbar",---,---,0.00,Absent,No
+141,"Noman,Naseer",18:58,---,0.00,Late (58min),No
+142,"Talha,Saeed",---,---,0.00,Absent,No
+143,"Faiq,Bin,Mazhar",---,---,0.00,Absent,No
+144,"Simran,Sabir",---,---,0.00,Absent,No
+145,"Sholmit,Nazir",---,---,0.00,Absent,No
+146,"Bilal,Noor",---,---,0.00,Absent,No
+147,"Zohaib,Rajpoot",---,---,0.00,Absent,No
+148,"Ateeb,Khan",---,---,0.00,Absent,No
+149,"Ester,Francis",---,---,0.00,Absent,No
+150,"Haroon,Ayub",---,---,0.00,Absent,No
+151,"Muhammad,Rohan",---,---,0.00,Absent,No
+152,"Mujtaba,Shah",---,---,0.00,Absent,No
+153,"Taha,Shaeikh",---,---,0.00,Absent,No
+154,"Daim,Wadood",---,---,0.00,Absent,No
+155,"Hamza,Areeb",---,---,0.00,Absent,No
+156,"Hamza,Aliyan",17:56,---,0.00,Present,No
+157,"Anas,Ali",17:49,---,0.00,Present,No
+158,"Hassan,Satti",---,---,0.00,Absent,No
+159,"Saeed,Gul",---,---,0.00,Absent,No
+160,"Naina,Pervaiz",---,---,0.00,Absent,No
+161,"Ebad,Bin,Sher",---,---,0.00,Absent,No
+162,"Muhammad,Ijaz",---,---,0.00,Absent,No
+163,"Amar,Abbas",---,---,0.00,Absent,No
+164,"Ryan,Junaid,Satti",---,---,0.00,Absent,No
+165,"Arsalan,Zahid",---,---,0.00,Absent,No
+166,"Syed,Hasnain,Ali",---,---,0.00,Absent,No
+167,"Ali,Abbasi",---,---,0.00,Absent,No
+168,"Arif,Hussain",---,---,0.00,Absent,No
+169,"Rehan,Malik",---,---,0.00,Absent,No
+170,"Zoha,Noor",---,---,0.00,Absent,No
+171,"Syed,Hamza",---,---,0.00,Absent,No
+172,Haroon,17:38,---,0.00,Present,No
+173,"Ramsha,Abbasi",---,---,0.00,Absent,No
+174,"Muhammad,Haseeb",---,---,0.00,Absent,No
+175,"Ahmad,Fawad",---,---,0.00,Absent,No
+176,"Azan,Ali",---,---,0.00,Absent,No
+177,"Awaisa,Imtiaz",---,---,0.00,Absent,No
+178,"Muhammad,Qamar",---,---,0.00,Absent,No
+179,"Sidra,Batool",---,---,0.00,Absent,No
+180,"Talha,Abbasi",---,---,0.00,Absent,No
+181,"Hassan,Shahzad",---,---,0.00,Absent,No
+182,Hussnain Ali,---,---,0.00,Absent,No
+183,Hammad Akhtar Qureshi,---,---,0.00,Absent,No
+184,Mustaqeem Hassan,---,---,0.00,Absent,No
+185,Ahmad Siddiqui,---,---,0.00,Absent,No
+186,Umer Javed Dar,---,---,0.00,Absent,No
+187,Muhammad Ibaad Hameed,---,---,0.00,Absent,No
+188,Javed Ali,---,---,0.00,Absent,No
+189,Osama Saeed,---,---,0.00,Absent,No
+190,Uzair Akhtar,17:42,---,0.00,Present,No
+191,Arslan Azhar,---,---,0.00,Absent,No
+192,"Atique,Albert",---,---,0.00,Absent,No
+193,"Ahsan,Imtiaz",---,---,0.00,Absent,No
+194,"Sajeel,Mir",---,---,0.00,Absent,No
+195,"Rimsha,Shamroz",---,---,0.00,Absent,No
+196,"M.Umar,Hassan",---,---,0.00,Absent,No
+197,"Muhammad,Souman",---,---,0.00,Absent,No
+198,"Izhar,Hassan",---,---,0.00,Absent,No
+199,"Faraz,Ahmed",---,---,0.00,Absent,No
+200,"Wishal,Arif",---,---,0.00,Absent,No
+201,"Muhammad,Tayyab",17:33,---,0.00,Present,No
+202,"M.Zeeshan,ASif",---,---,0.00,Absent,No
+203,"Basil,Ali",---,---,0.00,Absent,No
+204,"Muhammad,Abbas",---,---,0.00,Absent,No
+205,"Asad,Mehmood",---,---,0.00,Absent,No
+206,"Muhammad,Haider",---,---,0.00,Absent,No
+207,"Muhammad,Rameez",---,---,0.00,Absent,No
+208,"Mushaf,Sabeeh",---,---,0.00,Absent,No
+209,"Hamza,Hassan",17:19,---,0.00,Present,No
+210,"Umer,Sharif",---,---,0.00,Absent,No
+211,"Afzaal,Ahmed",---,---,0.00,Absent,No
+212,"Shehryar,Mazhar",---,---,0.00,Absent,No
+213,"Muhammad,Asad",---,---,0.00,Absent,No
+214,"Umer,Awais",---,---,0.00,Absent,No
+215,"Adi,Farooq",---,---,0.00,Absent,No
+216,"Hamna,Khursheed",---,---,0.00,Absent,No
+217,"Muneeb,",---,---,0.00,Absent,No
+218,"Saad,Abdullah",---,---,0.00,Absent,No
+219,"Farhan,Ajaz",---,---,0.00,Absent,No
+220,"Natasha,Shakeel",---,---,0.00,Absent,No
+221,"Muhammad,Zakria",---,---,0.00,Absent,No
+222,"Muzzamil,Munir",---,---,0.00,Absent,No
+223,"Rohail,Ishfaq",---,---,0.00,Absent,No
+224,"Rubab,Tariq",---,---,0.00,Absent,No
+225,"Muhammad,Usman",---,---,0.00,Absent,No
+226,"Sani,Yousuf",---,---,0.00,Absent,No
+227,"Muhammad,Rehan",17:56,---,0.00,Present,No
+228,"Zakir,Hussain",17:49,---,0.00,Present,No
+229,"Muhammad,Maaz",---,---,0.00,Absent,No
+230,"Gulistan,Malik",---,---,0.00,Absent,No
+231,"Tipusultan,Awan",---,---,0.00,Absent,No
+232,"Rehan,Hussain",---,---,0.00,Absent,No
+233,"Yasin,Ahmed",---,---,0.00,Absent,No
+234,"Muhammad,ghayas",---,---,0.00,Absent,No
+235,"Haider,Ali",---,---,0.00,Absent,No
+236,"Ayesha,Mustafa",---,---,0.00,Absent,No
+237,"Muhammad,Mannan",---,---,0.00,Absent,No
+238,"Haseeb,Sajjad",---,---,0.00,Absent,No
+239,"Muhammad,Umer",---,---,0.00,Absent,No
+240,"Shanawar,Parwiz",---,---,0.00,Absent,No
+241,"Tasif,Amir",---,---,0.00,Absent,No
+242,"Syed,Waqar",21:32,---,0.00,Late (212min),No
+243,"Ishaq,Ahmed",22:11,---,0.00,Late (251min),No
+244,"Ahmed,Ahsun",---,---,0.00,Absent,No
+245,"Faraz,Malik",---,---,0.00,Absent,No
+246,"Alyan,Nasir",---,---,0.00,Absent,No
+247,"Arbaz,Malik",---,---,0.00,Absent,No
+248,"S,Muhammad,Shoaib",---,---,0.00,Absent,No
+249,"Alyan,Ali",17:34,---,0.00,Present,No
+250,"Ibrahim,Khan",---,---,0.00,Absent,No
+251,"Waheed,Ullah",---,---,0.00,Absent,No
+252,"Awaiz,Ashir",---,---,0.00,Absent,No
+253,"Ali,Sadra,Naderi",---,---,0.00,Absent,No
+254,"Marwa,Hameed",---,---,0.00,Absent,No
+255,"Muhammad,Bin,Imran",---,---,0.00,Absent,No
+256,MuhammadAbubakar,---,---,0.00,Absent,No
+257,"Haroon,Khan",---,---,0.00,Absent,No
+258,"Sabeel,Abrar",---,---,0.00,Absent,No
+259,"Talha,Saeed",---,---,0.00,Absent,No
+260,"Bakht,Ali",---,---,0.00,Absent,No
+261,"Boez,Tahir",---,---,0.00,Absent,No
+262,"Gulnaz,Abbasi",---,---,0.00,Absent,No
+263,"Nida,Kawan",---,---,0.00,Absent,No
+264,"Maham,Rajput",---,---,0.00,Absent,No
+265,"Yasir,Khan",---,---,0.00,Absent,No
+266,"Shahwaiz,Nawaz",---,---,0.00,Absent,No
+267,"Raees,Pervaiz",---,---,0.00,Absent,No
+268,"Muhammad,Qadir",---,---,0.00,Absent,No
+269,"Rabia,Ghafoor",---,---,0.00,Absent,No
+270,"Moheen,Asghar",17:17,---,0.00,Present,No
+271,"Musa,Sultan",---,---,0.00,Absent,No
+272,"Leeza,Murad",---,---,0.00,Absent,No
+273,"Atif,Shahzad",17:39,17:39,0.00,Present,Yes
+274,"Qaiser,Ali",---,---,0.00,Absent,No
+275,"Adnan,Nowroz",---,---,0.00,Absent,No
+276,"Raja,Adnan,Kiyani",---,---,0.00,Absent,No
+277,"Amama,Abbasi",---,---,0.00,Absent,No
+278,"Fazal,Ahmed",---,---,0.00,Absent,No
+279,"Jalil,Ur,Rehman",---,---,0.00,Absent,No
+280,"Zeeshan,Latif",17:17,---,0.00,Present,No
+281,"Ubaid,Abbasi",18:13,---,0.00,Late (13min),No
+282,"Abdul,Moiz",---,---,0.00,Absent,No
+283,"Afaq,Ali",---,---,0.00,Absent,No
+284,"Malik,Abdullah,Altaf",---,---,0.00,Absent,No
+285,"Habib,Ullah",---,---,0.00,Absent,No
+286,Nouman Abbasi,---,---,0.00,Absent,No
+287,Muhammad Naveed,---,---,0.00,Absent,No
+288,Fowad Abdul Hameed,---,---,0.00,Absent,No
+289,Muneeb Ur Rehman,---,---,0.00,Absent,No
+290,Ali Awais,---,---,0.00,Absent,No
+291,Tayyab Mughal,---,---,0.00,Absent,No
+292,Abdul Momin,---,---,0.00,Absent,No
+293,Bakhtawar Khan,---,---,0.00,Absent,No
+294,Shanifa shahjahan,17:14,---,0.00,Present,No
+295,"Naeem,Razakhan",---,---,0.00,Absent,No
+296,"Usman,Munir",---,---,0.00,Absent,No
+297,"Faisal,hammad",---,---,0.00,Absent,No
+298,Mamoon Iftakhar,---,---,0.00,Absent,No
+299,299,---,---,0.00,Absent,No
+300,300,---,---,0.00,Absent,No
+301,301,---,---,0.00,Absent,No
+302,302,---,---,0.00,Absent,No
+303,Irfan Nayab Khel,---,---,0.00,Absent,No
+304,Aneeta,---,---,0.00,Absent,No
+305,305,---,---,0.00,Absent,No
+306,306,---,---,0.00,Absent,No
+307,307,---,---,0.00,Absent,No
+308,308,---,---,0.00,Absent,No
+309,Abdul AHAD,---,---,0.00,Absent,No
+310,310,---,---,0.00,Absent,No
+311,Safran,---,---,0.00,Absent,No
+312,312,---,---,0.00,Absent,No
+313,Anas,---,---,0.00,Absent,No
+314,Sabahat,17:04,---,0.00,Present,No
+315,315,---,---,0.00,Absent,No
+316,316,---,---,0.00,Absent,No
+317,Abeer Taj,---,---,0.00,Absent,No
+318,318,---,---,0.00,Absent,No
+319,Samreen Iqbal,---,---,0.00,Absent,No
+320,Ayyad Baig,---,---,0.00,Absent,No
+321,321,---,---,0.00,Absent,No
+322,322,---,---,0.00,Absent,No
+323,Junaid Jahanzaib,17:46,---,0.00,Present,No
+324,Usman,---,---,0.00,Absent,No
+325,Ahmed Raza,17:44,---,0.00,Present,No
+326,Nayab,---,---,0.00,Absent,No
+327,Asfand Yar,---,---,0.00,Absent,No
+328,Ubaid,---,---,0.00,Absent,No
+329,Mustafa Shah,---,---,0.00,Absent,No
+330,Meer Balaaj Mirza,---,---,0.00,Absent,No
+331,Aqdas Bali,17:42,---,0.00,Present,No
+332,332,---,---,0.00,Absent,No
+333,Jawad Shah,---,---,0.00,Absent,No
+334,Abdul Basit,---,---,0.00,Absent,No
+335,Asif Ali,17:56,---,0.00,Present,No
+336,336,---,---,0.00,Absent,No
+337,Umar,---,---,0.00,Absent,No
+338,Zohaib Tariq,---,---,0.00,Absent,No
+339,Zainab,---,---,0.00,Absent,No
+340,Shayan Fiaz,---,---,0.00,Absent,No
+341,Adnan,---,---,0.00,Absent,No
+342,342,---,---,0.00,Absent,No
+343,Abdullah Malik,---,---,0.00,Absent,No
+344,Muhammad Basit,---,---,0.00,Absent,No
+345,Tahir Mehmood,---,---,0.00,Absent,No
+346,Awais Sharif,---,---,0.00,Absent,No
+347,Danish Abbas,---,---,0.00,Absent,No
+348,Safaniah,17:43,---,0.00,Present,No
+349,Abdul Wahab,19:09,---,0.00,Late (69min),No
+350,Shehzad,---,---,0.00,Absent,No
+351,Shehryar,17:27,---,0.00,Present,No
+352,Arafat Abbasi,---,---,0.00,Absent,No
+353,Sherdil Mubarik,---,---,0.00,Absent,No
+354,Abdul Wahab,---,---,0.00,Absent,No
+355,Muhammad Ahmad Khan,---,---,0.00,Absent,No
+356,SAFWAN ULLAH,---,---,0.00,Absent,No
+357,Qaim Ali Shigri,---,---,0.00,Absent,No
+358,Muhammad Ehtisham Faisal,---,---,0.00,Absent,No
+359,Muhammad Azan Ali,---,---,0.00,Absent,No
+360,Hashim Nawaz Abbasi,---,---,0.00,Absent,No
+361,Ali Sheharyar,---,---,0.00,Absent,No
+362,Noman Qayyum,---,---,0.00,Absent,No
+363,Muhammad Kashif Syed,---,---,0.00,Absent,No
+364,Muhammad Faizan,---,---,0.00,Absent,No
+365,Farhan Shoukat,---,---,0.00,Absent,No
+366,Zeeshan Ali,18:01,---,0.00,Present,No
+367,Tahir Ahmad,---,---,0.00,Absent,No
+368,Urwa Riaz,---,---,0.00,Absent,No
+369,Najam Shafayat,---,---,0.00,Absent,No
+370,Awais Ahmed Ashfaq,---,---,0.00,Absent,No
+371,Farhan Hassan,---,---,0.00,Absent,No
+372,Daniyal Ahmed,---,---,0.00,Absent,No
+373,Umar Zaman,---,---,0.00,Absent,No
+374,Asif Khan Rokhri,---,---,0.00,Absent,No
+375,Wishal Imtiaz,---,---,0.00,Absent,No
+376,Uzair Sayyam,---,---,0.00,Absent,No
+377,Najam Shafayat Abbasi,---,---,0.00,Absent,No
+378,Awais Ahmed Ashfaq,---,---,0.00,Absent,No
+379,Purwa Riaz,---,---,0.00,Absent,No
+380,Ibadurrehman,---,---,0.00,Absent,No
+381,Saim,17:37,---,0.00,Present,No
+382,Arsalan,---,---,0.00,Absent,No
+383,Mhassan,---,---,0.00,Absent,No
+384,Hammad khan,---,---,0.00,Absent,No
+385,Wishal,---,---,0.00,Absent,No
+386,Muhammad Hamza,---,---,0.00,Absent,No
+387,Nancy,---,---,0.00,Absent,No
+388,Anil,---,---,0.00,Absent,No
+389,Anwar,---,---,0.00,Absent,No
+390,Junaid ullah,---,---,0.00,Absent,No
+391,Dawood,---,---,0.00,Absent,No
+392,Haidershahid,---,---,0.00,Absent,No
+393,AliZain,---,---,0.00,Absent,No
+394,HasnainHaider,---,---,0.00,Absent,No
+395,Ramsha,17:35,---,0.00,Present,No
+396,M.Hasnain,---,---,0.00,Absent,No
+397,"Ahmad,Zakir",---,---,0.00,Absent,No
+398,M.Sharyar,---,---,0.00,Absent,No
+399,Muhammad Umar Wahab,---,---,0.00,Absent,No
+400,Danish,---,---,0.00,Absent,No
+401,Aqeel khan,---,---,0.00,Absent,No
+402,Abdul Rehman,18:01,---,0.00,Present,No
+403,Muhammad Irfan,---,---,0.00,Absent,No
+404,Zeeshan Ahmed,---,---,0.00,Absent,No
+405,Hasnat Amir,---,---,0.00,Absent,No
+406,Shoukat Ali,---,---,0.00,Absent,No
+407,Muhammad Zeeshan,---,---,0.00,Absent,No
+408,Shahrukh Fiaz,---,---,0.00,Absent,No
+409,Muhammad Abdullah Usman,---,---,0.00,Absent,No
+410,Akhtasham Ahmed,---,---,0.00,Absent,No
+411,Abdul Ghafoor,18:00,18:00,0.00,Present,Yes
+412,Zeeshan Ali,---,---,0.00,Absent,No
+413,SulemanRehmanALi,---,---,0.00,Absent,No
+414,Syed Turab Ali Kazmi,---,---,0.00,Absent,No
+415,Ahmad shamoon,---,---,0.00,Absent,No
+416,Muhammad Kashan,---,---,0.00,Absent,No
+417,Arbaz,---,---,0.00,Absent,No
+418,Azlankhan,---,---,0.00,Absent,No
+419,Qadeer,---,---,0.00,Absent,No
+420,LaibaEman,---,---,0.00,Absent,No
+421,Abdullah,---,---,0.00,Absent,No
+422,Zain,---,---,0.00,Absent,No
+423,Mohsin,---,---,0.00,Absent,No
+424,Haseebhaider,17:37,---,0.00,Present,No
+425,Safiuddin,---,---,0.00,Absent,No
+426,Aamirwaris,---,---,0.00,Absent,No
+427,Ruhbham,---,---,0.00,Absent,No
+428,Saairakhter,---,---,0.00,Absent,No
+429,Abdullahsajid,---,---,0.00,Absent,No
+430,Arsalanqureshi,---,---,0.00,Absent,No
+431,Ehtishamkhaleeq,---,---,0.00,Absent,No
+432,Saadabdulrehman,17:33,---,0.00,Present,No
+433,Ammad,---,---,0.00,Absent,No
+434,Moheeb,---,---,0.00,Absent,No
+435,Haseebabbasi,---,---,0.00,Absent,No
+436,Abdulrehmanmalik,---,---,0.00,Absent,No
+437,Aamirali,---,---,0.00,Absent,No
+438,Ambersiddique,---,---,0.00,Absent,No
+439,Cshman,---,---,0.00,Absent,No
+440,Sumat,---,---,0.00,Absent,No
+441,Danishkhan,17:32,---,0.00,Present,No
+442,Ayesha,---,---,0.00,Absent,No
+443,Zaighum,---,---,0.00,Absent,No
+444,Ayeshamughal,---,---,0.00,Absent,No
+445,Taimoorali,---,---,0.00,Absent,No
+446,Kashifali,---,---,0.00,Absent,No
+447,Saba,---,---,0.00,Absent,No
+448,Hussanain,---,---,0.00,Absent,No
+449,Kiran,17:30,---,0.00,Present,No
+450,Subhan,---,---,0.00,Absent,No
+451,Suleman,17:30,---,0.00,Present,No
+452,Noman,---,---,0.00,Absent,No
+453,Adeelaslam,---,---,0.00,Absent,No
+454,Ahmadhashmi,---,---,0.00,Absent,No
+455,Msalman,---,---,0.00,Absent,No
+456,Nida,---,---,0.00,Absent,No
+457,Neelam,---,---,0.00,Absent,No
+458,Hina,---,---,0.00,Absent,No
+459,Zaratariq,---,---,0.00,Absent,No
+460,Ambar,---,---,0.00,Absent,No
+461,Aaqib,17:48,---,0.00,Present,No
+462,Yasir,---,---,0.00,Absent,No
+463,Shamsudin,---,---,0.00,Absent,No
+464,Hassan,18:02,---,0.00,Present,No
+465,Junaidyameen,---,---,0.00,Absent,No
+466,Aamirsohail,---,---,0.00,Absent,No
+467,Hamzanabbasi,---,---,0.00,Absent,No
+468,Sameer,---,---,0.00,Absent,No
+469,Sumat,---,---,0.00,Absent,No
+470,Umairayub,---,---,0.00,Absent,No
+471,Nidasha,17:31,---,0.00,Present,No
+472,SohamShahid,---,---,0.00,Absent,No
+473,NAEEMGul,---,---,0.00,Absent,No
+474,Chmshahryariqbal,17:06,17:09,0.06,Present,Yes
+475,Saimaahmed,---,---,0.00,Absent,No
+476,Ahmadbukhari,15:03,---,0.00,Present,No
+477,HaseebUsman,---,---,0.00,Absent,No
+478,MuhammadIbtisam,---,---,0.00,Absent,No
+479,MuhammadAbdullah,---,---,0.00,Absent,No
+480,AkashQiser,---,---,0.00,Absent,No
+481,GulZaman,---,---,0.00,Absent,No
+482,Uzairrasheed,---,---,0.00,Absent,No
+483,MuhammadZeeshanAli,---,---,0.00,Absent,No
+484,Malaika,---,---,0.00,Absent,No
+485,Saadsaeed,---,---,0.00,Absent,No
+486,Zahidmaken,---,---,0.00,Absent,No
+487,Usamasiraj,---,---,0.00,Absent,No
+488,Zeeshaniftikhar,---,---,0.00,Absent,No
+489,SyedKhubabshah,---,---,0.00,Absent,No
+490,MuhammadAli,---,---,0.00,Absent,No
+491,YusufKhan,---,---,0.00,Absent,No
+492,ShahmirKhan,---,---,0.00,Absent,No
+493,WaleedAbbasi,22:58,---,0.00,Late (298min),No
+494,AreebaHaroon,---,---,0.00,Absent,No
+495,RohaEjaz,---,---,0.00,Absent,No
+496,DanyalAhmed,---,---,0.00,Absent,No
+497,Sohafareed,18:45,---,0.00,Late (45min),No
+498,Samiiftikhar,17:56,---,0.00,Present,No
+499,Ziaurrehman,---,---,0.00,Absent,No
+500,MalikImran,---,---,0.00,Absent,No
+501,AbdulQadir,---,---,0.00,Absent,No
+502,UsamaMagray,---,---,0.00,Absent,No
+503,Shamsulhaq,---,---,0.00,Absent,No
+504,RubabMughal,---,---,0.00,Absent,No
+505,AmmarBinYasir,---,---,0.00,Absent,No
+506,IhsanUlhaq,---,---,0.00,Absent,No
+507,MuhammadTahir,17:49,---,0.00,Present,No
+508,NainaFareed,17:35,---,0.00,Present,No
+509,MuhammadAsif,18:03,---,0.00,Present,No
+510,MohsinAli,---,---,0.00,Absent,No
+511,ShakeelKhan,---,---,0.00,Absent,No
+512,MuhammadShoaib,---,---,0.00,Absent,No
+513,HamzaBilal,---,---,0.00,Absent,No
+514,RajaSalarAbbasi,---,---,0.00,Absent,No
+515,MugheesAbbas,---,---,0.00,Absent,No
+516,WaqarHameed,---,---,0.00,Absent,No
+517,MuhammadAzeem,17:51,---,0.00,Present,No
+518,SamarSaleem,---,---,0.00,Absent,No
+519,UzairAzam,---,---,0.00,Absent,No
+520,TauqeerUlhaq,---,---,0.00,Absent,No
+521,MuhammadObaid,---,---,0.00,Absent,No
+522,MalikKashif,19:46,---,0.00,Late (106min),No
+523,NabeelNadeemAhmed,---,---,0.00,Absent,No
+524,MuhammadHaris,---,---,0.00,Absent,No
+525,SobanQamar,---,---,0.00,Absent,No
+526,OsamaHaider,---,---,0.00,Absent,No
+527,SyedYahya,---,---,0.00,Absent,No
+528,AjazYousaf,---,---,0.00,Absent,No
+529,Nooruleeman,---,---,0.00,Absent,No
+530,MuhammadAboozar,---,---,0.00,Absent,No
+531,AbdulWahab,---,---,0.00,Absent,No
+532,Shehryar,17:45,17:45,0.00,Present,Yes
+533,MariaKhan,---,---,0.00,Absent,No
+534,Asadzafar,---,---,0.00,Absent,No
+535,Mubashirsabir,17:47,---,0.00,Present,No
+536,Mwajahat,---,---,0.00,Absent,No
+537,HasanAli,---,---,0.00,Absent,No
+538,AimanAbbasi,---,---,0.00,Absent,No
+539,IqtidarAli,---,---,0.00,Absent,No
+540,RohaibHussain,17:50,---,0.00,Present,No
+541,Danishrehman,17:48,---,0.00,Present,No
+542,MuhammadJunaid,---,---,0.00,Absent,No
+543,Azkarauf,---,---,0.00,Absent,No
+544,ShamilKhan,18:20,---,0.00,Late (20min),No
+545,MadahHassnain,---,---,0.00,Absent,No
+546,AbidHussain,---,---,0.00,Absent,No
+547,Hadiqa,---,---,0.00,Absent,No
+548,HaleemaObaid,---,---,0.00,Absent,No
+549,DaimAliKhan,---,---,0.00,Absent,No
+550,HussainMohiuddin,---,---,0.00,Absent,No
+551,HamzaJaved,---,---,0.00,Absent,No
+552,RajaTahir,---,---,0.00,Absent,No
+553,MuhammadNadeem,---,---,0.00,Absent,No
+554,AshalAhmad,---,---,0.00,Absent,No
+555,Shahzaib,---,---,0.00,Absent,No
+556,SamiUrRehman,---,---,0.00,Absent,No
+557,AmnaFarooq,---,---,0.00,Absent,No
+558,JanetteAmir,---,---,0.00,Absent,No
+559,MuhammadIrfanArif,---,---,0.00,Absent,No
+560,SulemanKhalid,---,---,0.00,Absent,No
+561,MehrajAbbasi,---,---,0.00,Absent,No
+562,ZaidKamran,---,---,0.00,Absent,No
+563,AbdulHadi,---,---,0.00,Absent,No
+564,MKashifIjaz,---,---,0.00,Absent,No
+565,AbdulRehmanKiyani,---,---,0.00,Absent,No
+566,EjafAbbasi,---,---,0.00,Absent,No
+567,HubdarHaider,---,---,0.00,Absent,No
+568,MuhammadMuddasir,---,---,0.00,Absent,No
+569,HaroonAlam,---,---,0.00,Absent,No
+570,AnilaAmjad,---,---,0.00,Absent,No
+571,RazaAbbasi,---,---,0.00,Absent,No
+572,FarazAli,17:36,---,0.00,Present,No
+573,SobiaMajeed,---,---,0.00,Absent,No
+574,AliArshman,---,---,0.00,Absent,No
+575,JeremiahAftab,---,---,0.00,Absent,No
+576,UsmanMughal,---,---,0.00,Absent,No
+577,ZokhaKhan,---,---,0.00,Absent,No
+578,Abdullah,---,---,0.00,Absent,No
+579,HarisZaheer,---,---,0.00,Absent,No
+580,Bilalrauf,---,---,0.00,Absent,No
+581,Sulemanmasih,---,---,0.00,Absent,No
+582,Mshoaib,19:20,---,0.00,Late (80min),No
+583,Kanwal,---,---,0.00,Absent,No
+584,Abdulhanan,---,---,0.00,Absent,No
+585,Syedahmed,---,---,0.00,Absent,No
+586,Kanwalzaheer,---,---,0.00,Absent,No
+587,AjabKhan,---,---,0.00,Absent,No
+588,HamasHaider,---,---,0.00,Absent,No
+589,HamidNawaz,---,---,0.00,Absent,No
+590,WaheedAhmed,---,---,0.00,Absent,No
+591,ZainNaqvi,---,---,0.00,Absent,No
+592,RohailJaved,---,---,0.00,Absent,No
+593,Sohailgul,---,---,0.00,Absent,No
+594,Ayeshaarshad,---,---,0.00,Absent,No
+595,MuhammadShoaib,---,---,0.00,Absent,No
+596,MuhammadHassanRaza,---,---,0.00,Absent,No
+597,AqsaIftikhar,---,---,0.00,Absent,No
+598,Mshoaib,17:46,---,0.00,Present,No
+599,HamzaHamid,17:46,---,0.00,Present,No
+600,HaziqBinShahid,---,---,0.00,Absent,No
+601,SundasSaleem,---,---,0.00,Absent,No
+602,Yashab,---,---,0.00,Absent,No
+603,Fahadamjad,---,---,0.00,Absent,No
+604,AliMuhammad,---,---,0.00,Absent,No
+605,Abdulbasit,---,---,0.00,Absent,No
+606,Faizanrahim,17:34,---,0.00,Present,No
+607,Salmansoomro,---,---,0.00,Absent,No
+608,Sheikhayan,---,---,0.00,Absent,No
+609,Mariam,---,---,0.00,Absent,No
+610,Madnan,---,---,0.00,Absent,No
+611,SyedaManahil,---,---,0.00,Absent,No
+612,MuhammadZohaib,---,---,0.00,Absent,No
+613,MuhammadZeeshan,---,---,0.00,Absent,No
+614,AkashHabib,---,---,0.00,Absent,No
+615,SyedNabeelAliShah,---,---,0.00,Absent,No
+616,UmarFarooq,---,---,0.00,Absent,No
+617,AsifQureshi,---,---,0.00,Absent,No
+618,MalikAtif,17:18,---,0.00,Present,No
+619,MukaramTanveer,17:31,---,0.00,Present,No
+620,AsadAli,---,---,0.00,Absent,No
+621,FahadWajid,---,---,0.00,Absent,No
+622,EhtishamKiani,---,---,0.00,Absent,No
+623,Hasnain,---,---,0.00,Absent,No
+624,AhadSatti,---,---,0.00,Absent,No
+625,ShayanPeerzada,---,---,0.00,Absent,No
+626,AliHaider,---,---,0.00,Absent,No
+627,SobanYasir,---,---,0.00,Absent,No
+628,MuhammadAsbab,---,---,0.00,Absent,No
+629,NomanSaddique,---,---,0.00,Absent,No
+630,WajihaKanwal,---,---,0.00,Absent,No
+631,RaeesIqbal,---,---,0.00,Absent,No
+632,AbdullahJamil,---,---,0.00,Absent,No
+633,SheikhAsim,---,---,0.00,Absent,No
+634,MuhammadAli,---,---,0.00,Absent,No
+635,MuhammadUsmanKhan,---,---,0.00,Absent,No
+636,AimalKhan,---,---,0.00,Absent,No
+637,ZainAliKhalid,17:50,---,0.00,Present,No
+638,Abdulrehman,---,---,0.00,Absent,No
+639,AbdullahZaheer,---,---,0.00,Absent,No
+640,MubashraJaved,---,---,0.00,Absent,No
+641,AdamImran,---,---,0.00,Absent,No
+642,SaadiaAli,---,---,0.00,Absent,No
+643,AhmadFiaz,---,---,0.00,Absent,No
+644,FahadRiaz,21:55,---,0.00,Late (235min),No
+645,Muhammadkhizar,---,---,0.00,Absent,No
+646,SulemanAli,---,---,0.00,Absent,No
+647,MuhammadAli,---,---,0.00,Absent,No
+648,SharyarAli,---,---,0.00,Absent,No
+649,Abubakar,---,---,0.00,Absent,No
+650,MuhammadKaif,---,---,0.00,Absent,No
+651,FarhanIsrar,---,---,0.00,Absent,No
+652,ShahirKhattak,---,---,0.00,Absent,No
+653,SaqlainSarwar,---,---,0.00,Absent,No
+654,RojaAfzal,---,---,0.00,Absent,No
+655,AdnanAli,17:45,---,0.00,Present,No
+656,AyeshaNoor,17:23,---,0.00,Present,No
+657,NoorFatima,---,---,0.00,Absent,No
+658,SaifShahzad,---,---,0.00,Absent,No
+659,AbdulRehman,---,---,0.00,Absent,No
+660,SaifKiyani,---,---,0.00,Absent,No
+661,AsmaMalik,---,---,0.00,Absent,No
+662,HaroonAmjad,---,---,0.00,Absent,No
+663,ArsalanHassan,---,---,0.00,Absent,No
+664,AyshaMalik,---,---,0.00,Absent,No
+665,SyedHadeedBukhari,---,---,0.00,Absent,No
+666,Kanwalsadeem,---,---,0.00,Absent,No
+667,AnasAli,---,---,0.00,Absent,No
+668,MuhammadSaad,---,---,0.00,Absent,No
+669,TalalAbbasi,---,---,0.00,Absent,No
+670,SamiKhan,---,---,0.00,Absent,No
+671,FahadAziz,---,---,0.00,Absent,No
+672,MuhammadSaud,20:34,---,0.00,Late (154min),No
+673,AzlanShah,---,---,0.00,Absent,No
+674,Faizanqureshi,17:57,---,0.00,Present,No
+675,Tayyabusman,---,---,0.00,Absent,No
+676,Syedramish,18:38,---,0.00,Late (38min),No
+677,ImranZaibShah,---,---,0.00,Absent,No
+678,MuhammadSalarAbbasi,---,---,0.00,Absent,No
+679,HuzaifaAyoub,---,---,0.00,Absent,No
+680,AfshaNaz,---,---,0.00,Absent,No
+681,MuhammadZunnorain,---,---,0.00,Absent,No
+682,Syedaumerubab,---,---,0.00,Absent,No
+683,Abdullahsethi,---,---,0.00,Absent,No
+684,Rehmanaliabbasi,---,---,0.00,Absent,No
+685,Junaidahmad,---,---,0.00,Absent,No
+686,Yousafullah,---,---,0.00,Absent,No
+687,Hilalanwar,---,---,0.00,Absent,No
+688,Aliraza,---,---,0.00,Absent,No
+689,Youhanna,---,---,0.00,Absent,No
+690,Umarsharif,---,---,0.00,Absent,No
+691,Muazzamiqbal,---,---,0.00,Absent,No
+692,Muzammil,---,---,0.00,Absent,No
+693,MianNaumanAhmad,---,---,0.00,Absent,No
+694,ZeeshanRana,---,---,0.00,Absent,No
+695,AbdulRafay,17:37,---,0.00,Present,No
+696,HamzaZubair,---,---,0.00,Absent,No
+697,MuhammadSohail,---,---,0.00,Absent,No
+698,AlyanTanveer,---,---,0.00,Absent,No
+699,ZainNaeem,---,---,0.00,Absent,No
+700,HasnainAbbasi,---,---,0.00,Absent,No
+701,RayedKazmi,---,---,0.00,Absent,No
+702,MuhammadRehman,---,---,0.00,Absent,No
+703,PeerZadaUmer,---,---,0.00,Absent,No
+704,MuhammadAman,---,---,0.00,Absent,No
+705,ShamsUddin,---,---,0.00,Absent,No
+706,ShayanBhatti,---,---,0.00,Absent,No
+707,AbdulHadi,17:22,---,0.00,Present,No
+708,AbdulRehman,---,---,0.00,Absent,No
+709,SherazAhmad,---,---,0.00,Absent,No
+710,HuzaifaAltaf,---,---,0.00,Absent,No
+711,AbdulMoizKhan,---,---,0.00,Absent,No
+712,BasilHussain,17:37,---,0.00,Present,No
+713,MuhammadFarhan,---,---,0.00,Absent,No
+714,Foziakosar,---,---,0.00,Absent,No
+715,Daim,---,---,0.00,Absent,No
+716,Elisha,---,---,0.00,Absent,No
+717,Muzair,---,---,0.00,Absent,No
+718,Mfaizanali,---,---,0.00,Absent,No
+719,Qamarabdullah,18:13,---,0.00,Late (13min),No
+720,UmarTayyab,---,---,0.00,Absent,No
+721,TaimoorBhatti,---,---,0.00,Absent,No
+722,SaadAliKhan,---,---,0.00,Absent,No
+723,DanyalHaider,---,---,0.00,Absent,No
+724,UmairAli,---,---,0.00,Absent,No
+725,AbdulRehman,---,---,0.00,Absent,No
+726,MohsinAli,---,---,0.00,Absent,No
+727,MuhammadSalman,---,---,0.00,Absent,No
+728,KiranJabeen,17:32,---,0.00,Present,No
+729,ImranHaider,---,---,0.00,Absent,No
+730,MusabAbbasi,17:30,---,0.00,Present,No
+731,FurqanBinAshraf,17:58,---,0.00,Present,No
+732,Muneeba,---,---,0.00,Absent,No
+733,Tariqmurtaza,---,---,0.00,Absent,No
+734,ShahmirKhan,---,---,0.00,Absent,No
+735,AbdulWahab,---,---,0.00,Absent,No
+736,GhaniUrRehman,---,---,0.00,Absent,No
+737,AliAzam,---,---,0.00,Absent,No
+738,HuzaifaAhsan,---,---,0.00,Absent,No
+739,MuhammadAbubakarNaeem,---,---,0.00,Absent,No
+740,MeerAhmad,---,---,0.00,Absent,No
+741,RabailTariq,---,---,0.00,Absent,No
+742,NoorUlAin,---,---,0.00,Absent,No
+743,KinzaTariq,---,---,0.00,Absent,No
+744,SimranShafaqat,---,---,0.00,Absent,No
+745,HooriaNadeem,---,---,0.00,Absent,No
+746,SweraWaheed,---,---,0.00,Absent,No
+747,SabaParveen,---,---,0.00,Absent,No
+748,MuhammadHumdoon,---,---,0.00,Absent,No
+749,ShahramKhokhar,---,---,0.00,Absent,No
+750,MuhammadAbdullah,---,---,0.00,Absent,No
+751,MussavirRaza,---,---,0.00,Absent,No
+752,SabirHussain,---,---,0.00,Absent,No
+753,AliNawaz,---,---,0.00,Absent,No
+754,MesakGeorge,---,---,0.00,Absent,No
+755,UsamaMumtaz,---,---,0.00,Absent,No
+756,AbdullahMalik,---,---,0.00,Absent,No
+757,HasnainNazeer,---,---,0.00,Absent,No
+758,SyedSohaibShah,---,---,0.00,Absent,No
+759,HuzaifaQurishi,---,---,0.00,Absent,No
+760,AryanAhmed,---,---,0.00,Absent,No
+761,MuhammadIhsan,---,---,0.00,Absent,No
+762,MohibAli,---,---,0.00,Absent,No
+763,MuhammadAbdullah,---,---,0.00,Absent,No
+764,AhsanAli,---,---,0.00,Absent,No
+765,AbihaHashmi,---,---,0.00,Absent,No
+766,MuhammadOwais,---,---,0.00,Absent,No
+767,MuhammadIbrahim,---,---,0.00,Absent,No
+768,SalmanKhan,---,---,0.00,Absent,No
+769,MuhammadShamraiz,17:20,---,0.00,Present,No
+770,AliAhmad,17:57,---,0.00,Present,No
+771,AbuHuraira,---,---,0.00,Absent,No
+772,Alizahwaseem,---,---,0.00,Absent,No
+773,ArmanHussain,18:00,---,0.00,Present,No
+774,HARISKHAN,17:24,---,0.00,Present,No
+775,MuhammadHammad,17:51,---,0.00,Present,No
+776,HassanRaza,---,---,0.00,Absent,No
+777,MuhammadMubeen,18:29,---,0.00,Late (29min),No
+778,SajidaBano,---,---,0.00,Absent,No
+779,OzanNisar,---,---,0.00,Absent,No
+780,RabiaZafar,---,---,0.00,Absent,No
+781,WasidKhan,---,---,0.00,Absent,No
+782,JawadAnwar,---,---,0.00,Absent,No
+783,HuzaifaMujahid,---,---,0.00,Absent,No
+784,SaudKhadil,---,---,0.00,Absent,No
+785,AdnanAli,---,---,0.00,Absent,No
+786,Imranali,---,---,0.00,Absent,No
+787,HassanAli,---,---,0.00,Absent,No
+788,Sufianchangezi,---,---,0.00,Absent,No
+789,SahilKhokhar,---,---,0.00,Absent,No
+790,ImranKhan,20:08,---,0.00,Late (128min),No
+791,MohammadRamzan,---,---,0.00,Absent,No
+792,Saadwajid,17:45,---,0.00,Present,No
+793,Aroonsameer,---,---,0.00,Absent,No
+794,Muhammadrehan,---,---,0.00,Absent,No
+795,ZohaibSohail,---,---,0.00,Absent,No
+796,HamzaSajjad,17:59,---,0.00,Present,No
+797,HassamIftikhar,17:56,---,0.00,Present,No
+798,UbaidUllah,---,---,0.00,Absent,No
+799,AbdulRaheem,---,---,0.00,Absent,No
+800,800,---,---,0.00,Absent,No
+801,801,17:47,---,0.00,Present,No
+802,802,---,---,0.00,Absent,No
+803,803,---,---,0.00,Absent,No
+804,804,18:02,---,0.00,Present,No
+805,Zaryab,17:47,---,0.00,Present,No
+806,806,---,---,0.00,Absent,No
+807,807,---,---,0.00,Absent,No
+808,808,---,---,0.00,Absent,No
+809,809,---,---,0.00,Absent,No
+810,UmmeAmmara,---,---,0.00,Absent,No
+811,SalarRashid,---,---,0.00,Absent,No
+812,RabailRashid,17:19,---,0.00,Present,No
+813,Asadmalik,---,---,0.00,Absent,No
+814,Hamzaabbasi,---,---,0.00,Absent,No
+815,HammadKhurshid,---,---,0.00,Absent,No
+816,SyedFaizanMustafa,---,---,0.00,Absent,No
+817,YashirIqbal,---,---,0.00,Absent,No
+818,ZarghamAzhar,---,---,0.00,Absent,No
+819,OsamaSadiq,---,---,0.00,Absent,No
+820,IrfanRaheem,17:36,---,0.00,Present,No
+821,Alinaqvi,---,---,0.00,Absent,No
+822,Izan Abbas,---,---,0.00,Absent,No
+823,Mahad Khan,18:27,---,0.00,Late (27min),No
+824,Sharjeel Mumtaz,17:43,---,0.00,Present,No
+825,AbdurRehman,---,---,0.00,Absent,No
+826,TashfeenAbbasi,---,---,0.00,Absent,No
+827,Muhammad Haris Mirza,---,---,0.00,Absent,No
+828,Nimra  Rukhsar,---,---,0.00,Absent,No
+829,Hamza Ali,17:22,---,0.00,Present,No
+830,Abuhurairah,---,---,0.00,Absent,No
+831,Ashder,---,---,0.00,Absent,No
+832,Umair Ajab,---,---,0.00,Absent,No
+833,Mishaljaved,---,---,0.00,Absent,No
+834,Hafsa Eman,17:48,---,0.00,Present,No
+835,Muhammad Waleed,---,---,0.00,Absent,No
+836,Abdulkabeer,---,---,0.00,Absent,No
+837,MuhammadAqdas,---,---,0.00,Absent,No
+838,Adnan Siddique,---,---,0.00,Absent,No
+839,Fatima Noor,17:29,---,0.00,Present,No
+840,BabarHassin,---,---,0.00,Absent,No
+841,MuhammadTaha,---,---,0.00,Absent,No
+842,AneelShahid,17:23,---,0.00,Present,No
+843,FarihaAman,---,---,0.00,Absent,No
+844,MuhammadSajjad,---,---,0.00,Absent,No
+845,Mubasher,---,---,0.00,Absent,No
+846,Harry Chris,---,---,0.00,Absent,No
+847,Muhammadzain,---,---,0.00,Absent,No
+848,Shahzaibshakoor,---,---,0.00,Absent,No
+849,Usamajaved,---,---,0.00,Absent,No
+850,Syed Farzam Ali,---,---,0.00,Absent,No
+851,Hamza Waheed,17:39,---,0.00,Present,No
+852,MaizaBibi,---,---,0.00,Absent,No
+853,AqsaGulzar,---,---,0.00,Absent,No
+854,Mussavirkhan,---,---,0.00,Absent,No
+855,Sajidjaved,---,---,0.00,Absent,No
+856,Ahsansunny,17:06,---,0.00,Present,No
+857,Noorulain,---,---,0.00,Absent,No
+858,Muhammadusama,17:25,---,0.00,Present,No
+859,Shamoon,---,---,0.00,Absent,No
+860,Muhammadmusab,17:26,---,0.00,Present,No
+861,Waneeza,---,---,0.00,Absent,No
+862,Muhammad Faisal,---,---,0.00,Absent,No
+863,TabeelZafar,---,---,0.00,Absent,No
+864,Syedhaji,---,---,0.00,Absent,No
+865,Muhammad Ali,---,---,0.00,Absent,No
+866,UmarFarooq,---,---,0.00,Absent,No
+867,Ahmad,---,---,0.00,Absent,No
+868,Saad Ahmad,---,---,0.00,Absent,No
+869,Hasnainhashmi,---,---,0.00,Absent,No
+870,Muhammad AbdulHadi Malik,---,---,0.00,Absent,No
+871,Sana James,---,---,0.00,Absent,No
+872,Amir Afraz,---,---,0.00,Absent,No
+873,Abdul Khaliq,---,---,0.00,Absent,No
+874,Hammad Khalid,---,---,0.00,Absent,No
+875,JamalHassan,---,---,0.00,Absent,No
+876,AwaisShah,17:15,---,0.00,Present,No
+877,Adil Islam,---,---,0.00,Absent,No
+878,Sheikhdaniyal,---,---,0.00,Absent,No
+879,MarvaAbbasi,---,---,0.00,Absent,No
+880,MominaSafeer,---,---,0.00,Absent,No
+881,Usman Ali,17:22,17:22,0.00,Present,Yes
+882,Waqas Anwar,---,---,0.00,Absent,No
+883,Shayan,---,---,0.00,Absent,No
+884,Amna,---,---,0.00,Absent,No
+885,Sanam Jan,---,---,0.00,Absent,No
+886,Abdullah Asghar,17:58,---,0.00,Present,No
+887,Muhammad Shahzaib,---,---,0.00,Absent,No
+888,Syedashir,---,---,0.00,Absent,No
+889,Zunairali,---,---,0.00,Absent,No
+890,Abdulsamad,---,---,0.00,Absent,No
+891,Samraijaz,---,---,0.00,Absent,No
+892,HashirUzair,---,---,0.00,Absent,No
+893,AqsaWaheed,---,---,0.00,Absent,No
+894,Khowlah,---,---,0.00,Absent,No
+895,Abdullah Malik,---,---,0.00,Absent,No
+896,Aziz Ullah,---,---,0.00,Absent,No
+897,Abdullah,---,---,0.00,Absent,No
+898,Gulfam,---,---,0.00,Absent,No
+899,Abdulrehman,---,---,0.00,Absent,No
+900,MoarefaMohammadi,17:23,---,0.00,Present,No
+901,MehranPervaiz,17:41,---,0.00,Present,No
+902,Jamshed Liaqat,---,---,0.00,Absent,No
+903,Areeba Satti,17:23,17:23,0.00,Present,Yes
+904,Asad Butt,---,---,0.00,Absent,No
+905,Rajab Ali,---,---,0.00,Absent,No
+906,Shad Azam,18:05,---,0.00,Present,No
+907,Mubeen Abbas,---,---,0.00,Absent,No
+908,Adilfaryad,---,---,0.00,Absent,No
+909,Misbah Ahmad,17:53,---,0.00,Present,No
+910,Kainat Hanif,---,---,0.00,Absent,No
+911,Muhammad Ahmad Jamal,---,---,0.00,Absent,No
+912,Siraj Qaisar,17:57,---,0.00,Present,No
+913,Abdul Rafay,---,---,0.00,Absent,No
+914,Ibrahim Khan,---,---,0.00,Absent,No
+915,Zain Ul Hassan,---,---,0.00,Absent,No
+916,Harris,---,---,0.00,Absent,No
+917,Ehtesham Khan,---,---,0.00,Absent,No
+918,Syed Ammar,---,---,0.00,Absent,No
+919,Malik Abdullah,---,---,0.00,Absent,No
+920,Muhammad Jamal,17:55,---,0.00,Present,No
+921,Mubashirali,17:25,---,0.00,Present,No
+922,QiratAamir,---,---,0.00,Absent,No
+923,Zainab Zahra,---,---,0.00,Absent,No
+924,Atif Riaz,---,---,0.00,Absent,No
+925,Samiulhassan,---,---,0.00,Absent,No
+926,Haroon Khan,---,---,0.00,Absent,No
+927,Ayyan Malik,---,---,0.00,Absent,No
+928,Fizza Liaqat,---,---,0.00,Absent,No
+929,AdnanKhan,---,---,0.00,Absent,No
+930,AtikaKhan,---,---,0.00,Absent,No
+931,Abdullahjaved,---,---,0.00,Absent,No
+932,DawoodRaz,---,---,0.00,Absent,No
+933,MShaheer,---,---,0.00,Absent,No
+934,UbaidMalik,---,---,0.00,Absent,No
+935,Saadhamid,---,---,0.00,Absent,No
+936,Muhammad Ahmad,17:36,---,0.00,Present,No
+937,Saadbinwaqas,---,---,0.00,Absent,No
+938,Abbas,---,---,0.00,Absent,No
+939,Waqarabbas,---,---,0.00,Absent,No
+940,Aliabbas,17:49,---,0.00,Present,No
+941,Tayyab,17:58,---,0.00,Present,No
+942,Hadia,---,---,0.00,Absent,No
+943,Ayeshaimtiaz,---,---,0.00,Absent,No
+944,SalmanAli,---,---,0.00,Absent,No
+945,Anwarzeb,---,---,0.00,Absent,No
+946,Saba,---,---,0.00,Absent,No
+947,Saifurrehman,17:23,---,0.00,Present,No
+948,HamzaArif,---,---,0.00,Absent,No
+949,Laiba Awan,---,---,0.00,Absent,No
+950,Iqra Zaheer,17:21,---,0.00,Present,No
+951,Romail,---,---,0.00,Absent,No
+952,Yasra Nadeem,---,---,0.00,Absent,No
+953,Hasnainarif,---,---,0.00,Absent,No
+954,Shahzad Aziz,17:32,---,0.00,Present,No
+955,Huzaifa Shahid,---,---,0.00,Absent,No
+956,Farhan Malik,17:31,---,0.00,Present,No
+957,Manan Khan,---,---,0.00,Absent,No
+958,Hasnain Raza,---,---,0.00,Absent,No
+959,Mushahid,---,---,0.00,Absent,No
+960,AliHASSAN,---,---,0.00,Absent,No
+961,MoeezAwan,17:31,---,0.00,Present,No
+962,MuhammadQasim,---,---,0.00,Absent,No
+963,ShahidButt,---,---,0.00,Absent,No
+964,MahmoodTariq,---,---,0.00,Absent,No
+965,Jiya Ikram,---,---,0.00,Absent,No
+966,Momina Ikram,---,---,0.00,Absent,No
+967,Mehreeba,---,---,0.00,Absent,No
+968,Younas Khan,---,---,0.00,Absent,No
+969,Zeeshanhaider,17:38,---,0.00,Present,No
+970,Ahtesham Arshed,---,---,0.00,Absent,No
+971,Shoaiburrehman,---,---,0.00,Absent,No
+972,Nubhan Safdar,---,---,0.00,Absent,No
+973,Rabia Mazhar,---,---,0.00,Absent,No
+974,Daud Saleem,---,---,0.00,Absent,No
+975,SalehAbbasi,---,---,0.00,Absent,No
+976,JosephJhon,---,---,0.00,Absent,No
+977,Umair,---,---,0.00,Absent,No
+978,Sannan Karim,---,---,0.00,Absent,No
+979,Sundassaleem,---,---,0.00,Absent,No
+980,Ahmerfarooqi,---,---,0.00,Absent,No
+981,Shabbirahmed,17:57,---,0.00,Present,No
+982,Basatsomina,---,---,0.00,Absent,No
+983,RajaAwab,---,---,0.00,Absent,No
+984,RayyanAmjad,---,---,0.00,Absent,No
+985,Ghaniurrehman,---,---,0.00,Absent,No
+986,Ahmer Hussain,---,---,0.00,Absent,No
+987,Hamzafarooq,---,---,0.00,Absent,No
+988,Safa Marwa,---,---,0.00,Absent,No
+989,Ummerubab,---,---,0.00,Absent,No
+990,MoeedRashid,---,---,0.00,Absent,No
+991,Sheroz Zakir,18:05,---,0.00,Present,No
+992,AdnanAzmat,---,---,0.00,Absent,No
+993,HamadRahim,---,---,0.00,Absent,No
+994,AhsanAli,---,---,0.00,Absent,No
+995,HumaJaved,---,---,0.00,Absent,No
+996,KashifHameed,17:46,---,0.00,Present,No
+997,RajaMoon,---,---,0.00,Absent,No
+998,MaviaAtiq,---,---,0.00,Absent,No
+999,MalaikaAmjad,---,---,0.00,Absent,No
+1000,HazibRamzan,17:31,---,0.00,Present,No
+1001,Hadi,---,---,0.00,Absent,No
+1002,Sherafzalkhan,---,---,0.00,Absent,No
+1003,Waqas Butt,---,---,0.00,Absent,No
+1004,Taha Abbasi,---,---,0.00,Absent,No
+1005,Saif Ullah,---,---,0.00,Absent,No
+1006,Aizurehman,---,---,0.00,Absent,No
+1007,Ubaidurehman,---,---,0.00,Absent,No
+1008,Syedhassan,---,---,0.00,Absent,No
+1009,Bilal,---,---,0.00,Absent,No
+1010,MushahidQureshi,---,---,0.00,Absent,No
+1011,SherAfghanWali,17:37,---,0.00,Present,No
+1012,Saifurrehman,---,---,0.00,Absent,No
+1013,Shawaiz,---,---,0.00,Absent,No
+1014,Aliyan,---,---,0.00,Absent,No
+1015,Hira,17:32,---,0.00,Present,No
+1016,Mehak,17:32,---,0.00,Present,No
+1017,IqraAmjad,17:32,---,0.00,Present,No
+1018,Ghulam Dastegeer,---,---,0.00,Absent,No
+1019,Muhammad Jameel,---,---,0.00,Absent,No
+1020,MuhammadFahad,---,---,0.00,Absent,No
+1021,Abdulrafay,---,---,0.00,Absent,No
+1022,Ahsan Khalid,18:29,---,0.00,Late (29min),No
+1023,Talhaliaqat,---,---,0.00,Absent,No
+1024,Amaan,---,---,0.00,Absent,No
+1025,Abdul Wasif,---,---,0.00,Absent,No
+1026,MuhammadShahzaib,17:30,---,0.00,Present,No
+1027,Irtiza Haider,---,---,0.00,Absent,No
+1028,TatheerHussain,---,---,0.00,Absent,No
+1029,Fazal Adnan,---,---,0.00,Absent,No
+1030,Hamza Maqbool,17:44,---,0.00,Present,No
+1031,Rizwan Chaudry,---,---,0.00,Absent,No
+1032,Saqibiqbal,---,---,0.00,Absent,No
+1033,Sahil Anwar,---,---,0.00,Absent,No
+1034,Muhammad Awais,---,---,0.00,Absent,No
+1035,Abdulahad,---,---,0.00,Absent,No
+1036,EjazULAkbar,---,---,0.00,Absent,No
+1037,HasnainMalik,---,---,0.00,Absent,No
+1038,ShujaAli,21:01,---,0.00,Late (181min),No
+1039,ShebazAli,---,---,0.00,Absent,No
+1040,Huzaifa Zafar Niazi,---,---,0.00,Absent,No
+1041,Sabir Khan,17:25,---,0.00,Present,No
+1042,Alishba Waheed,---,---,0.00,Absent,No
+1043,Amina Latif,---,---,0.00,Absent,No
+1044,Muneebashamshad,---,---,0.00,Absent,No
+1045,Muhammad Ibrahim Akbar,17:51,---,0.00,Present,No
+1046,Muhammad Ali Hassan,---,---,0.00,Absent,No
+1047,AbrarAnsari,17:45,---,0.00,Present,No
+1048,WajihaHassan,---,---,0.00,Absent,No
+1049,DanialFaisal,17:22,---,0.00,Present,No
+1050,Saqlain Ejaz,---,---,0.00,Absent,No
+1051,Sharifa Shah,---,---,0.00,Absent,No
+1052,Bilal Irshad,---,---,0.00,Absent,No
+1053,Altaf Hussain,18:05,---,0.00,Present,No
+1054,Hadiaarshad,---,---,0.00,Absent,No
+1055,Shafiq Ur Rehman,---,---,0.00,Absent,No
+1056,Sheikhali,---,---,0.00,Absent,No
+1057,Qamrosh,---,---,0.00,Absent,No
+1058,ArslanAbbasi,18:08,---,0.00,Present,No
+1059,AhmadIrshad,17:23,---,0.00,Present,No
+1060,Kainat,---,---,0.00,Absent,No
+1061,Hamzasajjad,---,---,0.00,Absent,No
+1062,Sabirahmad,17:33,---,0.00,Present,No
+1063,Hasnain,17:23,---,0.00,Present,No
+1064,Muhammadsaif,18:15,---,0.00,Late (15min),No
+1065,Muhammad Rashid,17:44,---,0.00,Present,No
+1066,AbdulMalik,---,---,0.00,Absent,No
+1067,Hammad,---,---,0.00,Absent,No
+1068,Adil Khan,---,---,0.00,Absent,No
+1069,Rabbia Seher,---,---,0.00,Absent,No
+1070,Mudasirabbas,---,---,0.00,Absent,No
+1071,Ammarraza,17:42,---,0.00,Present,No
+1072,Muhammad Yasin Azad,---,---,0.00,Absent,No
+1073,Umer Sadiq,---,---,0.00,Absent,No
+1074,Suhail Bahadur,17:48,---,0.00,Present,No
+1075,Muhammad Shahzad Khan,---,---,0.00,Absent,No
+1076,Muhammad Mehtab,---,---,0.00,Absent,No
+1077,Umar Farooq,---,---,0.00,Absent,No
+1078,Muhammadfaraz,17:27,---,0.00,Present,No
+1079,Ghulam Abbas,---,---,0.00,Absent,No
+1080,Fatima,---,---,0.00,Absent,No
+1081,Minahil,---,---,0.00,Absent,No
+1082,RajjabAli,17:15,---,0.00,Present,No
+1083,Haroon Zahid,---,---,0.00,Absent,No
+1084,Muhammad Usman,---,---,0.00,Absent,No
+1085,Bisma Ahmad,---,---,0.00,Absent,No
+1086,Anayat Ali,---,---,0.00,Absent,No
+1087,Muhammad Asad,---,---,0.00,Absent,No
+1088,Zeeshan Hassan,---,---,0.00,Absent,No
+1089,Muhammadali,18:26,---,0.00,Late (26min),No
+1090,Muhammadabubakar,17:18,---,0.00,Present,No
+1091,Huzaifa,17:40,---,0.00,Present,No
+1092,Muhammadsiddique,17:09,---,0.00,Present,No
+1093,Rehanahmed,---,---,0.00,Absent,No
+1094,Awais,---,---,0.00,Absent,No
+1095,Tariq Mehmood,---,---,0.00,Absent,No
+1096,Saim Imtiaz,---,---,0.00,Absent,No
+1097,Zeeshan Hasnain,---,---,0.00,Absent,No
+1098,Khadija Nadeem,---,---,0.00,Absent,No
+1099,Muhammad Asim,---,---,0.00,Absent,No
+1100,Owais Khan,17:32,---,0.00,Present,No
+1101,Tariqjillani,---,---,0.00,Absent,No
+1102,Umer,---,---,0.00,Absent,No
+1103,Ahsaan,17:43,---,0.00,Present,No
+1104,Haroon,---,---,0.00,Absent,No
+1105,Maryam Azad,---,---,0.00,Absent,No
+1106,Sawaira,---,---,0.00,Absent,No
+1107,MuhammadMubashir,---,---,0.00,Absent,No
+1108,SalmanWahid,17:06,---,0.00,Present,No
+1109,Muhammad Zulqarnain,---,---,0.00,Absent,No
+1110,Abdullahjamal,17:22,---,0.00,Present,No
+1111,Huzaifa,---,---,0.00,Absent,No
+1112,Mashal,17:32,---,0.00,Present,No
+1113,Khawar Abbas,---,---,0.00,Absent,No
+1114,Adilmehmood,---,---,0.00,Absent,No
+1115,Muhammadshayan,17:38,---,0.00,Present,No
+1116,Muhammad Abraiz,---,---,0.00,Absent,No
+1117,Inamullah,---,---,0.00,Absent,No
+1118,Moiz Hassan,17:21,---,0.00,Present,No
+1119,Binshumaz,17:22,---,0.00,Present,No
+1120,Awais Ur Rehman,17:15,---,0.00,Present,No
+1121,Ramsha Shahid,17:35,---,0.00,Present,No
+1122,AliImran,17:40,---,0.00,Present,No
+1123,SajidALI,---,---,0.00,Absent,No
+1124,Muhammad Masood Alam,---,---,0.00,Absent,No
+1125,Atta Ul Mohsin,---,---,0.00,Absent,No
+1126,Muhammadkhizer,17:42,---,0.00,Present,No
+1127,Fahim Khan,---,---,0.00,Absent,No
+1128,Muhammad Sanwal,17:22,---,0.00,Present,No
+1129,Abdul Rafay Abbasi,---,---,0.00,Absent,No
+1130,Rida E Amna,---,---,0.00,Absent,No
+1131,Faizanbahadar,17:48,---,0.00,Present,No
+1132,Inzamam Ul Haq,---,---,0.00,Absent,No
+1133,Muhammad Aftab,---,---,0.00,Absent,No
+1134,Khoula Abbasi,---,---,0.00,Absent,No
+1135,Malka Amir,17:35,---,0.00,Present,No
+1136,Aiman Abbasi,18:41,---,0.00,Late (41min),No
+1137,AliBasit,17:29,---,0.00,Present,No
+1138,MaazAbbasi,---,---,0.00,Absent,No
+1139,Afnan,---,---,0.00,Absent,No
+1140,Kashan Saeed,---,---,0.00,Absent,No
+1141,HibaAbid,17:21,---,0.00,Present,No
+1142,Sadaf Kazmi,17:46,17:46,0.00,Present,Yes
+1143,Najam,18:16,---,0.00,Late (16min),No
+1144,MHusnain,---,---,0.00,Absent,No
+1145,Alihusnain,17:42,---,0.00,Present,No
+1146,Asma Bibi Abid,---,---,0.00,Absent,No
+1147,Muhammad Ayyan,---,---,0.00,Absent,No
+1148,Ali Saleem,18:06,---,0.00,Present,No
+1149,Muhammad Sadeem,17:51,---,0.00,Present,No
+1150,Moiz Ul Hassan,---,---,0.00,Absent,No
+1151,Muhammad Ibrahim Ali,---,---,0.00,Absent,No
+1152,Arsam Idrees,---,---,0.00,Absent,No
+1153,AliRaza,---,---,0.00,Absent,No
+1154,SheikhMehrab,20:10,---,0.00,Late (130min),No
+1155,Raja Faisal,---,---,0.00,Absent,No
+1156,Muhammad Ahmed,---,---,0.00,Absent,No
+1157,JahangirUzair,---,---,0.00,Absent,No
+1158,Mahrukh,---,---,0.00,Absent,No
+1159,Zubair Khan,---,---,0.00,Absent,No
+1160,Sikandar Ali,17:38,---,0.00,Present,No
+1161,Asima Qureshi,18:18,---,0.00,Late (18min),No
+1162,HafsaRehman,---,---,0.00,Absent,No
+1163,Kawish,19:03,---,0.00,Late (63min),No
+1164,SajawalHassan,17:32,---,0.00,Present,No
+1165,Abubakar Elahi,---,---,0.00,Absent,No
+1166,EhtishamSafi,---,---,0.00,Absent,No
+1167,HusnaiMasood,---,---,0.00,Absent,No
+1168,Abdul Jabbar,17:56,---,0.00,Present,No
+1169,MuhammadAliUlvee,---,---,0.00,Absent,No
+1170,Irum,17:53,---,0.00,Present,No
+1171,MuhammadAhmad,---,---,0.00,Absent,No
+1172,GulamNabi,18:02,---,0.00,Present,No
+1173,FaryalKhawar,17:13,---,0.00,Present,No
+1174,Zainab,---,---,0.00,Absent,No
+1175,Muhammad Hammad,17:14,---,0.00,Present,No
+1176,Muskan Arif,17:06,---,0.00,Present,No
+1177,Soban Hussain,---,---,0.00,Absent,No
+1178,Kamil,17:21,---,0.00,Present,No
+1179,Asifa Kamran,17:14,---,0.00,Present,No
+1180,Shahir Ahmad,---,---,0.00,Absent,No
+1181,Zain Raza Khan,17:46,---,0.00,Present,No
+1182,Muhammad Bilal,19:30,---,0.00,Late (90min),No
+1183,Samina Bashir,---,---,0.00,Absent,No
+1184,Kashif,---,---,0.00,Absent,No
+1185,Ahmad Hassan,---,---,0.00,Absent,No
+1186,UmerShehzad,17:28,---,0.00,Present,No
+1187,Muhammad Ali,17:46,---,0.00,Present,No
+1188,Ali Raza,---,---,0.00,Absent,No
+1189,Aqeel Ahmed,18:50,---,0.00,Late (50min),No
+1190,Abdul Moiz,17:32,---,0.00,Present,No
+1191,Mubariz bin Rafay,---,---,0.00,Absent,No
+1192,Abubakar,16:59,---,0.00,Present,No
+1193,Ramish Masih,---,---,0.00,Absent,No
+1194,Mrizwan,---,---,0.00,Absent,No
+1195,Malik Daud Patras,17:21,---,0.00,Present,No
+1196,Fardad Ahmed,17:18,---,0.00,Present,No
+1197,Israr Yaqoob,17:26,---,0.00,Present,No
+1198,Raheel Mushtaq,17:43,---,0.00,Present,No
+1199,Mahad Bin Rafay,---,---,0.00,Absent,No
+1200,Mohsin,17:00,---,0.00,Present,No
+1201,Sabeeh,17:46,---,0.00,Present,No
+1202,Yahya Mir,---,---,0.00,Absent,No
+1203,Shams Khan,17:49,---,0.00,Present,No
+1204,Maaz Khan,---,---,0.00,Absent,No
+1205,FaizanAslam,17:41,---,0.00,Present,No
+1206,Bilal Hussain,17:41,---,0.00,Present,No
+1207,Bilal.Usman,---,---,0.00,Absent,No
+1208,Rayyan,---,---,0.00,Absent,No
+1209,Safi Amin,---,---,0.00,Absent,No
+1210,Danish Ahmad,---,---,0.00,Absent,No
+1211,Zulfiqar,---,---,0.00,Absent,No
+1212,Faizan Thaheem,16:39,---,0.00,Present,No
+1213,Hafiz Sufyan,17:44,---,0.00,Present,No
+1214,Faiza Abid,---,---,0.00,Absent,No
+1215,Wajid,---,---,0.00,Absent,No
+1216,Hamra Shaheen,---,---,0.00,Absent,No
+1217,Wazir,17:33,---,0.00,Present,No
+1218,Hajra,17:20,---,0.00,Present,No
+1219,Saira,17:31,---,0.00,Present,No
+1220,Arslan,17:27,---,0.00,Present,No
+1221,Aarzo,17:31,17:31,0.00,Present,Yes
+1222,Mazhar,17:18,---,0.00,Present,No
+1223,Mehak Fatima,17:28,17:28,0.00,Present,Yes
+1224,Muhammad Ali,17:27,17:27,0.00,Present,Yes
+1225,Kashan Ali,17:46,---,0.00,Present,No
+1226,Zoya Zafar,---,---,0.00,Absent,No
+1227,Mudassir,---,---,0.00,Absent,No
+1228,Awais,17:44,17:44,0.00,Present,Yes
+1229,Esha Hafeez,---,---,0.00,Absent,No
+1230,Hunain Ahmad,17:48,---,0.00,Present,No
+1231,Usman Fayyaz,17:32,---,0.00,Present,No
+1232,Sheikh Hussain,17:37,---,0.00,Present,No
+1233,Syed Rabte Ali,17:49,---,0.00,Present,No
+1234,Zeeshan,17:33,---,0.00,Present,No
+1235,Amaan,20:11,---,0.00,Late (131min),No
+1236,Saleh,20:09,---,0.00,Late (129min),No
+1237,Muhammad Bilal Ahmed,---,---,0.00,Absent,No
+1238,Muhammad Faraz Aly,17:20,---,0.00,Present,No
+1239,Fahad,17:44,---,0.00,Present,No
+1240,Abdul Rehman Tariq,---,---,0.00,Absent,No
+1241,Zaryab,17:33,---,0.00,Present,No
+1242,Ifra,17:14,---,0.00,Present,No
+1243,Syeda Itrat Zahra,---,---,0.00,Absent,No
+1244,IsraAbbassi,---,---,0.00,Absent,No
+1245,ZohaJaved,---,---,0.00,Absent,No
+1246,HammadSULTAN,15:48,---,0.00,Present,No
+1247,Hizb Ullah,18:04,---,0.00,Present,No
+1248,Ahmad,17:32,---,0.00,Present,No
+1249,AliHassan,17:14,---,0.00,Present,No
+1250,Waleed,17:59,---,0.00,Present,No
+1251,Fahad,17:23,---,0.00,Present,No
+1252,Abdulrehman,17:53,---,0.00,Present,No
+1253,Zeeshan,17:37,---,0.00,Present,No
+1254,Areeb,17:59,---,0.00,Present,No
+1255,Huzaifa,17:56,---,0.00,Present,No
+1256,Subhan,18:07,---,0.00,Present,No
+1257,Arslan,---,---,0.00,Absent,No
+1258,Noman,17:49,---,0.00,Present,No
+1259,Hamza,17:20,---,0.00,Present,No
+1260,Kashafabbasi,17:21,---,0.00,Present,No
+1261,Afzaal,---,---,0.00,Absent,No
+1262,Hafsa,17:14,---,0.00,Present,No
+1263,Aayan,18:57,---,0.00,Late (57min),No
+1264,Hamza,---,---,0.00,Absent,No
+1265,Muhammad Usman,---,---,0.00,Absent,No
+1266,Agha Hassaan,17:34,---,0.00,Present,No
+1267,M Ubaid Ullah,17:58,---,0.00,Present,No
+1268,David,17:53,---,0.00,Present,No
+1269,Hammad,17:51,---,0.00,Present,No
+1270,Muhammad Kamal,17:42,---,0.00,Present,No
+1271,Salma Israr,18:03,18:03,0.00,Present,Yes
+1272,Nimra,---,---,0.00,Absent,No
+1273,Mazhar,17:40,---,0.00,Present,No
+1274,Alisha Ali,17:57,---,0.00,Present,No
+1275,Javeria Ali,17:56,17:56,0.00,Present,Yes
+1276,Abdul Wasi,17:45,---,0.00,Present,No
+1277,Salman Waheed,19:24,---,0.00,Late (84min),No
+1278,Aziz,18:04,---,0.00,Present,No
+1279,Bakhtawar,17:35,---,0.00,Present,No
+1280,Talha,17:57,---,0.00,Present,No
+1281,Shayan,17:34,---,0.00,Present,No
+1282,Haris,17:31,---,0.00,Present,No
+1283,Ahmad,17:36,---,0.00,Present,No
+1284,Musa,17:44,---,0.00,Present,No
+1285,Mansoor,17:27,---,0.00,Present,No
+1286,Marvi,17:24,---,0.00,Present,No
+1287,Azhar Hussain,17:15,---,0.00,Present,No
+1288,M Mohsin,17:04,---,0.00,Present,No
+1289,Kanwal,17:58,---,0.00,Present,No
+1290,Samiullah Abbasi,17:54,---,0.00,Present,No
+1291,Raja Obaidullah,17:54,---,0.00,Present,No
+1292,Majid,---,---,0.00,Absent,No
+1293,Eman,18:49,---,0.00,Late (49min),No
+1294,Sahil,18:51,---,0.00,Late (51min),No
+1295,Abdullah,19:34,---,0.00,Late (94min),No
+1296,Ibrahim,21:53,---,0.00,Late (233min),No
+1297,Zeshan,22:00,---,0.00,Late (240min),No

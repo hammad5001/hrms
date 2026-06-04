@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balitech · Portal Access</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #f97316;
+            --primary-dark: #ea580c;
+            --primary-glow: rgba(249,115,22,0.5);
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --purple: #8b5cf6;
+            --dark: #0a0c15;
+            --glass: rgba(255, 255, 255, 0.07);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 20% 30%, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: linear-gradient(125deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+        }
+
+        .animated-bg::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle, rgba(249,115,22,0.15) 0%, transparent 70%);
+            animation: slowRotate 30s linear infinite;
+        }
+
+        @keyframes slowRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(249,115,22,0.3);
+            border-radius: 50%;
+            animation: float linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.5; }
+            90% { opacity: 0.5; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            z-index: 10;
+            animation: fadeInUp 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-card {
+            background: rgba(10, 12, 21, 0.75);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 48px 40px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #f97316, #ea580c, #f97316, transparent);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            margin: 0 auto 20px;
+            box-shadow: 0 0 30px var(--primary-glow);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 var(--primary-glow); }
+            50% { box-shadow: 0 0 30px 10px var(--primary-glow); }
+        }
+
+        .logo h1 {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+        }
+
+        .logo p {
+            color: rgba(255,255,255,0.5);
+            font-size: 11px;
+            margin-top: 8px;
+            letter-spacing: 1px;
+        }
+
+        .welcome-text {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .welcome-text h2 {
+            font-size: 26px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 8px;
+        }
+
+        .welcome-text p {
+            color: rgba(255,255,255,0.5);
+            font-size: 13px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.8);
+            font-size: 13px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+            font-size: 16px;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 14px 16px 14px 48px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50px;
+            font-size: 14px;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .input-wrapper input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255,255,255,0.08);
+            box-shadow: 0 0 0 3px rgba(249,115,22,0.2);
+        }
+
+        .input-wrapper input::placeholder {
+            color: rgba(255,255,255,0.3);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            border-radius: 50px;
+            color: white;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 20px -5px rgba(249,115,22,0.4);
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .login-btn:hover::before {
+            left: 100%;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(249,115,22,0.6);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.15);
+            border-left: 3px solid var(--danger);
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            color: #fecaca;
+            font-size: 13px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: shake 0.3s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .admin-link {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .admin-link a {
+            color: var(--info);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .admin-link a:hover {
+            color: var(--primary);
+        }
+
+        /* Toast Notification */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+        }
+
+        .toast {
+            background: rgba(10, 12, 21, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 12px;
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            border-left: 3px solid var(--primary);
+            animation: slideInRight 0.3s ease;
+            color: white;
+            font-size: 13px;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 32px 24px;
+            }
+            .welcome-text h2 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-bg"></div>
+    <div class="particles" id="particles"></div>
+
+    <div class="login-container">
+        <div class="login-card">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <h1>BALITECH</h1>
+                <p>ENTERPRISE PORTAL ACCESS</p>
+            </div>
+
+            <div class="welcome-text">
+                <h2>Welcome Back</h2>
+                <p>Sign in to access your designated portal</p>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="email" placeholder="name@balitech.com" required autocomplete="email">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" placeholder="Enter your password" required autocomplete="current-password">
+                    </div>
+                </div>
+
+                <button type="submit" class="login-btn" id="loginBtn">
+                    <span>Secure Login</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <div class="admin-link">
+                <a href="index.html"><i class="fas fa-shield-alt"></i> Admin Access</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/portal-access.js"></script>
+    <script>
+        // ==================== PORTAL CONFIGURATION ====================
+        const PORTAL_MAPPING = {
+            'admin': { url: 'admin-dashboard.html', name: 'Administrator', icon: 'fa-crown' },
+            'hr': { url: 'hr-portal.html', name: 'Human Resources', icon: 'fa-users-cog' },
+            'recruiter': { url: 'recruiter-portal.html', name: 'Recruitment', icon: 'fa-user-tie' },
+            'management': { url: 'Management-Portal.html', name: 'Management', icon: 'fa-chart-line' },
+            'training': { url: 'training-portal.html', name: 'Training', icon: 'fa-chalkboard-teacher' },
+            'receptionist': { url: 'reception-portal.html', name: 'Reception', icon: 'fa-concierge-bell' },
+            'agent': { url: 'reception-portal.html', name: 'Reception', icon: 'fa-concierge-bell' },
+            'analytics': { url: 'analytics-portal.html', name: 'Analytics', icon: 'fa-chart-pie' },
+            'attendance': { url: 'attendance/attendance-dashboard.html', name: 'Attendance', icon: 'fa-clock' },
+            'user': { url: 'employee-portal.html', name: 'Employee', icon: 'fa-id-card' },
+            'team_lead': { url: 'employee-portal.html', name: 'Team Lead', icon: 'fa-user-check' },
+            'floor_manager': { url: 'employee-portal.html', name: 'Floor Manager', icon: 'fa-users' },
+            'data_entry': { url: 'reception-portal.html', name: 'Data Entry', icon: 'fa-keyboard' },
+            'dialer': { url: 'employee-portal.html', name: 'Dialer', icon: 'fa-phone' },
+            'developer': { url: 'employee-portal.html', name: 'Developer', icon: 'fa-code' }
+        };
+
+        // ==================== UTILITY FUNCTIONS ====================
+        function createParticles() {
+            const container = document.getElementById('particles');
+            if (!container) return;
+            for (let i = 0; i < 40; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                const size = Math.random() * 4 + 2;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = Math.random() * 10 + 10 + 's';
+                particle.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            
+            let icon = 'fa-info-circle';
+            let borderColor = '#f97316';
+            
+            if (type === 'success') {
+                icon = 'fa-check-circle';
+                borderColor = '#10b981';
+            } else if (type === 'error') {
+                icon = 'fa-exclamation-circle';
+                borderColor = '#ef4444';
+            }
+            
+            toast.style.borderLeftColor = borderColor;
+            toast.innerHTML = `<i class="fas ${icon}" style="color: ${borderColor}"></i> ${message}`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+            document.getElementById('password').value = '';
+            document.getElementById('password').focus();
+            
+            setTimeout(() => {
+                errorDiv.classList.remove('show');
+            }, 5000);
+        }
+
+        function resetButton() {
+            const btn = document.getElementById('loginBtn');
+            btn.disabled = false;
+            btn.innerHTML = '<span>Secure Login</span><i class="fas fa-arrow-right"></i>';
+        }
+
+        // ==================== REDIRECTION FUNCTION ====================
+        function redirectToPortal(role, userData) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const customRedirect = urlParams.get('redirect');
+            if (customRedirect && /\.html$/i.test(customRedirect)) {
+                localStorage.setItem('userRole', role);
+                localStorage.setItem('userId', userData.id);
+                localStorage.setItem('userFullName', userData.full_name);
+                showToast(`Welcome ${userData.full_name}!`, 'success');
+                setTimeout(() => { window.location.href = customRedirect; }, 500);
+                return;
+            }
+
+            const portal = PORTAL_MAPPING[role];
+            
+            if (!portal) {
+                console.warn(`Unknown role: ${role}, redirecting to employee HRMS`);
+                window.location.href = 'employee-portal.html';
+                return;
+            }
+            
+            // Store user data in localStorage for the target portal
+            localStorage.setItem('userRole', role);
+            localStorage.setItem('userId', userData.id);
+            localStorage.setItem('userFullName', userData.full_name);
+            localStorage.setItem('userEmail', userData.email);
+            localStorage.setItem('userEmployeeCode', userData.employee_code || '');
+            localStorage.setItem('userDepartment', userData.department || '');
+            localStorage.setItem('userDesignation', userData.designation || '');
+            
+            // Show success message
+            showToast(`Welcome ${userData.full_name}! Redirecting to ${portal.name} Portal...`, 'success');
+            
+            // Add animation to login card
+            const card = document.querySelector('.login-card');
+            card.style.transition = 'all 0.3s ease';
+            card.style.transform = 'scale(0.98)';
+            card.style.opacity = '0';
+            
+            // Redirect after animation
+            setTimeout(() => {
+                window.location.href = portal.url;
+            }, 800);
+        }
+
+        // ==================== LOGIN HANDLER ====================
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            if (!email || !password) {
+                showError('Please enter both email and password');
+                return;
+            }
+
+            const btn = document.getElementById('loginBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
+
+            fetch('login.php', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json'
+                },
+                body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}&company_branch=main`
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.user) {
+                    const role = data.user.portal_role;
+                    redirectToPortal(role, data.user);
+                } else {
+                    showError(data.message || 'Invalid email or password');
+                    resetButton();
+                }
+            })
+            .catch(error => {
+                console.error('Login error:', error);
+                showError('Unable to connect to server. Please try again later.');
+                resetButton();
+            });
+        }
+
+        // ==================== SESSION CHECK ====================
+        async function checkExistingSession() {
+            try {
+                const res = await fetch('api/portal_auth_check.php', { credentials: 'include' });
+                const data = await res.json();
+                const d = data.data || {};
+                if (!data.success || !d.authenticated || !d.portal_role) {
+                    return;
+                }
+                const portal = PORTAL_MAPPING[d.portal_role];
+                const currentPage = window.location.pathname.split('/').pop();
+                if (portal && portal.url !== currentPage) {
+                    showToast(`Welcome back! Opening ${portal.name}…`, 'info');
+                    setTimeout(() => { window.location.href = portal.url; }, 600);
+                }
+            } catch (e) {
+                /* ignore — user will log in manually */
+            }
+        }
+
+        // ==================== CLEAR SESSION FUNCTION ====================
+        function clearSession() {
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userFullName');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('userEmployeeCode');
+            localStorage.removeItem('userDepartment');
+            localStorage.removeItem('userDesignation');
+        }
+
+        // Check if logout parameter is present
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('logout') === 'true') {
+            clearSession();
+            showToast('You have been logged out successfully', 'info');
+        }
+
+        // ==================== INITIALIZATION ====================
+        createParticles();
+        checkExistingSession();
+
+        // Add event listeners
+        window.addEventListener('load', () => {
+            setTimeout(() => document.getElementById('email').focus(), 500);
+        });
+
+        document.getElementById('password').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleLogin(e);
+        });
+
+        // Make functions global for debugging (optional)
+        window.clearSession = clearSession;
+    </script>
+</body>
+</html>

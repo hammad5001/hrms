@@ -1,0 +1,10 @@
+{
+    "device_ip": "103.189.232.7",
+    "device_port": 4730,
+    "start_date": "2026-02-01",
+    "end_date": "2026-03-11",
+    "auto_refresh_interval": 15,
+    "night_shift_start": 19,
+    "night_shift_end": 5,
+    "grace_minutes": 15
+}

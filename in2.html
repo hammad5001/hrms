@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Balitech · Enterprise Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        :root {
+            /* Dark Blue Theme - Matching Portal */
+            --dark-blue-950: #0a0f1c;
+            --dark-blue-900: #0a1929;
+            --dark-blue-800: #0f2744;
+            --dark-blue-700: #1a3650;
+            --dark-blue-600: #254e6b;
+            --dark-blue-500: #2f6b8f;
+            
+            /* Orange Accent */
+            --orange: #f97316;
+            --orange-dark: #ea580c;
+            --orange-light: #ffedd5;
+            --orange-very-light: #fff7ed;
+            
+            /* Portal Colors */
+            --agent: #f97316;
+            --hr: #3b82f6;
+            --management: #8b5cf6;
+            --recruiter: #10b981;
+            --training: #f59e0b;
+            --analytics: #ec4899;
+            --attendance: #a855f7; /* Purple for attendance */
+            
+            /* Text Colors */
+            --text-primary: #ffffff;
+            --text-secondary: #e2e8f0;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            
+            /* Background */
+            --bg-card: rgba(15, 23, 42, 0.95);
+            --bg-input: rgba(30, 41, 59, 0.9);
+            --bg-hover: rgba(249, 115, 22, 0.1);
+            
+            /* Shadows */
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            --shadow-orange: 0 10px 20px -8px rgba(249, 115, 22, 0.3);
+            
+            /* Gradients */
+            --gradient-primary: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            --gradient-dark: linear-gradient(135deg, var(--dark-blue-800), var(--dark-blue-900));
+        }
+
+        body {
+            background: var(--dark-blue-950);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(12px, 3vw, 24px);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(249, 115, 22, 0.03) 0%, transparent 40%),
+                radial-gradient(circle at 90% 70%, rgba(249, 115, 22, 0.03) 0%, transparent 40%),
+                linear-gradient(135deg, var(--dark-blue-950) 0%, var(--dark-blue-900) 100%);
+            z-index: -2;
+        }
+
+        /* Floating Orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(60px);
+            z-index: -1;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: min(300px, 50vw);
+            height: min(300px, 50vw);
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.1) 0%, transparent 70%);
+            top: -100px;
+            right: -100px;
+        }
+
+        .orb-2 {
+            width: min(400px, 70vw);
+            height: min(400px, 70vw);
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.08) 0%, transparent 70%);
+            bottom: -200px;
+            left: -100px;
+            animation-delay: -5s;
+        }
+
+        /* Floating particles */
+        .floating-dots {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(rgba(249, 115, 22, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+            animation: drift 30s linear infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -30px) scale(1.1); }
+            50% { transform: translate(80px, 20px) scale(1); }
+            75% { transform: translate(30px, 50px) scale(0.9); }
+        }
+
+        @keyframes drift {
+            from { background-position: 0 0; }
+            to { background-position: 100px 100px; }
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: min(750px, 95%);
+            position: relative;
+            z-index: 10;
+            animation: fadeInUp 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .login-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border-radius: clamp(24px, 5vw, 40px);
+            padding: clamp(24px, 5vw, 48px);
+            box-shadow: var(--shadow-xl);
+            border: 1px solid rgba(249, 115, 22, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Top Gradient Line */
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, 
+                transparent,
+                var(--orange),
+                var(--orange-dark),
+                var(--orange),
+                transparent
+            );
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Logo Section */
+        .logo-section {
+            text-align: center;
+            margin-bottom: clamp(24px, 4vh, 32px);
+        }
+
+        .logo-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        .logo-ring {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border: 2px solid rgba(249, 115, 22, 0.3);
+            border-radius: 50%;
+            animation: spin 10s linear infinite;
+        }
+
+        .logo-ring:nth-child(2) {
+            top: -15px;
+            left: -15px;
+            right: -15px;
+            bottom: -15px;
+            border-color: rgba(249, 115, 22, 0.2);
+            animation-direction: reverse;
+            animation-duration: 7s;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .logo-main {
+            font-size: clamp(32px, 8vw, 48px);
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, var(--orange-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+            line-height: 1.2;
+            margin-bottom: 4px;
+            position: relative;
+            text-shadow: 0 0 30px rgba(249, 115, 22, 0.3);
+        }
+
+        .logo-main span {
+            background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-sub {
+            font-size: clamp(12px, 3vw, 14px);
+            color: var(--text-muted);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        /* Welcome Text */
+        .welcome-text {
+            text-align: center;
+            margin-bottom: clamp(24px, 4vh, 32px);
+        }
+
+        .welcome-text h2 {
+            font-size: clamp(20px, 5vw, 24px);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .welcome-text p {
+            color: var(--text-muted);
+            font-size: clamp(12px, 3vw, 14px);
+        }
+
+        /* Role Grid - Enhanced */
+        .role-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: clamp(12px, 2vw, 16px);
+            margin-bottom: clamp(24px, 4vh, 32px);
+        }
+
+        .role-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(249, 115, 22, 0.1);
+            border-radius: 24px;
+            padding: 20px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+        }
+
+        .role-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), transparent);
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .role-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: var(--orange);
+            box-shadow: 0 20px 30px -10px rgba(249, 115, 22, 0.3);
+        }
+
+        .role-card:hover::before {
+            transform: translateY(0);
+        }
+
+        .role-card.active {
+            border-color: var(--orange);
+            background: rgba(249, 115, 22, 0.1);
+            box-shadow: 0 0 30px rgba(249, 115, 22, 0.2);
+        }
+
+        .role-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px;
+            font-size: 28px;
+            transition: all 0.3s;
+        }
+
+        /* Role-specific icon backgrounds */
+        .role-card[data-role="agent"] .role-icon {
+            background: rgba(249, 115, 22, 0.15);
+            color: var(--agent);
+        }
+
+        .role-card[data-role="hr"] .role-icon {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--hr);
+        }
+
+        .role-card[data-role="management"] .role-icon {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--management);
+        }
+
+        .role-card[data-role="recruiter"] .role-icon {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--recruiter);
+        }
+
+        .role-card[data-role="training"] .role-icon {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--training);
+        }
+
+        .role-card[data-role="analytics"] .role-icon {
+            background: rgba(236, 72, 153, 0.15);
+            color: var(--analytics);
+        }
+
+        /* New Attendance role icon */
+        .role-card[data-role="attendance"] .role-icon {
+            background: rgba(168, 85, 247, 0.15);
+            color: var(--attendance);
+        }
+
+        .role-card:hover .role-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .role-title {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .role-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Password Input Section */
+        .password-section {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(249, 115, 22, 0.1);
+        }
+
+        .password-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .password-label i {
+            color: var(--orange);
+            font-size: 16px;
+        }
+
+        .password-input-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .password-input-wrapper i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--orange);
+            font-size: 18px;
+            opacity: 0.8;
+            z-index: 1;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 16px 16px 16px 50px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(249, 115, 22, 0.2);
+            border-radius: 40px;
+            font-size: 16px;
+            color: var(--text-primary);
+            transition: all 0.3s;
+            letter-spacing: 2px;
+        }
+
+        .password-input:focus {
+            border-color: var(--orange);
+            outline: none;
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15);
+        }
+
+        .password-input::placeholder {
+            color: var(--text-dim);
+            letter-spacing: normal;
+            font-size: 14px;
+        }
+
+        .password-hint {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 15px;
+            border-radius: 40px;
+        }
+
+        .password-hint i {
+            color: var(--orange);
+        }
+
+        /* Login Button */
+        .login-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            border: none;
+            border-radius: 40px;
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 20px -5px rgba(249, 115, 22, 0.4);
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .login-btn:hover::before {
+            left: 100%;
+        }
+
+        .login-btn:hover {
+            background: linear-gradient(135deg, var(--orange-dark), #cc5200);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 30px -8px rgba(249, 115, 22, 0.6);
+        }
+
+        /* Password Info Grid */
+        .password-info {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid rgba(249, 115, 22, 0.1);
+        }
+
+        .info-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(249, 115, 22, 0.1);
+        }
+
+        .info-header i {
+            color: var(--orange);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 40px;
+            transition: all 0.2s;
+        }
+
+        .info-item:hover {
+            background: rgba(249, 115, 22, 0.1);
+            transform: translateX(5px);
+        }
+
+        .info-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .info-dot.agent { background: var(--agent); box-shadow: 0 0 10px var(--agent); }
+        .info-dot.hr { background: var(--hr); box-shadow: 0 0 10px var(--hr); }
+        .info-dot.management { background: var(--management); box-shadow: 0 0 10px var(--management); }
+        .info-dot.recruiter { background: var(--recruiter); box-shadow: 0 0 10px var(--recruiter); }
+        .info-dot.training { background: var(--training); box-shadow: 0 0 10px var(--training); }
+        .info-dot.analytics { background: var(--analytics); box-shadow: 0 0 10px var(--analytics); }
+        .info-dot.attendance { background: var(--attendance); box-shadow: 0 0 10px var(--attendance); }
+
+        .info-role {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .info-password {
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--orange);
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px 10px;
+            border-radius: 30px;
+        }
+
+        /* Security Badge */
+        .security-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 20px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 50px;
+        }
+
+        .security-badge i {
+            color: var(--orange);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .role-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .role-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .role-card {
+                padding: 15px 8px;
+            }
+            
+            .role-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
+            }
+            
+            .role-title {
+                font-size: 14px;
+            }
+            
+            .role-sub {
+                font-size: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 20px;
+            }
+            
+            .password-section {
+                padding: 16px;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-item {
+                padding: 8px 12px;
+            }
+        }
+
+        @media (max-height: 600px) and (orientation: landscape) {
+            body {
+                padding: 10px;
+            }
+            
+            .login-card {
+                padding: 20px;
+            }
+            
+            .logo-section {
+                margin-bottom: 15px;
+            }
+            
+            .logo-main {
+                font-size: 28px;
+            }
+        }
+
+        /* Touch Optimization */
+        @media (hover: none) and (pointer: coarse) {
+            .role-card:hover {
+                transform: none;
+            }
+
+            .role-card:active {
+                transform: scale(0.98);
+            }
+
+            .login-btn:hover {
+                transform: none;
+            }
+
+            .login-btn:active {
+                transform: scale(0.98);
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark-blue-900);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--dark-blue-600);
+            border-radius: 10px;
+            border: 2px solid var(--dark-blue-900);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--orange);
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background Elements -->
+    <div class="bg-pattern"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="floating-dots"></div>
+
+    <div class="login-container">
+        <div class="login-card">
+            <!-- Logo Section -->
+            <div class="logo-section">
+                <div class="logo-wrapper">
+                    <div class="logo-ring"></div>
+                    <div class="logo-ring"></div>
+                    <div class="logo-main">BALI<span>TECH</span></div>
+                </div>
+                <div class="logo-sub">Pvt. Ltd</div>
+            </div>
+
+            <!-- Welcome Text -->
+            <div class="welcome-text">
+                <h2>Welcome Back</h2>
+                <p>Secure enterprise portal access</p>
+            </div>
+
+            <!-- Role Selection Grid -->
+            <div class="role-grid">
+                <!-- Agent Portal -->
+                <div class="role-card" data-role="agent" onclick="selectRole('agent', event)">
+                    <div class="role-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <div class="role-title">AGENT</div>
+                    <div class="role-sub">Portal</div>
+                </div>
+
+                <!-- Recruiter Portal -->
+                <div class="role-card" data-role="recruiter" onclick="selectRole('recruiter', event)">
+                    <div class="role-icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="role-title">RECRUITER</div>
+                    <div class="role-sub">Portal</div>
+                </div>
+
+                <!-- HR Portal -->
+                <div class="role-card" data-role="hr" onclick="selectRole('hr', event)">
+                    <div class="role-icon">
+                        <i class="fas fa-users-cog"></i>
+                    </div>
+                    <div class="role-title">HR</div>
+                    <div class="role-sub">Portal</div>
+                </div>
+
+                <!-- Management Portal -->
+                <div class="role-card" data-role="management" onclick="selectRole('management', event)">
+                    <div class="role-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="role-title">MANAGEMENT</div>
+                    <div class="role-sub">Portal</div>
+                </div>
+
+                <!-- Training Portal -->
+                <div class="role-card" data-role="training" onclick="selectRole('training', event)">
+                    <div class="role-icon">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <div class="role-title">TRAINING</div>
+                    <div class="role-sub">Portal</div>
+                </div>
+
+                <!-- Analytics Portal -->
+                <div class="role-card" data-role="analytics" onclick="selectRole('analytics', event)">
+                    <div class="role-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="role-title">ANALYTICS</div>
+                    <div class="role-sub">Intelligence</div>
+                </div>
+
+                <!-- Attendance Portal -->
+                <div class="role-card" data-role="attendance" onclick="selectRole('attendance', event)">
+                    <div class="role-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="role-title">ATTENDANCE</div>
+                    <div class="role-sub">Portal</div>
+                </div>
+            </div>
+
+            <!-- Password Input Section -->
+            <div class="password-section">
+                <div class="password-label">
+                    <i class="fas fa-lock"></i>
+                    <span>Enter Portal Password</span>
+                </div>
+                
+                <div class="password-input-wrapper">
+                    <i class="fas fa-key"></i>
+                    <input type="password" class="password-input" id="passwordInput" placeholder="Enter password" autocomplete="off">
+                </div>
+
+                <div class="password-hint">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Password is case-sensitive</span>
+                </div>
+            </div>
+
+            <!-- Login Button -->
+            <button class="login-btn" onclick="handleLogin()">
+                <span>Access Portal</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+
+            <!-- Password Information Grid -->
+            <div class="password-info">
+                <div class="info-header">
+                    <i class="fas fa-key"></i>
+                    <span>Portal Access Credentials</span>
+                </div>
+                
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-dot agent"></span>
+                        <span class="info-role">Agent Portal</span>
+                        <span class="info-password">0000</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-dot recruiter"></span>
+                        <span class="info-role">Recruiter Portal</span>
+                        <span class="info-password">balitech@123</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-dot hr"></span>
+                        <span class="info-role">HR Portal</span>
+                        <span class="info-password">balitech@123</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-dot management"></span>
+                        <span class="info-role">Management Portal</span>
+                        <span class="info-password">balitech@123</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-dot training"></span>
+                        <span class="info-role">Training Portal</span>
+                        <span class="info-password">balitech@123</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-dot analytics"></span>
+                        <span class="info-role">Analytics</span>
+                        <span class="info-password">analytics@123</span>
+                    </div>
+                    
+                    <!-- Attendance credentials -->
+                    <div class="info-item">
+                        <span class="info-dot attendance"></span>
+                        <span class="info-role">Attendance Portal</span>
+                        <span class="info-password">0000</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Badge -->
+            <div class="security-badge">
+                <i class="fas fa-shield-alt"></i>
+                <span>Enterprise-Grade Security • End-to-End Encrypted</span>
+                <i class="fas fa-check-circle" style="color: var(--secondary);"></i>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Role Selection
+        function selectRole(role, event) {
+            document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            localStorage.setItem('selectedRole', role);
+            
+            // Clear password input
+            document.getElementById('passwordInput').value = '';
+            
+            // Provide haptic feedback on mobile
+            if (window.navigator && window.navigator.vibrate) {
+                window.navigator.vibrate(30);
+            }
+        }
+
+        // Handle Login
+        function handleLogin() {
+            const password = document.getElementById('passwordInput').value;
+            const role = localStorage.getItem('selectedRole') || 'agent';
+            
+            // Password mapping based on role
+            const passwords = {
+                agent: '0000',
+                recruiter: 'balitech@123',
+                hr: 'balitech@123',
+                management: 'balitech@123',
+                training: 'balitech@123',
+                analytics: 'analytics@123',
+                attendance: '0000'
+            };
+
+            // Map roles to portal files - CORRECT PATHS BASED ON YOUR STRUCTURE
+            const portalFiles = {
+                agent: '/interview-forms/interview-form/agent-portal.html',
+                recruiter: '/interview-forms/interview-form/recruiter-portal.html',
+                hr: '/interview-forms/interview-form/hr-portal.html',
+                management: '/interview-forms/interview-form/Management-Portal.html',
+                training: '/interview-forms/interview-form/training-portal.html',
+                analytics: '/interview-forms/interview-form/analytics-portal.html',
+                attendance: '/interview-forms/attendance/attendance-dashboard.html' // CORRECT PATH
+            };
+
+            // Validate password
+            if (password === passwords[role]) {
+                authenticateSuccess(role, portalFiles[role]);
+            } else {
+                authenticateError('Invalid password. Please check the credentials below.');
+            }
+        }
+
+        function authenticateSuccess(role, redirectUrl) {
+            localStorage.setItem('userRole', role);
+            
+            // Show success animation
+            const btn = document.querySelector('.login-btn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
+            btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+            
+            // Provide success haptic feedback
+            if (window.navigator && window.navigator.vibrate) {
+                window.navigator.vibrate([50, 50, 50]);
+            }
+            
+            // Smooth exit animation
+            document.querySelector('.login-card').style.transform = 'scale(0.98)';
+            document.querySelector('.login-card').style.opacity = '0';
+            document.querySelector('.login-card').style.transition = 'all 0.3s';
+            
+            setTimeout(() => {
+                window.location.href = redirectUrl;
+            }, 500);
+        }
+
+        function authenticateError(message) {
+            alert(message);
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('passwordInput').focus();
+            
+            // Shake animation for error
+            const card = document.querySelector('.login-card');
+            card.style.animation = 'shake 0.5s ease';
+            setTimeout(() => {
+                card.style.animation = '';
+            }, 500);
+            
+            // Provide error haptic feedback
+            if (window.navigator && window.navigator.vibrate) {
+                window.navigator.vibrate([100, 50, 100]);
+            }
+        }
+
+        // Shake animation keyframes
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                20%, 40%, 60%, 80% { transform: translateX(5px); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Set default role
+        localStorage.setItem('selectedRole', 'agent');
+        document.querySelector('[data-role="agent"]').classList.add('active');
+
+        // Add floating animation to logo
+        setInterval(() => {
+            const logo = document.querySelector('.logo-wrapper');
+            if (logo) {
+                logo.style.transition = 'transform 1s ease-in-out';
+                logo.style.transform = 'translateY(-3px)';
+                setTimeout(() => {
+                    logo.style.transform = 'translateY(0)';
+                }, 500);
+            }
+        }, 2000);
+
+        // Auto-focus password input on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('passwordInput').focus();
+            }, 500);
+        });
+
+        // Handle Enter key on password input
+        document.getElementById('passwordInput')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleLogin();
+            }
+        });
+
+        // Handle touch events for mobile
+        document.querySelectorAll('.role-card, .login-btn').forEach(el => {
+            el.addEventListener('touchstart', () => {
+                el.style.transform = 'scale(0.98)';
+            });
+            el.addEventListener('touchend', () => {
+                el.style.transform = '';
+            });
+        });
+
+        // Prevent zoom on double tap for iOS
+        document.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    </script>
+</body>
+</html>

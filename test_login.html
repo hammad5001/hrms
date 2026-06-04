@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Login</title>
+</head>
+<body>
+    <h2>Test Login</h2>
+    <form id="loginForm">
+        <input type="text" id="username" placeholder="Username (agent/hr/admin)" style="padding:10px; width:200px;"><br><br>
+        <input type="password" id="password" placeholder="Password" style="padding:10px; width:200px;"><br><br>
+        <button type="submit">Login</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('loginForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            const response = await fetch('login.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+            });
+            
+            const data = await response.json();
+            document.getElementById('result').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            
+            if (data.success) {
+                setTimeout(() => window.location.href = data.redirect, 1000);
+            }
+        };
+    </script>
+</body>
+</html>

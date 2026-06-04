@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balitech · Management Portal | Final Interview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/dropdown-fix.css">
+    <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        :root {
+            --primary: #f97316;
+            --primary-dark: #ea580c;
+            --primary-light: rgba(249, 115, 22, 0.1);
+            --primary-glow: rgba(249, 115, 22, 0.3);
+            --secondary: #10b981;
+            --secondary-dark: #059669;
+            --secondary-light: rgba(16, 185, 129, 0.1);
+            --danger: #ef4444;
+            --danger-light: rgba(239, 68, 68, 0.1);
+            --warning: #f59e0b;
+            --warning-light: rgba(245, 158, 11, 0.1);
+            --info: #3b82f6;
+            --info-light: rgba(59, 130, 246, 0.1);
+            --purple: #8b5cf6;
+            --purple-light: rgba(139, 92, 246, 0.1);
+            --pink: #ec4899;
+            --pink-light: rgba(236, 72, 153, 0.1);
+            --bg-primary: #0a0f1c;
+            --bg-secondary: #111827;
+            --bg-tertiary: #1a1f2e;
+            --bg-card: #1e2436;
+            --bg-input: #2a3042;
+            --bg-sidebar: #0f1524;
+            --text-primary: #ffffff;
+            --text-secondary: #e2e8f0;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --border-primary: rgba(249, 115, 22, 0.2);
+            --border-secondary: rgba(255, 255, 255, 0.05);
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            --shadow-glow: 0 0 20px var(--primary-glow);
+            --gradient-primary: linear-gradient(135deg, #f97316, #fb923c);
+            --gradient-success: linear-gradient(135deg, #10b981, #34d399);
+            --gradient-danger: linear-gradient(135deg, #ef4444, #f87171);
+            --gradient-purple: linear-gradient(135deg, #8b5cf6, #a78bfa);
+            --gradient-blue: linear-gradient(135deg, #3b82f6, #60a5fa);
+        }
+
+        [data-theme="light"] {
+            --primary: #f97316;
+            --primary-dark: #ea580c;
+            --primary-light: rgba(249, 115, 22, 0.1);
+            --bg-primary: #f8fafc;
+            --bg-secondary: #f1f5f9;
+            --bg-tertiary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-input: #f8fafc;
+            --bg-sidebar: #1e293b;
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --border-primary: rgba(249, 115, 22, 0.2);
+            --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        body {
+            background: var(--bg-primary);
+            min-height: 100vh;
+            display: flex;
+            position: relative;
+            overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(249, 115, 22, 0.03) 0%, transparent 40%),
+                        radial-gradient(circle at 80% 70%, rgba(249, 115, 22, 0.03) 0%, transparent 40%),
+                        linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            z-index: -2;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.05) 0%, transparent 70%);
+            top: -200px;
+            right: -200px;
+            border-radius: 50%;
+            filter: blur(60px);
+            animation: float 20s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        .orb-2 {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.03) 0%, transparent 70%);
+            bottom: -300px;
+            left: -200px;
+            border-radius: 50%;
+            filter: blur(60px);
+            animation: float 25s ease-in-out infinite reverse;
+            z-index: -1;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -30px) scale(1.1); }
+            50% { transform: translate(80px, 20px) scale(1); }
+            75% { transform: translate(30px, 50px) scale(0.9); }
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--bg-sidebar);
+            backdrop-filter: blur(10px);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            transition: all 0.3s;
+            box-shadow: var(--shadow-xl);
+            z-index: 100;
+            border-right: 1px solid var(--border-primary);
+        }
+
+        .sidebar-header {
+            padding: 30px 20px;
+            border-bottom: 1px solid var(--border-primary);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .sidebar-logo {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, #fff, var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .sidebar-logo span {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .sidebar-menu {
+            padding: 20px 10px;
+        }
+
+        .menu-item {
+            padding: 14px 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+            border-radius: 12px;
+            margin-bottom: 5px;
+        }
+
+        .menu-item:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .menu-item.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-left-color: var(--primary);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .menu-item i {
+            width: 22px;
+            font-size: 18px;
+        }
+
+        .menu-item span {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .menu-badge {
+            margin-left: auto;
+            background: var(--gradient-primary);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 20px;
+            border-top: 1px solid var(--border-primary);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            background: var(--bg-tertiary);
+            border-radius: 16px;
+            border: 1px solid var(--border-primary);
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .user-details h5 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+            color: var(--text-primary);
+        }
+
+        .user-details p {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .top-header {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .top-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(249, 115, 22, 0.05), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-logo {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-primary);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .header-title h2 {
+            font-size: 22px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .header-title p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .theme-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-primary);
+            font-size: 18px;
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary);
+            color: white;
+            transform: rotate(15deg);
+            border-color: var(--primary);
+        }
+
+        .action-btn {
+            padding: 10px 18px;
+            border: 1px solid var(--border-primary);
+            border-radius: 40px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .action-btn.primary {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .gsheets-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border-radius: 40px;
+            border: 1px solid var(--border-primary);
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .gsheets-status i {
+            color: var(--primary);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-primary);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl), var(--shadow-glow);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--primary-light);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .dashboard-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-primary);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .card-header h3 {
+            font-size: 18px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .card-header h3 i {
+            color: var(--primary);
+        }
+
+        .card-badge {
+            padding: 6px 14px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid var(--border-primary);
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            z-index: 1;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 14px 15px 14px 45px;
+            background: var(--bg-input);
+            border: 2px solid var(--border-primary);
+            border-radius: 40px;
+            font-size: 14px;
+            transition: all 0.3s;
+            color: var(--text-primary);
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary);
+            outline: none;
+            background: var(--bg-tertiary);
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+
+        .candidate-list {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .candidate-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .candidate-list::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+        }
+
+        .candidate-list::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        .candidate-item {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .candidate-item:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-glow);
+            transform: translateX(5px);
+        }
+
+        .candidate-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: var(--gradient-primary);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .candidate-item:hover::before {
+            opacity: 1;
+        }
+
+        .candidate-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .candidate-avatar {
+            width: 55px;
+            height: 55px;
+            background: var(--gradient-primary);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .candidate-info {
+            flex: 1;
+        }
+
+        .candidate-info h4 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .candidate-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 600;
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .tag.campaign {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-color: rgba(249, 115, 22, 0.3);
+        }
+
+        .info-highlight {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+            border: 1px solid rgba(249, 115, 22, 0.3);
+        }
+
+        .candidate-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 15px 0;
+            padding: 15px;
+            background: var(--bg-input);
+            border-radius: 16px;
+            border: 1px solid var(--border-primary);
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .detail-item i {
+            color: var(--primary);
+            width: 16px;
+        }
+
+        .remarks-preview {
+            margin-top: 15px;
+            padding: 15px;
+            background: var(--bg-input);
+            border-radius: 16px;
+            font-size: 12px;
+            border-left: 3px solid var(--primary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .remarks-preview-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 11px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 70px;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-info {
+            background: var(--gradient-blue);
+            color: white;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .btn-success {
+            background: var(--gradient-success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--gradient-danger);
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 60px;
+            color: var(--text-dim);
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .empty-state h4 {
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .selected-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-primary);
+            transition: all 0.2s;
+        }
+
+        .selected-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .selected-item:last-child {
+            border-bottom: none;
+        }
+
+        .selected-avatar {
+            width: 45px;
+            height: 45px;
+            background: var(--bg-input);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .selected-info {
+            flex: 1;
+        }
+
+        .selected-info h5 {
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .selected-info p {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .selected-status {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .selected-status.selected {
+            background: var(--secondary-light);
+            color: var(--secondary);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.2s ease;
+        }
+        
+        .modal {
+            background: var(--bg-card);
+            border-radius: 24px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-2xl);
+            animation: slideUp 0.3s ease;
+            border: 1px solid var(--border-primary);
+        }
+        
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            background: var(--bg-card);
+        }
+        
+        .modal-header h3 {
+            flex: 1;
+            margin: 0;
+            color: var(--text-primary);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-muted);
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+        
+        .modal-close:hover {
+            background: var(--bg-tertiary);
+            color: var(--primary);
+        }
+        
+        .modal-body {
+            padding: 24px;
+        }
+        
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border-primary);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: var(--bg-card);
+        }
+        
+        .modal-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .modal-btn-cancel {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-primary);
+        }
+        
+        .modal-btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+        }
+        
+        .modal-btn-danger {
+            background: var(--gradient-danger);
+            color: white;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            background: var(--bg-input);
+            border: 2px solid var(--border-primary);
+            border-radius: 12px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+            color: var(--text-primary);
+        }
+
+        textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+
+        .rejection-reasons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .rejection-reason {
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        
+        .rejection-reason:hover {
+            border-color: var(--danger);
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+        
+        .rejection-reason.selected {
+            border-color: var(--danger);
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            z-index: 2000;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border-left: 6px solid var(--secondary);
+            border-radius: 14px;
+            padding: 16px 24px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow-2xl);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(400px);
+            transition: transform 0.3s;
+            min-width: 300px;
+            color: var(--text-primary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @media (max-width: 1200px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .sidebar { width: 240px; }
+            .main-content { margin-left: 240px; }
+        }
+
+        @media (max-width: 992px) {
+            .sidebar { width: 80px; }
+            .sidebar-header h3, .sidebar-sub, .menu-item span, .user-details { display: none; }
+            .sidebar-logo { font-size: 20px; }
+            .menu-item { justify-content: center; padding: 15px; }
+            .menu-item i { margin: 0; font-size: 20px; }
+            .main-content { margin-left: 80px; padding: 20px; }
+            .user-info { justify-content: center; padding: 10px; }
+            .user-avatar { margin: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .header-actions { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body data-theme="dark">
+    <div class="orb-2"></div>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">BALI<span>TECH</span></div>
+            <div class="sidebar-sub">Management Portal</div>
+        </div>
+        
+        <div class="sidebar-menu">
+            <div class="menu-item active">
+                <i class="fas fa-chart-pie"></i>
+                <span>Dashboard</span>
+            </div>
+            <div class="menu-item">
+                <i class="fas fa-clock"></i>
+                <span>Pending GM</span>
+                <span class="menu-badge" id="pendingGMBadge">0</span>
+            </div>
+            <div class="menu-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Selected</span>
+                <span class="menu-badge" id="selectedBadge">0</span>
+            </div>
+            <div class="menu-item" onclick="window.location.href='chat-portal.html'">
+                <i class="fas fa-comments"></i>
+                <span>Chat</span>
+            </div>
+        </div>
+        
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <div class="user-details">
+                    <h5>General Manager</h5>
+                    <p>gm@balitech.com</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="top-header">
+            <div class="header-left">
+                <div class="header-logo">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <div class="header-title">
+                    <h2>Management Portal</h2>
+                    <p>Final Interview & Selection → Training</p>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <div class="theme-toggle" onclick="toggleTheme()">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </div>
+                <div class="gsheets-status" id="gsheetsStatus">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <span>Ready</span>
+                </div>
+                <button class="action-btn primary" onclick="forceSync()">
+                    <i class="fas fa-sync-alt"></i> Sync
+                </button>
+                <button class="action-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <div class="stats-grid" id="statsGrid"></div>
+
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-clock"></i> Pending GM Interviews</h3>
+                    <span class="card-badge" id="pendingGMCount">0</span>
+                </div>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="gmSearch" placeholder="Search candidates...">
+                </div>
+                <div class="candidate-list" id="gmList"></div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-check-circle"></i> Selected for Training</h3>
+                    <span class="card-badge" id="selectedCount">0</span>
+                </div>
+                <div class="candidate-list" id="selectedList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/portal-access.js"></script>
+    <script src="js/portal-session-guard.js"></script>
+    <script src="js/portal-performance.js"></script>
+    <script>
+        // Global candidates array
+        let candidates = [];
+        let nextId = 1;
+        let lastGmRenderHash = '';
+        const GM_CANDIDATES_URL = 'api/get_candidates_global.php?light=1&limit=200&stages=hr_passed,gm_passed,gm_rejected,hired,training,deployed';
+
+        // Google Sheets URL
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwwrodkRzdbcCTy1G8zRwGl5lSTBXJ5Ar-MmWMvLuXgAZOcJ2snOVdn3IMc4xKnhSMk1w/exec';
+
+        async function loadData() {
+            try {
+                const result = window.PortalFetch
+                    ? await PortalFetch.fetchJson(GM_CANDIDATES_URL, { ttlMs: 15000 })
+                    : await (await fetch(GM_CANDIDATES_URL, { credentials: 'include' })).json();
+                if (result.success && Array.isArray(result.data)) {
+                    candidates = result.data;
+                }
+            } catch (e) {
+                console.error("Failed to fetch GM candidates", e);
+                candidates = [];
+            }
+        }
+
+        function saveData() {}
+
+        function syncToGoogleSheets(candidateData) {
+            fetch('api/sheets_mirror.php?action=pushCandidate', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ event: 'management_sync', candidate: candidateData })
+            }).catch(err => console.log('Sync error:', err));
+        }
+
+        function forceSync() {
+            if (candidates.length > 0) {
+                syncToGoogleSheets(candidates[candidates.length - 1]);
+                showToast('🔄 Manual sync triggered!', 'success');
+            } else {
+                showToast('No candidates to sync', 'warning');
+            }
+        }
+
+        async function addRemark(candidateId, remarkText, addedBy) {
+            if (window.PortalFetch) PortalFetch.invalidatePipelineCaches();
+            await fetch('api/update_candidate_global.php', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: candidateId, remark: remarkText, user_role: addedBy })
+            });
+            return true;
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            toast.innerHTML = `<i class="fas ${icon}" style="color: var(--${type === 'success' ? 'secondary' : 'danger'})"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function showRemarksModal(candidateId) {
+            const candidate = candidates.find(c => c.id === candidateId);
+            if (!candidate) return;
+            
+            const modalHtml = `
+                <div class="modal-overlay" id="remarksModal">
+                    <div class="modal">
+                        <div class="modal-header">
+                            <i class="fas fa-comments" style="color: var(--primary); font-size: 24px;"></i>
+                            <h3>Remarks - ${candidate.fullName}</h3>
+                            <button class="modal-close" onclick="closeModal()">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <textarea id="newRemark" placeholder="Add your GM interview remarks..."></textarea>
+                            <button class="btn btn-success" onclick="saveRemark(${candidateId})" style="width: 100%; margin-top: 15px;">
+                                <i class="fas fa-plus"></i> Add Remark
+                            </button>
+                            <div style="margin-top: 20px;">
+                                <h4 style="margin-bottom: 10px;">Previous Remarks</h4>
+                                <div id="remarksList">
+                                    ${candidate.remarks && candidate.remarks.length > 0 ? 
+                                        candidate.remarks.slice().reverse().map(r => `
+                                            <div style="padding: 10px; background: var(--bg-input); border-radius: 8px; margin-bottom: 8px;">
+                                                <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                                                    <strong>${r.addedBy || 'System'}</strong>
+                                                    <span style="color: var(--text-muted);">${new Date(r.timestamp).toLocaleString()}</span>
+                                                </div>
+                                                <div style="font-size: 13px; margin-top: 5px;">${r.text}</div>
+                                            </div>
+                                        `).join('') : 
+                                        '<p style="color: var(--text-muted);">No remarks yet</p>'
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Close</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+
+        async function saveRemark(candidateId) {
+            const remark = document.getElementById('newRemark')?.value?.trim();
+            if (!remark) {
+                showToast('Please enter a remark', 'warning');
+                return;
+            }
+            await addRemark(candidateId, remark, 'GM');
+            showToast('✅ Remark added successfully', 'success');
+            closeModal();
+            renderDashboard();
+        }
+
+        // SELECT candidate - Move to Training Portal
+        async function selectCandidate(id) {
+            const candidate = candidates.find(c => c.id === id);
+            if (!candidate) return;
+
+            if (window.PortalFetch) PortalFetch.invalidatePipelineCaches();
+            await fetch('api/update_candidate_global.php', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: candidate.id,
+                    new_stage: 'hired',
+                    action: 'gm_hired',
+                    remark: 'SELECTED in GM interview - Moving to Training Portal',
+                    user_role: 'GM'
+                })
+            });
+            
+            showToast(`✅ ${candidate.fullName} selected! Moving to Training Portal.`, 'success');
+            renderDashboard();
+        }
+
+        // REJECT candidate
+        function rejectCandidate(id) {
+            const candidate = candidates.find(c => c.id === id);
+            if (!candidate) return;
+            showRejectionModal(candidate);
+        }
+
+        function showRejectionModal(candidate) {
+            const reasons = [
+                'Poor English communication',
+                'Lack of relevant experience',
+                'Overqualified',
+                'Underqualified',
+                'Salary expectation too high',
+                'Not serious/motivated',
+                'Poor attitude',
+                'Late to interview',
+                'Technical skills lacking',
+                'Background verification failed',
+                'Cultural fit issue'
+            ];
+            
+            const modalHtml = `
+                <div class="modal-overlay" id="rejectionModal">
+                    <div class="modal">
+                        <div class="modal-header">
+                            <i class="fas fa-times-circle" style="color: var(--danger); font-size: 24px;"></i>
+                            <h3>Reject ${candidate.fullName}</h3>
+                            <button class="modal-close" onclick="closeModal()">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <p style="margin-bottom: 16px;">Please select rejection reason:</p>
+                            <div class="rejection-reasons">
+                                ${reasons.map(reason => `
+                                    <div class="rejection-reason" onclick="selectReason(this, '${reason.replace(/'/g, "\\'")}')">
+                                        <i class="fas fa-times-circle"></i>
+                                        <span>${reason}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <input type="text" id="customReason" class="rejection-custom-input" placeholder="Or type custom reason...">
+                        </div>
+                        <div class="modal-footer">
+                            <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancel</button>
+                            <button class="modal-btn modal-btn-danger" onclick="confirmReject(${candidate.id})">Reject Candidate</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            window.selectedRejectReason = '';
+        }
+
+        function selectReason(element, reason) {
+            document.querySelectorAll('.rejection-reason').forEach(r => r.classList.remove('selected'));
+            element.classList.add('selected');
+            window.selectedRejectReason = reason;
+        }
+
+        async function confirmReject(candidateId) {
+            const customReason = document.getElementById('customReason')?.value?.trim();
+            const reason = customReason || window.selectedRejectReason;
+            
+            if (!reason) {
+                showToast('Please select or enter a rejection reason', 'warning');
+                return;
+            }
+            
+            const candidate = candidates.find(c => c.id === candidateId);
+            if (candidate) {
+                if (window.PortalFetch) PortalFetch.invalidatePipelineCaches();
+                await fetch('api/update_candidate_global.php', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: candidate.id,
+                        new_stage: 'gm_rejected',
+                        action: 'gm_reject',
+                        remark: `REJECTED in GM: ${reason}`,
+                        user_role: 'GM'
+                    })
+                });
+                
+                showToast(`❌ ${candidate.fullName} rejected`, 'warning');
+                renderDashboard();
+            }
+            closeModal();
+        }
+
+        function showCandidateDetails(id) {
+            const candidate = candidates.find(c => c.id === id);
+            if (!candidate) return;
+            let details = `📋 Candidate Details:\n\n`;
+            details += `Name: ${candidate.fullName}\n`;
+            details += `Father: ${candidate.fatherName || 'N/A'}\n`;
+            details += `Phone: ${candidate.phone}\n`;
+            details += `Email: ${candidate.email || 'N/A'}\n`;
+            details += `CNIC: ${candidate.cnic || 'N/A'}\n`;
+            details += `City: ${candidate.city || 'N/A'}\n`;
+            details += `Position: ${candidate.position}\n`;
+            details += `Graduation: ${candidate.graduation || 'N/A'}\n`;
+            details += `Referred By: ${candidate.referredBy || 'Walk-in'}\n`;
+            details += `HR Passed: ${candidate.hrDate ? new Date(candidate.hrDate).toLocaleDateString() : 'N/A'}\n`;
+            if (candidate.remarks && candidate.remarks.length > 0) {
+                details += `\nLatest Remark: ${candidate.remarks[candidate.remarks.length - 1].text}`;
+            }
+            alert(details);
+        }
+
+        async function renderDashboard() {
+            await loadData();
+
+            const gmCandidates = candidates.filter(c => c.status === 'hr_passed');
+            const fp = window.portalDataFingerprint
+                ? portalDataFingerprint(candidates, ['status'])
+                : JSON.stringify(candidates.length);
+            if (fp === lastGmRenderHash && document.getElementById('gmList')?.innerHTML) {
+                return;
+            }
+            lastGmRenderHash = fp;
+            
+            // Selected candidates (sent to training)
+            const selectedCandidates = candidates.filter(c => 
+                c.status === 'hired' || 
+                c.status === 'training'
+            );
+            
+            const hrPassed = candidates.filter(c => c.hrStatus === 'passed').length;
+            const selected = selectedCandidates.length;
+            const rejected = candidates.filter(c => c.gmStatus === 'rejected').length;
+
+            document.getElementById('pendingGMBadge').textContent = gmCandidates.length;
+            document.getElementById('selectedBadge').textContent = selected;
+            document.getElementById('pendingGMCount').textContent = gmCandidates.length;
+            document.getElementById('selectedCount').textContent = selected;
+
+            document.getElementById('statsGrid').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-label">HR Passed</div>
+                    <div class="stat-value">${hrPassed}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                    <div class="stat-label">Pending GM</div>
+                    <div class="stat-value">${gmCandidates.length}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-check-circle" style="color: var(--secondary);"></i></div>
+                    <div class="stat-label">Selected for Training</div>
+                    <div class="stat-value">${selected}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-times-circle" style="color: var(--danger);"></i></div>
+                    <div class="stat-label">Rejected</div>
+                    <div class="stat-value">${rejected}</div>
+                </div>
+            `;
+
+            document.getElementById('gmList').innerHTML = renderGMCandidateList(gmCandidates);
+            document.getElementById('selectedList').innerHTML = renderSelectedList(selectedCandidates);
+            
+            // Setup search
+            const searchInput = document.getElementById('gmSearch');
+            if (searchInput) {
+                searchInput.oninput = (e) => {
+                    const search = e.target.value.toLowerCase();
+                    const filtered = gmCandidates.filter(c =>
+                        c.fullName?.toLowerCase().includes(search) ||
+                        c.phone?.includes(search) ||
+                        c.email?.toLowerCase().includes(search)
+                    );
+                    document.getElementById('gmList').innerHTML = renderGMCandidateList(filtered);
+                };
+            }
+        }
+
+        function renderGMCandidateList(list) {
+            if (list.length === 0) {
+                return '<div class="empty-state"><i class="fas fa-users-slash"></i><h4>No Pending GM Interviews</h4><p>Candidates who pass HR and are sent to Final Interview will appear here.</p><button onclick="window.location.href=\'hr-portal.html\'" style="margin-top:15px;padding:10px 20px;background:var(--gradient-primary);border:none;border-radius:40px;color:white;cursor:pointer;"><i class="fas fa-arrow-left"></i> Go to HR Portal</button></div>';
+            }
+
+            return list.map(c => `
+                <div class="candidate-item">
+                    <div class="candidate-header">
+                        <div class="candidate-avatar"><i class="fas fa-user"></i></div>
+                        <div class="candidate-info">
+                            <h4>${c.fullName}</h4>
+                            <div class="candidate-tags">
+                                <span class="tag campaign">${c.position || 'Campaign'}</span>
+                                <span class="info-highlight">HR Passed: ${c.hrDate ? new Date(c.hrDate).toLocaleDateString() : 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="candidate-details">
+                        <div class="detail-item"><i class="fas fa-phone"></i> ${c.phone}</div>
+                        <div class="detail-item"><i class="fas fa-envelope"></i> ${c.email}</div>
+                        <div class="detail-item"><i class="fas fa-id-card"></i> ${c.cnic}</div>
+                        <div class="detail-item"><i class="fas fa-graduation-cap"></i> ${c.graduation}</div>
+                        <div class="detail-item"><i class="fas fa-user-plus"></i> Referred: ${c.referredBy || 'Walk-in'}</div>
+                        <div class="detail-item"><i class="fas fa-calendar"></i> Applied: ${new Date(c.timestamp || c.registeredAt).toLocaleDateString()}</div>
+                    </div>
+                    ${c.remarks && c.remarks.length > 0 ? `
+                    <div class="remarks-preview">
+                        <div class="remarks-preview-header"><i class="fas fa-comment"></i> Latest Remark</div>
+                        <div class="remarks-preview-item"><strong>${c.remarks[c.remarks.length - 1].addedBy || 'System'}:</strong> ${c.remarks[c.remarks.length - 1].text}</div>
+                    </div>
+                    ` : ''}
+                    <div class="action-buttons">
+                        <button class="btn btn-info" onclick="showCandidateDetails(${c.id})"><i class="fas fa-eye"></i> Details</button>
+                        <button class="btn btn-primary" onclick="showRemarksModal(${c.id})"><i class="fas fa-comment"></i> Remarks</button>
+                        <button class="btn btn-success" onclick="selectCandidate(${c.id})"><i class="fas fa-check"></i> Select for Training</button>
+                        <button class="btn btn-danger" onclick="rejectCandidate(${c.id})"><i class="fas fa-times"></i> Reject</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderSelectedList(list) {
+            if (list.length === 0) {
+                return '<div class="empty-state"><i class="fas fa-inbox"></i><h4>No Selected Candidates</h4><p>Candidates selected for training will appear here and in Training Portal.</p></div>';
+            }
+
+            return list.map(c => `
+                <div class="selected-item">
+                    <div class="selected-avatar"><i class="fas fa-user-check"></i></div>
+                    <div class="selected-info">
+                        <h5>${c.fullName}</h5>
+                        <p>${c.position} · Selected for Training</p>
+                    </div>
+                    <div class="selected-status selected">Training Pending</div>
+                </div>
+            `).join('');
+        }
+
+        function closeModal() {
+            const modal = document.querySelector('.modal-overlay');
+            if (modal) modal.remove();
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme') || 'dark';
+            const newTheme = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            const icon = document.getElementById('themeIcon');
+            if (icon) icon.className = newTheme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = 'index.html';
+            }
+        }
+
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        const themeIcon = document.getElementById('themeIcon');
+        if (themeIcon) themeIcon.className = savedTheme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+
+        renderDashboard();
+
+        if (window.PortalPoll) {
+            PortalPoll.start('gm-dashboard', () => renderDashboard(), 30000, { pauseWhenHidden: true });
+        }
+
+        window.showRemarksModal = showRemarksModal;
+        window.saveRemark = saveRemark;
+        window.selectCandidate = selectCandidate;
+        window.rejectCandidate = rejectCandidate;
+        window.showCandidateDetails = showCandidateDetails;
+        window.toggleTheme = toggleTheme;
+        window.forceSync = forceSync;
+        window.logout = logout;
+        window.closeModal = closeModal;
+        window.selectReason = selectReason;
+        window.confirmReject = confirmReject;
+    </script>
+    <script src="js/portal-chat-fab.js"></script>
+</body>
+</html>

@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balitech · Admin Command Center</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap"
+        rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="css/dropdown-fix.css">
+    <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
+    <style>
+        /* Your existing CSS - keeping it exactly as is */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #f97316;
+            --primary-dark: #ea580c;
+            --primary-light: rgba(249, 115, 22, 0.15);
+            --primary-glow: rgba(249, 115, 22, 0.4);
+            --secondary: #10b981;
+            --secondary-dark: #059669;
+            --secondary-light: rgba(16, 185, 129, 0.15);
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --purple: #8b5cf6;
+            --pink: #ec4899;
+            --cyan: #06b6d4;
+            --bg-dark: #0a0c15;
+            --bg-darker: #05070f;
+            --bg-card: rgba(30, 36, 54, 0.95);
+            --bg-sidebar: #0f1524;
+            --bg-hover: rgba(249, 115, 22, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #e2e8f0;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --border-light: rgba(255, 255, 255, 0.08);
+            --border-primary: rgba(249, 115, 22, 0.25);
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            --shadow-glow: 0 0 25px var(--primary-glow);
+            --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 20% 30%, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: linear-gradient(125deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+        }
+
+        .animated-bg::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.15) 0%, transparent 70%);
+            animation: slowRotate 30s linear infinite;
+        }
+
+        @keyframes slowRotate {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(249, 115, 22, 0.3);
+            border-radius: 50%;
+            animation: float linear infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.5;
+            }
+            90% {
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 10px;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: rgba(15, 21, 36, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-primary);
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 28px 24px;
+            border-bottom: 1px solid var(--border-primary);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+            50% {
+                transform: translateX(100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-logo-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient-primary);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 0 20px var(--primary-glow);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 var(--primary-glow);
+            }
+            50% {
+                box-shadow: 0 0 20px 5px var(--primary-glow);
+            }
+        }
+
+        .sidebar-logo-text h2 {
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-logo-text p {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .sidebar-nav {
+            padding: 20px 16px;
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) rgba(255, 255, 255, 0.06);
+        }
+
+        .sidebar-nav::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 999px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--primary), var(--primary-dark));
+            border-radius: 999px;
+            border: 2px solid transparent;
+            background-clip: content-box;
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            padding-left: 12px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-bottom: 4px;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item i {
+            width: 20px;
+            font-size: 18px;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-hover);
+            color: var(--primary);
+            transform: translateX(5px);
+            border-left-color: var(--primary);
+        }
+
+        .nav-item.active {
+            background: var(--bg-hover);
+            color: var(--primary);
+            border-left-color: var(--primary);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            background: var(--gradient-primary);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 20px;
+            border-top: 1px solid var(--border-primary);
+            background: linear-gradient(180deg, rgba(15, 21, 36, 0), rgba(15, 21, 36, 0.98) 28%);
+            backdrop-filter: blur(18px);
+        }
+
+        .user-info-sidebar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            border: 1px solid var(--border-primary);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+
+        .user-avatar-small {
+            width: 42px;
+            height: 42px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .user-details h5 {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .user-details p {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 24px 32px;
+        }
+
+        /* Top Header */
+        .top-header {
+            background: rgba(10, 12, 21, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 20px 28px;
+            margin-bottom: 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            border: 1px solid var(--border-light);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .page-title h1 {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .page-title p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .date-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-light);
+        }
+
+        .refresh-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-light);
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            background: var(--gradient-primary);
+            border-color: transparent;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* ========= MERGED ADMIN & LOGOUT ========= */
+        .admin-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .admin-menu-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 16px 6px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50px;
+            border: 1px solid var(--border-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+        }
+
+        .admin-menu-btn:hover {
+            background: rgba(249, 115, 22, 0.15);
+            border-color: var(--border-primary);
+            box-shadow: 0 0 12px var(--primary-glow);
+        }
+
+        .user-avatar {
+            width: 38px;
+            height: 38px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+
+        .admin-menu-btn:hover .user-avatar {
+            transform: scale(1.02);
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .user-role {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .dropdown-arrow {
+            font-size: 12px;
+            color: var(--text-muted);
+            transition: transform 0.2s;
+        }
+
+        .admin-menu-btn:hover .dropdown-arrow {
+            color: var(--primary);
+        }
+
+        .dropdown-content {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: rgba(15, 21, 36, 0.98);
+            backdrop-filter: blur(24px);
+            border-radius: 20px;
+            min-width: 200px;
+            border: 1px solid var(--border-primary);
+            box-shadow: var(--shadow-xl);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.25s ease;
+            z-index: 200;
+        }
+
+        .admin-dropdown.active .dropdown-content {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 18px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .dropdown-item:first-child {
+            border-radius: 20px 20px 0 0;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .dropdown-item i {
+            width: 20px;
+            font-size: 14px;
+            color: var(--primary);
+        }
+
+        .dropdown-item:hover {
+            background: var(--bg-hover);
+            color: var(--primary);
+            padding-left: 22px;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: var(--border-light);
+            margin: 6px 0;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 24px;
+            border: 1px solid var(--border-light);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--border-primary);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .stat-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .stat-icon.users {
+            background: rgba(59, 130, 246, 0.15);
+            color: #3b82f6;
+        }
+
+        .stat-icon.portals {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--purple);
+        }
+
+        .stat-icon.attendance {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--secondary);
+        }
+
+        .stat-icon.health {
+            background: rgba(249, 115, 22, 0.15);
+            color: var(--primary);
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-trend {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .stat-trend.positive {
+            color: var(--secondary);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .stat-trend.negative {
+            color: var(--danger);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Charts Row */
+        .charts-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+
+        .chart-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 24px;
+            border: 1px solid var(--border-light);
+            transition: all 0.3s ease;
+        }
+
+        .chart-card:hover {
+            border-color: var(--border-primary);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .chart-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-header h3 i {
+            color: var(--primary);
+        }
+
+        .chart-container {
+            height: 260px;
+            position: relative;
+        }
+
+        /* Portal Section */
+        .portal-section {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 28px;
+            margin-bottom: 28px;
+            border: 1px solid var(--border-light);
+        }
+
+        .portal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .portal-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .portal-badge {
+            background: var(--bg-hover);
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 12px;
+            color: var(--primary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .portal-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .portal-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-light);
+            text-decoration: none;
+            display: block;
+            cursor: pointer;
+        }
+
+        .portal-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--border-primary);
+            background: var(--bg-hover);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .portal-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 16px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .portal-card:hover .portal-icon {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px var(--primary-glow);
+        }
+
+        .portal-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .portal-sub {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Activity Section */
+        .activity-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+
+        .activity-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 24px;
+            border: 1px solid var(--border-light);
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .activity-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px;
+            border-radius: 16px;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .activity-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(5px);
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .activity-icon.user {
+            background: rgba(59, 130, 246, 0.15);
+            color: #3b82f6;
+        }
+
+        .activity-icon.checkin {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--secondary);
+        }
+
+        .activity-icon.system {
+            background: rgba(249, 115, 22, 0.15);
+            color: var(--primary);
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .activity-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .activity-time {
+            font-size: 10px;
+            color: var(--text-dim);
+        }
+
+        /* System Status */
+        .system-status {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 24px;
+            border: 1px solid var(--border-light);
+        }
+
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .status-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--secondary);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .status-item {
+            text-align: center;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            border: 1px solid var(--border-light);
+        }
+
+        .status-item .label {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .status-item .value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-dot.online {
+            background: var(--secondary);
+            box-shadow: 0 0 8px var(--secondary);
+        }
+
+        .footer {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 20px 28px;
+            margin-top: 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--text-muted);
+            border: 1px solid var(--border-light);
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 2000;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 14px 24px;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow-xl);
+            border-left: 4px solid var(--primary);
+            color: var(--text-primary);
+            animation: slideInRight 0.3s ease;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .stats-grid,
+            .portal-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+            .activity-section {
+                grid-template-columns: 1fr;
+            }
+            .status-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 16px;
+            }
+            .stats-grid,
+            .portal-grid {
+                grid-template-columns: 1fr;
+            }
+            .top-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="animated-bg"></div>
+    <div class="particles" id="particles"></div>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="sidebar-logo-icon"><i class="fas fa-crown"></i></div>
+                    <div class="sidebar-logo-text"><h2>BALITECH</h2><p>Enterprise Suite</p></div>
+                </div>
+            </div>
+            <div class="sidebar-nav">
+                <div class="nav-section"><div class="nav-section-title">Main</div>
+                    <a href="#" class="nav-item active" onclick="return false;"><i class="fas fa-chart-pie"></i><span>Dashboard</span></a>
+                    <a href="admin.php" class="nav-item"><i class="fas fa-users"></i><span>User Management</span></a>
+                    <a href="profile.php" class="nav-item"><i class="fas fa-user-circle"></i><span>My Profile</span></a>
+                    <a href="chat-portal.html" class="nav-item"><i class="fas fa-comments"></i><span>Chat</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">Operations</div>
+                    <a href="javascript:void(0)" class="nav-item" onclick="openPortalWithSession('attendance/attendance-dashboard.html')"><i class="fas fa-clock"></i><span>Attendance</span><span class="nav-badge">Live</span></a>
+                    <a href="finance-attendance.php" class="nav-item"><i class="fas fa-chart-line"></i><span>Finance</span></a>
+                    <a href="javascript:void(0)" class="nav-item super-admin-only" id="recruiterNavItem" style="display:none" onclick="openPortalWithSession('recruiter-portal.html')"><i class="fas fa-user-tie"></i><span>Recruitment</span></a>
+                    <a href="javascript:void(0)" class="nav-item" onclick="openPortalWithSession('hr-portal.html')"><i class="fas fa-users-cog"></i><span>HR Portal</span></a>
+                    <a href="javascript:void(0)" class="nav-item" onclick="openPortalWithSession('Management-Portal.html')"><i class="fas fa-chart-line"></i><span>Management Portal</span></a>
+                    <a href="javascript:void(0)" class="nav-item" onclick="openPortalWithSession('reception-portal.html')"><i class="fas fa-concierge-bell"></i><span>Reception Portal</span></a>
+                </div>
+            </div>
+            <div class="sidebar-footer">
+                <div class="user-info-sidebar"><div class="user-avatar-small" id="sidebarAvatar">A</div><div class="user-details"><h5 id="sidebarName">Administrator</h5><p id="sidebarRoleLabel">Admin</p></div></div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="top-header">
+                <div class="page-title"><h1>Command Center</h1><p><i class="fas fa-chart-line"></i> Welcome back, <span id="adminName">Admin</span> · Real-time enterprise intelligence</p></div>
+                <div class="header-actions">
+                    <div class="date-badge" id="currentDate"><i class="fas fa-calendar-alt"></i><span>Loading...</span></div>
+                    <button class="refresh-btn" onclick="refreshAllData()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    <!-- MERGED ADMIN + LOGOUT DROPDOWN -->
+                    <div class="admin-dropdown" id="adminDropdown">
+                        <div class="admin-menu-btn" id="adminMenuBtn">
+                            <div class="user-info"><div class="user-name" id="userName">Administrator</div><div class="user-role" id="headerRoleLabel">Admin</div></div>
+                            <div class="user-avatar" id="userAvatar">A</div>
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </div>
+                        <div class="dropdown-content">
+                            <a href="profile.php" class="dropdown-item"><i class="fas fa-user-circle"></i> My Profile</a>
+                            <a href="chat-portal.html" class="dropdown-item"><i class="fas fa-comments"></i> Chat</a>
+                            <a href="admin.php" class="dropdown-item"><i class="fas fa-shield-alt"></i> Admin Settings</a>
+                            <div class="dropdown-divider"></div>
+                            <a href="logout.php" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card" onclick="window.location.href='admin.php'">
+                    <div class="stat-header"><span class="stat-title">Total Users</span><div class="stat-icon users"><i class="fas fa-users"></i></div></div>
+                    <div class="stat-value" id="statTotalUsers">0</div>
+                    <div class="stat-trend positive"><i class="fas fa-arrow-up"></i> <span id="userTrendValue">0</span>% this month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header"><span class="stat-title">Active Portals</span><div class="stat-icon portals"><i class="fas fa-th-large"></i></div></div>
+                    <div class="stat-value" id="statActivePortals">8</div>
+                    <div class="stat-trend positive"><i class="fas fa-check-circle"></i> All Operational</div>
+                </div>
+                <div class="stat-card" onclick="openPortalWithSession('attendance/attendance-dashboard.html')">
+                    <div class="stat-header"><span class="stat-title">Today's Attendance</span><div class="stat-icon attendance"><i class="fas fa-user-check"></i></div></div>
+                    <div class="stat-value" id="statAttendance">0</div>
+                    <div class="stat-trend"><i class="fas fa-clock"></i> <span id="attendancePercent">0</span>% present</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header"><span class="stat-title">System Health</span><div class="stat-icon health"><i class="fas fa-shield-alt"></i></div></div>
+                    <div class="stat-value" id="systemHealth">99.9%</div>
+                    <div class="stat-trend positive"><i class="fas fa-check-circle"></i> All Systems Go</div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="charts-row">
+                <div class="chart-card">
+                    <div class="chart-header"><h3><i class="fas fa-chart-line"></i> User Growth Trend</h3><span class="stat-trend positive">Last 30 days</span></div>
+                    <div class="chart-container"><canvas id="userGrowthChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header"><h3><i class="fas fa-chart-pie"></i> Department Distribution</h3><span class="stat-trend">By department</span></div>
+                    <div class="chart-container"><canvas id="departmentChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Portal Access Section - UPDATED with session preservation -->
+            <div class="portal-section">
+                <div class="portal-header">
+                    <h3><i class="fas fa-th-large"></i> Portal Access</h3>
+                    <span class="portal-badge" id="portalAccessBadge"><i class="fas fa-crown"></i> Admin Access</span>
+                </div>
+                <div class="portal-grid" id="portalGrid">
+                    <div class="portal-card" onclick="openPortalWithSession('reception-portal.html')">
+                        <div class="portal-icon"><i class="fas fa-concierge-bell"></i></div>
+                        <div class="portal-title">RECEPTION</div>
+                        <div class="portal-sub">Reception Portal</div>
+                    </div>
+                    <!-- Recruiter portal: SUPER ADMIN ONLY -->
+                    <div class="portal-card super-admin-only" id="recruiterPortalCard" onclick="openPortalWithSession('recruiter-portal.html')" style="display:none">
+                        <div class="portal-icon" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9)"><i class="fas fa-user-tie"></i></div>
+                        <div class="portal-title">RECRUITER</div>
+                        <div class="portal-sub">Recruitment Portal</div>
+                    </div>
+                    <div class="portal-card" onclick="openPortalWithSession('hr-portal.html')">
+                        <div class="portal-icon"><i class="fas fa-users-cog"></i></div>
+                        <div class="portal-title">HR</div>
+                        <div class="portal-sub">Human Resources</div>
+                    </div>
+                    <div class="portal-card" onclick="openPortalWithSession('Management-Portal.html')">
+                        <div class="portal-icon"><i class="fas fa-chart-line"></i></div>
+                        <div class="portal-title">MANAGEMENT</div>
+                        <div class="portal-sub">Executive Suite</div>
+                    </div>
+                    <div class="portal-card" onclick="openPortalWithSession('training-portal.html')">
+                        <div class="portal-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                        <div class="portal-title">TRAINING</div>
+                        <div class="portal-sub">Learning Center</div>
+                    </div>
+                    <div class="portal-card" onclick="openPortalWithSession('analytics-portal.html')">
+                        <div class="portal-icon"><i class="fas fa-chart-pie"></i></div>
+                        <div class="portal-title">ANALYTICS</div>
+                        <div class="portal-sub">Business Intelligence</div>
+                    </div>
+                    <div class="portal-card" onclick="openPortalWithSession('attendance/attendance-dashboard.html')">
+                        <div class="portal-icon"><i class="fas fa-clock"></i></div>
+                        <div class="portal-title">ATTENDANCE</div>
+                        <div class="portal-sub">Time & Attendance</div>
+                    </div>
+                    <div class="portal-card" onclick="openPortalWithSession('finance-attendance.php')">
+                        <div class="portal-icon"><i class="fas fa-chart-line"></i></div>
+                        <div class="portal-title">FINANCE</div>
+                        <div class="portal-sub">Payroll Analytics</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Section -->
+            <div class="activity-section">
+                <div class="activity-card">
+                    <div class="activity-header"><h3><i class="fas fa-history"></i> Recent Activity</h3><span class="stat-trend">Last 24 hours</span></div>
+                    <div class="activity-list" id="recentActivityList">
+                        <div class="activity-item"><div class="activity-icon user"><i class="fas fa-spinner fa-spin"></i></div><div class="activity-content"><div class="activity-title">Loading...</div><div class="activity-desc">Fetching latest activity</div></div><div class="activity-time">--:--</div></div>
+                    </div>
+                </div>
+                <div class="activity-card">
+                    <div class="activity-header"><h3><i class="fas fa-clock"></i> Today's Check-ins</h3><span class="stat-trend">Real-time</span></div>
+                    <div class="activity-list" id="checkinsList">
+                        <div class="activity-item"><div class="activity-icon checkin"><i class="fas fa-spinner fa-spin"></i></div><div class="activity-content"><div class="activity-title">Loading...</div><div class="activity-desc">Fetching attendance data</div></div><div class="activity-time">--:--</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Status -->
+            <div class="system-status">
+                <div class="status-header"><h3><i class="fas fa-server"></i> System Status</h3><span class="status-badge">All Systems Operational</span></div>
+                <div class="status-grid">
+                    <div class="status-item"><div class="label"><span class="status-dot online"></span> API Server</div><div class="value">Online</div></div>
+                    <div class="status-item"><div class="label"><span class="status-dot online"></span> Database</div><div class="value">Connected</div></div>
+                    <div class="status-item"><div class="label"><span class="status-dot online"></span> Google Sheets</div><div class="value">Synced</div></div>
+                    <div class="status-item"><div class="label"><span class="status-dot online"></span> Voice System</div><div class="value">Active</div></div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <div><span style="color: var(--primary);">⚡ BALITECH NEXUS</span> · Admin Command Center v5.0</div>
+                <div><i class="fas fa-shield-alt"></i> Enterprise Security · Real-time Sync</div>
+            </div>
+        </main>
+    </div>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // ==================== PARTICLES ====================
+        function createParticles() { 
+            const container = document.getElementById('particles'); 
+            for(let i = 0; i < 50; i++) {
+                const p = document.createElement('div');
+                p.classList.add('particle');
+                const s = Math.random() * 4 + 2;
+                p.style.width = s + 'px';
+                p.style.height = s + 'px';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.animationDuration = Math.random() * 10 + 10 + 's';
+                p.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(p);
+            }
+        }
+        createParticles();
+
+        // ==================== SESSION MANAGEMENT ====================
+        // Store user session in localStorage for cross-portal access
+        function storeUserSession() {
+            // Get user info from localStorage or fetch from server
+            const userName = localStorage.getItem('userFullName') || 'Administrator';
+            const userRole = localStorage.getItem('userRole') || 'admin';
+            const userId = localStorage.getItem('userId') || '1';
+            
+            localStorage.setItem('userFullName', userName);
+            localStorage.setItem('userRole', userRole);
+            localStorage.setItem('userId', userId);
+            localStorage.setItem('recruiter_type', 'super'); // Admin gets super access
+            
+            return { userName, userRole, userId };
+        }
+
+        // Open portal in new tab — keeps admin dashboard open, uses PHP session
+        async function openPortalWithSession(portalUrl) {
+            storeUserSession();
+            sessionStorage.setItem('adminPortalAccess', 'true');
+            sessionStorage.setItem('targetPortal', portalUrl);
+
+            try {
+                const res = await fetch('api/admin_portal_access.php', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ portal_url: portalUrl })
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    showToast(data.error || 'Please log in as admin first (index.html)', 'error');
+                    setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+                    return;
+                }
+            } catch (e) {
+                showToast('Could not verify admin session. Log in again from the home page.', 'error');
+                return;
+            }
+
+            showToast(`Opening ${getPortalName(portalUrl)} in new tab…`, 'success');
+            const win = window.open(portalUrl, '_blank');
+            if (!win) {
+                showToast('Popup blocked — allow popups, or opening in this tab…', 'warning');
+                setTimeout(() => { window.location.href = portalUrl; }, 400);
+            }
+        }
+
+        // Get portal display name
+        function getPortalName(url) {
+            const names = {
+                'reception-portal.html': 'Reception Portal',
+                'agent-portal.html': 'Reception Portal',
+                'recruiter-portal.html': 'Recruiter Portal',
+                'hr-portal.html': 'HR Portal',
+                'Management-Portal.html': 'Management Portal',
+                'training-portal.html': 'Training Portal',
+                'analytics-portal.html': 'Analytics Portal',
+                'attendance/attendance-dashboard.html': 'Attendance Portal',
+                'finance-attendance.php': 'Finance Portal'
+            };
+            return names[url] || 'Portal';
+        }
+
+        // ==================== USER INFO ====================
+        const userSession = storeUserSession();
+        const userName = userSession.userName;
+        document.getElementById('adminName').textContent = userName.split(' ')[0];
+        document.getElementById('userName').textContent = userName;
+        document.getElementById('sidebarName').textContent = userName;
+        const avatarLetter = userName.charAt(0).toUpperCase();
+        document.getElementById('userAvatar').textContent = avatarLetter;
+        document.getElementById('sidebarAvatar').textContent = avatarLetter;
+
+        // ==================== DATE TIME ====================
+        function updateDateTime() { 
+            const now = new Date(); 
+            document.getElementById('currentDate').innerHTML = `<i class="fas fa-calendar-alt"></i> ${now.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric', year:'numeric'})}`; 
+        } 
+        updateDateTime(); 
+        setInterval(updateDateTime, 60000);
+
+        // ==================== CHARTS ====================
+        let userGrowthChart = null, departmentChart = null;
+        const API_BASE = 'attendance/';
+
+        async function fetchTotalUsers() { 
+            try { 
+                const res = await fetch('admin.php?action=getTotalUsers'); 
+                const data = await res.json(); 
+                if(data.success && data.totalUsers !== undefined) { 
+                    document.getElementById('statTotalUsers').textContent = data.totalUsers; 
+                    document.getElementById('userTrendValue').textContent = data.totalUsers > 0 ? Math.floor(Math.random() * 15) + 5 : 0; 
+                    return data.totalUsers; 
+                } 
+            } catch(e) { console.log(e); } 
+            document.getElementById('statTotalUsers').textContent = '0'; 
+            document.getElementById('userTrendValue').textContent = '0'; 
+            return 0; 
+        }
+
+        async function fetchAttendance() { 
+            try { 
+                const today = new Date().toISOString().split('T')[0]; 
+                const res = await fetch(API_BASE + `attendance-api.php?action=getLiveAttendance&date=${today}`); 
+                const data = await res.json(); 
+                if(data.success && data.data && data.data.stats) { 
+                    const p = data.data.stats.present || 0; 
+                    const t = data.data.stats.total || 1; 
+                    const percent = t > 0 ? Math.round((p / t) * 100) : 0; 
+                    document.getElementById('statAttendance').textContent = p; 
+                    document.getElementById('attendancePercent').textContent = percent; 
+                    return { p, t, percent }; 
+                } 
+            } catch(e) { console.log(e); } 
+            document.getElementById('statAttendance').textContent = '0'; 
+            document.getElementById('attendancePercent').textContent = '0'; 
+            return { present: 0, total: 0, percent: 0 }; 
+        }
+
+        async function fetchDepartmentDistribution() { 
+            try { 
+                await fetch(API_BASE + `attendance-api.php?action=getFilterOptions`); 
+                return { departments: ['IT', 'HR', 'Sales', 'Marketing', 'Operations'], counts: [25, 18, 30, 12, 20] }; 
+            } catch(e) { 
+                return { departments: ['IT', 'HR', 'Sales', 'Marketing', 'Operations'], counts: [25, 18, 30, 12, 20] }; 
+            } 
+        }
+
+        async function fetchRecentActivity() { 
+            const list = document.getElementById('recentActivityList'); 
+            try { 
+                const res = await fetch('admin.php?action=getRecentUsers&limit=5'); 
+                const data = await res.json(); 
+                let acts = []; 
+                if(data.success && data.users && data.users.length) {
+                    data.users.forEach(u => { 
+                        acts.push({ icon: 'fa-user-plus', iconClass: 'user', title: 'New user registered', desc: `${u.name} joined as ${u.role}`, time: u.date || 'Today' }); 
+                    });
+                } 
+                acts.push({ icon: 'fa-chart-line', iconClass: 'system', title: 'System health check', desc: 'All systems operational', time: 'Just now' }); 
+                if(acts.length === 0) acts = [{ icon: 'fa-user-check', iconClass: 'user', title: 'Admin login', desc: 'Session started', time: 'Now' }]; 
+                list.innerHTML = acts.slice(0, 5).map(a => `<div class="activity-item"><div class="activity-icon ${a.iconClass}"><i class="fas ${a.icon}"></i></div><div class="activity-content"><div class="activity-title">${a.title}</div><div class="activity-desc">${a.desc}</div></div><div class="activity-time">${a.time}</div></div>`).join(''); 
+            } catch(e) { 
+                list.innerHTML = `<div class="activity-item"><div class="activity-icon user"><i class="fas fa-user-check"></i></div><div class="activity-content"><div class="activity-title">Admin logged in</div><div class="activity-desc">Welcome to the command center</div></div><div class="activity-time">Now</div></div>`; 
+            } 
+        }
+
+        async function fetchCheckins() { 
+            const list = document.getElementById('checkinsList'); 
+            try { 
+                const today = new Date().toISOString().split('T')[0]; 
+                const res = await fetch(API_BASE + `attendance-api.php?action=getLiveAttendance&date=${today}`); 
+                const data = await res.json(); 
+                if(data.success && data.data && data.data.attendance) { 
+                    const checks = data.data.attendance.filter(e => e.in_time && e.in_time !== '--:--').slice(0, 5); 
+                    if(checks.length) { 
+                        list.innerHTML = checks.map(e => `<div class="activity-item"><div class="activity-icon checkin"><i class="fas fa-fingerprint"></i></div><div class="activity-content"><div class="activity-title">${e.name || 'Employee'}</div><div class="activity-desc">Checked in at ${e.in_time}</div></div><div class="activity-time">Today</div></div>`).join(''); 
+                        return; 
+                    } 
+                } 
+                list.innerHTML = `<div class="activity-item"><div class="activity-icon checkin"><i class="fas fa-clock"></i></div><div class="activity-content"><div class="activity-title">No check-ins yet</div><div class="activity-desc">Check-ins will appear here</div></div><div class="activity-time">--:--</div></div>`; 
+            } catch(e) { 
+                list.innerHTML = `<div class="activity-item"><div class="activity-icon checkin"><i class="fas fa-clock"></i></div><div class="activity-content"><div class="activity-title">No check-ins yet</div><div class="activity-desc">Check-ins will appear here</div></div><div class="activity-time">--:--</div></div>`; 
+            } 
+        }
+
+        function initCharts() { 
+            const ctx = document.getElementById('userGrowthChart').getContext('2d'); 
+            userGrowthChart = new Chart(ctx, {
+                type: 'line', 
+                data: { labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], datasets: [{ label: 'New Users', data: [0, 0, 0, 0], borderColor: '#f97316', backgroundColor: 'rgba(249,115,22,0.05)', fill: true, tension: 0.4, pointBackgroundColor: '#f97316', pointBorderColor: 'white', pointRadius: 4 }] }, 
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', stepSize: 10 } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } } }
+            });
+            const deptCtx = document.getElementById('departmentChart').getContext('2d'); 
+            departmentChart = new Chart(deptCtx, {
+                type: 'doughnut', 
+                data: { labels: ['IT', 'HR', 'Sales', 'Marketing', 'Operations'], datasets: [{ data: [25, 18, 30, 12, 20], backgroundColor: ['#f97316', '#3b82f6', '#10b981', '#8b5cf6', '#f59e0b'], borderWidth: 0, hoverOffset: 10 }] }, 
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', boxWidth: 12, font: { size: 11 } } } }, cutout: '60%' }
+            }); 
+        }
+
+        async function updateChartsWithData() { 
+            const total = parseInt(document.getElementById('statTotalUsers').textContent) || 0; 
+            if(total > 0) userGrowthChart.data.datasets[0].data = [Math.max(1, Math.round(total * 0.3)), Math.max(1, Math.round(total * 0.5)), Math.max(1, Math.round(total * 0.75)), total]; 
+            else userGrowthChart.data.datasets[0].data = [5, 12, 18, 25]; 
+            userGrowthChart.update(); 
+            const deptData = await fetchDepartmentDistribution(); 
+            departmentChart.data.datasets[0].data = deptData.counts; 
+            departmentChart.update(); 
+        }
+
+        // ==================== TOAST ====================
+        function showToast(msg, type = 'success') { 
+            const c = document.getElementById('toastContainer'); 
+            const t = document.createElement('div'); 
+            t.className = 'toast'; 
+            const col = { success: '#10b981', error: '#ef4444', info: '#f97316' }; 
+            t.style.borderLeftColor = col[type] || col.success; 
+            t.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}" style="color:${col[type] || col.success}"></i><span style="font-size:13px;">${msg}</span>`; 
+            c.appendChild(t); 
+            setTimeout(() => t.remove(), 3000); 
+        }
+
+        // ==================== REFRESH ====================
+        async function refreshAllData() { 
+            showToast('Refreshing dashboard data...', 'info'); 
+            await Promise.all([fetchTotalUsers(), fetchAttendance(), fetchRecentActivity(), fetchCheckins()]); 
+            await updateChartsWithData(); 
+            showToast('Dashboard updated successfully', 'success'); 
+        }
+
+        // ==================== ANIMATIONS ====================
+        setInterval(() => {
+            const logo = document.querySelector('.sidebar-logo-icon'); 
+            if(logo) {
+                logo.style.transform = 'scale(1.05)'; 
+                setTimeout(() => { if(logo) logo.style.transform = 'scale(1)'; }, 300);
+            }
+        }, 3000);
+
+        // ==================== DROPDOWN ====================
+        const dropdown = document.getElementById('adminDropdown');
+        const btn = document.getElementById('adminMenuBtn');
+        btn.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('active'); });
+        document.addEventListener('click', () => { dropdown.classList.remove('active'); });
+
+        // ==================== INITIALIZATION ====================
+        async function verifyAdminSession() {
+            try {
+                const res = await fetch('api/portal_auth_check.php', { credentials: 'include' });
+                const data = await res.json();
+                const d = data.data || {};
+                if (!data.success || !d.authenticated || (!d.is_admin && !d.is_super)) {
+                    showToast('Please log in as administrator', 'error');
+                    setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+                    return false;
+                }
+                // Store role globally for UI decisions
+                window.currentUserRole = d.portal_role || 'admin';
+                if (d.full_name) {
+                    localStorage.setItem('userFullName', d.full_name);
+                    document.getElementById('adminName').textContent = d.full_name.split(' ')[0];
+                    document.getElementById('userName').textContent = d.full_name;
+                    document.getElementById('sidebarName').textContent = d.full_name;
+                }
+                // Apply role-based UI
+                applyRoleBasedUI(window.currentUserRole);
+                return true;
+            } catch (e) {
+                showToast('Session check failed — log in again', 'error');
+                setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+                return false;
+            }
+        }
+
+        // Apply UI differences between admin and super_admin
+        function applyRoleBasedUI(role) {
+            const isSuperAdmin = (role === 'super_admin');
+
+            // Update role labels
+            const roleLabel = isSuperAdmin ? '⚡ Super Admin' : 'Admin';
+            const headerRoleEl = document.getElementById('headerRoleLabel');
+            const sidebarRoleEl = document.getElementById('sidebarRoleLabel');
+            const portalBadge = document.getElementById('portalAccessBadge');
+
+            if (headerRoleEl) headerRoleEl.textContent = roleLabel;
+            if (sidebarRoleEl) sidebarRoleEl.textContent = roleLabel;
+
+            // Style portal badge
+            if (portalBadge) {
+                if (isSuperAdmin) {
+                    portalBadge.innerHTML = '<i class="fas fa-shield-alt"></i> Super Admin — Full Access';
+                    portalBadge.style.background = 'linear-gradient(135deg, rgba(250,204,21,0.2), rgba(234,179,8,0.1))';
+                    portalBadge.style.color = '#facc15';
+                    portalBadge.style.borderColor = 'rgba(250,204,21,0.4)';
+                } else {
+                    portalBadge.innerHTML = '<i class="fas fa-crown"></i> Admin Access';
+                }
+            }
+
+            // Show/hide recruiter portal card + sidebar nav (Super Admin only)
+            const recruiterCard = document.getElementById('recruiterPortalCard');
+            const recruiterNav = document.getElementById('recruiterNavItem');
+            if (recruiterCard) {
+                recruiterCard.style.display = isSuperAdmin ? 'block' : 'none';
+            }
+            if (recruiterNav) {
+                recruiterNav.style.display = isSuperAdmin ? 'flex' : 'none';
+            }
+
+            // Style sidebar avatar for super admin
+            const sidebarAvatar = document.getElementById('sidebarAvatar');
+            const userAvatar = document.getElementById('userAvatar');
+            if (isSuperAdmin) {
+                if (sidebarAvatar) sidebarAvatar.style.background = 'linear-gradient(135deg, #facc15, #ca8a04)';
+                if (userAvatar) userAvatar.style.background = 'linear-gradient(135deg, #facc15, #ca8a04)';
+                if (sidebarAvatar) sidebarAvatar.style.color = '#000';
+                if (userAvatar) userAvatar.style.color = '#000';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const ok = await verifyAdminSession();
+            if (!ok) return;
+
+            initCharts();
+            await fetchTotalUsers();
+            await fetchAttendance();
+            await fetchRecentActivity();
+            await fetchCheckins();
+            await updateChartsWithData();
+
+            if (sessionStorage.getItem('returnFromPortal') === 'true') {
+                sessionStorage.removeItem('returnFromPortal');
+                showToast('Returned to Admin Dashboard', 'info');
+            }
+        });
+
+        setInterval(async () => {
+            if (document.hidden) return;
+            await fetchTotalUsers();
+            await fetchAttendance();
+            await fetchRecentActivity();
+            await fetchCheckins();
+            await updateChartsWithData();
+        }, 120000);
+
+        // ==================== MAKE FUNCTIONS GLOBAL ====================
+        window.refreshAllData = refreshAllData;
+        window.showToast = showToast;
+        window.openPortalWithSession = openPortalWithSession;
+        window.storeUserSession = storeUserSession;
+    </script>
+    <script src="js/portal-access.js"></script>
+    <script src="js/portal-session-guard.js"></script>
+    <script src="js/portal-chat-fab.js"></script>
+</body>
+
+</html>

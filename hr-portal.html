@@ -1,0 +1,1909 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balitech · HR Command Center</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/dropdown-fix.css">
+    <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #f97316;
+            --primary-dark: #ea580c;
+            --primary-light: rgba(249, 115, 22, 0.15);
+            --primary-glow: rgba(249, 115, 22, 0.4);
+            --secondary: #10b981;
+            --secondary-dark: #059669;
+            --secondary-light: rgba(16, 185, 129, 0.15);
+            --warning: #f59e0b;
+            --warning-light: rgba(245, 158, 11, 0.15);
+            --danger: #ef4444;
+            --danger-light: rgba(239, 68, 68, 0.15);
+            --info: #3b82f6;
+            --info-light: rgba(59, 130, 246, 0.15);
+            --purple: #8b5cf6;
+            --purple-light: rgba(139, 92, 246, 0.15);
+            --pink: #ec4899;
+            --cyan: #06b6d4;
+            --bg-dark: #0a0c15;
+            --bg-darker: #05070f;
+            --bg-card: rgba(30, 36, 54, 0.95);
+            --bg-sidebar: #0f1524;
+            --bg-hover: rgba(249, 115, 22, 0.1);
+            --bg-tertiary: rgba(0, 0, 0, 0.2);
+            --bg-input: rgba(0, 0, 0, 0.3);
+            --text-primary: #ffffff;
+            --text-secondary: #e2e8f0;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --border-light: rgba(255, 255, 255, 0.08);
+            --border-primary: rgba(249, 115, 22, 0.25);
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            --shadow-glow: 0 0 25px var(--primary-glow);
+            --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            --gradient-success: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
+            --gradient-danger: linear-gradient(135deg, var(--danger), #f87171);
+            --gradient-purple: linear-gradient(135deg, var(--purple), #a78bfa);
+        }
+
+        [data-theme="light"] {
+            --primary: #f97316;
+            --primary-dark: #ea580c;
+            --primary-light: rgba(249, 115, 22, 0.1);
+            --bg-dark: #f8fafc;
+            --bg-darker: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-sidebar: #1e293b;
+            --bg-tertiary: #ffffff;
+            --bg-input: #f8fafc;
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --border-light: rgba(0, 0, 0, 0.08);
+            --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(ellipse at 30% 40%, #0f0c29, #1a1a3e, #0a0a1a);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            color: var(--text-primary);
+            display: flex;
+        }
+
+        .bg-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.3;
+            z-index: -1;
+            animation: floatOrb 20s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 500px;
+            height: 500px;
+            background: var(--primary);
+            top: -200px;
+            left: -200px;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 400px;
+            height: 400px;
+            background: var(--primary-dark);
+            bottom: -150px;
+            right: -150px;
+            animation-delay: 5s;
+        }
+
+        .orb-3 {
+            width: 300px;
+            height: 300px;
+            background: var(--primary);
+            top: 50%;
+            left: 50%;
+            animation-delay: 10s;
+            opacity: 0.15;
+        }
+
+        @keyframes floatOrb {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(50px, -50px) scale(1.1); }
+            66% { transform: translate(-30px, 40px) scale(0.9); }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--bg-sidebar);
+            backdrop-filter: blur(10px);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            transition: all 0.3s;
+            box-shadow: var(--shadow-xl);
+            z-index: 100;
+            border-right: 1px solid var(--border-primary);
+        }
+
+        .sidebar-header {
+            padding: 30px 20px;
+            border-bottom: 1px solid var(--border-primary);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .sidebar-logo {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, #fff, var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .sidebar-logo span {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .sidebar-menu {
+            padding: 20px 10px;
+        }
+
+        .menu-item {
+            padding: 14px 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+            border-radius: 12px;
+            margin-bottom: 5px;
+        }
+
+        .menu-item:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .menu-item.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-left-color: var(--primary);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .menu-item i {
+            width: 22px;
+            font-size: 18px;
+        }
+
+        .menu-item span {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .menu-badge {
+            margin-left: auto;
+            background: var(--gradient-primary);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 20px;
+            border-top: 1px solid var(--border-primary);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            background: var(--bg-tertiary);
+            border-radius: 16px;
+            border: 1px solid var(--border-primary);
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .user-details h5 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+            color: var(--text-primary);
+        }
+
+        .user-details p {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .top-header {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .top-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(249, 115, 22, 0.05), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-title h2 {
+            font-size: 22px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .header-title p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 10px 18px;
+            border: 1px solid var(--border-primary);
+            border-radius: 40px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .action-btn.primary {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .theme-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-primary);
+            font-size: 18px;
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary);
+            color: white;
+            transform: rotate(15deg);
+            border-color: var(--primary);
+        }
+
+        .voice-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border-radius: 40px;
+            border: 1px solid var(--border-primary);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--danger);
+            position: relative;
+        }
+
+        .status-dot.active {
+            background: var(--secondary);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.active::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            background: var(--secondary);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: pulse-ring 2s infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 0.3; }
+            70% { transform: scale(1.5); opacity: 0; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 var(--secondary); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .gsheets-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border-radius: 40px;
+            border: 1px solid var(--border-primary);
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .gsheets-status i {
+            color: var(--primary);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-primary);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl), var(--shadow-glow);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--primary-light);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .dashboard-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-primary);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .card-header h3 {
+            font-size: 18px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .card-header h3 i {
+            color: var(--primary);
+        }
+
+        .card-badge {
+            padding: 6px 14px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid var(--border-primary);
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            z-index: 1;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 14px 15px 14px 45px;
+            background: var(--bg-input);
+            border: 2px solid var(--border-primary);
+            border-radius: 40px;
+            font-size: 14px;
+            transition: all 0.3s;
+            color: var(--text-primary);
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary);
+            outline: none;
+            background: var(--bg-tertiary);
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+
+        .candidate-list {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .candidate-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .candidate-list::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+        }
+
+        .candidate-list::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        .candidate-item {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .candidate-item:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-glow);
+            transform: translateX(5px);
+        }
+
+        .candidate-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .candidate-avatar {
+            width: 55px;
+            height: 55px;
+            background: var(--gradient-primary);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .candidate-info {
+            flex: 1;
+        }
+
+        .candidate-info h4 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .candidate-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 15px 0;
+            padding: 15px;
+            background: var(--bg-input);
+            border-radius: 16px;
+            border: 1px solid var(--border-primary);
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .detail-item i {
+            color: var(--primary);
+            width: 16px;
+        }
+
+        .call-count {
+            display: inline-block;
+            padding: 6px 14px;
+            background: var(--bg-input);
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin: 10px 0;
+            border: 1px solid var(--border-primary);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 70px;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-info {
+            background: var(--info);
+            color: white;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .btn-success {
+            background: var(--gradient-success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--gradient-danger);
+            color: white;
+        }
+
+        .btn-purple {
+            background: var(--gradient-purple);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 60px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .processed-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-primary);
+            transition: all 0.2s;
+        }
+
+        .processed-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .processed-avatar {
+            width: 45px;
+            height: 45px;
+            background: var(--bg-input);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .processed-info {
+            flex: 1;
+        }
+
+        .processed-info h5 {
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .processed-info p {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .processed-status {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .processed-status.passed {
+            background: var(--secondary-light);
+            color: var(--secondary);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .processed-status.rejected {
+            background: var(--danger-light);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .processed-status.final {
+            background: var(--purple-light);
+            color: var(--purple);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .processed-status.training {
+            background: var(--info-light);
+            color: var(--info);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: 24px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-2xl);
+            animation: slideUp 0.3s ease;
+            border: 1px solid var(--border-primary);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            background: var(--bg-card);
+        }
+
+        .modal-header h3 {
+            flex: 1;
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-muted);
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+
+        .modal-close:hover {
+            background: var(--bg-tertiary);
+            color: var(--primary);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border-primary);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: var(--bg-card);
+        }
+
+        .modal-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-btn-cancel {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .modal-btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .modal-btn-danger {
+            background: var(--gradient-danger);
+            color: white;
+        }
+
+        .modal-btn-success {
+            background: var(--gradient-success);
+            color: white;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            background: var(--bg-input);
+            border: 2px solid var(--border-primary);
+            border-radius: 12px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+            color: var(--text-primary);
+        }
+
+        textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+
+        .rejection-reasons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .rejection-reason {
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .rejection-reason:hover {
+            border-color: var(--danger);
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .rejection-reason.selected {
+            border-color: var(--danger);
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .voice-panel {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--bg-card);
+            border-radius: 60px;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border: 2px solid var(--primary);
+            transform: translateY(150px);
+            transition: transform 0.4s;
+            z-index: 1000;
+        }
+
+        .voice-panel.active {
+            transform: translateY(0);
+        }
+
+        .voice-wave {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .voice-wave span {
+            width: 5px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 5px;
+            animation: wave 1s infinite;
+        }
+
+        .voice-wave span:nth-child(2) { animation-delay: 0.2s; height: 30px; }
+        .voice-wave span:nth-child(3) { animation-delay: 0.4s; height: 40px; }
+
+        @keyframes wave {
+            0%, 100% { transform: scaleY(0.8); }
+            50% { transform: scaleY(1.5); }
+        }
+
+        .voice-info {
+            min-width: 200px;
+        }
+
+        .voice-name {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .voice-message {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .voice-count {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 13px;
+            border: 1px solid var(--border-primary);
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            z-index: 2000;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            border-left: 6px solid var(--secondary);
+            border-radius: 14px;
+            padding: 16px 24px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow-2xl);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(400px);
+            transition: transform 0.3s;
+            min-width: 300px;
+            color: var(--text-primary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @media (max-width: 1200px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .sidebar { width: 240px; }
+            .main-content { margin-left: 240px; }
+        }
+
+        @media (max-width: 992px) {
+            .sidebar { width: 80px; }
+            .sidebar-header h3, .sidebar-sub, .menu-item span, .user-details { display: none; }
+            .sidebar-logo { font-size: 20px; }
+            .menu-item { justify-content: center; padding: 15px; }
+            .menu-item i { margin: 0; font-size: 20px; }
+            .main-content { margin-left: 80px; padding: 20px; }
+            .user-info { justify-content: center; padding: 10px; }
+            .user-avatar { margin: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .action-btn { padding: 8px 14px; font-size: 12px; }
+            .voice-panel { bottom: 20px; right: 20px; padding: 12px 20px; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">BALI<span>TECH</span></div>
+            <div class="sidebar-sub">HR Command Center</div>
+        </div>
+
+        <div class="sidebar-menu">
+            <div class="menu-item active">
+                <i class="fas fa-chart-pie"></i>
+                <span>Dashboard</span>
+            </div>
+            <div class="menu-item">
+                <i class="fas fa-users"></i>
+                <span>HR Interviews</span>
+                <span class="menu-badge" id="pendingHRBadge">0</span>
+            </div>
+            <div class="menu-item">
+                <i class="fas fa-crown"></i>
+                <span>Final Interviews</span>
+                <span class="menu-badge" id="pendingGMBadge">0</span>
+            </div>
+            <div class="menu-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Selected</span>
+            </div>
+            <div class="menu-item" onclick="window.location.href='chat-portal.html'">
+                <i class="fas fa-comments"></i>
+                <span>Chat</span>
+            </div>
+            <div style="margin: 20px 15px 10px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">
+                Navigation</div>
+            <div class="menu-item" onclick="window.location.href='recruiter-portal.html'">
+                <i class="fas fa-user-plus"></i>
+                <span>Recruiter Portal</span>
+            </div>
+            <div class="menu-item" onclick="window.location.href='reception-portal.html'">
+                <i class="fas fa-concierge-bell"></i>
+                <span>Reception Portal</span>
+            </div>
+            <div class="menu-item" onclick="window.location.href='management-portal.html'">
+                <i class="fas fa-crown"></i>
+                <span>Management Portal</span>
+            </div>
+            <div class="menu-item" onclick="window.location.href='training-portal.html'">
+                <i class="fas fa-graduation-cap"></i>
+                <span>Training Portal</span>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <div class="user-details">
+                    <h5>HR Manager</h5>
+                    <p>hr@balitech.com</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="top-header">
+            <div class="header-left">
+                <div class="header-title">
+                    <h2>HR Command Center</h2>
+                    <p>Interview Management · First Round</p>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <div class="voice-status">
+                    <span class="status-dot active"></span>
+                    <span>Voice Active</span>
+                </div>
+                <div class="theme-toggle" onclick="toggleTheme()">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </div>
+                <div class="gsheets-status" id="gsheetsStatus">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <span>Ready</span>
+                </div>
+                <button class="action-btn primary" onclick="forceSync()">
+                    <i class="fas fa-sync-alt"></i> Sync
+                </button>
+                <button class="action-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <div class="stats-grid" id="statsGrid"></div>
+
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-clock"></i> Pending HR Interviews</h3>
+                    <span class="card-badge" id="pendingHRCount">0</span>
+                </div>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="hrSearch" placeholder="Search candidates...">
+                </div>
+                <div class="candidate-list" id="hrList"></div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-history"></i> Recently Processed</h3>
+                    <span class="card-badge" id="processedCount">0</span>
+                </div>
+                <div class="candidate-list" id="processedList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/portal-performance.js"></script>
+    <script src="js/portal-access.js"></script>
+    <script src="js/portal-access.js"></script>
+    <script src="js/portal-session-guard.js"></script>
+    <script src="js/hr-voice-request.js"></script>
+    <script>
+        // ==================== GOOGLE SHEETS CONFIGURATION ====================
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzCQLaK7VTxKcPGGpY3TeNBmfks-YjWQR-mJyZRYjLZAMZVs9y0CmvzI-JJKP-XaflRgg/exec';
+        
+        let candidates = [];
+        let nextId = 1;
+
+        // Voice: js/hr-voice-request.js — queues on reception PC only (no speech on this machine)
+
+        // ==================== LOAD DATA FROM GOOGLE SHEETS ====================
+        async function loadDataFromSheet() {
+            try {
+                const gsheetsStatus = document.getElementById('gsheetsStatus');
+                if (gsheetsStatus) {
+                    gsheetsStatus.innerHTML = '<i class="fas fa-spinner fa-pulse"></i><span>Loading...</span>';
+                }
+                
+                const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAllCandidates`, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        candidates = result.data.map((c, index) => ({
+                            ...c,
+                            id: c.id || index + 1,
+                            remarks: c.remarks || [],
+                            callCount: c.callCount || 0,
+                            timestamp: c.applicationDate || c.registeredAt || new Date().toISOString()
+                        }));
+                        nextId = Math.max(...candidates.map(c => c.id), 0) + 1;
+                        console.log(`✅ Loaded ${candidates.length} candidates from Google Sheets`);
+                        
+                        if (gsheetsStatus) {
+                            gsheetsStatus.innerHTML = '<i class="fas fa-check-circle"></i><span>Connected</span>';
+                            setTimeout(() => {
+                                if (gsheetsStatus) gsheetsStatus.innerHTML = '<i class="fas fa-cloud-upload-alt"></i><span>Ready</span>';
+                            }, 2000);
+                        }
+                        return candidates;
+                    }
+                }
+                throw new Error('Failed to fetch data');
+            } catch (error) {
+                console.error('Error loading from Google Sheets:', error);
+                candidates = [];
+                if (document.getElementById('gsheetsStatus')) {
+                    document.getElementById('gsheetsStatus').innerHTML = '<i class="fas fa-exclamation-triangle"></i><span>Offline</span>';
+                }
+                return candidates;
+            }
+        }
+
+        // ==================== SAVE/UPDATE TO GOOGLE SHEETS ====================
+        async function saveToGoogleSheets(candidateData) {
+            try {
+                await fetch('api/sheets_mirror.php?action=pushCandidate', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ event: 'hr_save', candidate: candidateData })
+                });
+                return true;
+            } catch (error) {
+                console.error('Error saving to Google Sheets:', error);
+                return false;
+            }
+        }
+
+        async function updateCandidateInSheet(phone, updates) {
+            try {
+                await fetch('api/sheets_mirror.php?action=pushCandidate', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ event: 'hr_update', candidate: { phone, ...updates } })
+                });
+                return true;
+            } catch (error) {
+                console.error('Error updating candidate:', error);
+                return false;
+            }
+        }
+
+        function forceSync() {
+            if (candidates.length > 0) {
+                const lastCandidate = candidates[candidates.length - 1];
+                saveToGoogleSheets(lastCandidate);
+                showToast('🔄 Manual sync triggered!', 'success');
+            } else {
+                showToast('No candidates to sync', 'warning');
+            }
+        }
+
+        // ==================== DATA STORAGE (DATABASE) ====================
+        const HR_CANDIDATES_URL = 'api/get_candidates_global.php?light=1&limit=250&stages=interview_conducted,hr_passed,hr_rejected,selected,pending,rejected,training,hired';
+
+        async function loadDataFromDatabase() {
+            try {
+                const data = window.PortalFetch
+                    ? await PortalFetch.fetchJson(HR_CANDIDATES_URL, { ttlMs: 15000 })
+                    : await (await fetch(HR_CANDIDATES_URL, { credentials: 'include' })).json();
+                if (data.success && Array.isArray(data.data)) {
+                    candidates = data.data.map((c, index) => ({
+                        ...c,
+                        id: c.id || index + 1,
+                        remarks: c.remarks || [],
+                        callCount: c.callCount || 0,
+                        timestamp: c.timestamp || new Date().toISOString()
+                    }));
+                    nextId = Math.max(...candidates.map(c => c.id), 0) + 1;
+                }
+            } catch (e) {
+                console.error('DB candidate load failed', e);
+            }
+        }
+
+        function loadData() {
+            loadDataFromDatabase();
+        }
+
+        async function saveData() {
+            /* Candidates persist via update_candidate_global on each status change */
+        }
+
+        // Voice call from HR — reception desk only (makeVoiceCall from hr-voice-request.js)
+        async function callCandidate(id, room) {
+            const candidate = candidates.find(c => c.id == id);
+            if (!candidate) return;
+
+            candidate.callCount = (candidate.callCount || 0) + 1;
+            await makeVoiceCall(candidate.fullName, room || 'HR');
+
+            saveData();
+            updateCandidateInSheet(candidate.phone, { callCount: candidate.callCount });
+            renderDashboard();
+        }
+
+        // ==================== REMARKS FUNCTION ====================
+        function addRemark(candidateId, remarkText, addedBy) {
+            const candidate = candidates.find(c => c.id == candidateId);
+            if (!candidate) return false;
+            
+            if (!candidate.remarks) candidate.remarks = [];
+            candidate.remarks.push({
+                text: remarkText,
+                addedBy: addedBy,
+                timestamp: new Date().toISOString()
+            });
+            saveData();
+            return true;
+        }
+
+        function showRemarksModal(candidateId) {
+            const candidate = candidates.find(c => c.id == candidateId);
+            if (!candidate) return;
+            
+            const modalHtml = `
+                <div class="modal-overlay" id="remarksModal">
+                    <div class="modal">
+                        <div class="modal-header">
+                            <i class="fas fa-comments" style="color: var(--primary); font-size: 24px;"></i>
+                            <h3>Add Remarks - ${candidate.fullName}</h3>
+                            <button class="modal-close" onclick="closeModal()">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <textarea id="newRemark" placeholder="Enter your interview remarks here..."></textarea>
+                            <button class="btn btn-success" onclick="saveRemark(${candidateId})" style="width: 100%; margin-top: 15px;">
+                                <i class="fas fa-plus"></i> Add Remark
+                            </button>
+                            <div style="margin-top: 20px;">
+                                <h4 style="margin-bottom: 10px;">Previous Remarks</h4>
+                                <div id="remarksList">
+                                    ${candidate.remarks && candidate.remarks.length > 0 ? 
+                                        candidate.remarks.slice().reverse().map(r => `
+                                            <div style="padding: 10px; background: var(--bg-input); border-radius: 8px; margin-bottom: 8px;">
+                                                <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                                                    <strong>${r.addedBy || 'System'}</strong>
+                                                    <span style="color: var(--text-muted);">${new Date(r.timestamp).toLocaleString()}</span>
+                                                </div>
+                                                <div style="font-size: 13px; margin-top: 5px;">${r.text}</div>
+                                            </div>
+                                        `).join('') : 
+                                        '<p style="color: var(--text-muted);">No remarks yet</p>'
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Close</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+
+        function saveRemark(candidateId) {
+            const remark = document.getElementById('newRemark')?.value?.trim();
+            if (!remark) {
+                showToast('Please enter a remark', 'warning');
+                return;
+            }
+            addRemark(candidateId, remark, 'HR Manager');
+            showToast('✅ Remark added successfully', 'success');
+            closeModal();
+            renderDashboard();
+        }
+
+        // ==================== HR ACTIONS ====================
+        async function selectCandidate(id) {
+            const candidate = candidates.find(c => c.id == id);
+            if (!candidate) return;
+            
+            if (!candidate.remarks || candidate.remarks.length === 0) {
+                showToast('⚠️ Please add interview remarks first using the Remarks button', 'warning');
+                return;
+            }
+            
+            candidate.status = 'selected';
+            candidate.hrStatus = 'outcome';
+            candidate.hrDate = new Date().toISOString();
+
+            if (window.PortalFetch) PortalFetch.invalidatePipelineCaches();
+            await fetch('api/update_candidate_global.php', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: candidate.id,
+                    new_stage: 'selected',
+                    action: 'hr_select',
+                    remark: 'SELECTED in HR interview — eligible for training',
+                    user_role: 'HR Manager'
+                })
+            });
+            addRemark(candidate.id, 'SELECTED in HR interview — eligible for training', 'HR Manager');
+            saveData();
+            updateCandidateInSheet(candidate.phone, {
+                status: 'selected',
+                interviewLevel: 'completed',
+                hrStatus: 'passed',
+                hrDate: candidate.hrDate,
+                trainingStatus: 'pending',
+                trainingDate: candidate.trainingDate
+            });
+            showToast(`✅ ${candidate.fullName} selected — Training portal will pick up for training.`, 'success');
+            renderDashboard();
+        }
+
+        async function markPendingOutcome(id) {
+            const candidate = candidates.find(c => c.id == id);
+            if (!candidate) return;
+            if (!candidate.remarks || candidate.remarks.length === 0) {
+                showToast('⚠️ Please add interview remarks first', 'warning');
+                return;
+            }
+            if (window.PortalFetch) PortalFetch.invalidatePipelineCaches();
+            await fetch('api/update_candidate_global.php', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: candidate.id,
+                    new_stage: 'pending',
+                    action: 'hr_pending',
+                    remark: 'PENDING decision after HR interview',
+                    user_role: 'HR Manager'
+                })
+            });
+            addRemark(candidate.id, 'PENDING decision after HR interview', 'HR Manager');
+            showToast(`${candidate.fullName} marked as Pending`, 'info');
+            renderDashboard();
+        }
+
+        async function sendToFinal(id) {
+            const candidate = candidates.find(c => c.id == id);
+            if (!candidate) return;
+            
+            if (!candidate.remarks || candidate.remarks.length === 0) {
+                showToast('⚠️ Please add interview remarks first using the Remarks button', 'warning');
+                return;
+            }
+            
+            candidate.status = 'hr_passed';
+            candidate.stage = 'management';
+            candidate.interviewLevel = 'gm';
+            candidate.hrStatus = 'passed';
+            candidate.hrDate = new Date().toISOString();
+            
+            if (window.PortalFetch) PortalFetch.invalidatePipelineCaches();
+            await fetch('api/update_candidate_global.php', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: candidate.id,
+                    new_stage: 'hr_passed',
+                    action: 'hr_pass',
+                    remark: 'Sent to Final Interview (GM)',
+                    user_role: 'HR Manager'
+                })
+            });
+            addRemark(candidate.id, 'Sent to Final Interview (GM)', 'HR Manager');
+            saveData();
+            updateCandidateInSheet(candidate.phone, {
+                status: 'hr_passed',
+                stage: 'management',
+                interviewLevel: 'gm',
+                hrStatus: 'passed',
+                hrDate: candidate.hrDate
+            });
+            showToast(`➡️ ${candidate.fullName} sent to Final Interview (Management Portal)`, 'success');
+            renderDashboard();
+        }
+
+        function rejectCandidate(id) {
+            const candidate = candidates.find(c => c.id == id);
+            if (!candidate) return;
+            showRejectionModal(candidate);
+        }
+
+        function showRejectionModal(candidate) {
+            const reasons = [
+                'Poor English communication',
+                'Lack of relevant experience',
+                'Overqualified',
+                'Underqualified',
+                'Salary expectation too high',
+                'Not serious/motivated',
+                'Poor attitude',
+                'Late to interview',
+                'Technical skills lacking',
+                'Background verification failed'
+            ];
+            
+            const modalHtml = `
+                <div class="modal-overlay" id="rejectionModal">
+                    <div class="modal">
+                        <div class="modal-header">
+                            <i class="fas fa-times-circle" style="color: var(--danger); font-size: 24px;"></i>
+                            <h3>Reject ${candidate.fullName}</h3>
+                            <button class="modal-close" onclick="closeModal()">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <p style="margin-bottom: 16px;">Please select rejection reason:</p>
+                            <div class="rejection-reasons">
+                                ${reasons.map(reason => `
+                                    <div class="rejection-reason" onclick="selectReason(this, '${reason.replace(/'/g, "\\'")}')">
+                                        <i class="fas fa-times-circle"></i>
+                                        <span>${reason}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <input type="text" id="customReason" class="rejection-custom-input" placeholder="Or type custom reason...">
+                        </div>
+                        <div class="modal-footer">
+                            <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancel</button>
+                            <button class="modal-btn modal-btn-danger" onclick="confirmReject(${candidate.id})">Reject Candidate</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            window.selectedRejectReason = '';
+        }
+
+        function selectReason(element, reason) {
+            document.querySelectorAll('.rejection-reason').forEach(r => r.classList.remove('selected'));
+            element.classList.add('selected');
+            window.selectedRejectReason = reason;
+        }
+
+        async function confirmReject(candidateId) {
+            const customReason = document.getElementById('customReason')?.value?.trim();
+            const reason = customReason || window.selectedRejectReason;
+            
+            if (!reason) {
+                showToast('Please select or enter a rejection reason', 'warning');
+                return;
+            }
+            
+            const candidate = candidates.find(c => c.id == candidateId);
+            if (candidate) {
+                candidate.status = 'rejected';
+                candidate.stage = 'rejected';
+                candidate.hrStatus = 'rejected';
+                candidate.rejectionReason = reason;
+                candidate.rejectionDate = new Date().toISOString();
+                
+                if (window.PortalFetch) PortalFetch.invalidatePipelineCaches();
+                await fetch('api/update_candidate_global.php', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: candidate.id,
+                        new_stage: 'hr_rejected',
+                        action: 'hr_reject',
+                        remark: `REJECTED in HR: ${reason}`,
+                        user_role: 'HR Manager'
+                    })
+                });
+                addRemark(candidate.id, `REJECTED in HR: ${reason}`, 'HR Manager');
+                saveData();
+                updateCandidateInSheet(candidate.phone, {
+                    status: 'rejected',
+                    stage: 'rejected',
+                    hrStatus: 'rejected'
+                });
+                showToast(`❌ ${candidate.fullName} rejected`, 'warning');
+                renderDashboard();
+            }
+            closeModal();
+        }
+
+        // ==================== RENDER FUNCTIONS ====================
+        let lastDashboardHash = '';
+
+        async function renderDashboard() {
+            await loadDataFromDatabase();
+
+            const snapshot = JSON.stringify(candidates.map(c => ({ id: c.id, s: c.status, h: c.hrStatus })));
+            if (snapshot === lastDashboardHash && document.getElementById('hrList')?.innerHTML) {
+                return;
+            }
+            lastDashboardHash = snapshot;
+
+            const hrCandidates = candidates.filter(c =>
+                c.status === 'interview_conducted'
+            );
+
+            const gmCandidates = candidates.filter(c =>
+                c.status === 'hr_passed'
+            );
+            const processedCandidates = candidates.filter(c => 
+                c.hrStatus === 'passed' || c.hrStatus === 'rejected'
+            ).slice(0, 10);
+            
+            const pendingHR = hrCandidates.length;
+            const passedHR = candidates.filter(c => c.hrStatus === 'passed').length;
+            const rejectedHR = candidates.filter(c => c.hrStatus === 'rejected').length;
+            const selectedCount = candidates.filter(c => c.status === 'selected').length;
+            
+            document.getElementById('pendingHRBadge').textContent = pendingHR;
+            document.getElementById('pendingGMBadge').textContent = gmCandidates.length;
+            document.getElementById('pendingHRCount').textContent = pendingHR;
+            document.getElementById('processedCount').textContent = processedCandidates.length;
+            
+            document.getElementById('statsGrid').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-label">Total HR Interviews</div>
+                    <div class="stat-value">${pendingHR + passedHR + rejectedHR}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-label">Selected for Training</div>
+                    <div class="stat-value">${selectedCount}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                    <div class="stat-label">Pending</div>
+                    <div class="stat-value">${pendingHR}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-arrow-right"></i></div>
+                    <div class="stat-label">Sent to Final</div>
+                    <div class="stat-value">${gmCandidates.length}</div>
+                </div>
+            `;
+            
+            document.getElementById('hrList').innerHTML = renderCandidateList(hrCandidates);
+            document.getElementById('processedList').innerHTML = renderProcessedList(processedCandidates);
+            
+            const searchInput = document.getElementById('hrSearch');
+            if (searchInput) {
+                searchInput.oninput = (e) => {
+                    const search = e.target.value.toLowerCase();
+                    const filtered = hrCandidates.filter(c =>
+                        c.fullName?.toLowerCase().includes(search) ||
+                        c.phone?.includes(search) ||
+                        c.email?.toLowerCase().includes(search)
+                    );
+                    document.getElementById('hrList').innerHTML = renderCandidateList(filtered);
+                };
+            }
+        }
+        
+        function renderCandidateList(list) {
+            if (list.length === 0) {
+                return '<div class="empty-state"><i class="fas fa-users-slash"></i><h4>No Pending Candidates</h4><p>New applications will appear here</p></div>';
+            }
+            
+            return list.map(c => `
+                <div class="candidate-item">
+                    <div class="candidate-header">
+                        <div class="candidate-avatar"><i class="fas fa-user"></i></div>
+                        <div class="candidate-info">
+                            <h4>${c.fullName}</h4>
+                            <div class="candidate-tags">
+                                <span class="tag campaign">${c.position || 'Campaign'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="candidate-details">
+                        <div class="detail-item"><i class="fas fa-phone"></i> ${c.phone}</div>
+                        <div class="detail-item"><i class="fas fa-envelope"></i> ${c.email}</div>
+                        <div class="detail-item"><i class="fas fa-id-card"></i> ${c.cnic}</div>
+                        <div class="detail-item"><i class="fas fa-graduation-cap"></i> ${c.graduation}</div>
+                        <div class="detail-item"><i class="fas fa-user-plus"></i> Referred: ${c.referredBy || 'Walk-in'}</div>
+                        <div class="detail-item"><i class="fas fa-calendar"></i> Applied: ${new Date(c.applicationDate || c.registeredAt || c.timestamp || Date.now()).toLocaleDateString()}</div>
+                    </div>
+                    <div class="call-count"><i class="fas fa-phone-alt"></i> Called: ${c.callCount || 0} times</div>
+                    <div class="action-buttons">
+                        <button class="btn btn-warning" onclick="showRemarksModal(${c.id})"><i class="fas fa-comment"></i> Remarks</button>
+                        <button class="btn btn-primary" onclick="callCandidate(${c.id}, 'HR')"><i class="fas fa-phone-alt"></i> Call Candidate</button>
+                        <button class="btn btn-success" onclick="selectCandidate(${c.id})"><i class="fas fa-check"></i> Selected</button>
+                        <button class="btn btn-warning" onclick="markPendingOutcome(${c.id})"><i class="fas fa-clock"></i> Pending</button>
+                        <button class="btn btn-purple" onclick="sendToFinal(${c.id})"><i class="fas fa-arrow-right"></i> Final Interview</button>
+                        <button class="btn btn-danger" onclick="rejectCandidate(${c.id})"><i class="fas fa-times"></i> Reject</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function renderProcessedList(list) {
+            if (list.length === 0) {
+                return '<div class="empty-state"><i class="fas fa-inbox"></i><h4>No Processed Candidates</h4></div>';
+            }
+            
+            return list.map(c => `
+                <div class="processed-item">
+                    <div class="processed-avatar"><i class="fas fa-user"></i></div>
+                    <div class="processed-info">
+                        <h5>${c.fullName}</h5>
+                        <p>${c.position}</p>
+                    </div>
+                    <div class="processed-status ${c.hrStatus === 'passed' ? (c.interviewLevel === 'gm' ? 'final' : 'training') : 'rejected'}">
+                        ${c.hrStatus === 'passed' ? (c.interviewLevel === 'gm' ? 'Final Interview' : 'Selected for Training') : 'Rejected'}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // ==================== UTILITY FUNCTIONS ====================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            toast.innerHTML = `<i class="fas ${icon}" style="color: var(--${type === 'success' ? 'secondary' : 'danger'})"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+        
+        function closeModal() {
+            const modal = document.querySelector('.modal-overlay');
+            if (modal) modal.remove();
+        }
+        
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme') || 'dark';
+            const newTheme = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            const icon = document.getElementById('themeIcon');
+            if (icon) icon.className = newTheme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = 'index.html';
+            }
+        }
+        
+        // ==================== INITIALIZE ====================
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        const themeIcon = document.getElementById('themeIcon');
+        if (themeIcon) themeIcon.className = savedTheme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+        
+        (async function initHrPortal() {
+            try {
+                const res = await fetch('api/portal_auth_check.php', { credentials: 'include' });
+                const data = await res.json();
+                const d = data.data || {};
+                if (!data.success || !d.authenticated) {
+                    window.location.href = 'user-login.html?redirect=hr-portal.html';
+                    return;
+                }
+                if (d.portal_role !== 'hr' && !d.is_admin && !d.admin_portal_view) {
+                    const url = (window.portalUrlForRole && window.portalUrlForRole(d.portal_role)) || 'user-login.html';
+                    window.location.href = url;
+                    return;
+                }
+            } catch (e) {
+                console.warn('HR session check', e);
+            }
+            await renderDashboard();
+            if (window.PortalPoll) {
+                PortalPoll.start('hr-dashboard', () => renderDashboard(), 30000, { pauseWhenHidden: true });
+            }
+        })();
+        
+        window.showRemarksModal = showRemarksModal;
+        window.saveRemark = saveRemark;
+        window.selectCandidate = selectCandidate;
+        window.sendToFinal = sendToFinal;
+        window.rejectCandidate = rejectCandidate;
+        window.markPendingOutcome = markPendingOutcome;
+        window.callCandidate = callCandidate;
+        window.toggleTheme = toggleTheme;
+        window.forceSync = forceSync;
+        window.logout = logout;
+        window.closeModal = closeModal;
+        window.selectReason = selectReason;
+        window.confirmReject = confirmReject;
+    </script>
+    <script src="js/portal-chat-fab.js"></script>
+</body>
+</html>

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balitech · Monthly Attendance Report</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/dropdown-fix.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #f97316;
+            --primary-dark: #ea580c;
+            --primary-glow: rgba(249,115,22,0.5);
+            --secondary: #10b981;
+            --secondary-glow: rgba(16,185,129,0.3);
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --purple: #8b5cf6;
+            --dark: #0a0c15;
+            --darker: #05070f;
+            --glass: rgba(255, 255, 255, 0.07);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 20% 30%, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+        .app-container { max-width: 1600px; margin: 0 auto; padding: 24px; }
+        .header {
+            background: rgba(10, 12, 21, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 20px 32px;
+            margin-bottom: 28px;
+            border: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { display: flex; align-items: center; gap: 14px; }
+        .logo-icon {
+            width: 52px; height: 52px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 18px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px; color: white;
+            box-shadow: 0 0 30px var(--primary-glow);
+        }
+        .logo-text h1 {
+            font-size: 24px; font-weight: 800;
+            background: linear-gradient(135deg, #fff, var(--primary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .nav-bar { display: flex; gap: 12px; }
+        .nav-btn {
+            padding: 10px 22px; border-radius: 50px;
+            font-size: 13px; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 10px;
+            cursor: pointer; transition: all 0.3s;
+            background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.1); text-decoration: none;
+        }
+        .nav-btn:hover { background: rgba(255,255,255,0.1); color: white; transform: translateY(-2px); }
+        .nav-btn.primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; }
+
+        .control-panel {
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 24px;
+            margin-bottom: 28px;
+            border: 1px solid rgba(255,255,255,0.05);
+            display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+        }
+        .filter-group { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; width: 100%; }
+        .month-selector {
+            background: rgba(255,255,255,0.05);
+            padding: 10px 20px; border-radius: 50px;
+            display: flex; align-items: center; gap: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .month-selector input {
+            background: transparent; border: none; color: white; font-size: 14px; outline: none;
+        }
+        .month-selector input::-webkit-calendar-picker-indicator { filter: invert(1); }
+        
+        .search-box { flex: 1; position: relative; min-width: 200px; }
+        .search-box i { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.4); }
+        .search-box input {
+            width: 100%; padding: 12px 20px 12px 48px;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50px; color: white; outline: none;
+        }
+
+        .filter-select {
+            padding: 10px 36px 10px 20px;
+            border-radius: 50px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            outline: none;
+            font-size: 13px;
+            cursor: pointer;
+            min-width: 160px;
+        }
+        .filter-select option { background: var(--dark); color: white; }
+
+        .table-container {
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,0.05);
+            overflow: visible;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+            border-radius: 16px;
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 10px; min-width: 1200px; }
+        th {
+            background: rgba(255,255,255,0.05);
+            padding: 12px 6px; text-align: left;
+            color: rgba(255,255,255,0.5); font-weight: 600;
+            position: sticky; top: 0; z-index: 10;
+        }
+        td { padding: 6px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .status-cell { font-family: monospace; font-weight: 600; text-align: center; white-space: nowrap; }
+        .time-present { color: var(--secondary); }
+        .time-late { color: var(--warning); }
+        .time-absent { color: rgba(255,255,255,0.15); }
+        .time-weekend { color: var(--purple); opacity: 0.5; }
+        
+        .summary-badge {
+            padding: 2px 6px; border-radius: 8px; font-size: 9px; font-weight: 700;
+            display: inline-block; text-align: center; min-width: 22px;
+        }
+        .bg-present { background: rgba(16,185,129,0.15); color: #10b981; }
+        .bg-absent { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .bg-late { background: rgba(245,158,11,0.15); color: #f59e0b; }
+
+        .loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(10px);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 3px solid rgba(249,115,22,0.1);
+            border-top-color: var(--primary); border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon"><i class="fas fa-calendar-check"></i></div>
+                <div class="logo-text"><h1>Balitech · Monthly Report</h1></div>
+            </div>
+            <div class="nav-bar">
+                <a href="attendance-dashboard.html" class="nav-btn"><i class="fas fa-th-large"></i> Dashboard</a>
+                <button class="nav-btn" onclick="exportToCSV()"><i class="fas fa-file-csv"></i> CSV</button>
+                <button class="nav-btn primary" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Excel (Highlighted)</button>
+            </div>
+        </header>
+
+        <div class="control-panel">
+            <div class="filter-group">
+                <div class="month-selector">
+                    <i class="fas fa-calendar-alt"></i>
+                    <input type="month" id="monthPicker" onchange="fetchData()">
+                </div>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search ID or name..." onkeyup="applyFilters()">
+                </div>
+                <select id="teamFilter" class="filter-select" onchange="applyFilters()">
+                    <option value="">All Teams</option>
+                </select>
+                <select id="designationFilter" class="filter-select" onchange="applyFilters()">
+                    <option value="">All Designations</option>
+                </select>
+                <select id="departmentFilter" class="filter-select" onchange="applyFilters()">
+                    <option value="">All Departments</option>
+                </select>
+            </div>
+            <div id="statsInfo" style="font-size: 12px; color: rgba(255,255,255,0.5); width: 100%; margin-top: 10px;">
+                Showing: <span id="recordCount" style="color: white; font-weight: 700;">0</span> employees
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-scroll">
+                <table id="reportTable">
+                    <thead id="tableHeader"></thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div style="text-align: center;">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px; color: var(--primary); font-weight: 600;">Generating Monthly Report...</p>
+        </div>
+    </div>
+
+    <script>
+        let allData = [];
+        let currentMonth = '';
+        let daysInMonth = 0;
+
+        // Set default month to current month
+        window.onload = () => {
+            const now = new Date();
+            const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            document.getElementById('monthPicker').value = monthStr;
+            loadFilterOptions();
+            fetchData();
+        };
+
+        async function loadFilterOptions() {
+            try {
+                const response = await fetch('attendance-api.php?action=getFilterOptions');
+                const data = await response.json();
+                if (data.success) {
+                    populateSelect('teamFilter', data.data.teams, 'All Teams');
+                    populateSelect('designationFilter', data.data.designations, 'All Designations');
+                    populateSelect('departmentFilter', data.data.departments, 'All Departments');
+                }
+            } catch (error) { console.error('Filter options error:', error); }
+        }
+
+        function populateSelect(id, options, defaultText) {
+            const select = document.getElementById(id);
+            select.innerHTML = `<option value="">${defaultText}</option>`;
+            options.sort().forEach(opt => {
+                select.innerHTML += `<option value="${opt}">${opt}</option>`;
+            });
+        }
+
+        async function fetchData() {
+            const month = document.getElementById('monthPicker').value;
+            if (!month) return;
+            
+            showLoading(true);
+            try {
+                const response = await fetch(`attendance-api.php?action=getMonthlyGrid&month=${month}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    allData = data.data.grid;
+                    daysInMonth = data.data.days_in_month;
+                    currentMonth = month;
+                    applyFilters();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                alert('Failed to connect to API');
+            }
+            showLoading(false);
+        }
+
+        function formatTime12h(time24) {
+            if (!time24 || time24 === '--:--') return '--:--';
+            const [h, m] = time24.split(':').map(Number);
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            const h12 = h % 12 || 12;
+            return `${String(h12).padStart(2, '0')}:${String(m).padStart(2, '0')} ${ampm}`;
+        }
+
+        function applyFilters() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const team = document.getElementById('teamFilter').value;
+            const designation = document.getElementById('designationFilter').value;
+            const department = document.getElementById('departmentFilter').value;
+
+            const filtered = allData.filter(emp => {
+                const matchSearch = emp.name.toLowerCase().includes(query) || emp.code.toLowerCase().includes(query);
+                const matchTeam = !team || emp.team === team;
+                const matchDesignation = !designation || emp.designation === designation;
+                const matchDept = !department || emp.department === department;
+                return matchSearch && matchTeam && matchDesignation && matchDept;
+            });
+
+            renderTable(filtered);
+        }
+
+        function renderTable(data) {
+            const header = document.getElementById('tableHeader');
+            const body = document.getElementById('tableBody');
+            
+            // Render Header
+            let headerHtml = '<tr><th>ID</th><th>Personnel</th><th>Team</th><th>Designation</th>';
+            for (let i = 1; i <= daysInMonth; i++) {
+                const isWeekend = isDateWeekend(i);
+                headerHtml += `<th style="text-align:center; ${isWeekend ? 'color:var(--purple);' : ''}">${i}</th>`;
+            }
+            headerHtml += '<th>Pres.</th><th>Abs.</th><th>Late</th></tr>';
+            header.innerHTML = headerHtml;
+
+            // Render Body
+            body.innerHTML = '';
+            data.forEach(emp => {
+                let row = `<tr>
+                    <td><strong>${emp.code}</strong></td>
+                    <td title="${emp.department}">${emp.name}</td>
+                    <td>${emp.team || '-'}</td>
+                    <td>${emp.designation}</td>`;
+                
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const time = emp.attendance[i];
+                    const isWeekend = isDateWeekend(i);
+                    let className = 'time-absent';
+                    let displayTime = time;
+                    
+                    if (isWeekend) {
+                        className = 'time-weekend';
+                    } else if (time !== '--:--') {
+                        className = isLate(time) ? 'time-late' : 'time-present';
+                        displayTime = formatTime12h(time);
+                    }
+                    
+                    row += `<td class="status-cell ${className}">${displayTime}</td>`;
+                }
+                
+                row += `<td><span class="summary-badge bg-present">${emp.summary.present}</span></td>
+                        <td><span class="summary-badge bg-absent">${emp.summary.absent}</span></td>
+                        <td><span class="summary-badge bg-late">${emp.summary.late}</span></td>
+                    </tr>`;
+                body.innerHTML += row;
+            });
+            
+            document.getElementById('recordCount').innerText = data.length;
+        }
+
+
+
+        function isDateWeekend(day) {
+            const [year, month] = currentMonth.split('-');
+            const date = new Date(year, month - 1, day);
+            const dayOfWeek = date.getDay();
+            return dayOfWeek === 0 || dayOfWeek === 6; // Sun or Sat
+        }
+
+        function isLate(time) {
+            if (!time || time === '--:--') return false;
+            const [h, m] = time.split(':').map(Number);
+            // Late if after 5:30 PM (17:30)
+            return (h > 17 || (h === 17 && m > 30));
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
+
+        function exportToCSV() {
+            let csv = 'ID,Name,Team,Designation,Department,Branch,';
+            for (let i = 1; i <= daysInMonth; i++) csv += `${i},`;
+            csv += 'Present,Absent,Late\n';
+            
+            allData.forEach(emp => {
+                csv += `"${emp.code}","${emp.name}","${emp.team}","${emp.designation}","${emp.department}","${emp.branch}",`;
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const t = emp.attendance[i];
+                    let display = formatTime12h(t);
+                    if (isLate(t)) display += ' (LATE)';
+                    csv += `"${display}",`;
+                }
+                csv += `"${emp.summary.present}","${emp.summary.absent}","${emp.summary.late}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `Attendance_Report_${currentMonth}.csv`);
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function exportToExcel() {
+            const table = document.getElementById('reportTable').cloneNode(true);
+            
+            // Apply inline styles for Excel highlighting
+            const lateCells = table.querySelectorAll('.time-late');
+            lateCells.forEach(cell => {
+                cell.style.backgroundColor = '#fef3c7';
+                cell.style.color = '#92400e';
+                cell.style.fontWeight = 'bold';
+            });
+
+            const presentCells = table.querySelectorAll('.time-present');
+            presentCells.forEach(cell => {
+                cell.style.color = '#065f46';
+            });
+
+            const html = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <meta charset="utf-8">
+                    <style>
+                        table { border-collapse: collapse; font-family: Arial; font-size: 10pt; }
+                        th { background-color: #f3f4f6; border: 1pt solid #e5e7eb; }
+                        td { border: 1pt solid #e5e7eb; padding: 4px; }
+                        .time-weekend { background-color: #f3e8ff; }
+                    </style>
+                </head>
+                <body>
+                    ${table.outerHTML}
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Attendance_Report_${currentMonth}.xls`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

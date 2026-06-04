@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balitech · Training Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/dropdown-fix.css">
+    <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #f97316;
+            --primary-dark: #ea580c;
+            --primary-light: rgba(249, 115, 22, 0.15);
+            --primary-glow: rgba(249, 115, 22, 0.4);
+            --secondary: #10b981;
+            --secondary-dark: #059669;
+            --secondary-light: rgba(16, 185, 129, 0.15);
+            --warning: #f59e0b;
+            --warning-light: rgba(245, 158, 11, 0.15);
+            --danger: #ef4444;
+            --danger-light: rgba(239, 68, 68, 0.15);
+            --info: #3b82f6;
+            --info-light: rgba(59, 130, 246, 0.15);
+            --purple: #8b5cf6;
+            --purple-light: rgba(139, 92, 246, 0.15);
+            --pink: #ec4899;
+            --pink-light: rgba(236, 72, 153, 0.15);
+            --bg-dark: #0a0c15;
+            --bg-card: rgba(30, 36, 54, 0.95);
+            --bg-sidebar: #0f1524;
+            --bg-hover: rgba(249, 115, 22, 0.1);
+            --bg-input: rgba(255, 255, 255, 0.05);
+            --text-primary: #ffffff;
+            --text-secondary: #e2e8f0;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --border-light: rgba(255, 255, 255, 0.08);
+            --border-primary: rgba(249, 115, 22, 0.25);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            --shadow-glow: 0 0 25px var(--primary-glow);
+            --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            --gradient-success: linear-gradient(135deg, #10b981, #059669);
+            --gradient-warning: linear-gradient(135deg, #f59e0b, #d97706);
+            --gradient-danger: linear-gradient(135deg, #ef4444, #dc2626);
+            --gradient-purple: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            --gradient-pink: linear-gradient(135deg, #ec4899, #db2777);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 20% 30%, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: linear-gradient(125deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+        }
+
+        .animated-bg::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.12) 0%, transparent 70%);
+            animation: slowRotate 30s linear infinite;
+        }
+
+        @keyframes slowRotate {
+            0% { transform: rotate(0); }
+            100% { transform: rotate(360deg); }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gradient-primary);
+            border-radius: 10px;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: rgba(15, 21, 36, 0.97);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-primary);
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 100;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 28px 24px;
+            border-bottom: 1px solid var(--border-primary);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 6px;
+        }
+
+        .sidebar-logo-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient-primary);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 0 20px var(--primary-glow);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 var(--primary-glow); }
+            50% { box-shadow: 0 0 20px 5px var(--primary-glow); }
+        }
+
+        .sidebar-logo-text h2 {
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-logo-text p {
+            font-size: 10px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        .sidebar-nav {
+            padding: 20px 16px;
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            padding-left: 12px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-bottom: 4px;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+        }
+
+        .nav-item i {
+            width: 20px;
+            font-size: 18px;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: var(--bg-hover);
+            color: var(--primary);
+            transform: translateX(5px);
+            border-left-color: var(--primary);
+        }
+
+        .nav-item.active {
+            box-shadow: var(--shadow-glow);
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            background: var(--gradient-primary);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 20px;
+            border-top: 1px solid var(--border-primary);
+        }
+
+        .user-info-sidebar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            border: 1px solid var(--border-primary);
+        }
+
+        .user-avatar-small {
+            width: 42px;
+            height: 42px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+            box-shadow: var(--shadow-glow);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .user-details h5 {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .user-details p {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 24px 32px;
+        }
+
+        .top-header {
+            background: rgba(10, 12, 21, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 20px 28px;
+            margin-bottom: 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .page-title h1 {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .page-title p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 22px;
+            border: 1px solid var(--border-light);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.08), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--border-primary);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 14px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+
+        .stat-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .stat-value {
+            font-size: 34px;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .stat-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .stat-icon.orange { background: var(--primary-light); color: var(--primary); }
+        .stat-icon.green { background: var(--secondary-light); color: var(--secondary); }
+        .stat-icon.blue { background: var(--info-light); color: var(--info); }
+        .stat-icon.purple { background: var(--purple-light); color: var(--purple); }
+
+        /* Filter Tabs */
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .filter-tab {
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--border-light);
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.04);
+            transition: all 0.2s;
+        }
+
+        .filter-tab:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .filter-tab.active {
+            background: var(--gradient-primary);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+        }
+
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 24px;
+        }
+
+        .panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 24px;
+            border: 1px solid var(--border-light);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .panel-header h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-header h3 i {
+            color: var(--primary);
+        }
+
+        .count-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            background: var(--primary-light);
+            color: var(--primary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .search-wrap {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .search-wrap i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .search-wrap input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-light);
+            border-radius: 40px;
+            font-size: 13px;
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+
+        .search-wrap input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .search-wrap input::placeholder {
+            color: var(--text-dim);
+        }
+
+        .trainee-list {
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .trainee-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            padding: 18px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .trainee-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: var(--gradient-primary);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .trainee-card:hover {
+            border-color: var(--border-primary);
+            transform: translateX(4px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .trainee-card:hover::before {
+            opacity: 1;
+        }
+
+        .tc-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .tc-avatar {
+            width: 52px;
+            height: 52px;
+            background: var(--gradient-primary);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .tc-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .tc-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-muted);
+            border: 1px solid var(--border-light);
+        }
+
+        .tag.orange { background: var(--primary-light); color: var(--primary); border-color: rgba(249, 115, 22, 0.3); }
+        .tag.green { background: var(--secondary-light); color: var(--secondary); border-color: rgba(16, 185, 129, 0.3); }
+        .tag.blue { background: var(--info-light); color: var(--info); border-color: rgba(59, 130, 246, 0.3); }
+        .tag.amber { background: var(--warning-light); color: var(--warning); border-color: rgba(245, 158, 11, 0.3); }
+        .tag.purple { background: var(--purple-light); color: var(--purple); border-color: rgba(139, 92, 246, 0.3); }
+
+        .tc-info-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 14px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 14px;
+            border: 1px solid var(--border-light);
+        }
+
+        .tc-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .tc-info-item i {
+            color: var(--primary);
+            width: 14px;
+            font-size: 12px;
+        }
+
+        .tc-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.3s;
+            flex: 1;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-start { background: var(--gradient-primary); color: white; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3); }
+        .btn-start:hover { box-shadow: 0 8px 20px rgba(249, 115, 22, 0.4); }
+        .btn-complete { background: var(--gradient-success); color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+        .btn-complete:hover { box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4); }
+        .btn-secondary { background: rgba(255, 255, 255, 0.06); color: var(--text-secondary); border: 1px solid var(--border-light); flex: none; padding: 10px 14px; }
+        .btn-secondary:hover { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+
+        .done-badge {
+            flex: 1;
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            background: var(--secondary-light);
+            color: var(--secondary);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .mini-panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid var(--border-light);
+        }
+
+        .mini-panel-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mini-panel-title i {
+            color: var(--primary);
+        }
+
+        .progress-item {
+            margin-bottom: 16px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .progress-bar-bg {
+            background: rgba(255, 255, 255, 0.07);
+            border-radius: 40px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 40px;
+            background: var(--gradient-primary);
+            transition: width 0.8s ease;
+        }
+
+        .progress-bar-fill.green { background: var(--gradient-success); }
+        .progress-bar-fill.amber { background: var(--gradient-warning); }
+
+        .timeline-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: flex-start;
+        }
+
+        .timeline-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--primary);
+            flex-shrink: 0;
+            margin-top: 4px;
+            box-shadow: 0 0 8px var(--primary-glow);
+        }
+
+        .timeline-dot.green { background: var(--secondary); box-shadow: 0 0 8px rgba(16, 185, 129, 0.5); }
+        .timeline-dot.amber { background: var(--warning); box-shadow: 0 0 8px rgba(245, 158, 11, 0.5); }
+        .timeline-dot.dim { background: var(--text-dim); box-shadow: none; }
+
+        .timeline-content { flex: 1; }
+        .timeline-title { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+        .timeline-sub { font-size: 11px; color: var(--text-muted); }
+
+        .quick-action-btn {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+
+        .quick-action-btn i {
+            color: var(--primary);
+            width: 18px;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateX(4px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 56px;
+            color: var(--text-dim);
+            margin-bottom: 16px;
+            opacity: 0.4;
+            display: block;
+        }
+
+        .empty-state h4 {
+            font-size: 16px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .empty-state p {
+            font-size: 13px;
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 2000;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 14px 22px;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow-xl);
+            border-left: 4px solid var(--primary);
+            color: var(--text-primary);
+            animation: slideInRight 0.3s ease;
+            font-size: 13px;
+            font-weight: 500;
+            min-width: 280px;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .toast.success { border-left-color: var(--secondary); }
+        .toast.error { border-left-color: var(--danger); }
+        .toast.warning { border-left-color: var(--warning); }
+
+        @media (max-width:1300px) {
+            .content-grid { grid-template-columns: 1fr; }
+            .side-panel { display: grid; grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width:1100px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width:768px) {
+            .sidebar { transform: translateX(-100%); }
+            .main-content { margin-left: 0; padding: 16px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .side-panel { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="animated-bg"></div>
+
+    <div style="display:flex;">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="sidebar-logo-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                    <div class="sidebar-logo-text">
+                        <h2>BALITECH</h2>
+                        <p>TRAINING PORTAL</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Training</div>
+                    <div class="nav-item active" onclick="setFilter('all')"><i class="fas fa-users"></i> All Trainees <span class="nav-badge" id="sideAllCount">0</span></div>
+                    <div class="nav-item" onclick="setFilter('pending')"><i class="fas fa-clock"></i> Pending Start <span class="nav-badge" id="sidePendingCount">0</span></div>
+                    <div class="nav-item" onclick="setFilter('in-progress')"><i class="fas fa-spinner"></i> In Progress <span class="nav-badge" id="sideActiveCount">0</span></div>
+                    <div class="nav-item" onclick="setFilter('completed')"><i class="fas fa-check-circle"></i> Completed <span class="nav-badge" id="sideCompletedCount">0</span></div>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Navigation</div>
+                    <div class="nav-item" onclick="window.location.href='chat-portal.html'"><i class="fas fa-comments"></i> Chat</div>
+                    <div class="nav-item" onclick="window.location.href='hr-portal.html'"><i class="fas fa-users-cog"></i> HR Portal</div>
+                    <div class="nav-item" onclick="window.location.href='recruiter-portal.html'"><i class="fas fa-user-tie"></i> Recruitment</div>
+                    <div class="nav-item" onclick="window.location.href='management-portal.html'"><i class="fas fa-crown"></i> Management</div>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">System</div>
+                    <div class="nav-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="user-info-sidebar">
+                    <div class="user-avatar-small"><i class="fas fa-chalkboard-teacher"></i></div>
+                    <div class="user-details">
+                        <h5>Training Manager</h5>
+                        <p>training@balitech.com</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="top-header">
+                <div class="page-title">
+                    <h1><i class="fas fa-chalkboard-teacher"></i> Training Portal</h1>
+                    <p><i class="fas fa-circle" style="color:var(--secondary);font-size:8px;"></i> Live · New hire training management & progress tracking</p>
+                </div>
+                <div class="header-actions">
+                    <div style="display:flex;align-items:center;gap:8px;padding:8px 16px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:40px;font-size:12px;color:var(--secondary);font-weight:600;">
+                        <i class="fas fa-sync-alt fa-spin"></i> <span id="lastRefresh">Live</span>
+                    </div>
+                    <button onclick="renderAll()" style="padding:10px 20px;background:var(--gradient-primary);border:none;border-radius:40px;color:white;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 4px 12px rgba(249,115,22,0.3);">
+                        <i class="fas fa-redo"></i> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-card-top"><span class="stat-label">Total Trainees</span><div class="stat-icon orange"><i class="fas fa-users"></i></div></div>
+                    <div class="stat-value" id="statTotal">0</div>
+                    <div class="stat-sub">From HR Selection</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-top"><span class="stat-label">Pending Start</span><div class="stat-icon blue"><i class="fas fa-clock"></i></div></div>
+                    <div class="stat-value" id="statPending">0</div>
+                    <div class="stat-sub">Awaiting training</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-top"><span class="stat-label">In Progress</span><div class="stat-icon purple"><i class="fas fa-spinner"></i></div></div>
+                    <div class="stat-value" id="statInProgress">0</div>
+                    <div class="stat-sub">Currently training</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-top"><span class="stat-label">Completed</span><div class="stat-icon green"><i class="fas fa-check-circle"></i></div></div>
+                    <div class="stat-value" id="statCompleted">0</div>
+                    <div class="stat-sub">Training done</div>
+                </div>
+            </div>
+
+            <div class="filter-tabs">
+                <div class="filter-tab active" onclick="setFilter('all',this)">All Trainees</div>
+                <div class="filter-tab" onclick="setFilter('pending',this)">Pending</div>
+                <div class="filter-tab" onclick="setFilter('in-progress',this)">In Progress</div>
+                <div class="filter-tab" onclick="setFilter('completed',this)">Completed</div>
+            </div>
+
+            <div class="content-grid">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-user-graduate"></i> Trainee List</h3>
+                        <span class="count-badge" id="listCount">0 trainees</span>
+                    </div>
+                    <div class="search-wrap">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Search by name, phone, position..." oninput="renderList()">
+                    </div>
+                    <div class="trainee-list" id="traineeList"></div>
+                </div>
+
+                <div class="side-panel">
+                    <div class="mini-panel">
+                        <div class="mini-panel-title"><i class="fas fa-chart-bar"></i> Progress Overview</div>
+                        <div class="progress-item">
+                            <div class="progress-label"><span>Pending</span><span id="pctPending">0%</span></div>
+                            <div class="progress-bar-bg"><div class="progress-bar-fill amber" id="barPending" style="width:0%"></div></div>
+                        </div>
+                        <div class="progress-item">
+                            <div class="progress-label"><span>In Progress</span><span id="pctInProgress">0%</span></div>
+                            <div class="progress-bar-bg"><div class="progress-bar-fill" id="barInProgress" style="width:0%"></div></div>
+                        </div>
+                        <div class="progress-item" style="margin-bottom:0">
+                            <div class="progress-label"><span>Completed</span><span id="pctCompleted">0%</span></div>
+                            <div class="progress-bar-bg"><div class="progress-bar-fill green" id="barCompleted" style="width:0%"></div></div>
+                        </div>
+                    </div>
+
+                    <div class="mini-panel">
+                        <div class="mini-panel-title"><i class="fas fa-history"></i> Recent Activity</div>
+                        <div id="activityLog">
+                            <div class="timeline-item">
+                                <div class="timeline-dot dim"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">No recent activity</div>
+                                    <div class="timeline-sub">Actions will appear here</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mini-panel">
+                        <div class="mini-panel-title"><i class="fas fa-bolt"></i> Quick Actions</div>
+                        <button class="quick-action-btn" onclick="startAllPending()"><i class="fas fa-play-circle"></i> Start All Pending</button>
+                        <button class="quick-action-btn" onclick="exportReport()"><i class="fas fa-file-excel"></i> Export Report</button>
+                        <button class="quick-action-btn" onclick="renderAll()"><i class="fas fa-sync-alt"></i> Refresh Data</button>
+                        <button class="quick-action-btn" onclick="window.location.href='hr-portal.html'"><i class="fas fa-arrow-left"></i> Back to HR Portal</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/portal-access.js"></script>
+    <script src="js/portal-session-guard.js"></script>
+    <script src="js/portal-performance.js"></script>
+    <script>
+        let candidates = [];
+        let currentFilter = 'all';
+        let activityLog = [];
+        let lastTrainingRenderHash = '';
+        const TRAINING_CANDIDATES_URL = 'api/get_candidates_global.php?light=1&limit=200&stages=selected,pending,hr_passed,gm_passed,hired,training,deployed,mock_rejected,left,not_appeared';
+
+        // Load data from MySQL DB
+        async function loadData(opts) {
+            const fetchOpts = opts && opts.bypassCache ? { ttlMs: 0, bypassCache: true } : { ttlMs: 15000 };
+            try {
+                const result = window.PortalFetch
+                    ? await PortalFetch.fetchJson(TRAINING_CANDIDATES_URL, fetchOpts)
+                    : await (await fetch(TRAINING_CANDIDATES_URL, { credentials: 'include' })).json();
+                if (result.success && Array.isArray(result.data)) {
+                    candidates = result.data;
+                }
+            } catch (e) {
+                console.error("Failed to fetch training candidates", e);
+                candidates = [];
+            }
+        }
+
+        function saveData() {
+            // Deprecated, we use API calls now
+        }
+
+        // Get trainees - candidates who are hired or in training
+        function getTrainees() {
+            return candidates;
+        }
+
+        function getTrainingStatus(c) {
+            if (c.status === 'deployed') return 'completed';
+            if (['mock_rejected', 'left', 'rejected'].includes(c.status)) return 'failed';
+            if (c.status === 'not_appeared') return 'no-show';
+            if (c.status === 'training') return 'in-progress';
+            if (['selected', 'pending', 'hr_passed', 'gm_passed', 'hired'].includes(c.status)) return 'pending';
+            return 'pending';
+        }
+
+        function setFilter(filter, el) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            if (el) el.classList.add('active');
+
+            // Update sidebar active state
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const filterMap = { all: 0, pending: 1, 'in-progress': 2, completed: 3 };
+            const navItems = document.querySelectorAll('.nav-item');
+            if (navItems[filterMap[filter]]) navItems[filterMap[filter]].classList.add('active');
+
+            renderList();
+        }
+
+        function renderStats() {
+            const all = getTrainees();
+            const pending = all.filter(c => getTrainingStatus(c) === 'pending').length;
+            const inProgress = all.filter(c => getTrainingStatus(c) === 'in-progress').length;
+            const completed = all.filter(c => getTrainingStatus(c) === 'completed').length;
+            const total = all.length;
+
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statPending').textContent = pending;
+            document.getElementById('statInProgress').textContent = inProgress;
+            document.getElementById('statCompleted').textContent = completed;
+
+            // Sidebar badges
+            document.getElementById('sideAllCount').textContent = total;
+            document.getElementById('sidePendingCount').textContent = pending;
+            document.getElementById('sideActiveCount').textContent = inProgress;
+            document.getElementById('sideCompletedCount').textContent = completed;
+
+            // Progress bars
+            const pPend = total ? Math.round(pending / total * 100) : 0;
+            const pProg = total ? Math.round(inProgress / total * 100) : 0;
+            const pComp = total ? Math.round(completed / total * 100) : 0;
+            document.getElementById('pctPending').textContent = pPend + '%';
+            document.getElementById('pctInProgress').textContent = pProg + '%';
+            document.getElementById('pctCompleted').textContent = pComp + '%';
+            document.getElementById('barPending').style.width = pPend + '%';
+            document.getElementById('barInProgress').style.width = pProg + '%';
+            document.getElementById('barCompleted').style.width = pComp + '%';
+        }
+
+        function renderList() {
+            const all = getTrainees();
+            const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
+            let list = all;
+
+            if (currentFilter !== 'all') {
+                list = list.filter(c => getTrainingStatus(c) === currentFilter);
+            }
+            if (search) {
+                list = list.filter(c =>
+                    (c.fullName || '').toLowerCase().includes(search) ||
+                    (c.phone || '').includes(search) ||
+                    (c.position || '').toLowerCase().includes(search) ||
+                    (c.city || '').toLowerCase().includes(search)
+                );
+            }
+
+            document.getElementById('listCount').textContent = list.length + ' trainee' + (list.length !== 1 ? 's' : '');
+
+            if (list.length === 0) {
+                document.getElementById('traineeList').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-user-graduate"></i>
+                        <h4>No trainees found</h4>
+                        <p>${search ? 'Try a different search term.' : 'No candidates have been selected for training yet. Go to HR Portal to select candidates.'}</p>
+                        <button onclick="window.location.href='hr-portal.html'" style="margin-top:15px;padding:10px 20px;background:var(--gradient-primary);border:none;border-radius:40px;color:white;cursor:pointer;">
+                            <i class="fas fa-arrow-right"></i> Go to HR Portal
+                        </button>
+                    </div>`;
+                return;
+            }
+
+            document.getElementById('traineeList').innerHTML = list.map(c => {
+                const status = getTrainingStatus(c);
+                let statusTag = '';
+                if (status === 'pending') statusTag = '<span class="tag amber">⏳ Pending Start</span>';
+                else if (status === 'in-progress') statusTag = '<span class="tag orange">🔄 In Progress</span>';
+                else if (status === 'completed') statusTag = '<span class="tag green">✅ Completed</span>';
+
+                const initials = (c.fullName || '?').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+
+                let actions = '';
+                if (status === 'pending') {
+                    actions = `<button class="btn btn-start" onclick="startTraining(${c.id})"><i class="fas fa-play"></i> Appeared — Start Training</button>
+                               <button class="btn btn-warning" onclick="markTrainingNoShow(${c.id})"><i class="fas fa-user-slash"></i> Not Appeared</button>
+                               <button class="btn btn-secondary" onclick="showDetails(${c.id})"><i class="fas fa-eye"></i> Details</button>`;
+                } else if (status === 'in-progress') {
+                    actions = `<button class="btn btn-complete" onclick="completeTraining(${c.id})"><i class="fas fa-check"></i> Deployed</button>
+                               <button class="btn btn-danger" onclick="markMockRejected(${c.id})"><i class="fas fa-times"></i> Mock Rejected</button>
+                               <button class="btn btn-warning" onclick="markLeftTraining(${c.id})"><i class="fas fa-sign-out-alt"></i> Left</button>
+                               <button class="btn btn-secondary" onclick="showDetails(${c.id})"><i class="fas fa-eye"></i> Details</button>`;
+                } else if (status === 'failed' || status === 'no-show') {
+                    actions = `<span class="done-badge" style="background:rgba(239,68,68,.15);color:#ef4444"><i class="fas fa-ban"></i> ${c.status === 'not_appeared' ? 'Not Appeared' : c.status.replace('_',' ')}</span>`;
+                } else {
+                    actions = `<span class="done-badge"><i class="fas fa-trophy"></i> Deployed</span>`;
+                }
+
+                return `
+                <div class="trainee-card">
+                    <div class="tc-header">
+                        <div class="tc-avatar">${initials}</div>
+                        <div style="flex:1">
+                            <div class="tc-name">${c.fullName || 'Unknown'}</div>
+                            <div class="tc-tags">
+                                <span class="tag orange">${c.position || 'N/A'}</span>
+                                ${statusTag}
+                                ${c.referredBy ? `<span class="tag blue">Ref: ${c.referredBy}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tc-info-row">
+                        <div class="tc-info-item"><i class="fas fa-phone"></i> ${c.phone || 'N/A'}</div>
+                        <div class="tc-info-item"><i class="fas fa-envelope"></i> ${(c.email || 'N/A').substring(0, 22)}</div>
+                        <div class="tc-info-item"><i class="fas fa-map-marker-alt"></i> ${c.city || 'N/A'}</div>
+                        <div class="tc-info-item"><i class="fas fa-calendar-check"></i> ${c.joiningDate || 'TBD'}</div>
+                    </div>
+                    <div class="tc-actions">${actions}</div>
+                </div>`;
+            }).join('');
+        }
+
+        function logActivity(msg, type = 'primary') {
+            activityLog.unshift({ msg, type, time: new Date().toLocaleTimeString() });
+            if (activityLog.length > 6) activityLog.pop();
+            const colorMap = { primary: '', green: 'green', amber: 'amber', dim: 'dim' };
+            document.getElementById('activityLog').innerHTML = activityLog.map(a => `
+                <div class="timeline-item">
+                    <div class="timeline-dot ${colorMap[a.type] || ''}"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">${a.msg}</div>
+                        <div class="timeline-sub">${a.time}</div>
+                    </div>
+                </div>`).join('');
+            if (activityLog.length === 0) {
+                document.getElementById('activityLog').innerHTML = `
+                    <div class="timeline-item">
+                        <div class="timeline-dot dim"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">No recent activity</div>
+                            <div class="timeline-sub">Actions will appear here</div>
+                        </div>
+                    </div>`;
+            }
+        }
+
+        async function trainingStageUpdate(c, stage, action, remark) {
+            if (window.PortalFetch) PortalFetch.invalidatePipelineCaches();
+            await fetch('api/update_candidate_global.php', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: c.id,
+                    new_stage: stage,
+                    action,
+                    remark,
+                    user_role: 'Training Manager'
+                })
+            });
+        }
+
+        window.startTraining = async function(id) {
+            const c = candidates.find(x => x.id === id);
+            if (!c) return;
+            if (['selected', 'pending', 'hr_passed', 'gm_passed'].includes(c.status)) {
+                await trainingStageUpdate(c, 'hired', 'training_eligible', 'Selected for training after interview');
+            }
+            await trainingStageUpdate(c, 'training', 'training_start', 'Appeared at training — session started');
+            
+            showToast(`🚀 Training started for ${c.fullName}`, 'success');
+            logActivity(`Started training: ${c.fullName}`, 'primary');
+            renderAll();
+        };
+
+        window.markTrainingNoShow = async function(id) {
+            const c = candidates.find(x => x.id === id);
+            if (!c) return;
+            await trainingStageUpdate(c, 'not_appeared', 'training_no_show', 'Did not appear at training');
+            showToast(`${c.fullName} marked as Not Appeared (training)`, 'warning');
+            renderAll();
+        };
+
+        window.markMockRejected = async function(id) {
+            const c = candidates.find(x => x.id === id);
+            if (!c) return;
+            await trainingStageUpdate(c, 'mock_rejected', 'training_mock_reject', 'Mock rejected during training');
+            showToast(`${c.fullName} marked as Mock Rejected`, 'warning');
+            renderAll();
+        };
+
+        window.markLeftTraining = async function(id) {
+            const c = candidates.find(x => x.id === id);
+            if (!c) return;
+            await trainingStageUpdate(c, 'left', 'training_left', 'Left during training');
+            showToast(`${c.fullName} marked as Left`, 'info');
+            renderAll();
+        };
+
+        window.completeTraining = async function(id) {
+            const c = candidates.find(x => x.id === id);
+            if (!c) return;
+            await trainingStageUpdate(c, 'deployed', 'training_deployed', 'Deployed after successful training');
+            
+            showToast(`🎉 ${c.fullName} completed training! Candidate is now deployed.`, 'success');
+            logActivity(`Completed training: ${c.fullName}`, 'green');
+            renderAll();
+        };
+
+        window.showDetails = function(id) {
+            const c = candidates.find(x => x.id === id);
+            if (!c) return;
+            let details = `📋 Candidate Details:\n\n`;
+            details += `Name: ${c.fullName}\n`;
+            details += `Father: ${c.fatherName || 'N/A'}\n`;
+            details += `Phone: ${c.phone}\n`;
+            details += `Email: ${c.email || 'N/A'}\n`;
+            details += `Position: ${c.position}\n`;
+            details += `Referred By: ${c.referredBy || 'Walk-in'}\n`;
+            details += `Training Status: ${getTrainingStatus(c)}\n`;
+            if (c.remarks && c.remarks.length > 0) {
+                details += `\nLatest Remark: ${c.remarks[c.remarks.length - 1].text}`;
+            }
+            alert(details);
+        };
+
+        async function startAllPending() {
+            const pending = getTrainees().filter(c => getTrainingStatus(c) === 'pending');
+            if (!pending.length) { showToast('No pending trainees to start.', 'warning'); return; }
+
+            if (window.PortalFetch) PortalFetch.invalidatePipelineCaches();
+            for (const c of pending) {
+                await fetch('api/update_candidate_global.php', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: c.id,
+                        new_stage: 'training',
+                        action: 'training_start',
+                        remark: 'Started Training',
+                        user_role: 'Training Manager'
+                    })
+                });
+            }
+            
+            showToast(`🚀 Started training for ${pending.length} trainees`, 'success');
+            logActivity(`Bulk started ${pending.length} trainees`, 'primary');
+            renderAll();
+        }
+
+        function exportReport() {
+            const all = getTrainees();
+            const rows = [['Name', 'Phone', 'Email', 'Position', 'City', 'Joining Date', 'Training Status', 'Training Start', 'Training Complete']];
+            all.forEach(c => rows.push([
+                c.fullName || '', 
+                c.phone || '', 
+                c.email || '', 
+                c.position || '', 
+                c.city || '', 
+                c.joiningDate || '', 
+                getTrainingStatus(c),
+                c.trainingStartDate ? new Date(c.trainingStartDate).toLocaleDateString() : '',
+                c.trainingCompleteDate ? new Date(c.trainingCompleteDate).toLocaleDateString() : ''
+            ]));
+            const csv = rows.map(r => r.map(v => `"${v || ''}"`).join(',')).join('\n');
+            const a = document.createElement('a');
+            a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+            a.download = `training-report-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            showToast('📊 Report exported successfully', 'success');
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
+            toast.innerHTML = `<i class="fas ${icons[type] || icons.success}" style="color:${type === 'success' ? 'var(--secondary)' : type === 'error' ? 'var(--danger)' : type === 'warning' ? 'var(--warning)' : 'var(--info)'}"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3500);
+        }
+
+        async function renderAll(force) {
+            await loadData(force ? { bypassCache: true } : {});
+            const fp = window.portalDataFingerprint
+                ? portalDataFingerprint(candidates, ['status'])
+                : String(candidates.length) + currentFilter;
+            if (!force && fp === lastTrainingRenderHash) {
+                return;
+            }
+            lastTrainingRenderHash = fp;
+            renderStats();
+            renderList();
+            const lr = document.getElementById('lastRefresh');
+            if (lr) lr.textContent = 'Updated ' + new Date().toLocaleTimeString();
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Initial render
+        renderAll(true);
+
+        if (window.PortalPoll) {
+            PortalPoll.start('training-dashboard', () => renderAll(false), 30000, { pauseWhenHidden: true });
+        }
+
+        // Make functions global
+        window.setFilter = setFilter;
+        window.renderAll = renderAll;
+        window.startTraining = startTraining;
+        window.completeTraining = completeTraining;
+        window.showDetails = showDetails;
+        window.startAllPending = startAllPending;
+        window.exportReport = exportReport;
+        window.logout = logout;
+    </script>
+    <script src="js/portal-chat-fab.js"></script>
+</body>
+
+</html>

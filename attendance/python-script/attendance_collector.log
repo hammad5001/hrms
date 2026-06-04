@@ -1,0 +1,255 @@
+2026-03-11 21:20:41,370 - INFO - ======================================================================
+2026-03-11 21:20:41,370 - INFO - BALITECH ATTENDANCE COLLECTOR v2.0
+2026-03-11 21:20:41,372 - INFO - ======================================================================
+2026-03-11 21:20:41,480 - INFO - --------------------------------------------------
+2026-03-11 21:20:46,412 - INFO -    Date range: 2025-08-01 to 2026-03-11
+2026-03-11 21:20:46,465 - INFO - --------------------------------------------------
+2026-03-11 21:20:46,522 - INFO - --------------------------------------------------
+2026-03-11 21:21:06,835 - INFO - 
+======================================================================
+2026-03-11 21:21:06,850 - INFO - ======================================================================
+2026-03-11 21:21:48,023 - INFO -    Firmware: Ver 6.60 Sep 19 2019
+2026-03-11 21:21:48,023 - INFO -    Serial: A2QO221160438
+2026-03-11 21:21:48,039 - INFO - --------------------------------------------------
+2026-03-11 21:29:07,412 - ERROR - Error disconnecting: timed out
+2026-03-11 21:39:13,553 - INFO - 
+======================================================================
+2026-03-11 21:39:13,569 - INFO - ======================================================================
+2026-03-11 21:43:55,132 - INFO - ======================================================================
+2026-03-11 21:43:55,132 - INFO - BALITECH ATTENDANCE COLLECTOR v2.0
+2026-03-11 21:43:55,132 - INFO - ======================================================================
+2026-03-11 21:43:55,132 - INFO - [OK] Loaded config from C:\xampp\htdocs\interview-forms\attendance\python-script\config.json
+2026-03-11 21:43:55,132 - INFO - 
+[DIR] LOADING EXISTING DATA
+2026-03-11 21:43:55,132 - INFO - --------------------------------------------------
+2026-03-11 21:43:55,538 - INFO - [OK] Loaded 1183 users from C:\xampp\htdocs\interview-forms\attendance\python-script\all_users.xlsx
+2026-03-11 21:43:59,823 - INFO - [OK] Loaded 58254 attendance records from C:\xampp\htdocs\interview-forms\attendance\python-script\attendance_master.csv
+2026-03-11 21:43:59,836 - INFO -    Date range: 2025-08-01 to 2026-03-11
+2026-03-11 21:43:59,836 - INFO - [OK] Last sync: 2026-03-11 21:28:07
+2026-03-11 21:43:59,836 - INFO - 
+[DATA] SYSTEM CONFIGURATION
+2026-03-11 21:43:59,836 - INFO - --------------------------------------------------
+2026-03-11 21:43:59,836 - INFO - [CONN] Device IP: 103.189.232.7:4730
+2026-03-11 21:43:59,836 - INFO - [DATE] Date Range: 2026-02-01 to 2026-03-11
+2026-03-11 21:43:59,836 - INFO - [TIME] Night Shift: 19:00 to 5:00
+2026-03-11 21:43:59,836 - INFO - [TIME] Auto-refresh: Every 15 minutes
+2026-03-11 21:43:59,836 - INFO - [DIR] Data Directory: C:\xampp\htdocs\interview-forms\attendance\python-script
+2026-03-11 21:43:59,836 - INFO - --------------------------------------------------
+2026-03-11 21:44:05,678 - INFO - 
+======================================================================
+2026-03-11 21:44:05,678 - INFO - [SYNC] SYNCING DATA - 2026-03-11 21:44:05
+2026-03-11 21:44:05,678 - INFO - ======================================================================
+2026-03-11 21:44:05,678 - INFO - [DATE] Full sync from 2026-02-01 to 2026-03-11
+2026-03-11 21:44:05,678 - INFO - 
+[CONN] Connecting to device...
+2026-03-11 21:44:05,694 - ERROR - Fatal error: 'connection_retries'
+2026-03-11 21:48:56,057 - INFO - ======================================================================
+2026-03-11 21:48:56,058 - INFO - BALITECH ATTENDANCE COLLECTOR v2.0
+2026-03-11 21:48:56,059 - INFO - ======================================================================
+2026-03-11 21:48:56,065 - INFO - [OK] Loaded config from C:\xampp\htdocs\interview-forms\attendance\python-script\config.json
+2026-03-11 21:48:56,066 - INFO - 
+[DIR] LOADING EXISTING DATA
+2026-03-11 21:48:56,067 - INFO - --------------------------------------------------
+2026-03-11 21:48:56,554 - INFO - [OK] Loaded 1183 users from C:\xampp\htdocs\interview-forms\attendance\python-script\all_users.xlsx
+2026-03-11 21:49:00,882 - INFO - [OK] Loaded 58254 attendance records from C:\xampp\htdocs\interview-forms\attendance\python-script\attendance_master.csv
+2026-03-11 21:49:00,897 - INFO -    Date range: 2025-08-01 to 2026-03-11
+2026-03-11 21:49:00,897 - INFO - [OK] Last sync: 2026-03-11 21:28:07
+2026-03-11 21:49:00,897 - INFO - 
+[DATA] SYSTEM CONFIGURATION
+2026-03-11 21:49:00,897 - INFO - --------------------------------------------------
+2026-03-11 21:49:00,897 - INFO - [CONN] Device IP: 103.189.232.7:4730
+2026-03-11 21:49:00,897 - INFO - [DATE] Date Range: 2026-02-01 to 2026-03-11
+2026-03-11 21:49:00,897 - INFO - [TIME] Night Shift: 19:00 to 5:00
+2026-03-11 21:49:00,897 - INFO - [TIME] Auto-refresh: Every 15 minutes
+2026-03-11 21:49:00,913 - INFO - [TIME] Connection Timeout: 30 seconds
+2026-03-11 21:49:00,913 - INFO - [TIME] Connection Retries: 3
+2026-03-11 21:49:00,913 - INFO - [DIR] Data Directory: C:\xampp\htdocs\interview-forms\attendance\python-script
+2026-03-11 21:49:00,913 - INFO - --------------------------------------------------
+2026-03-11 21:49:07,147 - INFO - 
+======================================================================
+2026-03-11 21:49:07,147 - INFO - [SYNC] SYNCING DATA - 2026-03-11 21:49:07
+2026-03-11 21:49:07,147 - INFO - ======================================================================
+2026-03-11 21:49:07,162 - INFO - [DATE] Full sync from 2026-02-01 to 2026-03-11
+2026-03-11 21:49:07,162 - INFO - 
+[CONN] Connecting to device...
+2026-03-11 21:49:12,163 - ERROR - [ERROR] Device 103.189.232.7:4730 is not reachable
+2026-03-11 21:49:12,163 - ERROR - [ERROR] Cannot sync - device connection failed
+2026-03-11 21:49:25,156 - INFO - 
+======================================================================
+2026-03-11 21:49:25,158 - INFO - [SYNC] SYNCING DATA - 2026-03-11 21:49:25
+2026-03-11 21:49:25,159 - INFO - ======================================================================
+2026-03-11 21:49:25,163 - INFO - [DATE] Full sync from 2026-02-01 to 2026-03-11
+2026-03-11 21:49:25,163 - INFO - 
+[CONN] Connecting to device...
+2026-03-11 21:49:26,195 - INFO -    Attempt 1/3...
+2026-03-11 21:50:18,256 - ERROR -    Attempt 1 failed: timed out
+2026-03-11 21:50:18,256 - INFO -    Waiting 2 seconds before retry...
+2026-03-11 21:50:20,259 - INFO -    Attempt 2/3...
+2026-03-11 21:50:29,835 - ERROR -    Attempt 2 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 21:50:29,835 - INFO -    Waiting 4 seconds before retry...
+2026-03-11 21:50:33,842 - INFO -    Attempt 3/3...
+2026-03-11 21:50:53,022 - ERROR -    Attempt 3 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 21:50:53,022 - ERROR - [ERROR] All connection attempts failed
+2026-03-11 21:50:53,022 - ERROR - [ERROR] Cannot sync - device connection failed
+2026-03-11 21:55:23,656 - INFO - ======================================================================
+2026-03-11 21:55:23,656 - INFO - BALITECH ATTENDANCE COLLECTOR v3.0 - ULTIMATE CONNECTION FIX
+2026-03-11 21:55:23,658 - INFO - ======================================================================
+2026-03-11 21:55:23,662 - ERROR - Fatal error: name 'DEVICE_PORT' is not defined
+2026-03-11 21:59:56,664 - INFO - ======================================================================
+2026-03-11 21:59:56,665 - INFO - BALITECH ATTENDANCE COLLECTOR v3.0 - ULTIMATE CONNECTION FIX
+2026-03-11 21:59:56,666 - INFO - ======================================================================
+2026-03-11 21:59:56,673 - INFO - [OK] Loaded config from C:\xampp\htdocs\interview-forms\attendance\python-script\config.json
+2026-03-11 21:59:56,675 - INFO - 
+[DIR] LOADING EXISTING DATA
+2026-03-11 21:59:56,677 - INFO - --------------------------------------------------
+2026-03-11 21:59:57,074 - INFO - [OK] Loaded 1183 users from C:\xampp\htdocs\interview-forms\attendance\python-script\all_users.xlsx
+2026-03-11 22:00:01,466 - INFO - [OK] Loaded 58254 attendance records from C:\xampp\htdocs\interview-forms\attendance\python-script\attendance_master.csv
+2026-03-11 22:00:01,485 - INFO -    Date range: 2025-08-01 to 2026-03-11
+2026-03-11 22:00:01,486 - INFO - [OK] Last sync: 2026-03-11 21:28:07
+2026-03-11 22:00:01,487 - INFO - 
+[DATA] SYSTEM CONFIGURATION
+2026-03-11 22:00:01,488 - INFO - --------------------------------------------------
+2026-03-11 22:00:01,488 - INFO - [CONN] Device IP: 103.189.232.7
+2026-03-11 22:00:01,489 - INFO - [CONN] Device Ports: [4730, 4370, 80, 8080, 8000]
+2026-03-11 22:00:01,489 - INFO - [CONN] Default Port: 4730
+2026-03-11 22:00:01,490 - INFO - [DATE] Date Range: 2026-02-01 to 2026-03-11
+2026-03-11 22:00:01,490 - INFO - [TIME] Night Shift: 19:00 to 5:00
+2026-03-11 22:00:01,490 - INFO - [TIME] Auto-refresh: Every 15 minutes
+2026-03-11 22:00:01,493 - INFO - [TIME] Connection Timeout: 60 seconds
+2026-03-11 22:00:01,496 - INFO - [TIME] Connection Retries: 5
+2026-03-11 22:00:01,501 - INFO - [DIR] Data Directory: C:\xampp\htdocs\interview-forms\attendance\python-script
+2026-03-11 22:00:01,501 - INFO - --------------------------------------------------
+2026-03-11 22:00:06,634 - INFO - 
+======================================================================
+2026-03-11 22:00:06,636 - INFO - [SYNC] SYNCING DATA - 2026-03-11 22:00:06
+2026-03-11 22:00:06,642 - INFO - ======================================================================
+2026-03-11 22:00:06,643 - INFO - [DATE] Full sync from 2026-02-01 to 2026-03-11
+2026-03-11 22:00:06,644 - INFO - 
+[CONN] Connecting to device...
+2026-03-11 22:00:06,678 - INFO - [NET] Device 103.189.232.7 is pingable
+2026-03-11 22:00:06,678 - INFO - 
+[SCAN] Scanning ports on 103.189.232.7...
+2026-03-11 22:00:06,683 - INFO -    Port 4730: OPEN
+2026-03-11 22:00:08,721 - INFO -    Port 4370: CLOSED
+2026-03-11 22:00:08,724 - INFO -    Port 80: OPEN
+2026-03-11 22:00:10,781 - INFO -    Port 8080: CLOSED
+2026-03-11 22:00:12,823 - INFO -    Port 8000: CLOSED
+2026-03-11 22:00:12,823 - INFO - [OK] Found open ports: [4730, 80]
+2026-03-11 22:00:12,829 - INFO - [CONN] Will try 4 connection methods
+2026-03-11 22:00:12,834 - INFO - 
+   Connection Attempt 1/5
+2026-03-11 22:00:12,837 - INFO -    Trying TCP on port 4730...
+2026-03-11 22:00:23,416 - ERROR -    TCP on port 4730 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 22:00:24,417 - INFO -    Trying UDP on port 4730...
+2026-03-11 22:00:24,420 - ERROR -    UDP on port 4730 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 22:00:25,424 - INFO -    Trying TCP on port 80...
+2026-03-11 22:00:45,429 - ERROR -    TCP on port 80 failed: TCP packet invalid
+2026-03-11 22:00:46,431 - INFO -    Trying UDP on port 80...
+2026-03-11 22:00:46,433 - ERROR -    UDP on port 80 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 22:00:47,434 - INFO -    All methods failed. Waiting 5 seconds before retry...
+2026-03-11 22:00:52,436 - INFO - 
+   Connection Attempt 2/5
+2026-03-11 22:00:52,437 - INFO -    Trying TCP on port 4730...
+2026-03-11 22:01:11,614 - ERROR -    TCP on port 4730 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 22:01:12,615 - INFO -    Trying UDP on port 4730...
+2026-03-11 22:01:12,617 - ERROR -    UDP on port 4730 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 22:01:13,621 - INFO -    Trying TCP on port 80...
+2026-03-11 22:01:33,645 - ERROR -    TCP on port 80 failed: TCP packet invalid
+2026-03-11 22:01:34,647 - INFO -    Trying UDP on port 80...
+2026-03-11 22:01:34,649 - ERROR -    UDP on port 80 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 22:01:35,656 - INFO -    All methods failed. Waiting 10 seconds before retry...
+2026-03-11 22:01:45,657 - INFO - 
+   Connection Attempt 3/5
+2026-03-11 22:01:45,658 - INFO -    Trying TCP on port 4730...
+2026-03-11 22:02:04,832 - ERROR -    TCP on port 4730 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 22:02:05,833 - INFO -    Trying UDP on port 4730...
+2026-03-11 22:02:05,835 - ERROR -    UDP on port 4730 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 22:02:06,837 - INFO -    Trying TCP on port 80...
+2026-03-11 22:02:26,880 - ERROR -    TCP on port 80 failed: TCP packet invalid
+2026-03-11 22:02:27,883 - INFO -    Trying UDP on port 80...
+2026-03-11 22:02:27,885 - ERROR -    UDP on port 80 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 22:02:28,886 - INFO -    All methods failed. Waiting 15 seconds before retry...
+2026-03-11 22:02:43,888 - INFO - 
+   Connection Attempt 4/5
+2026-03-11 22:02:43,891 - INFO -    Trying TCP on port 4730...
+2026-03-11 22:03:03,038 - ERROR -    TCP on port 4730 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 22:03:04,040 - INFO -    Trying UDP on port 4730...
+2026-03-11 22:03:04,040 - ERROR -    UDP on port 4730 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 22:03:05,043 - INFO -    Trying TCP on port 80...
+2026-03-11 22:03:25,069 - ERROR -    TCP on port 80 failed: TCP packet invalid
+2026-03-11 22:03:26,083 - INFO -    Trying UDP on port 80...
+2026-03-11 22:03:26,085 - ERROR -    UDP on port 80 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 22:03:27,089 - INFO -    All methods failed. Waiting 20 seconds before retry...
+2026-03-11 22:03:47,091 - INFO - 
+   Connection Attempt 5/5
+2026-03-11 22:03:47,091 - INFO -    Trying TCP on port 4730...
+2026-03-11 22:03:57,664 - ERROR -    TCP on port 4730 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 22:03:58,666 - INFO -    Trying UDP on port 4730...
+2026-03-11 22:03:58,666 - ERROR -    UDP on port 4730 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 22:03:59,675 - INFO -    Trying TCP on port 80...
+2026-03-11 22:04:19,678 - ERROR -    TCP on port 80 failed: TCP packet invalid
+2026-03-11 22:04:20,683 - INFO -    Trying UDP on port 80...
+2026-03-11 22:04:20,683 - ERROR -    UDP on port 80 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 22:04:21,687 - ERROR - [ERROR] All connection attempts failed
+2026-03-11 22:04:21,688 - ERROR - [ERROR] Cannot sync - device connection failed
+2026-03-11 22:56:50,991 - INFO - ======================================================================
+2026-03-11 22:56:50,991 - INFO - BALITECH ATTENDANCE COLLECTOR v4.0 - DIAGNOSTIC VERSION
+2026-03-11 22:56:50,991 - INFO - ======================================================================
+2026-03-11 22:56:51,007 - INFO - [OK] Loaded config from C:\xampp\htdocs\interview-forms\attendance\python-script\config.json
+2026-03-11 22:56:51,007 - INFO - 
+[DIR] LOADING EXISTING DATA
+2026-03-11 22:56:51,007 - INFO - --------------------------------------------------
+2026-03-11 22:56:51,507 - INFO - [OK] Loaded 1183 users from C:\xampp\htdocs\interview-forms\attendance\python-script\all_users.xlsx
+2026-03-11 22:56:55,632 - INFO - [OK] Loaded 58254 attendance records from C:\xampp\htdocs\interview-forms\attendance\python-script\attendance_master.csv
+2026-03-11 22:56:55,647 - INFO -    Date range: 2025-08-01 to 2026-03-11
+2026-03-11 22:56:55,647 - INFO - [OK] Last sync: 2026-03-11 21:28:07
+2026-03-11 22:56:55,663 - INFO - 
+[DATA] SYSTEM CONFIGURATION
+2026-03-11 22:56:55,663 - INFO - --------------------------------------------------
+2026-03-11 22:56:55,663 - INFO - [CONN] Device IP: 103.189.232.7
+2026-03-11 22:56:55,663 - INFO - [CONN] Device Ports: [4730, 4370, 80, 8080, 8000, 8081, 8090]
+2026-03-11 22:56:55,663 - INFO - [CONN] Default Port: 4730
+2026-03-11 22:56:55,663 - INFO - [DATE] Date Range: 2026-02-01 to 2026-03-11
+2026-03-11 22:56:55,663 - INFO - [TIME] Night Shift: 19:00 to 5:00
+2026-03-11 22:56:55,679 - INFO - [TIME] Auto-refresh: Every 15 minutes
+2026-03-11 22:56:55,682 - INFO - [DIR] Data Directory: C:\xampp\htdocs\interview-forms\attendance\python-script
+2026-03-11 22:56:55,686 - INFO - --------------------------------------------------
+2026-03-11 22:58:25,507 - INFO - 
+======================================================================
+2026-03-11 22:58:25,507 - INFO - [SYNC] SYNCING DATA - 2026-03-11 22:58:25
+2026-03-11 22:58:25,507 - INFO - ======================================================================
+2026-03-11 22:58:25,507 - INFO - [DATE] Full sync from 2026-02-01 to 2026-03-11
+2026-03-11 22:58:25,507 - INFO - 
+[CONN] Connecting to device...
+2026-03-11 22:58:25,507 - INFO -    Trying direct connection on port 4730...
+2026-03-11 22:58:25,507 - INFO -    Trying TCP on port 4730...
+2026-03-11 22:58:55,881 - ERROR -    TCP on port 4730 failed: timed out
+2026-03-11 22:58:55,881 - INFO -    Trying UDP on port 4730...
+2026-03-11 22:58:55,881 - ERROR -    UDP on port 4730 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 22:58:55,881 - INFO - [CONN] Will try all ports: [4730, 4370, 80, 8080, 8000, 8081, 8090]
+2026-03-11 22:58:55,881 - INFO -    Trying TCP on port 4370...
+2026-03-11 22:59:30,007 - ERROR -    TCP on port 4370 failed: timed out
+2026-03-11 22:59:30,007 - INFO -    Trying UDP on port 4370...
+2026-03-11 22:59:30,007 - ERROR -    UDP on port 4370 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 22:59:30,007 - INFO -    Trying TCP on port 80...
+2026-03-11 22:59:50,006 - ERROR -    TCP on port 80 failed: TCP packet invalid
+2026-03-11 22:59:50,006 - INFO -    Trying UDP on port 80...
+2026-03-11 22:59:50,022 - ERROR -    UDP on port 80 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 22:59:50,022 - INFO -    Trying TCP on port 8080...
+2026-03-11 23:00:24,163 - ERROR -    TCP on port 8080 failed: timed out
+2026-03-11 23:00:24,163 - INFO -    Trying UDP on port 8080...
+2026-03-11 23:00:24,163 - ERROR -    UDP on port 8080 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 23:00:24,163 - INFO -    Trying TCP on port 8000...
+2026-03-11 23:00:58,273 - ERROR -    TCP on port 8000 failed: timed out
+2026-03-11 23:00:58,273 - INFO -    Trying UDP on port 8000...
+2026-03-11 23:00:58,273 - ERROR -    UDP on port 8000 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 23:00:58,273 - INFO -    Trying TCP on port 8081...
+2026-03-11 23:01:32,429 - ERROR -    TCP on port 8081 failed: timed out
+2026-03-11 23:01:32,429 - INFO -    Trying UDP on port 8081...
+2026-03-11 23:01:32,429 - ERROR -    UDP on port 8081 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 23:01:32,429 - INFO -    Trying TCP on port 8090...
+2026-03-11 23:02:06,553 - ERROR -    TCP on port 8090 failed: timed out
+2026-03-11 23:02:06,553 - INFO -    Trying UDP on port 8090...
+2026-03-11 23:02:06,553 - ERROR -    UDP on port 8090 failed: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-03-11 23:02:06,553 - ERROR - [ERROR] All connection attempts failed
+2026-03-11 23:02:06,569 - ERROR - [ERROR] Cannot sync - device connection failed

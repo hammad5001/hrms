@@ -1,0 +1,42 @@
+.portal-chat-fab {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px;
+    background: linear-gradient(135deg, #6264a7, #4f46a8);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 28px;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    box-shadow: 0 4px 20px rgba(98, 100, 167, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    -webkit-font-smoothing: antialiased;
+}
+.portal-chat-fab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(98, 100, 167, 0.55);
+    filter: brightness(1.06);
+    color: #fff;
+}
+.portal-chat-fab:active {
+    transform: translateY(0) scale(0.98);
+}
+.portal-chat-fab:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+}
+.portal-chat-fab i {
+    font-size: 18px;
+}
+@media (max-width: 480px) {
+    .portal-chat-fab span { display: none; }
+    .portal-chat-fab { padding: 14px; border-radius: 50%; }
+}

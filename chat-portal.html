@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balitech · BaliChat</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/chat.css?v=5">
+    <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
+    <link rel="stylesheet" href="css/chat-pro.css?v=1">
+</head>
+<body class="chat-body">
+    <div class="chat-app-frame">
+        <aside class="chat-sidebar" id="listPanel">
+            <header class="sidebar-head">
+                <a href="employee-portal.html" class="btn-icon" id="chatBackLink" title="Back"><i class="fas fa-arrow-left"></i></a>
+                <div class="brand">
+                    <div class="brand-logo"><i class="fas fa-comments"></i></div>
+                    <div>
+                        <h1>BaliChat</h1>
+                        <p>Balitech messaging</p>
+                    </div>
+                </div>
+            </header>
+
+            <div class="sidebar-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="userSearch" placeholder="Search BID or Gmail…" autocomplete="off">
+            </div>
+            <div class="chat-search-results hidden" id="searchResults"></div>
+
+            <div class="sidebar-actions">
+                <button type="button" class="btn-primary" id="btnNewChat"><i class="fas fa-plus"></i> New chat</button>
+                <button type="button" class="btn-secondary" id="btnNewGroup"><i class="fas fa-users"></i> Group</button>
+            </div>
+
+            <p class="list-title">Conversations</p>
+            <div class="chat-conv-list" id="convList"></div>
+
+            <a href="logout.php" class="sidebar-logout"><i class="fas fa-sign-out-alt"></i> Sign out</a>
+        </aside>
+
+        <main class="chat-main" id="chatMain">
+            <div class="chat-welcome" id="chatEmpty">
+                <div class="welcome-icon"><i class="fas fa-comment-dots"></i></div>
+                <h2>Start a conversation</h2>
+                <p>Search for a colleague on the left, or open a chat from your list.</p>
+                <div class="tick-guide">
+                    <span><i class="tick sent">✓</i> Sent</span>
+                    <span><i class="tick del">✓✓</i> Delivered</span>
+                    <span><i class="tick seen">✓✓</i> Seen</span>
+                </div>
+            </div>
+
+            <div id="chatActive" class="chat-active-wrap hidden">
+                <header class="chat-header">
+                    <button type="button" class="btn-icon mobile-only" id="btnBackMobile"><i class="fas fa-arrow-left"></i></button>
+                    <div class="header-avatar-wrap">
+                        <div class="avatar" id="headerAvatar">?</div>
+                        <span class="presence-dot" id="presenceDot"></span>
+                    </div>
+                    <div class="header-info">
+                        <h2 id="headerTitle">Chat</h2>
+                        <p class="sub" id="headerSub">—</p>
+                    </div>
+                </header>
+
+                <div class="chat-messages-wrap">
+                    <div class="chat-messages" id="msgArea"></div>
+                    <div class="chat-typing-indicator" id="typingIndicator">
+                        <div class="typing-pill"><span></span><span></span><span></span></div>
+                    </div>
+                </div>
+
+                <footer class="chat-footer">
+                    <div class="chat-emoji-panel" id="emojiPanel"></div>
+                    <div class="composer">
+                        <button type="button" class="btn-icon" id="btnEmoji" title="Emoji"><i class="far fa-smile"></i></button>
+                        <button type="button" class="btn-icon" id="btnAttach" title="Attach"><i class="fas fa-paperclip"></i></button>
+                        <input type="file" id="fileInput" hidden accept="image/jpeg,image/png,image/gif,image/webp,.pdf,.doc,.docx,application/pdf">
+                        <textarea id="msgInput" rows="1" placeholder="Type a message…"></textarea>
+                        <button type="button" class="btn-send" id="btnSend" title="Send"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <div class="chat-modal-overlay" id="groupModal">
+        <div class="chat-modal">
+            <div class="modal-head">
+                <h3>New group</h3>
+                <button type="button" class="btn-icon" id="closeGroupModal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <label class="lbl">Group name</label>
+                <input type="text" class="inp" id="groupTitle" placeholder="e.g. Sales team">
+                <label class="lbl">Add members</label>
+                <input type="text" class="inp" id="groupMemberSearch" placeholder="BID or Gmail…">
+                <div class="chat-search-results modal-results hidden" id="groupSearchResults"></div>
+                <div class="chip-tray" id="groupSelected"></div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" id="cancelGroup">Cancel</button>
+                <button type="button" class="btn-primary" id="createGroup">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-toast" id="chatToast"></div>
+    <script src="js/chat-app.js?v=4"></script>
+</body>
+</html>
