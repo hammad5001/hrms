@@ -368,6 +368,39 @@
             color: var(--text-muted);
         }
 
+        .sidebar-logout-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            margin-top: 14px;
+            padding: 12px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.14), rgba(185, 28, 28, 0.08));
+            color: #fca5a5;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            letter-spacing: 0.02em;
+            transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+        .sidebar-logout-btn i {
+            font-size: 15px;
+            opacity: 0.95;
+        }
+        .sidebar-logout-btn:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.22), rgba(185, 28, 28, 0.14));
+            border-color: rgba(248, 113, 113, 0.55);
+            color: #fecaca;
+            transform: translateY(-1px);
+        }
+        .sidebar-logout-btn:active {
+            transform: translateY(0);
+        }
+
         /* Main Content */
         .main-content {
             flex: 1;
@@ -1122,21 +1155,25 @@
             <div class="sidebar-nav">
                 <div class="nav-section"><div class="nav-section-title">Main</div>
                     <a href="#" class="nav-item active" onclick="return false;"><i class="fas fa-chart-pie"></i><span>Dashboard</span></a>
-                    <a href="admin.php" class="nav-item"><i class="fas fa-users"></i><span>User Management</span></a>
+                    <a href="admin.php" class="nav-item feature-admin-full"><i class="fas fa-users"></i><span>User Management</span></a>
                     <a href="profile.php" class="nav-item"><i class="fas fa-user-circle"></i><span>My Profile</span></a>
-                    <a href="chat-portal.html" class="nav-item"><i class="fas fa-comments"></i><span>Chat</span></a>
                 </div>
                 <div class="nav-section"><div class="nav-section-title">Operations</div>
-                    <a href="javascript:void(0)" class="nav-item" onclick="openPortalWithSession('attendance/attendance-dashboard.html')"><i class="fas fa-clock"></i><span>Attendance</span><span class="nav-badge">Live</span></a>
-                    <a href="finance-attendance.php" class="nav-item"><i class="fas fa-chart-line"></i><span>Finance</span></a>
-                    <a href="javascript:void(0)" class="nav-item super-admin-only" id="recruiterNavItem" style="display:none" onclick="openPortalWithSession('recruiter-portal.html')"><i class="fas fa-user-tie"></i><span>Recruitment</span></a>
-                    <a href="javascript:void(0)" class="nav-item" onclick="openPortalWithSession('hr-portal.html')"><i class="fas fa-users-cog"></i><span>HR Portal</span></a>
-                    <a href="javascript:void(0)" class="nav-item" onclick="openPortalWithSession('Management-Portal.html')"><i class="fas fa-chart-line"></i><span>Management Portal</span></a>
-                    <a href="javascript:void(0)" class="nav-item" onclick="openPortalWithSession('reception-portal.html')"><i class="fas fa-concierge-bell"></i><span>Reception Portal</span></a>
+                    <a href="javascript:void(0)" class="nav-item feature-attendance-nav" id="attendanceNavItem" onclick="openPortalWithSession('attendance/attendance-dashboard.html')"><i class="fas fa-clock"></i><span>Attendance</span><span class="nav-badge">Live</span></a>
+                    <a href="employee-portal.html" class="nav-item feature-team-manager-only" id="teamEssNavItem" style="display:none"><i class="fas fa-id-badge"></i><span>Employee Portal</span></a>
+                    <a href="finance-attendance.php" class="nav-item feature-admin-full"><i class="fas fa-chart-line"></i><span>Finance</span></a>
+                    <a href="javascript:void(0)" class="nav-item super-admin-only feature-admin-full" id="recruiterNavItem" style="display:none" onclick="openPortalWithSession('recruiter-portal.html')"><i class="fas fa-user-tie"></i><span>Recruitment</span></a>
+                    <a href="javascript:void(0)" class="nav-item feature-admin-full" onclick="openPortalWithSession('hr-portal.html')"><i class="fas fa-users-cog"></i><span>HR Portal</span></a>
+                    <a href="javascript:void(0)" class="nav-item feature-admin-full" onclick="openPortalWithSession('Management-Portal.html')"><i class="fas fa-chart-line"></i><span>Management Portal</span></a>
+                    <a href="javascript:void(0)" class="nav-item feature-admin-full" onclick="openPortalWithSession('reception-portal.html')"><i class="fas fa-concierge-bell"></i><span>Reception Portal</span></a>
                 </div>
             </div>
             <div class="sidebar-footer">
                 <div class="user-info-sidebar"><div class="user-avatar-small" id="sidebarAvatar">A</div><div class="user-details"><h5 id="sidebarName">Administrator</h5><p id="sidebarRoleLabel">Admin</p></div></div>
+                <a href="logout.php" class="sidebar-logout-btn" id="sidebarLogoutBtn" title="End session securely">
+                    <i class="fas fa-shield-halved"></i>
+                    <span>Secure sign out</span>
+                </a>
             </div>
         </aside>
 
@@ -1156,7 +1193,6 @@
                         </div>
                         <div class="dropdown-content">
                             <a href="profile.php" class="dropdown-item"><i class="fas fa-user-circle"></i> My Profile</a>
-                            <a href="chat-portal.html" class="dropdown-item"><i class="fas fa-comments"></i> Chat</a>
                             <a href="admin.php" class="dropdown-item"><i class="fas fa-shield-alt"></i> Admin Settings</a>
                             <div class="dropdown-divider"></div>
                             <a href="logout.php" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
@@ -1167,22 +1203,22 @@
 
             <!-- Stats Grid -->
             <div class="stats-grid">
-                <div class="stat-card" onclick="window.location.href='admin.php'">
+                <div class="stat-card feature-admin-full" onclick="window.location.href='admin.php'">
                     <div class="stat-header"><span class="stat-title">Total Users</span><div class="stat-icon users"><i class="fas fa-users"></i></div></div>
                     <div class="stat-value" id="statTotalUsers">0</div>
                     <div class="stat-trend positive"><i class="fas fa-arrow-up"></i> <span id="userTrendValue">0</span>% this month</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card feature-admin-full">
                     <div class="stat-header"><span class="stat-title">Active Portals</span><div class="stat-icon portals"><i class="fas fa-th-large"></i></div></div>
                     <div class="stat-value" id="statActivePortals">8</div>
                     <div class="stat-trend positive"><i class="fas fa-check-circle"></i> All Operational</div>
                 </div>
-                <div class="stat-card" onclick="openPortalWithSession('attendance/attendance-dashboard.html')">
+                <div class="stat-card feature-attendance-stat" id="attendanceStatCard" onclick="openPortalWithSession('attendance/attendance-dashboard.html')">
                     <div class="stat-header"><span class="stat-title">Today's Attendance</span><div class="stat-icon attendance"><i class="fas fa-user-check"></i></div></div>
                     <div class="stat-value" id="statAttendance">0</div>
                     <div class="stat-trend"><i class="fas fa-clock"></i> <span id="attendancePercent">0</span>% present</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card feature-admin-full">
                     <div class="stat-header"><span class="stat-title">System Health</span><div class="stat-icon health"><i class="fas fa-shield-alt"></i></div></div>
                     <div class="stat-value" id="systemHealth">99.9%</div>
                     <div class="stat-trend positive"><i class="fas fa-check-circle"></i> All Systems Go</div>
@@ -1190,7 +1226,7 @@
             </div>
 
             <!-- Charts Row -->
-            <div class="charts-row">
+            <div class="charts-row feature-admin-full">
                 <div class="chart-card">
                     <div class="chart-header"><h3><i class="fas fa-chart-line"></i> User Growth Trend</h3><span class="stat-trend positive">Last 30 days</span></div>
                     <div class="chart-container"><canvas id="userGrowthChart"></canvas></div>
@@ -1208,7 +1244,17 @@
                     <span class="portal-badge" id="portalAccessBadge"><i class="fas fa-crown"></i> Admin Access</span>
                 </div>
                 <div class="portal-grid" id="portalGrid">
-                    <div class="portal-card" onclick="openPortalWithSession('reception-portal.html')">
+                    <div class="portal-card feature-attendance-portal" id="attendancePortalCard" onclick="openPortalWithSession('attendance/attendance-dashboard.html')">
+                        <div class="portal-icon"><i class="fas fa-clock"></i></div>
+                        <div class="portal-title">ATTENDANCE</div>
+                        <div class="portal-sub">Time &amp; Attendance</div>
+                    </div>
+                    <div class="portal-card feature-team-manager-only" id="teamEssPortalCard" style="display:none" onclick="window.location.href='employee-portal.html'">
+                        <div class="portal-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)"><i class="fas fa-id-badge"></i></div>
+                        <div class="portal-title">EMPLOYEE</div>
+                        <div class="portal-sub">Self Service &amp; Leave Approvals</div>
+                    </div>
+                    <div class="portal-card feature-admin-full" onclick="openPortalWithSession('reception-portal.html')">
                         <div class="portal-icon"><i class="fas fa-concierge-bell"></i></div>
                         <div class="portal-title">RECEPTION</div>
                         <div class="portal-sub">Reception Portal</div>
@@ -1219,41 +1265,41 @@
                         <div class="portal-title">RECRUITER</div>
                         <div class="portal-sub">Recruitment Portal</div>
                     </div>
-                    <div class="portal-card" onclick="openPortalWithSession('hr-portal.html')">
+                    <div class="portal-card feature-admin-full" onclick="openPortalWithSession('hr-portal.html')">
                         <div class="portal-icon"><i class="fas fa-users-cog"></i></div>
                         <div class="portal-title">HR</div>
                         <div class="portal-sub">Human Resources</div>
                     </div>
-                    <div class="portal-card" onclick="openPortalWithSession('Management-Portal.html')">
+                    <div class="portal-card feature-admin-full" onclick="openPortalWithSession('Management-Portal.html')">
                         <div class="portal-icon"><i class="fas fa-chart-line"></i></div>
                         <div class="portal-title">MANAGEMENT</div>
                         <div class="portal-sub">Executive Suite</div>
                     </div>
-                    <div class="portal-card" onclick="openPortalWithSession('training-portal.html')">
+                    <div class="portal-card feature-admin-full" onclick="openPortalWithSession('training-portal.html')">
                         <div class="portal-icon"><i class="fas fa-chalkboard-teacher"></i></div>
                         <div class="portal-title">TRAINING</div>
                         <div class="portal-sub">Learning Center</div>
                     </div>
-                    <div class="portal-card" onclick="openPortalWithSession('analytics-portal.html')">
+                    <div class="portal-card feature-admin-full" onclick="openPortalWithSession('analytics-portal.html')">
                         <div class="portal-icon"><i class="fas fa-chart-pie"></i></div>
                         <div class="portal-title">ANALYTICS</div>
                         <div class="portal-sub">Business Intelligence</div>
                     </div>
-                    <div class="portal-card" onclick="openPortalWithSession('attendance/attendance-dashboard.html')">
-                        <div class="portal-icon"><i class="fas fa-clock"></i></div>
-                        <div class="portal-title">ATTENDANCE</div>
-                        <div class="portal-sub">Time & Attendance</div>
-                    </div>
-                    <div class="portal-card" onclick="openPortalWithSession('finance-attendance.php')">
+                    <div class="portal-card feature-admin-full" onclick="openPortalWithSession('finance-attendance.php')">
                         <div class="portal-icon"><i class="fas fa-chart-line"></i></div>
                         <div class="portal-title">FINANCE</div>
                         <div class="portal-sub">Payroll Analytics</div>
+                    </div>
+                    <div class="portal-card super-admin-only" id="employeePortalCard" onclick="openPortalWithSession('employee-portal.html')" style="display:none">
+                        <div class="portal-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)"><i class="fas fa-id-badge"></i></div>
+                        <div class="portal-title">EMPLOYEE</div>
+                        <div class="portal-sub">Self Service Portal</div>
                     </div>
                 </div>
             </div>
 
             <!-- Activity Section -->
-            <div class="activity-section">
+            <div class="activity-section feature-admin-full">
                 <div class="activity-card">
                     <div class="activity-header"><h3><i class="fas fa-history"></i> Recent Activity</h3><span class="stat-trend">Last 24 hours</span></div>
                     <div class="activity-list" id="recentActivityList">
@@ -1308,16 +1354,19 @@
         // ==================== SESSION MANAGEMENT ====================
         // Store user session in localStorage for cross-portal access
         function storeUserSession() {
-            // Get user info from localStorage or fetch from server
             const userName = localStorage.getItem('userFullName') || 'Administrator';
-            const userRole = localStorage.getItem('userRole') || 'admin';
+            const userRole = window.currentUserRole || localStorage.getItem('userRole') || 'admin';
             const userId = localStorage.getItem('userId') || '1';
-            
+
             localStorage.setItem('userFullName', userName);
             localStorage.setItem('userRole', userRole);
             localStorage.setItem('userId', userId);
-            localStorage.setItem('recruiter_type', 'super'); // Admin gets super access
-            
+            if (userRole === 'super_admin') {
+                localStorage.setItem('recruiter_type', 'super');
+            } else {
+                localStorage.removeItem('recruiter_type');
+            }
+
             return { userName, userRole, userId };
         }
 
@@ -1364,7 +1413,8 @@
                 'training-portal.html': 'Training Portal',
                 'analytics-portal.html': 'Analytics Portal',
                 'attendance/attendance-dashboard.html': 'Attendance Portal',
-                'finance-attendance.php': 'Finance Portal'
+                'finance-attendance.php': 'Finance Portal',
+                'employee-portal.html': 'Employee Self Service'
             };
             return names[url] || 'Portal';
         }
@@ -1538,13 +1588,14 @@
                 const res = await fetch('api/portal_auth_check.php', { credentials: 'include' });
                 const data = await res.json();
                 const d = data.data || {};
-                if (!data.success || !d.authenticated || (!d.is_admin && !d.is_super)) {
-                    showToast('Please log in as administrator', 'error');
+                if (!data.success || !d.authenticated || (!d.is_admin && !d.is_super && !d.is_team_manager)) {
+                    showToast('Please log in with an authorized work account', 'error');
                     setTimeout(() => { window.location.href = 'index.html'; }, 1200);
                     return false;
                 }
                 // Store role globally for UI decisions
                 window.currentUserRole = d.portal_role || 'admin';
+                localStorage.setItem('userRole', window.currentUserRole);
                 if (d.full_name) {
                     localStorage.setItem('userFullName', d.full_name);
                     document.getElementById('adminName').textContent = d.full_name.split(' ')[0];
@@ -1561,12 +1612,36 @@
             }
         }
 
-        // Apply UI differences between admin and super_admin
+        // Apply UI differences between admin, super_admin, and team managers
         function applyRoleBasedUI(role) {
             const isSuperAdmin = (role === 'super_admin');
+            const isTeamManager = (role === 'team_lead' || role === 'floor_manager');
+            const canViewAttendance = isSuperAdmin || isTeamManager || role === 'admin' || role === 'attendance';
+
+            document.querySelectorAll('.feature-admin-full').forEach(el => {
+                el.style.display = isTeamManager ? 'none' : '';
+            });
+            document.querySelectorAll('.feature-team-manager-only').forEach(el => {
+                el.style.display = isTeamManager ? '' : 'none';
+                if (isTeamManager && el.classList.contains('nav-item')) el.style.display = 'flex';
+                if (isTeamManager && el.classList.contains('portal-card')) el.style.display = 'block';
+            });
+            document.querySelectorAll('.feature-attendance-nav, .feature-attendance-stat, .feature-attendance-portal').forEach(el => {
+                if (!canViewAttendance) el.style.display = 'none';
+            });
+
+            if (isTeamManager) {
+                const title = document.querySelector('.page-title h1');
+                const sub = document.querySelector('.page-title p');
+                if (title) title.textContent = 'Team Attendance Hub';
+                if (sub) sub.innerHTML = '<i class="fas fa-users-line"></i> Attendance overview · <span id="adminName">' + (document.getElementById('adminName')?.textContent || 'Manager') + '</span>';
+            }
 
             // Update role labels
-            const roleLabel = isSuperAdmin ? '⚡ Super Admin' : 'Admin';
+            let roleLabel = 'Admin';
+            if (isSuperAdmin) roleLabel = '⚡ Super Admin';
+            else if (role === 'team_lead') roleLabel = 'Team Lead';
+            else if (role === 'floor_manager') roleLabel = 'Floor Manager';
             const headerRoleEl = document.getElementById('headerRoleLabel');
             const sidebarRoleEl = document.getElementById('sidebarRoleLabel');
             const portalBadge = document.getElementById('portalAccessBadge');
@@ -1581,20 +1656,23 @@
                     portalBadge.style.background = 'linear-gradient(135deg, rgba(250,204,21,0.2), rgba(234,179,8,0.1))';
                     portalBadge.style.color = '#facc15';
                     portalBadge.style.borderColor = 'rgba(250,204,21,0.4)';
+                } else if (isTeamManager) {
+                    portalBadge.innerHTML = '<i class="fas fa-user-check"></i> Team Manager — Attendance &amp; Approvals';
+                    portalBadge.style.background = 'linear-gradient(135deg, rgba(59,130,246,0.2), rgba(37,99,235,0.1))';
+                    portalBadge.style.color = '#60a5fa';
+                    portalBadge.style.borderColor = 'rgba(59,130,246,0.35)';
                 } else {
                     portalBadge.innerHTML = '<i class="fas fa-crown"></i> Admin Access';
                 }
             }
 
-            // Show/hide recruiter portal card + sidebar nav (Super Admin only)
+            // Super Admin only: recruiter + employee self-service portals
             const recruiterCard = document.getElementById('recruiterPortalCard');
             const recruiterNav = document.getElementById('recruiterNavItem');
-            if (recruiterCard) {
-                recruiterCard.style.display = isSuperAdmin ? 'block' : 'none';
-            }
-            if (recruiterNav) {
-                recruiterNav.style.display = isSuperAdmin ? 'flex' : 'none';
-            }
+            const employeeCard = document.getElementById('employeePortalCard');
+            if (recruiterCard) recruiterCard.style.display = isSuperAdmin ? 'block' : 'none';
+            if (recruiterNav) recruiterNav.style.display = isSuperAdmin ? 'flex' : 'none';
+            if (employeeCard) employeeCard.style.display = isSuperAdmin ? 'block' : 'none';
 
             // Style sidebar avatar for super admin
             const sidebarAvatar = document.getElementById('sidebarAvatar');
@@ -1607,16 +1685,35 @@
             }
         }
 
+        function secureSidebarLogout(e) {
+            if (!confirm('Sign out and end your secure admin session?')) {
+                e.preventDefault();
+                return;
+            }
+            try {
+                localStorage.removeItem('userRole');
+                localStorage.removeItem('userId');
+                localStorage.removeItem('userFullName');
+                localStorage.removeItem('userEmail');
+                localStorage.removeItem('recruiter_type');
+                sessionStorage.clear();
+            } catch (err) { /* ignore */ }
+        }
+        document.getElementById('sidebarLogoutBtn')?.addEventListener('click', secureSidebarLogout);
+
         document.addEventListener('DOMContentLoaded', async () => {
             const ok = await verifyAdminSession();
             if (!ok) return;
 
-            initCharts();
-            await fetchTotalUsers();
+            const isTeam = window.isTeamManagerRole && window.isTeamManagerRole(window.currentUserRole);
+            if (!isTeam) {
+                initCharts();
+                await fetchTotalUsers();
+                await fetchRecentActivity();
+                await updateChartsWithData();
+            }
             await fetchAttendance();
-            await fetchRecentActivity();
-            await fetchCheckins();
-            await updateChartsWithData();
+            if (!isTeam) await fetchCheckins();
 
             if (sessionStorage.getItem('returnFromPortal') === 'true') {
                 sessionStorage.removeItem('returnFromPortal');
@@ -1626,11 +1723,14 @@
 
         setInterval(async () => {
             if (document.hidden) return;
-            await fetchTotalUsers();
+            const isTeam = window.isTeamManagerRole && window.isTeamManagerRole(window.currentUserRole);
+            if (!isTeam) {
+                await fetchTotalUsers();
+                await fetchRecentActivity();
+                await updateChartsWithData();
+                await fetchCheckins();
+            }
             await fetchAttendance();
-            await fetchRecentActivity();
-            await fetchCheckins();
-            await updateChartsWithData();
         }, 120000);
 
         // ==================== MAKE FUNCTIONS GLOBAL ====================
@@ -1641,7 +1741,6 @@
     </script>
     <script src="js/portal-access.js"></script>
     <script src="js/portal-session-guard.js"></script>
-    <script src="js/portal-chat-fab.js"></script>
 </body>
 
 </html>

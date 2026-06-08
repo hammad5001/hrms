@@ -2,6 +2,9 @@
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/session_user.php';
 require_once __DIR__ . '/../includes/chat_helpers.php';
+require_once __DIR__ . '/../includes/chat_redis.php';
+require_once __DIR__ . '/../includes/chat_security.php';
+require_once __DIR__ . '/../includes/chat_ws.php';
 
 ensure_chat_schema($conn);
 
@@ -13,6 +16,10 @@ if (!$me || ($me['status'] ?? 'active') !== 'active') {
 $me_id = (int)$me['id'];
 $branch = $me['company_branch'] ?? 'main';
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
+
+if ($action !== '' && !chat_rate_limit_check($me_id, $action)) {
+    chat_json(false, null, 'Too many requests. Please wait a moment.');
+}
 
 // Do NOT read php://input on multipart uploads — it empties $_POST / $_FILES on some PHP setups
 $input = [];
@@ -27,6 +34,8 @@ if (stripos($contentType, 'application/json') !== false) {
 
 chat_touch_user_active($conn, $me_id);
 
+try {
+
 switch ($action) {
 
     case 'me':
@@ -35,7 +44,19 @@ switch ($action) {
 
     case 'heartbeat':
         chat_touch_user_active($conn, $me_id);
-        chat_json(true, ['ok' => true]);
+        chat_json(true, ['ok' => true, 'redis' => chat_redis_available()]);
+        break;
+
+    case 'wsConfig':
+        if (!chat_ws_enabled()) {
+            chat_json(true, ['enabled' => false, 'url' => '', 'token' => '', 'redis' => false]);
+        }
+        chat_json(true, [
+            'enabled' => true,
+            'url' => chat_ws_client_url(),
+            'token' => chat_ws_issue_token($me_id),
+            'redis' => chat_redis_available(),
+        ]);
         break;
 
     case 'setTyping':
@@ -43,6 +64,11 @@ switch ($action) {
         $typing = !empty($input['typing']);
         if ($cid && chat_user_is_participant($conn, $cid, $me_id)) {
             chat_set_typing($conn, $cid, $me_id, $typing);
+            chat_ws_notify_conversation($conn, $cid, 'typing', [
+                'user_id' => $me_id,
+                'user_name' => $me['full_name'] ?? 'User',
+                'typing' => $typing,
+            ]);
         }
         chat_json(true, ['ok' => true]);
         break;
@@ -88,7 +114,7 @@ switch ($action) {
         }
         $like = '%' . $q . '%';
         $stmt = $conn->prepare("
-            SELECT id, full_name, email, employee_code, department, designation, portal_role
+            SELECT id, full_name, email, employee_code, department, designation, portal_role, chat_avatar
             FROM users
             WHERE status = 'active' AND id != ?
             AND (
@@ -137,6 +163,15 @@ switch ($action) {
             $last->execute();
             $conv['last_message'] = $last->get_result()->fetch_assoc() ?: null;
 
+            if ($conv['type'] === 'direct') {
+                $peer = chat_direct_peer_row($conn, $cid, $me_id);
+                if ($peer) {
+                    $conv['avatar_url'] = chat_public_avatar_url($peer['chat_avatar'] ?? '');
+                    $conv['avatar_color'] = chat_user_avatar_color((int)$peer['id']);
+                    $conv['peer_id'] = (int)$peer['id'];
+                }
+            }
+
             $list[] = $conv;
         }
         chat_json(true, $list);
@@ -145,35 +180,58 @@ switch ($action) {
     case 'getMessages':
         $cid = (int)($_GET['conversation_id'] ?? $input['conversation_id'] ?? 0);
         $after_id = (int)($_GET['after_id'] ?? $input['after_id'] ?? 0);
-        if (!$cid || !chat_user_is_participant($conn, $cid, $me_id)) {
+        $before_id = (int)($_GET['before_id'] ?? $input['before_id'] ?? 0);
+        $limit = min(100, max(10, (int)($_GET['limit'] ?? $input['limit'] ?? 50)));
+        if (!$cid || !chat_validate_conversation_access($conn, $cid, $me_id)) {
             chat_json(false, null, 'Conversation not found');
         }
         chat_backfill_receipts($conn, $cid);
+        chat_redis_sync_conv_members($conn, $cid);
 
+        $has_more = false;
+        $limitFetch = $limit + 1;
         if ($after_id > 0) {
             $stmt = $conn->prepare("
                 SELECT m.id, m.conversation_id, m.sender_id, m.body, m.msg_type,
                        m.file_name, m.file_path, m.file_size, m.created_at,
-                       u.full_name AS sender_name
+                       m.is_edited, m.is_deleted,
+                       u.full_name AS sender_name, u.chat_avatar AS sender_avatar
                 FROM chat_messages m
                 INNER JOIN users u ON u.id = m.sender_id
-                WHERE m.conversation_id = ? AND m.id > ?
+                WHERE m.conversation_id = ? AND m.id > ? AND m.is_deleted = 0
                 ORDER BY m.id ASC
-                LIMIT 100
+                LIMIT ?
             ");
-            $stmt->bind_param('ii', $cid, $after_id);
+            $stmt->bind_param('iii', $cid, $after_id, $limit);
+        } elseif ($before_id > 0) {
+            $stmt = $conn->prepare("
+                SELECT m.id, m.conversation_id, m.sender_id, m.body, m.msg_type,
+                       m.file_name, m.file_path, m.file_size, m.created_at,
+                       m.is_edited, m.is_deleted,
+                       u.full_name AS sender_name, u.chat_avatar AS sender_avatar
+                FROM chat_messages m
+                INNER JOIN users u ON u.id = m.sender_id
+                WHERE m.conversation_id = ? AND m.id < ? AND m.is_deleted = 0
+                ORDER BY m.id DESC
+                LIMIT ?
+            ");
+            $stmt->bind_param('iii', $cid, $before_id, $limitFetch);
         } else {
             $stmt = $conn->prepare("
                 SELECT m.id, m.conversation_id, m.sender_id, m.body, m.msg_type,
                        m.file_name, m.file_path, m.file_size, m.created_at,
-                       u.full_name AS sender_name
+                       m.is_edited, m.is_deleted,
+                       u.full_name AS sender_name, u.chat_avatar AS sender_avatar
                 FROM chat_messages m
                 INNER JOIN users u ON u.id = m.sender_id
-                WHERE m.conversation_id = ?
+                WHERE m.conversation_id = ? AND m.is_deleted = 0
                 ORDER BY m.id DESC
-                LIMIT 80
+                LIMIT ?
             ");
-            $stmt->bind_param('i', $cid);
+            $stmt->bind_param('ii', $cid, $limitFetch);
+        }
+        if (!$stmt) {
+            chat_json(false, null, 'Could not load messages');
         }
         $stmt->execute();
         $messages = [];
@@ -183,13 +241,20 @@ switch ($action) {
             if (!empty($row['file_path'])) {
                 $row['file_url'] = chat_public_file_url($row['file_path']);
             }
+            $row['sender_avatar_url'] = chat_public_avatar_url($row['sender_avatar'] ?? '');
+            unset($row['sender_avatar']);
+            $row['sender_avatar_color'] = chat_user_avatar_color((int)$row['sender_id']);
             $row['is_mine'] = ((int)$row['sender_id'] === $me_id);
             if (!$row['is_mine']) {
                 $incoming_ids[] = (int)$row['id'];
             }
             $messages[] = $row;
         }
-        if ($after_id === 0) {
+        if ($before_id > 0 || ($after_id === 0 && $before_id === 0)) {
+            if (count($messages) > $limit) {
+                $has_more = true;
+                array_pop($messages);
+            }
             $messages = array_reverse($messages);
         }
 
@@ -199,7 +264,8 @@ switch ($action) {
         chat_attach_message_meta($conn, $messages, $me_id);
 
         $parts = $conn->prepare("
-            SELECT u.id, u.full_name, u.email, u.employee_code
+            SELECT u.id, u.full_name, u.email, u.employee_code, u.department, u.designation,
+                   u.portal_role, u.chat_avatar
             FROM chat_participants p
             INNER JOIN users u ON u.id = p.user_id
             WHERE p.conversation_id = ?
@@ -220,19 +286,27 @@ switch ($action) {
         $presence = chat_peer_presence($conn, $cid, $me_id, $conv['type'] ?? 'direct');
         $last_read = chat_last_seen_read_info($conn, $cid, $me_id, $conv['type'] ?? 'direct');
 
+        $lrStmt = $conn->prepare('SELECT last_read_at FROM chat_participants WHERE conversation_id = ? AND user_id = ? LIMIT 1');
+        $lrStmt->bind_param('ii', $cid, $me_id);
+        $lrStmt->execute();
+        $last_read_at = $lrStmt->get_result()->fetch_assoc()['last_read_at'] ?? null;
+
         chat_json(true, [
             'conversation' => $conv,
             'messages' => $messages,
             'participants' => $participants,
             'presence' => $presence,
             'last_read' => $last_read,
+            'last_read_at' => $last_read_at,
+            'unread_count' => chat_unread_count($conn, $cid, $me_id),
+            'has_more' => $has_more,
         ]);
         break;
 
     case 'sendMessage':
         $cid = (int)($input['conversation_id'] ?? 0);
-        $body = trim($input['body'] ?? '');
-        if (!$cid || !chat_user_is_participant($conn, $cid, $me_id)) {
+        $body = chat_sanitize_message_body($input['body'] ?? '');
+        if (!$cid || !chat_validate_conversation_access($conn, $cid, $me_id)) {
             chat_json(false, null, 'Conversation not found');
         }
         if ($body === '') {
@@ -253,13 +327,21 @@ switch ($action) {
         chat_touch_conversation($conn, $cid);
         chat_mark_conversation_read($conn, $cid, $me_id);
 
-        chat_json(true, ['message_id' => $mid, 'status' => 'sent']);
+        $broadcast = chat_fetch_message_broadcast($conn, $mid);
+        chat_ws_push_new_message($conn, $mid);
+
+        chat_json(true, [
+            'message_id' => $mid,
+            'status' => 'sent',
+            'message' => $broadcast,
+        ]);
         break;
 
     case 'markRead':
         $cid = (int)($input['conversation_id'] ?? 0);
         if ($cid && chat_user_is_participant($conn, $cid, $me_id)) {
             chat_mark_conversation_read($conn, $cid, $me_id);
+            chat_ws_notify_conversation($conn, $cid, 'read', ['reader_id' => $me_id]);
         }
         chat_json(true, ['ok' => true]);
         break;
@@ -292,6 +374,7 @@ switch ($action) {
             $part->bind_param('ii', $cid, $uid);
             $part->execute();
         }
+        chat_ws_publish(array_merge([$me_id, $other_id]), 'inbox', ['conversation_id' => $cid]);
         chat_json(true, ['conversation_id' => $cid]);
         break;
 
@@ -332,6 +415,8 @@ switch ($action) {
         $welcome_id = (int)$conn->insert_id;
         chat_create_message_receipts($conn, $welcome_id, $cid, $me_id);
         chat_touch_conversation($conn, $cid);
+        chat_ws_push_new_message($conn, $welcome_id);
+        chat_ws_notify_inbox($conn, $cid);
 
         chat_json(true, ['conversation_id' => $cid]);
         break;
@@ -340,6 +425,123 @@ switch ($action) {
         chat_process_upload($conn, $me_id);
         break;
 
+    case 'uploadProfilePhoto':
+        chat_process_avatar_upload($conn, $me_id, $me);
+        break;
+
+    case 'removeProfilePhoto':
+        chat_remove_avatar($conn, $me_id, $me);
+        break;
+
+    case 'editMessage':
+        $mid  = (int)($input['message_id'] ?? 0);
+        $body = chat_sanitize_message_body($input['body'] ?? '');
+        if (!$mid || $body === '') {
+            chat_json(false, null, 'Invalid request');
+        }
+        // Verify sender owns the message and it is not deleted
+        $chk = $conn->prepare('SELECT conversation_id, sender_id, is_deleted FROM chat_messages WHERE id = ? LIMIT 1');
+        $chk->bind_param('i', $mid);
+        $chk->execute();
+        $mrow = $chk->get_result()->fetch_assoc();
+        if (!$mrow || (int)$mrow['sender_id'] !== $me_id) {
+            chat_json(false, null, 'Not allowed');
+        }
+        if ((int)$mrow['is_deleted']) {
+            chat_json(false, null, 'Cannot edit a deleted message');
+        }
+        $upd = $conn->prepare('UPDATE chat_messages SET body = ?, is_edited = 1, edited_at = NOW() WHERE id = ?');
+        $upd->bind_param('si', $body, $mid);
+        $upd->execute();
+        $cid = (int)$mrow['conversation_id'];
+        chat_touch_conversation($conn, $cid);
+        chat_ws_notify_conversation($conn, $cid, 'message.edit', [
+            'message_id' => $mid,
+            'body' => $body,
+        ]);
+        chat_ws_notify_inbox($conn, $cid);
+        chat_json(true, ['message_id' => $mid, 'body' => $body]);
+        break;
+
+    case 'deleteMessage':
+        $mid  = (int)($input['message_id'] ?? 0);
+        $forAll = !empty($input['for_all']); // true = delete for everyone
+        if (!$mid) {
+            chat_json(false, null, 'Invalid request');
+        }
+        $chk = $conn->prepare('SELECT conversation_id, sender_id FROM chat_messages WHERE id = ? LIMIT 1');
+        $chk->bind_param('i', $mid);
+        $chk->execute();
+        $mrow = $chk->get_result()->fetch_assoc();
+        if (!$mrow) {
+            chat_json(false, null, 'Message not found');
+        }
+        // Only sender can delete for everyone; anyone can delete for themselves (future: per-user hide)
+        if ($forAll && (int)$mrow['sender_id'] !== $me_id) {
+            chat_json(false, null, 'Only the sender can delete for everyone');
+        }
+        if ($forAll) {
+            $upd = $conn->prepare("UPDATE chat_messages SET is_deleted = 1, body = '', file_path = NULL, file_name = NULL WHERE id = ?");
+            $upd->bind_param('i', $mid);
+            $upd->execute();
+        }
+        $cid = (int)$mrow['conversation_id'];
+        chat_touch_conversation($conn, $cid);
+        if ($forAll) {
+            chat_ws_notify_conversation($conn, $cid, 'message.delete', ['message_id' => $mid]);
+            chat_ws_notify_inbox($conn, $cid);
+        }
+        chat_json(true, ['message_id' => $mid]);
+        break;
+
+    case 'clearChat':
+        $cid = (int)($input['conversation_id'] ?? 0);
+        if (!$cid || !chat_user_is_participant($conn, $cid, $me_id)) {
+            chat_json(false, null, 'Conversation not found');
+        }
+        // Mark all messages in this conversation as deleted (soft delete)
+        $del = $conn->prepare("UPDATE chat_messages SET is_deleted = 1, body = '' WHERE conversation_id = ?");
+        $del->bind_param('i', $cid);
+        $del->execute();
+        // Remove all receipts so counts reset
+        $dr = $conn->prepare("DELETE r FROM chat_message_receipts r INNER JOIN chat_messages m ON m.id = r.message_id WHERE m.conversation_id = ?");
+        $dr->bind_param('i', $cid);
+        $dr->execute();
+        chat_touch_conversation($conn, $cid);
+        chat_ws_notify_conversation($conn, $cid, 'chat.cleared', []);
+        chat_ws_notify_inbox($conn, $cid);
+        chat_json(true, ['ok' => true]);
+        break;
+
+    case 'deleteChat':
+        $cid = (int)($input['conversation_id'] ?? 0);
+        if (!$cid || !chat_user_is_participant($conn, $cid, $me_id)) {
+            chat_json(false, null, 'Conversation not found');
+        }
+        // Remove the current user from the conversation participants
+        $dp = $conn->prepare('DELETE FROM chat_participants WHERE conversation_id = ? AND user_id = ?');
+        $dp->bind_param('ii', $cid, $me_id);
+        $dp->execute();
+        // If no participants remain, hard-delete the conversation and messages
+        $countStmt = $conn->prepare('SELECT COUNT(*) AS c FROM chat_participants WHERE conversation_id = ?');
+        $countStmt->bind_param('i', $cid);
+        $countStmt->execute();
+        $remaining = (int)($countStmt->get_result()->fetch_assoc()['c'] ?? 0);
+        if ($remaining === 0) {
+            $conn->prepare("DELETE FROM chat_message_receipts WHERE message_id IN (SELECT id FROM chat_messages WHERE conversation_id = ?)")->bind_param('i', $cid);
+            // Use subquery-safe approach
+            $conn->query("DELETE r FROM chat_message_receipts r INNER JOIN chat_messages m ON m.id = r.message_id WHERE m.conversation_id = $cid");
+            $conn->query("DELETE FROM chat_messages WHERE conversation_id = $cid");
+            $conn->query("DELETE FROM chat_conversations WHERE id = $cid");
+        }
+        chat_json(true, ['ok' => true]);
+        break;
+
     default:
         chat_json(false, null, 'Unknown action');
+}
+
+} catch (Throwable $e) {
+    error_log('chat_api: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+    chat_json(false, null, 'Server error. Please try again.');
 }

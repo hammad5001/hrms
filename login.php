@@ -40,39 +40,50 @@ if ($result->num_rows === 1) {
         exit;
     }
 
-    $user_role = $user['portal_role'] ?? 'user';
-    if ($user_role !== 'admin' && $user_role !== 'super_admin') {
-        $branch_input = normalize_company_branch($user['company_branch']);
-    } else {
-        if (!user_can_access_branch($user['company_branch'], $branch_input, $user_role)) {
+    if (password_verify($password, $user['password_hash'])) {
+        $portal_role = sync_user_portal_role($conn, $user);
+        $selected_branch = normalize_company_branch($branch_input);
+        $account_branch = normalize_company_branch($user['company_branch'] ?? 'main');
+
+        if (!user_can_access_branch($user['company_branch'], $selected_branch, $portal_role)) {
             echo json_encode([
                 'success' => false,
-                'message' => 'You are not assigned to ' . company_branch_label($branch_input) . '. Select your branch: ' . company_branch_label($user['company_branch'])
+                'message' => branch_login_mismatch_message($user['company_branch']),
+                'branch_required' => $account_branch,
+                'branch_required_label' => company_branch_label($account_branch),
             ]);
             exit;
         }
-    }
 
-    if (password_verify($password, $user['password_hash'])) {
-        $portal_role = sync_user_portal_role($conn, $user);
+        $session_branch = ($portal_role === 'super_admin') ? $selected_branch : $account_branch;
 
         $_SESSION['user_id']         = $user['id'];
         $_SESSION['full_name']       = $user['full_name'];
         $_SESSION['portal_role']     = $portal_role;
         $_SESSION['email']           = $user['email'];
         $_SESSION['recruiter_type']  = $user['recruiter_type'] ?? 'regular';
-        $_SESSION['company_branch']  = $branch_input;
-        $_SESSION['user_branch']     = normalize_company_branch($user['company_branch']);
+        $_SESSION['company_branch']  = $session_branch;
+        $_SESSION['user_branch']     = $account_branch;
 
-        if ($portal_role === 'admin' || $portal_role === 'super_admin') {
+        if ($portal_role === 'super_admin') {
             $_SESSION['recruiter_type'] = 'super';
         }
 
-        $redirect = portal_redirect_for_role($portal_role);
+        $work_redirect = work_portal_url_for_role($portal_role);
+        $redirect = $work_redirect ?? employee_self_service_url();
+
+        if ($portal_role === 'super_admin') {
+            $work_redirect = work_portal_url_for_role('super_admin');
+            $redirect = $work_redirect ?? employee_self_service_url();
+        }
 
         echo json_encode([
             'success' => true,
             'redirect' => $redirect,
+            'work_redirect' => $work_redirect,
+            'ess_redirect' => employee_self_service_url(),
+            'can_access_work_portal' => user_can_access_work_portal($portal_role),
+            'is_super_admin' => ($portal_role === 'super_admin'),
             'user' => [
                 'id'              => $user['id'],
                 'full_name'       => $user['full_name'],
@@ -85,8 +96,10 @@ if ($result->num_rows === 1) {
                 'designation'     => $user['designation'] ?? '',
                 'team'            => $user['team'] ?? '',
                 'branch'          => $user['branch'] ?? '',
-                'company_branch'  => $branch_input,
-                'company_branch_label' => company_branch_label($branch_input),
+                'company_branch'  => $session_branch,
+                'company_branch_label' => company_branch_label($session_branch),
+                'account_branch'  => $account_branch,
+                'account_branch_label' => company_branch_label($account_branch),
                 'joined_date'     => $user['joined_date'] ?? '',
             ]
         ]);
@@ -105,9 +118,15 @@ $hardcoded = [
 ];
 
 if (isset($hardcoded[$email]) && $password === $hardcoded[$email]['password']) {
-    $allowed = user_can_access_branch($hardcoded[$email]['branch'], $branch_input, 'admin');
-    if (!$allowed && $hardcoded[$email]['branch'] !== $branch_input) {
-        echo json_encode(['success' => false, 'message' => 'This account is not available for the selected branch.']);
+    $hc_branch = normalize_company_branch($hardcoded[$email]['branch']);
+    $selected_branch = normalize_company_branch($branch_input);
+    if ($hc_branch !== $selected_branch) {
+        echo json_encode([
+            'success' => false,
+            'message' => branch_login_mismatch_message($hc_branch),
+            'branch_required' => $hc_branch,
+            'branch_required_label' => company_branch_label($hc_branch),
+        ]);
         exit;
     }
 
@@ -129,16 +148,21 @@ if (isset($hardcoded[$email]) && $password === $hardcoded[$email]['password']) {
     $_SESSION['company_branch'] = $branch_input;
     $_SESSION['user_branch']    = $hardcoded[$email]['branch'];
 
-    $redirect = portal_redirect_for_role($hardcoded[$email]['role']);
+    $hc_role = $hardcoded[$email]['role'];
+    $work_redirect = work_portal_url_for_role($hc_role);
+    $redirect = $work_redirect ?? employee_self_service_url();
 
     echo json_encode([
         'success' => true,
         'redirect' => $redirect,
+        'work_redirect' => $work_redirect,
+        'ess_redirect' => employee_self_service_url(),
+        'can_access_work_portal' => user_can_access_work_portal($hc_role),
         'user' => [
             'id'          => $db_uid,
             'full_name'   => $_SESSION['full_name'],
             'email'       => $email,
-            'portal_role' => $hardcoded[$email]['role'],
+            'portal_role' => $hc_role,
             'recruiter_type' => 'regular',
             'employee_code' => $db_user['employee_code'] ?? '',
             'department' => $db_user['department'] ?? '',

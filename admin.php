@@ -20,6 +20,8 @@ function sendJSON($success, $data = null, $message = '') {
 
 $message = '';
 $messageType = '';
+$current_is_super = (($_SESSION['portal_role'] ?? '') === 'super_admin');
+$can_assign_super = can_assign_super_admin_role($_SESSION['portal_role'] ?? '');
 
 // Handle API requests for dashboard
 if (isset($_GET['action'])) {
@@ -88,7 +90,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $full_name = trim($_POST['full_name']);
             $email_prefix = trim($_POST['email']);
             $phone = trim($_POST['phone']);
-            $portal_role = $_POST['portal_role'];
+            $portal_role = $_POST['portal_role'] ?? 'user';
+            if (!empty($_POST['create_as_super_admin'])) {
+                $portal_role = 'super_admin';
+            }
             $department = trim($_POST['department']);
             $designation = trim($_POST['designation']);
             $branch = trim($_POST['branch']);
@@ -119,6 +124,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $errors[] = 'Portal role is required';
             } elseif (!is_valid_portal_role($portal_role)) {
                 $errors[] = 'Invalid portal role selected';
+            }
+            if ($portal_role === 'super_admin' && !$can_assign_super) {
+                $errors[] = 'You are not allowed to create a Super Admin account';
+            }
+            if (!is_valid_company_branch($company_branch)) {
+                $errors[] = 'Please select a valid login branch';
             }
             if (empty($password)) {
                 $errors[] = 'Password is required';
@@ -248,23 +259,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (empty($email)) $errors[] = 'Email required';
             if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Invalid email format';
             
-            // Privilege protection: only super_admin can assign or edit super_admin role
-            if (!$current_is_super) {
+            if (!empty($_POST['edit_as_super_admin'])) {
+                $portal_role = 'super_admin';
+            }
+
+            if (!$can_assign_super) {
                 $stmt_check = $conn->prepare("SELECT portal_role FROM users WHERE id = ?");
                 $stmt_check->bind_param("i", $id);
                 $stmt_check->execute();
                 $target_check = $stmt_check->get_result()->fetch_assoc();
                 $stmt_check->close();
-                
+
                 if ($target_check && $target_check['portal_role'] === 'super_admin') {
-                    $errors[] = 'Only a Super Admin can edit another Super Admin account';
+                    $errors[] = 'You cannot edit a Super Admin account';
                 }
                 if ($portal_role === 'super_admin') {
-                    $errors[] = 'Only a Super Admin can assign the Super Admin role';
-                    $portal_role = $target_check['portal_role'] ?? 'user'; // revert
+                    $errors[] = 'You cannot assign the Super Admin role';
+                    $portal_role = $target_check['portal_role'] ?? 'user';
                 }
             }
-            
+            if (!is_valid_company_branch($company_branch)) {
+                $errors[] = 'Please select a valid login branch';
+            }
+
             if (empty($errors)) {
                 $stmt = $conn->prepare("UPDATE users SET employee_code=?, full_name=?, email=?, phone=?, portal_role=?, department=?, designation=?, branch=?, company_branch=?, team=?, joined_date=?, status=? WHERE id=?");
                 $stmt->bind_param("ssssssssssssi", $employee_code, $full_name, $email, $phone, $portal_role, $department, $designation, $branch, $company_branch, $team, $joined_date, $status, $id);
@@ -320,7 +337,6 @@ $total_users = $conn->query("SELECT COUNT(*) as c FROM users")->fetch_assoc()['c
 $active_users = $conn->query("SELECT COUNT(*) as c FROM users WHERE status = 'active'")->fetch_assoc()['c'] ?? 0;
 $admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_role = 'admin'")->fetch_assoc()['c'] ?? 0;
 $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_role = 'super_admin'")->fetch_assoc()['c'] ?? 0;
-$current_is_super = ($_SESSION['portal_role'] === 'super_admin');
 ?>
 
 <!DOCTYPE html>
@@ -537,6 +553,13 @@ $current_is_super = ($_SESSION['portal_role'] === 'super_admin');
         }
         .form-group label i { color: #f97316; margin-right: 6px; }
         .form-group .required { color: #ef4444; margin-left: 4px; }
+        .field-hint {
+            display: block;
+            margin-top: 6px;
+            font-size: 10px;
+            line-height: 1.45;
+            color: rgba(255, 255, 255, 0.45);
+        }
         .form-group input, .form-group select {
             width: 100%;
             padding: 12px 16px;
@@ -679,6 +702,34 @@ $current_is_super = ($_SESSION['portal_role'] === 'super_admin');
             display: inline-block;
         }
         .role-badge.super_admin { background: linear-gradient(135deg, rgba(250,204,21,0.25), rgba(234,179,8,0.15)); color: #facc15; border: 1px solid rgba(250,204,21,0.4); }
+        .super-admin-toggle {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 16px 18px;
+            border-radius: 12px;
+            border: 1px solid rgba(250,204,21,0.35);
+            background: linear-gradient(135deg, rgba(250,204,21,0.12), rgba(234,179,8,0.06));
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .super-admin-toggle:hover { border-color: rgba(250,204,21,0.55); }
+        .super-admin-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+        .super-admin-toggle-box {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #facc15, #ca8a04);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .super-admin-toggle strong { display: block; color: #facc15; font-size: 14px; margin-bottom: 4px; }
+        .super-admin-toggle small { display: block; color: rgba(255,255,255,0.55); font-size: 11px; line-height: 1.45; }
+        .super-admin-toggle:has(input:checked) { border-color: rgba(250,204,21,0.7); background: linear-gradient(135deg, rgba(250,204,21,0.2), rgba(234,179,8,0.1)); }
         .role-badge.admin { background: rgba(249,115,22,0.2); color: #f97316; }
         .role-badge.user,
         .role-badge.agent { background: rgba(59,130,246,0.2); color: #60a5fa; }
@@ -743,21 +794,23 @@ $current_is_super = ($_SESSION['portal_role'] === 'super_admin');
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(10, 11, 18, 0.85);
             backdrop-filter: blur(12px);
             z-index: 1000;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
+            overflow-y: auto;
+            padding: 40px 16px;
         }
         .modal.active { display: flex; }
         .modal-content {
             background: linear-gradient(135deg, #1a1c2c, #0f1119);
-            border-radius: 32px;
+            border-radius: 28px;
             max-width: 700px;
             width: 90%;
-            max-height: 85vh;
-            overflow-y: auto;
             border: 1px solid rgba(255,255,255,0.1);
+            margin: auto 0;
+            position: relative;
         }
         .modal-header {
             padding: 24px;
@@ -829,23 +882,25 @@ $current_is_super = ($_SESSION['portal_role'] === 'super_admin');
         .view-action-bar .vbtn {
             display: inline-flex;
             align-items: center;
-            gap: 7px;
-            padding: 9px 16px;
-            border-radius: 40px;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 12px;
             font-size: 12px;
             font-weight: 600;
             cursor: pointer;
-            border: none;
-            transition: all 0.25s;
+            border: 1px solid transparent;
+            transition: all 0.25s ease;
+            flex: 1;
         }
         .vbtn-edit  { background: linear-gradient(135deg,#f97316,#ea580c); color:#fff; }
         .vbtn-edit:hover  { box-shadow: 0 4px 14px rgba(249,115,22,0.45); transform:translateY(-1px); }
-        .vbtn-key   { background: rgba(139,92,246,0.25); color:#a78bfa; border:1px solid rgba(139,92,246,0.4); }
-        .vbtn-key:hover   { background:rgba(139,92,246,0.45); }
-        .vbtn-portal{ background: rgba(59,130,246,0.2); color:#60a5fa; border:1px solid rgba(59,130,246,0.35); }
-        .vbtn-portal:hover{ background:rgba(59,130,246,0.38); }
-        .vbtn-del   { background: rgba(239,68,68,0.18); color:#f87171; border:1px solid rgba(239,68,68,0.35); }
-        .vbtn-del:hover   { background:#ef4444; color:#fff; }
+        .vbtn-key   { background: rgba(139,92,246,0.15); color:#a78bfa; border:1px solid rgba(139,92,246,0.3); }
+        .vbtn-key:hover   { background:rgba(139,92,246,0.25); transform:translateY(-1px); }
+        .vbtn-portal{ background: rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3); }
+        .vbtn-portal:hover{ background:rgba(59,130,246,0.25); transform:translateY(-1px); }
+        .vbtn-del   { background: rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3); }
+        .vbtn-del:hover   { background:#ef4444; color:#fff; transform:translateY(-1px); }
 
         /* Quick Status Panel */
         .quick-status-panel {
@@ -869,21 +924,30 @@ $current_is_super = ($_SESSION['portal_role'] === 'super_admin');
             gap: 8px;
         }
         .qs-btn {
-            padding: 6px 14px;
-            border-radius: 30px;
+            padding: 8px 14px;
+            border-radius: 10px;
             font-size: 11px;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
-            border: 2px solid transparent;
-            transition: all 0.2s;
-            opacity: 0.75;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.03);
+            color: rgba(255,255,255,0.7);
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
-        .qs-btn:hover, .qs-btn.qs-current { opacity: 1; transform: scale(1.04); }
-        .qs-btn.qs-active     { background:rgba(16,185,129,0.2); color:#10b981; border-color:#10b981; }
-        .qs-btn.qs-inactive   { background:rgba(239,68,68,0.2); color:#f87171; border-color:#ef4444; }
-        .qs-btn.qs-vacation   { background:rgba(245,158,11,0.2); color:#f59e0b; border-color:#f59e0b; }
-        .qs-btn.qs-terminated { background:rgba(239,68,68,0.25); color:#f87171; border-color:#f87171; }
-        .qs-btn.qs-resigned   { background:rgba(156,163,175,0.2); color:#d1d5db; border-color:#9ca3af; }
+        .qs-btn:hover { background: rgba(255,255,255,0.08); color: white; transform: translateY(-1px); }
+        .qs-btn.qs-current {
+            color: #fff;
+            border-color: currentColor;
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+        .qs-btn.qs-active.qs-current     { background: rgba(16,185,129,0.2); color: #10b981; --shadow-color: rgba(16,185,129,0.2); }
+        .qs-btn.qs-inactive.qs-current   { background: rgba(239,68,68,0.2); color: #f87171; --shadow-color: rgba(239,68,68,0.25); }
+        .qs-btn.qs-vacation.qs-current   { background: rgba(245,158,11,0.2); color: #f59e0b; --shadow-color: rgba(245,158,11,0.2); }
+        .qs-btn.qs-terminated.qs-current { background: rgba(239,68,68,0.25); color: #f87171; --shadow-color: rgba(239,68,68,0.25); }
+        .qs-btn.qs-resigned.qs-current   { background: rgba(156,163,175,0.2); color: #d1d5db; --shadow-color: rgba(156,163,175,0.2); }
 
         /* Profile info rows */
         .pinfo-row { display:flex; align-items:baseline; gap:10px; padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:13px; }
@@ -937,7 +1001,6 @@ $current_is_super = ($_SESSION['portal_role'] === 'super_admin');
                     <span style="background: rgba(249,115,22,0.2); color: #f97316; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px;">ADMIN</span>
                     <?php endif; ?>
                 </span>
-                <a href="chat-portal.html" class="btn"><i class="fas fa-comments"></i> Chat</a>
                 <a href="admin-dashboard.html" class="btn"><i class="fas fa-arrow-left"></i> Back</a>
                 <a href="logout.php" class="btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
@@ -1002,12 +1065,13 @@ $current_is_super = ($_SESSION['portal_role'] === 'super_admin');
                             <input type="text" name="designation" id="designation" placeholder="e.g., Software Engineer">
                         </div>
                         <div class="form-group">
-                            <label><i class="fas fa-code-branch"></i> Company Branch <span class="required">*</span></label>
+                            <label><i class="fas fa-code-branch"></i> Login Branch <span class="required">*</span></label>
                             <select name="company_branch" id="company_branch" required>
                                 <?php foreach (COMPANY_BRANCHES as $bk => $bm): ?>
                                 <option value="<?php echo htmlspecialchars($bk); ?>"><?php echo htmlspecialchars($bm['label']); ?></option>
                                 <?php endforeach; ?>
                             </select>
+                            <small class="field-hint">User must select this exact branch on the login page. Super Admin is the only role that can sign in from any branch.</small>
                         </div>
                         <div class="form-group">
                             <label><i class="fas fa-map-marker-alt"></i> Office Location</label>
@@ -1021,15 +1085,26 @@ $current_is_super = ($_SESSION['portal_role'] === 'super_admin');
                             <label><i class="fas fa-calendar"></i> Joining Date</label>
                             <input type="date" name="joined_date" id="joined_date">
                         </div>
+                        <?php if ($can_assign_super): ?>
+                        <div class="form-group super-admin-option" style="grid-column: 1 / -1;">
+                            <label class="super-admin-toggle">
+                                <input type="checkbox" name="create_as_super_admin" id="create_as_super_admin" value="1" onchange="toggleSuperAdminCreate(this)">
+                                <span class="super-admin-toggle-box"><i class="fas fa-shield-halved"></i></span>
+                                <span>
+                                    <strong>Create as Super Admin</strong>
+                                    <small>Full access to every portal — HR, Recruiter, Reception, Management, Attendance, Analytics, Employee portal, and User Management.</small>
+                                </span>
+                            </label>
+                        </div>
+                        <?php endif; ?>
                         <div class="form-group">
                             <label><i class="fas fa-tag"></i> Portal Role <span class="required">*</span></label>
                             <select name="portal_role" id="portal_role" required>
                                 <?php foreach (portal_role_options() as $roleValue => $roleLabel): ?>
-                                <?php if ($roleValue === 'super_admin' && !$current_is_super) continue; ?>
                                 <option value="<?php echo htmlspecialchars($roleValue); ?>"<?php echo $roleValue === 'user' ? ' selected' : ''; ?>><?php echo htmlspecialchars($roleLabel); ?></option>
                                 <?php endforeach; ?>
                             </select>
-                            <small style="color: rgba(255,255,255,0.45); font-size: 10px; display:block; margin-top:6px;">Role controls which portal opens at login. Fetch from sheet to auto-suggest (Data Entry, Dialer, Developer, etc.).</small>
+                            <small style="color: rgba(255,255,255,0.45); font-size: 10px; display:block; margin-top:6px;">Role controls which portal opens at login. Use Super Admin above for full portal access, or pick a specific role.</small>
                         </div>
                         <div class="form-group">
                             <label><i class="fas fa-lock"></i> Password <span class="required">*</span></label>
@@ -1071,7 +1146,7 @@ $current_is_super = ($_SESSION['portal_role'] === 'super_admin');
                             <th>Email</th>
                             <th>Department</th>
                             <th>Designation</th>
-                            <th>Company Branch</th>
+                            <th>Login Branch</th>
                             <th>Office</th>
                             <th>Team</th>
                             <th>Role</th>
@@ -1129,24 +1204,36 @@ $current_is_super = ($_SESSION['portal_role'] === 'super_admin');
                 <form id="editForm" method="POST" onsubmit="return validateEditForm()">
                     <input type="hidden" name="action" value="update_user">
                     <input type="hidden" name="id" id="edit_id">
-                    <div class="form-grid" style="grid-template-columns: repeat(2, 1fr);">
+                    <div class="modal-form-grid">
                         <div class="form-group"><label>Employee ID *</label><input type="text" name="employee_code" id="edit_employee_code" required></div>
                         <div class="form-group"><label>Full Name *</label><input type="text" name="full_name" id="edit_full_name" required></div>
                         <div class="form-group"><label>Email *</label><input type="email" name="email" id="edit_email" required></div>
                         <div class="form-group"><label>Phone</label><input type="text" name="phone" id="edit_phone"></div>
                         <div class="form-group"><label>Department</label><input type="text" name="department" id="edit_department"></div>
                         <div class="form-group"><label>Designation</label><input type="text" name="designation" id="edit_designation"></div>
-                        <div class="form-group"><label>Company Branch *</label><select name="company_branch" id="edit_company_branch" required>
+                        <div class="form-group"><label>Login Branch *</label><select name="company_branch" id="edit_company_branch" required>
                             <?php foreach (COMPANY_BRANCHES as $bk => $bm): ?>
                             <option value="<?php echo htmlspecialchars($bk); ?>"><?php echo htmlspecialchars($bm['label']); ?></option>
                             <?php endforeach; ?>
-                        </select></div>
+                        </select>
+                        <small class="field-hint">Changing this updates which branch the user must pick at login (except Super Admin).</small></div>
                         <div class="form-group"><label>Office Location</label><input type="text" name="branch" id="edit_branch"></div>
                         <div class="form-group"><label>Team</label><input type="text" name="team" id="edit_team"></div>
                         <div class="form-group"><label>Joining Date</label><input type="date" name="joined_date" id="edit_joined_date"></div>
+                        <?php if ($can_assign_super): ?>
+                        <div class="form-group super-admin-option" style="grid-column: 1 / -1;">
+                            <label class="super-admin-toggle">
+                                <input type="checkbox" name="edit_as_super_admin" id="edit_as_super_admin" value="1" onchange="toggleSuperAdminEdit(this, 'edit_portal_role')">
+                                <span class="super-admin-toggle-box"><i class="fas fa-shield-halved"></i></span>
+                                <span>
+                                    <strong>Super Admin account</strong>
+                                    <small>Grants full access to every portal in the system.</small>
+                                </span>
+                            </label>
+                        </div>
+                        <?php endif; ?>
                         <div class="form-group"><label>Portal Role *</label><select name="portal_role" id="edit_portal_role" required>
                             <?php foreach (portal_role_options() as $roleValue => $roleLabel): ?>
-                            <?php if ($roleValue === 'super_admin' && !$current_is_super) continue; ?>
                             <option value="<?php echo htmlspecialchars($roleValue); ?>"><?php echo htmlspecialchars($roleLabel); ?></option>
                             <?php endforeach; ?>
                         </select></div>
@@ -1221,27 +1308,39 @@ $current_is_super = ($_SESSION['portal_role'] === 'super_admin');
                         <form id="inlineEditForm" method="POST">
                             <input type="hidden" name="action" value="update_user">
                             <input type="hidden" name="id" id="ief_id">
-                            <div class="form-grid" style="grid-template-columns: repeat(2, 1fr);">
+                            <div class="modal-form-grid">
                                 <div class="form-group"><label><i class="fas fa-id-card" style="color:#f97316;"></i> Employee ID *</label><input type="text" name="employee_code" id="ief_employee_code" required></div>
                                 <div class="form-group"><label><i class="fas fa-user" style="color:#f97316;"></i> Full Name *</label><input type="text" name="full_name" id="ief_full_name" required></div>
                                 <div class="form-group"><label><i class="fas fa-envelope" style="color:#f97316;"></i> Email *</label><input type="email" name="email" id="ief_email" required></div>
                                 <div class="form-group"><label><i class="fas fa-phone" style="color:#f97316;"></i> Phone</label><input type="text" name="phone" id="ief_phone"></div>
                                 <div class="form-group"><label><i class="fas fa-building" style="color:#f97316;"></i> Department</label><input type="text" name="department" id="ief_department"></div>
                                 <div class="form-group"><label><i class="fas fa-user-tie" style="color:#f97316;"></i> Designation</label><input type="text" name="designation" id="ief_designation"></div>
-                                <div class="form-group"><label><i class="fas fa-code-branch" style="color:#f97316;"></i> Company Branch *</label>
+                                <div class="form-group"><label><i class="fas fa-code-branch" style="color:#f97316;"></i> Login Branch *</label>
                                     <select name="company_branch" id="ief_company_branch" required>
                                         <?php foreach (COMPANY_BRANCHES as $bk => $bm): ?>
                                         <option value="<?php echo htmlspecialchars($bk); ?>"><?php echo htmlspecialchars($bm['label']); ?></option>
                                         <?php endforeach; ?>
                                     </select>
+                                    <small class="field-hint">Must match the branch selected on index login.</small>
                                 </div>
                                 <div class="form-group"><label><i class="fas fa-map-marker-alt" style="color:#f97316;"></i> Office Location</label><input type="text" name="branch" id="ief_branch"></div>
                                 <div class="form-group"><label><i class="fas fa-users" style="color:#f97316;"></i> Team</label><input type="text" name="team" id="ief_team"></div>
                                 <div class="form-group"><label><i class="fas fa-calendar" style="color:#f97316;"></i> Joining Date</label><input type="date" name="joined_date" id="ief_joined_date"></div>
+                                <?php if ($can_assign_super): ?>
+                                <div class="form-group super-admin-option" style="grid-column: 1 / -1;">
+                                    <label class="super-admin-toggle">
+                                        <input type="checkbox" name="edit_as_super_admin" id="ief_as_super_admin" value="1" onchange="toggleSuperAdminEdit(this, 'ief_portal_role')">
+                                        <span class="super-admin-toggle-box"><i class="fas fa-shield-halved"></i></span>
+                                        <span>
+                                            <strong>Super Admin account</strong>
+                                            <small>Full portal access for this user.</small>
+                                        </span>
+                                    </label>
+                                </div>
+                                <?php endif; ?>
                                 <div class="form-group"><label><i class="fas fa-tag" style="color:#f97316;"></i> Portal Role *</label>
                                     <select name="portal_role" id="ief_portal_role" required>
                                         <?php foreach (portal_role_options() as $roleValue => $roleLabel): ?>
-                                        <?php if ($roleValue === 'super_admin' && !$current_is_super) continue; ?>
                                         <option value="<?php echo htmlspecialchars($roleValue); ?>"><?php echo htmlspecialchars($roleLabel); ?></option>
                                         <?php endforeach; ?>
                                     </select>
@@ -1375,6 +1474,32 @@ $current_is_super = ($_SESSION['portal_role'] === 'super_admin');
             }
         `;
         document.head.appendChild(style);
+
+        function toggleSuperAdminEdit(checkbox, selectId) {
+            const sel = document.getElementById(selectId);
+            if (!sel) return;
+            const group = sel.closest('.form-group');
+            if (checkbox.checked) {
+                sel.value = 'super_admin';
+                sel.disabled = true;
+                if (group) group.style.opacity = '0.55';
+            } else {
+                sel.disabled = false;
+                if (group) group.style.opacity = '1';
+                if (sel.value === 'super_admin') sel.value = 'user';
+            }
+        }
+
+        function toggleSuperAdminCreate(checkbox) {
+            toggleSuperAdminEdit(checkbox, 'portal_role');
+        }
+
+        function syncSuperAdminCheckbox(role, checkboxId, selectId) {
+            const cb = document.getElementById(checkboxId);
+            if (!cb) return;
+            cb.checked = (role === 'super_admin');
+            toggleSuperAdminEdit(cb, selectId);
+        }
 
         // Form validation
         function validateCreateForm() {
@@ -1583,6 +1708,7 @@ $current_is_super = ($_SESSION['portal_role'] === 'super_admin');
                         document.getElementById('ief_team').value = u.team || '';
                         document.getElementById('ief_joined_date').value = u.joined_date || '';
                         document.getElementById('ief_portal_role').value = u.portal_role || 'user';
+                        syncSuperAdminCheckbox(u.portal_role, 'ief_as_super_admin', 'ief_portal_role');
                         document.getElementById('ief_status').value = u.status || 'active';
                     }
                 });
@@ -1737,12 +1863,12 @@ $current_is_super = ($_SESSION['portal_role'] === 'super_admin');
                     let attendanceHtml = '';
                     if (attendance.length > 0) {
                         attendanceHtml = `
-                            <h4 style="margin: 20px 0 12px; color: white;"><i class="fas fa-clock"></i> Recent Attendance (Last 30 Days)</h4>
-                            <div style="overflow-x: auto;">
+                            <h4 style="margin: 0 0 12px; color: white; display: flex; align-items: center; gap: 8px; font-size: 15px;"><i class="fas fa-clock" style="color: #f97316;"></i> Recent Attendance (Last 30 Days)</h4>
+                            <div class="modal-attendance-wrapper">
                                 <table style="width: 100%; border-collapse: collapse;">
-                                    <thead><tr style="background: rgba(255,255,255,0.05);"><th style="padding: 10px;">Date</th><th style="padding: 10px;">Check In</th><th style="padding: 10px;">Check Out</th><th style="padding: 10px;">Hours</th><th style="padding: 10px;">Status</th></tr></thead>
+                                    <thead style="position: sticky; top: 0; z-index: 10; background: #1a1c2c;"><tr style="background: rgba(255,255,255,0.05);"><th style="padding: 12px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.6);">Date</th><th style="padding: 12px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.6);">Check In</th><th style="padding: 12px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.6);">Check Out</th><th style="padding: 12px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.6);">Hours</th><th style="padding: 12px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.6);">Status</th></tr></thead>
                                     <tbody>
-                                        ${attendance.map(a => `<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 10px;">${a.date}</td><td style="padding: 10px;">${a.in_time}</td><td style="padding: 10px;">${a.out_time}</td><td style="padding: 10px;">${a.hours}</td><td style="padding: 10px;"><span class="status-badge ${a.status === 'present' ? 'active' : 'vacation'}">${a.status === 'present' ? 'Present' : 'Late'}</span></td></tr>`).join('')}
+                                        ${attendance.map(a => `<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 10px; font-weight: 500;">${a.date}</td><td style="padding: 10px;">${a.in_time}</td><td style="padding: 10px;">${a.out_time}</td><td style="padding: 10px; font-variant-numeric: tabular-nums;">${a.hours}</td><td style="padding: 10px;"><span class="status-badge ${a.status === 'present' ? 'active' : 'vacation'}">${a.status === 'present' ? 'Present' : 'Late'}</span></td></tr>`).join('')}
                                     </tbody>
                                 </table>
                             </div>
@@ -1799,9 +1925,9 @@ $current_is_super = ($_SESSION['portal_role'] === 'super_admin');
                                     </div>
 
                                     <!-- Action Bar -->
-                                    <div class="view-action-bar">
+                                    <div class="view-action-bar" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.08);">
                                         <button class="vbtn vbtn-edit" onclick="editFromView(${user.id})"><i class="fas fa-user-edit"></i> Edit Info</button>
-                                        <button class="vbtn vbtn-portal" onclick="openPortal(${user.id}); closeModal('viewModal');"><i class="fas fa-external-link-alt"></i> Open Portal</button>
+                                        <button class="vbtn vbtn-portal" onclick="openPortal(${user.id}); closeModal('viewModal');"><i class="fas fa-external-link-alt"></i> Portal</button>
                                         <button class="vbtn vbtn-key" onclick="closeModal('viewModal'); resetPassword(${user.id});"><i class="fas fa-key"></i> Reset PW</button>
                                         ${user.id != <?php echo $_SESSION['user_id']; ?> ? `<button class="vbtn vbtn-del" onclick="closeModal('viewModal'); deleteUser(${user.id});"><i class="fas fa-trash"></i> Delete</button>` : ''}
                                     </div>
@@ -1848,6 +1974,7 @@ $current_is_super = ($_SESSION['portal_role'] === 'super_admin');
                         document.getElementById('edit_team').value = u.team || '';
                         document.getElementById('edit_joined_date').value = u.joined_date || '';
                         document.getElementById('edit_portal_role').value = u.portal_role;
+                        syncSuperAdminCheckbox(u.portal_role, 'edit_as_super_admin', 'edit_portal_role');
                         document.getElementById('edit_status').value = u.status || 'active';
                         document.getElementById('editModal').classList.add('active');
                     }

@@ -102,14 +102,27 @@
             const d = data.data;
             const role = d.portal_role || '';
 
-            if (d.is_admin || d.is_super || d.admin_portal_view) {
+            const isTeamManager = window.isTeamManagerRole && window.isTeamManagerRole(role);
+            const mayViewAsAdmin = (d.is_super || d.is_admin || isTeamManager) && (
+                !portalKey
+                || (window.portalRoleMayAccessPage && window.portalRoleMayAccessPage(role, portalKey))
+            );
+            if (mayViewAsAdmin || (d.admin_portal_view && portalKey && window.portalRoleMayAccessPage && window.portalRoleMayAccessPage(role, portalKey))) {
                 showAdminViewBanner(d.full_name, d.portal_role);
+                return;
+            }
+            if ((d.is_admin || d.is_super) && portalKey) {
+                redirectToRolePortal(role);
+                return;
+            }
+
+            if (portalKey === 'employee') {
                 return;
             }
 
             const mayAccess = window.portalRoleMayAccessPage
                 ? window.portalRoleMayAccessPage(role, portalKey)
-                : (role === portalKey || (portalKey === 'employee' && window.EMPLOYEE_PORTAL_ROLES && window.EMPLOYEE_PORTAL_ROLES.indexOf(role) !== -1));
+                : (role === portalKey);
 
             if (!mayAccess) {
                 redirectToRolePortal(role);
@@ -124,7 +137,7 @@
         }
 
         const page = window.location.pathname.split('/').pop() || '';
-        window.location.replace(apiPrefix + 'user-login.html?redirect=' + encodeURIComponent(page));
+        window.location.replace(apiPrefix + 'index.html?redirect=' + encodeURIComponent(page));
     }
 
     if (document.readyState === 'loading') {

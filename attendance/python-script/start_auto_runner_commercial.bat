@@ -1,5 +1,5 @@
 @echo off
-cd /d C:\xampp\htdocs\interview-forms\attendance\python-script
-call .\venv\Scripts\activate
+cd /d "%~dp0"
+call venv\Scripts\activate
 python auto_run_commercial.py
 pause

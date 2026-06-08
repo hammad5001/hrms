@@ -3,245 +3,419 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balitech · Employee HRMS</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Balitech · Employee Self Service Portal</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/images/balitech-favicon-32.png?v=5">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/images/balitech-favicon-192.png?v=5">
+    <link rel="shortcut icon" type="image/png" href="assets/images/balitech-favicon-32.png?v=5">
+    <link rel="apple-touch-icon" href="assets/images/balitech-favicon-192.png?v=5">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/employee-hrms.css">
-    <link rel="stylesheet" href="css/dropdown-fix.css">
     <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
+    <link rel="stylesheet" href="css/employee-hrms.css?v=11">
+    <link rel="stylesheet" href="css/dropdown-fix.css">
 </head>
-<body>
-    <div class="hrms-app">
-        <aside class="hrms-sidebar">
-            <div class="hrms-brand">
-                <div class="hrms-brand-icon"><i class="fas fa-building"></i></div>
-                <div>
-                    <h1>Balitech</h1>
-                    <p>Employee HRMS</p>
-                </div>
-            </div>
-            <nav class="hrms-nav">
-                <button type="button" class="hrms-nav-item active" data-view="dashboard"><i class="fas fa-th-large"></i><span>Dashboard</span></button>
-                <button type="button" class="hrms-nav-item" data-view="attendance"><i class="fas fa-fingerprint"></i><span>Attendance</span></button>
-                <button type="button" class="hrms-nav-item" data-view="salary"><i class="fas fa-wallet"></i><span>Salary</span></button>
-                <button type="button" class="hrms-nav-item" data-view="leave"><i class="fas fa-calendar-minus"></i><span>Apply Leave</span></button>
-                <button type="button" class="hrms-nav-item" data-view="halfday"><i class="fas fa-calendar-day"></i><span>Half Day</span></button>
-                <button type="button" class="hrms-nav-item" data-view="myleaves"><i class="fas fa-list-check"></i><span>My Leaves</span></button>
-                <button type="button" class="hrms-nav-item hidden" data-view="approvals" id="navApprovals"><i class="fas fa-user-check"></i><span>Approvals</span><span class="badge hidden" id="badgeApprovals">0</span></button>
-                <button type="button" class="hrms-nav-item" data-view="notifications"><i class="fas fa-bell"></i><span>Notifications</span><span class="badge hidden" id="badgeNotif">0</span></button>
-                <a href="chat-portal.html" class="hrms-nav-item" style="text-decoration:none;"><i class="fas fa-comments"></i><span>Chat</span></a>
+<body class="ess-body">
+    <div class="ess-animated-bg" aria-hidden="true"></div>
+    <div class="ess-app">
+        <header class="ess-header">
+            <nav class="ess-header-nav" aria-label="Workspace">
+                <button type="button" class="ess-header-link active" data-view="dashboard">Overview</button>
+                <button type="button" class="ess-header-link" data-view="dashboard">Dashboard</button>
+                <button type="button" class="ess-header-link" data-view="attendance">Calendar</button>
+                <button type="button" class="ess-header-link hidden" data-view="approvals" id="headerApprovals">Team Approvals</button>
+                <button type="button" class="ess-header-link ess-header-chat" data-view="chat"><i class="fas fa-comments"></i> Chat</button>
             </nav>
-            <div style="margin-top:auto;padding-top:20px;border-top:1px solid var(--border);">
-                <a href="logout.php" class="hrms-nav-item" style="text-decoration:none;color:#f87171;"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+            <a href="#" class="ess-header-brand" id="essBrandHome" title="Balitech Employee Self Service" aria-label="Balitech — go to dashboard">
+                <span class="ess-brand-logo-wrap">
+                    <img src="assets/images/balitech-logo.png?v=5" alt="Balitech Pvt. Ltd" class="balitech-logo balitech-logo--header" width="140" height="36">
+                </span>
+            </a>
+            <div class="ess-header-actions">
+                <a href="#" class="ess-back-work hidden" id="essBackToWork" title="Return to your work portal">
+                    <i class="fas fa-briefcase"></i> Work portal
+                </a>
+                <button type="button" class="ess-icon-btn" id="btnNotifBell" title="Notifications" data-view="notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="ess-badge hidden" id="badgeNotif">0</span>
+                </button>
+                <button type="button" class="ess-user-pill" id="btnUserMenu" title="My profile">
+                    <span class="ess-user-avatar" id="topAvatar"><i class="fas fa-user"></i></span>
+                </button>
             </div>
-        </aside>
+        </header>
 
-        <main class="hrms-main">
-            <div class="hrms-topbar">
-                <div>
-                    <h2 id="pageTitle">Dashboard</h2>
-                    <p id="pageSubtitle">Your professional HR workspace</p>
+        <div class="ess-shell">
+            <aside class="ess-sidebar">
+                <div class="ess-sidebar-brand" title="Balitech Pvt. Ltd">
+                    <span class="ess-sidebar-logo-wrap">
+                        <img src="assets/images/balitech-icon-square.png?v=5" alt="" class="balitech-logo balitech-logo--sidebar" width="40" height="40" aria-hidden="true">
+                    </span>
                 </div>
-                <div class="hrms-user-chip">
-                    <div class="hrms-avatar"><i class="fas fa-user"></i></div>
+                <nav class="ess-side-nav">
+                    <button type="button" class="ess-side-item active" data-view="dashboard"><i class="fas fa-house"></i><span>Home</span></button>
+                    <button type="button" class="ess-side-item" data-view="dashboard"><i class="fas fa-user-plus"></i><span>Onboarding</span></button>
+                    <button type="button" class="ess-side-item" data-view="leave"><i class="fas fa-calendar-minus"></i><span>Leave Tracker</span></button>
+                    <button type="button" class="ess-side-item" data-view="attendance"><i class="fas fa-fingerprint"></i><span>Attendance</span></button>
+                    <button type="button" class="ess-side-item hidden" data-view="approvals" id="navApprovals"><i class="fas fa-user-check"></i><span>Team Approvals</span><span class="ess-side-badge hidden" id="badgeApprovals">0</span></button>
+                    <button type="button" class="ess-side-item" data-view="salary"><i class="fas fa-clock"></i><span>Time Tracker</span></button>
+                    <button type="button" class="ess-side-item" data-view="salary"><i class="fas fa-wallet"></i><span>Payroll</span></button>
+                    <button type="button" class="ess-side-item" data-view="myleaves"><i class="fas fa-folder-open"></i><span>Files</span></button>
+                    <button type="button" class="ess-side-item" data-view="chat"><i class="fas fa-comments"></i><span>Chat</span></button>
+                    <button type="button" class="ess-side-item" data-view="notifications"><i class="fas fa-ellipsis"></i><span>More</span></button>
+                </nav>
+                <a href="logout.php" class="ess-logout"><i class="fas fa-right-from-bracket"></i> Sign out</a>
+            </aside>
+
+            <main class="ess-main">
+                <nav class="ess-tabs" id="essTabBar" aria-label="Sections">
+                    <button type="button" class="ess-tab active" data-view="dashboard">Activities</button>
+                    <button type="button" class="ess-tab" data-view="dashboard">Feeds</button>
+                    <button type="button" class="ess-tab" data-view="dashboard">Profile</button>
+                    <button type="button" class="ess-tab hidden" data-view="approvals" id="tabApprovals">Approvals</button>
+                    <button type="button" class="ess-tab" data-view="leave">Leave</button>
+                    <button type="button" class="ess-tab" data-view="attendance">Attendance</button>
+                    <button type="button" class="ess-tab" data-view="salary">Time Logs</button>
+                    <button type="button" class="ess-tab" data-view="salary">Timesheets</button>
+                    <button type="button" class="ess-tab" data-view="myleaves">My Leaves</button>
+                    <button type="button" class="ess-tab" data-view="notifications">Notifications</button>
+                </nav>
+
+                <div class="ess-page-head">
                     <div>
-                        <div id="chipName" style="font-weight:700;font-size:14px;">Employee</div>
-                        <div id="chipRole" style="font-size:11px;color:var(--muted);">USER</div>
+                        <h1 id="pageTitle">Dashboard</h1>
+                        <p id="pageSubtitle">Your professional HR workspace</p>
+                    </div>
+                    <div class="ess-page-head-user hidden-mobile">
+                        <span id="chipName">Employee</span>
+                        <small id="chipRole">USER</small>
                     </div>
                 </div>
-            </div>
 
-            <!-- Dashboard -->
-            <section id="view-dashboard" class="view-section active">
-                <div class="stats-row">
-                    <div class="stat-box primary"><div class="label">Present (month)</div><div class="value" id="statPresent">0</div></div>
-                    <div class="stat-box"><div class="label">Late (month)</div><div class="value" id="statLate">0</div></div>
-                    <div class="stat-box info"><div class="label">Punches (30d)</div><div class="value" id="statPunches">0</div></div>
-                    <div class="stat-box success"><div class="label">Pending Leaves</div><div class="value" id="statPendingLeave">0</div></div>
-                </div>
-                <div class="panel">
-                    <h3><i class="fas fa-clock"></i> Today</h3>
-                    <div class="stats-row">
-                        <div class="stat-box"><div class="label">Check In</div><div class="value" id="dashCheckIn" style="font-size:20px;">—</div></div>
-                        <div class="stat-box"><div class="label">Check Out</div><div class="value" id="dashCheckOut" style="font-size:20px;">—</div></div>
-                    </div>
-                </div>
-                <div class="panel">
-                    <h3><i class="fas fa-id-card"></i> My Profile</h3>
-                    <div class="form-grid">
-                        <div><span class="label" style="color:var(--muted);font-size:12px;">Name</span><div id="profName" style="font-weight:600;margin-top:4px;">—</div></div>
-                        <div><span class="label" style="color:var(--muted);font-size:12px;">Email</span><div id="profEmail" style="margin-top:4px;">—</div></div>
-                        <div><span class="label" style="color:var(--muted);font-size:12px;">Employee ID</span><div id="profEmpId" style="margin-top:4px;">—</div></div>
-                        <div><span class="label" style="color:var(--muted);font-size:12px;">Department</span><div id="profDept" style="margin-top:4px;">—</div></div>
-                        <div><span class="label" style="color:var(--muted);font-size:12px;">Designation</span><div id="profDesig" style="margin-top:4px;">—</div></div>
-                        <div><span class="label" style="color:var(--muted);font-size:12px;">Team</span><div id="profTeam" style="margin-top:4px;">—</div></div>
-                        <div><span class="label" style="color:var(--muted);font-size:12px;">Branch</span><div id="profBranch" style="margin-top:4px;">—</div></div>
-                    </div>
-                </div>
-                <div class="stats-row">
-                    <a href="chat-portal.html" class="btn btn-primary" style="text-decoration:none;"><i class="fas fa-comments"></i> Chat</a>
-                    <button class="btn btn-ghost" onclick="showView('leave')"><i class="fas fa-calendar-minus"></i> Apply Leave</button>
-                    <button class="btn btn-ghost" onclick="showView('halfday')"><i class="fas fa-calendar-day"></i> Half Day</button>
-                    <button class="btn btn-ghost" onclick="showView('attendance')"><i class="fas fa-fingerprint"></i> Attendance</button>
-                    <button class="btn btn-ghost" onclick="showView('salary')"><i class="fas fa-wallet"></i> Salary</button>
-                </div>
-            </section>
-
-            <!-- Attendance -->
-            <section id="view-attendance" class="view-section">
-                <div class="panel">
-                    <h3><i class="fas fa-fingerprint"></i> Recent Punches (30 days)</h3>
-                    <table class="data-table">
-                        <thead><tr><th>Date & Time</th><th>Time</th></tr></thead>
-                        <tbody id="attendanceTableBody"></tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- Salary -->
-            <section id="view-salary" class="view-section">
-                <div class="panel">
-                    <h3><i class="fas fa-wallet"></i> Payroll · <span id="salMonth">—</span></h3>
-                    <div class="stats-row">
-                        <div class="stat-box primary"><div class="label">Basic Salary</div><div class="value" id="salBasic" style="font-size:22px;">—</div></div>
-                        <div class="stat-box success"><div class="label">Bonus</div><div class="value" id="salBonus" style="font-size:22px;">—</div></div>
-                        <div class="stat-box"><div class="label">TADA</div><div class="value" id="salTada" style="font-size:22px;">—</div></div>
-                        <div class="stat-box"><div class="label">Advance / month</div><div class="value" id="salAdvance" style="font-size:22px;">—</div></div>
-                    </div>
-                    <p style="margin-top:16px;color:var(--muted);">Leaves this month: <strong id="salLeaves">0</strong> · Bank: <strong id="salBank">—</strong></p>
-                </div>
-            </section>
-
-            <!-- Apply Leave -->
-            <section id="view-leave" class="view-section">
-                <div class="panel">
-                    <h3><i class="fas fa-calendar-minus"></i> Apply Full Day Leave</h3>
-                    <p style="color:var(--muted);margin-bottom:16px;font-size:13px;">Choose who should receive and approve your request:</p>
-                    <div class="route-cards">
-                        <div class="route-card" data-route="team_lead"><i class="fas fa-user-tie"></i><div><strong>Team Lead</strong></div></div>
-                        <div class="route-card" data-route="floor_manager"><i class="fas fa-users-gear"></i><div><strong>Floor Manager</strong></div></div>
-                        <div class="route-card" data-route="hr"><i class="fas fa-building-user"></i><div><strong>HR</strong></div></div>
-                    </div>
-                    <form id="formFullLeave">
-                        <div class="form-grid">
-                            <div class="form-field">
-                                <label>Leave Type</label>
-                                <select name="leave_type">
-                                    <option value="annual">Annual</option>
-                                    <option value="sick">Sick</option>
-                                    <option value="casual">Casual</option>
-                                    <option value="emergency">Emergency</option>
-                                    <option value="unpaid">Unpaid</option>
-                                </select>
+                <div class="ess-layout">
+                    <aside class="ess-left-col">
+                        <div class="ess-profile-card">
+                            <div class="ess-profile-photo-wrap">
+                                <div class="ess-profile-photo" id="profileCardAvatar"><span id="profileInitials">U</span></div>
+                                <button type="button" class="ess-photo-edit" id="btnChangePhoto" title="Change photo"><i class="fas fa-camera"></i></button>
+                                <input type="file" id="profilePhotoInput" hidden accept="image/jpeg,image/png,image/gif,image/webp">
                             </div>
-                            <div class="form-field">
-                                <label>From Date</label>
-                                <input type="date" name="start_date" required>
-                            </div>
-                            <div class="form-field">
-                                <label>To Date</label>
-                                <input type="date" name="end_date" id="leaveEndDate" required>
-                            </div>
+                            <h3 id="profileCardName">—</h3>
+                            <p class="ess-status-line"><span id="profileCardStatus" class="ess-status absent">Absent</span></p>
+                            <div class="ess-timer" id="profileTimer">00 : 00 : 00</div>
+                            <button type="button" class="ess-bio-btn" onclick="showView('attendance')"><i class="fas fa-fingerprint"></i> Biometric Attendance</button>
                         </div>
-                        <div class="form-field" style="margin-top:16px;">
-                            <label>Reason</label>
-                            <textarea name="reason" required placeholder="Describe reason for leave..."></textarea>
+                        <div class="ess-hierarchy-card">
+                            <h4>Reporting To</h4>
+                            <p id="hierarchyReporting">No reporting manager is currently assigned.</p>
+                            <h4>Reportees</h4>
+                            <p id="hierarchyReportees">No reportees are currently assigned.</p>
                         </div>
-                        <button type="submit" class="btn btn-primary" style="margin-top:20px;"><i class="fas fa-paper-plane"></i> Submit Leave Request</button>
-                    </form>
-                </div>
-            </section>
+                    </aside>
 
-            <!-- Half Day -->
-            <section id="view-halfday" class="view-section">
-                <div class="panel">
-                    <h3><i class="fas fa-calendar-day"></i> Apply Half Day</h3>
-                    <form id="formHalfLeave">
-                        <div class="form-grid">
-                            <div class="form-field">
-                                <label>Apply Through</label>
-                                <select name="apply_through">
-                                    <option value="team_lead">Team Lead</option>
-                                    <option value="floor_manager">Floor Manager</option>
-                                    <option value="hr">HR</option>
-                                </select>
+                    <div class="ess-content-col">
+                        <!-- Dashboard -->
+                        <section id="view-dashboard" class="view-section active">
+                            <div class="ess-welcome-banner">
+                                <div>
+                                    <h2 id="welcomeGreeting">Good day</h2>
+                                    <p id="welcomeSub">Have a productive day!</p>
+                                </div>
+                                <div class="ess-welcome-icon" id="welcomeIcon"><i class="fas fa-sun"></i></div>
                             </div>
-                            <div class="form-field">
-                                <label>Date</label>
-                                <input type="date" name="start_date" required>
-                            </div>
-                            <div class="form-field" id="halfDayFields">
-                                <label>Session</label>
-                                <select name="half_day_slot">
-                                    <option value="morning">Morning (1st half)</option>
-                                    <option value="afternoon">Afternoon (2nd half)</option>
-                                </select>
-                            </div>
-                            <div class="form-field">
-                                <label>Leave Type</label>
-                                <select name="leave_type">
-                                    <option value="casual">Casual</option>
-                                    <option value="sick">Sick</option>
-                                    <option value="annual">Annual</option>
-                                </select>
-                            </div>
-                        </div>
-                        <input type="hidden" name="end_date" value="">
-                        <div class="form-field" style="margin-top:16px;">
-                            <label>Reason</label>
-                            <textarea name="reason" required></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="margin-top:20px;"><i class="fas fa-paper-plane"></i> Submit Half Day</button>
-                    </form>
-                </div>
-            </section>
 
-            <!-- My Leaves -->
-            <section id="view-myleaves" class="view-section">
-                <div class="panel">
-                    <h3><i class="fas fa-list-check"></i> My Leave Requests</h3>
-                    <table class="data-table">
-                        <thead><tr><th>Duration</th><th>Type</th><th>Dates</th><th>Route</th><th>Status</th><th>Applied</th></tr></thead>
-                        <tbody id="myLeavesBody"></tbody>
-                    </table>
-                </div>
-            </section>
+                            <div class="ess-card-grid">
+                                <div class="ess-card ess-card-wide">
+                                    <div class="ess-card-head"><h3>Attendance Status</h3><span id="dashTodayStatus" class="ess-pill absent">Today Absent</span></div>
+                                    <div class="ess-att-status-grid">
+                                        <div><span class="lbl">Check In</span><strong id="dashCheckIn">—</strong></div>
+                                        <div><span class="lbl">Check Out</span><strong id="dashCheckOut">—</strong></div>
+                                        <div><span class="lbl">Total Hours</span><strong id="dashTotalHours">0.00 Hrs</strong></div>
+                                        <div><span class="lbl">Punches Today</span><strong id="dashPunchCount">0</strong></div>
+                                    </div>
+                                    <p class="ess-shift-note"><i class="fas fa-moon"></i> Shift: <span id="dashShift">Night · 2:00 PM check-in – next day 12:00 PM checkout</span></p>
+                                </div>
+                                <div class="ess-card">
+                                    <div class="ess-card-head"><h3>Employee Information</h3></div>
+                                    <div class="ess-info-list">
+                                        <div><span>Email</span><strong id="profEmail">—</strong></div>
+                                        <div><span>Employee ID</span><strong id="profEmpId">—</strong></div>
+                                        <div><span>Department</span><strong id="profDept">—</strong></div>
+                                        <div><span>Designation</span><strong id="profDesig">—</strong></div>
+                                        <div><span>Team</span><strong id="profTeam">—</strong></div>
+                                        <div><span>Branch</span><strong id="profBranch">—</strong></div>
+                                    </div>
+                                </div>
+                            </div>
 
-            <!-- Approvals -->
-            <section id="view-approvals" class="view-section">
-                <div class="panel">
-                    <h3><i class="fas fa-user-check"></i> Pending Approvals</h3>
-                    <p style="color:var(--muted);margin-bottom:16px;">Team leads and managers receive notifications when staff apply leave.</p>
-                    <div id="approvalsList"></div>
-                </div>
-            </section>
+                            <div class="ess-manager-panel hidden" id="managerPanel">
+                                <div class="ess-manager-panel-inner">
+                                    <div class="ess-manager-panel-icon"><i class="fas fa-user-check"></i></div>
+                                    <div class="ess-manager-panel-body">
+                                        <h3>Team leave approvals</h3>
+                                        <p><strong id="managerPendingCount">0</strong> request(s) awaiting your decision</p>
+                                    </div>
+                                    <button type="button" class="ess-btn ess-btn-primary" onclick="showView('approvals')"><i class="fas fa-clipboard-check"></i> Review now</button>
+                                </div>
+                            </div>
 
-            <!-- Notifications -->
-            <section id="view-notifications" class="view-section">
-                <div class="panel">
-                    <h3><i class="fas fa-bell"></i> Notifications</h3>
-                    <div class="notif-list" id="notifList"></div>
+                            <div class="ess-stats-row">
+                                <div class="ess-stat"><span>Present (month)</span><strong id="statPresent">0</strong></div>
+                                <div class="ess-stat"><span>Late (month)</span><strong id="statLate">0</strong></div>
+                                <div class="ess-stat"><span>Punches (30d)</span><strong id="statPunches">0</strong></div>
+                                <div class="ess-stat"><span>Pending Leaves</span><strong id="statPendingLeave">0</strong></div>
+                                <div class="ess-stat ess-stat-manager hidden" id="statTeamPendingWrap"><span>Team pending</span><strong id="statTeamPending">0</strong></div>
+                            </div>
+
+                            <div class="ess-card">
+                                <div class="ess-card-head"><h3><i class="fas fa-id-card"></i> My Profile</h3></div>
+                                <div class="ess-info-list ess-info-grid">
+                                    <div><span>Name</span><strong id="profName">—</strong></div>
+                                    <div><span>Phone</span><strong id="profPhone">—</strong></div>
+                                    <div><span>Role</span><strong id="profRole">—</strong></div>
+                                    <div><span>BID Source</span><strong id="profBidSource">—</strong></div>
+                                </div>
+                                <div class="ess-quick-actions">
+                                    <button type="button" class="ess-btn ess-btn-primary" onclick="showView('leave')"><i class="fas fa-calendar-minus"></i> Apply Leave</button>
+                                    <button type="button" class="ess-btn ess-btn-outline" onclick="showView('attendance')"><i class="fas fa-fingerprint"></i> Attendance</button>
+                                    <button type="button" class="ess-btn ess-btn-outline" onclick="showView('chat')"><i class="fas fa-comments"></i> Chat</button>
+                                </div>
+                            </div>
+
+                            <div class="ess-card">
+                                <div class="ess-card-head"><h3>Work Schedule · <span id="weekRangeLabel">This week</span></h3></div>
+                                <div class="ess-week-strip" id="attendanceWeekStrip"></div>
+                            </div>
+                        </section>
+
+                        <!-- Attendance -->
+                        <section id="view-attendance" class="view-section">
+                            <div class="ess-card">
+                                <div class="ess-card-head">
+                                    <h3><i class="fas fa-fingerprint"></i> Attendance Summary</h3>
+                                    <div class="ess-date-nav">
+                                        <button type="button" class="ess-icon-btn" id="weekPrev"><i class="fas fa-chevron-left"></i></button>
+                                        <span id="attWeekLabel">This week</span>
+                                        <button type="button" class="ess-icon-btn" id="weekNext"><i class="fas fa-chevron-right"></i></button>
+                                    </div>
+                                </div>
+                                <div class="ess-week-list" id="attendanceWeekList"></div>
+                            </div>
+                            <div class="ess-card">
+                                <h3><i class="fas fa-list"></i> Attendance History (30 days)</h3>
+                                <div class="ess-table-wrap">
+                                    <table class="data-table">
+                                        <thead><tr><th>Shift Date</th><th>Check In</th><th>Check Out</th><th>Hours</th><th>Status</th></tr></thead>
+                                        <tbody id="attendanceTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Salary -->
+                        <section id="view-salary" class="view-section">
+                            <div class="ess-card">
+                                <h3><i class="fas fa-wallet"></i> Payroll · <span id="salMonth">—</span></h3>
+                                <div class="ess-stats-row">
+                                    <div class="ess-stat highlight"><span>Basic Salary</span><strong id="salBasic">—</strong></div>
+                                    <div class="ess-stat"><span>Bonus</span><strong id="salBonus">—</strong></div>
+                                    <div class="ess-stat"><span>TADA</span><strong id="salTada">—</strong></div>
+                                    <div class="ess-stat"><span>Advance / month</span><strong id="salAdvance">—</strong></div>
+                                </div>
+                                <p class="ess-muted-line">Leaves this month: <strong id="salLeaves">0</strong> · Bank: <strong id="salBank">—</strong></p>
+                            </div>
+                        </section>
+
+                        <!-- Leave -->
+                        <section id="view-leave" class="view-section">
+                            <div class="ess-card-head-row">
+                                <h3>Leave Tracker</h3>
+                                <button type="button" class="ess-btn ess-btn-primary" onclick="document.getElementById('leaveFormPanel').scrollIntoView({behavior:'smooth'})"><i class="fas fa-plus"></i> Apply Leave</button>
+                            </div>
+                            <div class="ess-leave-balances" id="leaveBalanceGrid"></div>
+                            <div class="ess-card" id="leaveFormPanel">
+                                <h3><i class="fas fa-calendar-minus"></i> Apply Full Day Leave</h3>
+                                <div class="form-field hidden" id="leaveEmployeeField">
+                                    <label>Apply leave for employee</label>
+                                    <div class="ess-person-search" data-search-type="employee">
+                                        <input type="text" class="ess-search-input" id="leaveEmployeeSearch" placeholder="Search employee by name, email or BID…" autocomplete="off">
+                                        <div class="ess-search-results hidden" id="leaveEmployeeResults"></div>
+                                        <div class="ess-selected-person hidden" id="leaveEmployeeSelected"></div>
+                                    </div>
+                                    <p class="ess-muted-line">Managers only — leave will be recorded for the selected employee.</p>
+                                </div>
+                                <div class="form-field">
+                                    <label>Send to approver <span class="ess-req">*</span></label>
+                                    <p class="ess-muted-line">Search admin, team lead, HR, or floor manager — regular employees cannot be selected.</p>
+                                    <div class="ess-person-search" data-search-type="approver">
+                                        <input type="text" class="ess-search-input" id="leaveApproverSearch" placeholder="Search approver by name, email or role…" autocomplete="off" required>
+                                        <div class="ess-search-results hidden" id="leaveApproverResults"></div>
+                                        <div class="ess-selected-person hidden" id="leaveApproverSelected"></div>
+                                    </div>
+                                </div>
+                                <form id="formFullLeave">
+                                    <div class="form-grid">
+                                        <div class="form-field">
+                                            <label>Leave Type</label>
+                                            <select name="leave_type">
+                                                <option value="annual">Annual Leave</option>
+                                                <option value="sick">Sick Leave</option>
+                                                <option value="casual">Casual Leave</option>
+                                                <option value="emergency">Emergency</option>
+                                                <option value="unpaid">Unpaid</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-field">
+                                            <label>From Date</label>
+                                            <input type="date" name="start_date" required>
+                                        </div>
+                                        <div class="form-field">
+                                            <label>To Date</label>
+                                            <input type="date" name="end_date" id="leaveEndDate" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-field">
+                                        <label>Reason</label>
+                                        <textarea name="reason" required placeholder="Describe reason for leave..."></textarea>
+                                    </div>
+                                    <button type="submit" class="ess-btn ess-btn-primary"><i class="fas fa-paper-plane"></i> Submit Leave Request</button>
+                                </form>
+                            </div>
+                            <div class="ess-card">
+                                <h3>Leave Applications</h3>
+                                <div class="ess-table-wrap">
+                                    <table class="data-table">
+                                        <thead><tr><th>Duration</th><th>Type</th><th>Dates</th><th>Approver</th><th>Status</th><th>Applied</th></tr></thead>
+                                        <tbody id="myLeavesBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Half Day -->
+                        <section id="view-halfday" class="view-section">
+                            <div class="ess-card">
+                                <h3><i class="fas fa-calendar-day"></i> Apply Half Day</h3>
+                                <div class="form-field hidden" id="halfLeaveEmployeeField">
+                                    <label>Apply leave for employee</label>
+                                    <div class="ess-person-search" data-search-type="employee-half">
+                                        <input type="text" class="ess-search-input" id="halfEmployeeSearch" placeholder="Search employee…" autocomplete="off">
+                                        <div class="ess-search-results hidden" id="halfEmployeeResults"></div>
+                                        <div class="ess-selected-person hidden" id="halfEmployeeSelected"></div>
+                                    </div>
+                                </div>
+                                <div class="form-field">
+                                    <label>Send to approver <span class="ess-req">*</span></label>
+                                    <div class="ess-person-search" data-search-type="approver-half">
+                                        <input type="text" class="ess-search-input" id="halfApproverSearch" placeholder="Search approver…" autocomplete="off">
+                                        <div class="ess-search-results hidden" id="halfApproverResults"></div>
+                                        <div class="ess-selected-person hidden" id="halfApproverSelected"></div>
+                                    </div>
+                                </div>
+                                <form id="formHalfLeave">
+                                    <div class="form-grid">
+                                        <div class="form-field">
+                                            <label>Date</label>
+                                            <input type="date" name="start_date" required>
+                                        </div>
+                                        <div class="form-field" id="halfDayFields">
+                                            <label>Session</label>
+                                            <select name="half_day_slot">
+                                                <option value="morning">Morning (1st half)</option>
+                                                <option value="afternoon">Afternoon (2nd half)</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-field">
+                                            <label>Leave Type</label>
+                                            <select name="leave_type">
+                                                <option value="casual">Casual</option>
+                                                <option value="sick">Sick</option>
+                                                <option value="annual">Annual</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="end_date" value="">
+                                    <div class="form-field">
+                                        <label>Reason</label>
+                                        <textarea name="reason" required></textarea>
+                                    </div>
+                                    <button type="submit" class="ess-btn ess-btn-primary"><i class="fas fa-paper-plane"></i> Submit Half Day</button>
+                                </form>
+                            </div>
+                        </section>
+
+                        <!-- My Leaves -->
+                        <section id="view-myleaves" class="view-section">
+                            <div class="ess-card">
+                                <h3><i class="fas fa-list-check"></i> My Leave Requests</h3>
+                                <div class="ess-table-wrap">
+                                    <table class="data-table">
+                                        <thead><tr><th>Duration</th><th>Type</th><th>Dates</th><th>Approver</th><th>Status</th><th>Applied</th></tr></thead>
+                                        <tbody id="myLeavesBodyTab"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Approvals -->
+                        <section id="view-approvals" class="view-section">
+                            <div class="ess-approvals-hero">
+                                <div>
+                                    <h3><i class="fas fa-clipboard-check"></i> Team Leave Approvals</h3>
+                                    <p>Review, approve, or reject leave requests assigned to you or your team.</p>
+                                </div>
+                                <button type="button" class="ess-btn ess-btn-outline" onclick="showView('leave')"><i class="fas fa-plus"></i> Apply leave</button>
+                            </div>
+                            <div class="ess-approval-tabs">
+                                <button type="button" class="ess-approval-tab active" data-filter="pending">Pending</button>
+                                <button type="button" class="ess-approval-tab" data-filter="approved">Approved</button>
+                                <button type="button" class="ess-approval-tab" data-filter="rejected">Rejected</button>
+                                <button type="button" class="ess-approval-tab" data-filter="all">All</button>
+                            </div>
+                            <div id="approvalsList" class="ess-approvals-list"></div>
+                        </section>
+
+                        <!-- Chat (embedded — same page URL) -->
+                        <section id="view-chat" class="view-section ess-chat-view">
+                            <iframe id="essChatFrame" class="ess-chat-iframe" title="Balitech Workspace Chat" src="about:blank" allow="clipboard-write"></iframe>
+                        </section>
+
+                        <!-- Notifications -->
+                        <section id="view-notifications" class="view-section">
+                            <div class="ess-card">
+                                <h3><i class="fas fa-bell"></i> Notifications</h3>
+                                <div class="notif-list" id="notifList"></div>
+                            </div>
+                        </section>
+                    </div>
                 </div>
-            </section>
-        </main>
+            </main>
+        </div>
     </div>
 
     <div id="hrmsToast" class="hrms-toast"></div>
-    <style>
-        .hrms-toast {
-            position: fixed; bottom: 24px; right: 24px;
-            padding: 14px 24px; border-radius: 12px;
-            background: #10b981; color: #fff;
-            font-weight: 600; z-index: 9999;
-            transform: translateY(100px); opacity: 0;
-            transition: all 0.3s;
-        }
-        .hrms-toast.show { transform: translateY(0); opacity: 1; }
-        .hrms-toast.error { background: #ef4444; }
-    </style>
+
+    <div class="ess-modal-overlay hidden" id="approvalModal" aria-hidden="true">
+        <div class="ess-modal" role="dialog" aria-labelledby="approvalModalTitle">
+            <div class="ess-modal-header">
+                <h3 id="approvalModalTitle">Review leave request</h3>
+                <button type="button" class="ess-modal-close" id="approvalModalClose" aria-label="Close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="ess-modal-body" id="approvalModalBody"></div>
+            <div class="ess-modal-field">
+                <label for="approvalModalNote">Note to employee <span id="approvalNoteRequired" class="hidden">(required for rejection)</span></label>
+                <textarea id="approvalModalNote" rows="3" placeholder="Optional approval note or rejection reason…"></textarea>
+            </div>
+            <div class="ess-modal-actions">
+                <button type="button" class="ess-btn ess-btn-outline" id="approvalModalCancel">Cancel</button>
+                <button type="button" class="ess-btn ess-btn-danger hidden" id="approvalModalReject"><i class="fas fa-times"></i> Reject</button>
+                <button type="button" class="ess-btn ess-btn-primary" id="approvalModalApprove"><i class="fas fa-check"></i> Approve</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/portal-access.js"></script>
     <script src="js/portal-session-guard.js"></script>
-    <script src="js/employee-hrms.js"></script>
+    <script src="js/employee-hrms.js?v=8"></script>
     <script src="js/portal-chat-fab.js"></script>
 </body>
 </html>

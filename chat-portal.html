@@ -3,70 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balitech · BaliChat</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/chat.css?v=5">
-    <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
-    <link rel="stylesheet" href="css/chat-pro.css?v=1">
+    <meta name="description" content="Balitech Workspace — secure internal messaging for your team.">
+    <title>Balitech · Workspace Chat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script>if (/(?:\?|&)embed=1(?:&|$)/.test(location.search)) document.documentElement.classList.add('chat-embed-mode');</script>
+    <link rel="stylesheet" href="css/chat.css?v=23">
+    <link rel="stylesheet" href="css/chat-pro.css?v=23">
+    <link rel="stylesheet" href="css/chat-embed.css?v=1">
 </head>
 <body class="chat-body">
     <div class="chat-app-frame">
+
+        <!-- Utility rail -->
+        <nav class="chat-nav-sidebar" aria-label="Workspace navigation">
+            <div class="nav-brand-pill" title="Balitech Workspace">
+                <span class="nav-brand-letter">B</span>
+            </div>
+            <div class="nav-sidebar-top">
+                <a href="employee-portal.html" class="nav-sidebar-item" id="chatBackLink" title="Back to portal" data-nav-label="Portal">
+                    <i class="fas fa-house"></i>
+                </a>
+                <div class="nav-sidebar-item active" title="Messages" data-nav-label="Messages" aria-current="page">
+                    <i class="fas fa-message"></i>
+                </div>
+                <button type="button" class="nav-sidebar-item nav-sidebar-btn" id="navBtnNewGroup" title="Create a group" data-nav-label="New group">
+                    <i class="fas fa-user-group"></i>
+                </button>
+            </div>
+            <div class="nav-sidebar-spacer" aria-hidden="true"></div>
+            <div class="nav-sidebar-bottom">
+                <a href="logout.php" class="nav-sidebar-item logout" title="Sign out" data-nav-label="Sign out">
+                    <i class="fas fa-right-from-bracket"></i>
+                </a>
+                <button type="button" class="nav-sidebar-profile" id="navProfile" title="My profile" data-nav-label="Profile">
+                    <div class="nav-profile-avatar">U</div>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Conversation list -->
         <aside class="chat-sidebar" id="listPanel">
             <header class="sidebar-head">
-                <a href="employee-portal.html" class="btn-icon" id="chatBackLink" title="Back"><i class="fas fa-arrow-left"></i></a>
-                <div class="brand">
-                    <div class="brand-logo"><i class="fas fa-comments"></i></div>
+                <div class="sidebar-brand">
+                    <span class="sidebar-brand-mark"><i class="fas fa-building"></i></span>
                     <div>
-                        <h1>BaliChat</h1>
-                        <p>Balitech messaging</p>
+                        <h2>Messages</h2>
+                        <p class="sidebar-brand-sub">Balitech Workspace</p>
                     </div>
+                </div>
+                <div class="sidebar-quick-actions">
+                    <button type="button" class="sidebar-action-pill" id="btnNewGroup" title="Create group chat">
+                        <i class="fas fa-user-group"></i>
+                        <span>Group</span>
+                    </button>
+                    <button type="button" class="sidebar-action-pill sidebar-action-pill--primary" id="btnNewChat" title="Start new chat">
+                        <i class="fas fa-pen-to-square"></i>
+                        <span>New chat</span>
+                    </button>
                 </div>
             </header>
 
-            <div class="sidebar-search">
-                <i class="fas fa-search"></i>
-                <input type="text" id="userSearch" placeholder="Search BID or Gmail…" autocomplete="off">
+            <div class="sidebar-search-wrap">
+                <div class="sidebar-search">
+                    <i class="fas fa-search" aria-hidden="true"></i>
+                    <input type="text" id="userSearch" placeholder="Search people by name or BID…" autocomplete="off" aria-label="Search colleagues">
+                    <button type="button" class="btn-clear-search hidden" id="btnClearSearch" title="Clear search" aria-label="Clear search">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="chat-search-results hidden" id="searchResults" role="listbox" aria-label="Search results"></div>
             </div>
-            <div class="chat-search-results hidden" id="searchResults"></div>
 
-            <div class="sidebar-actions">
-                <button type="button" class="btn-primary" id="btnNewChat"><i class="fas fa-plus"></i> New chat</button>
-                <button type="button" class="btn-secondary" id="btnNewGroup"><i class="fas fa-users"></i> Group</button>
+            <div class="sidebar-body">
+                <div class="chat-filters" role="tablist" aria-label="Filter conversations">
+                    <button type="button" class="filter-chip active" data-filter="all" role="tab" aria-selected="true">All</button>
+                    <button type="button" class="filter-chip" data-filter="unread" role="tab" aria-selected="false">Unread <span class="filter-count hidden" id="unreadFilterCount"></span></button>
+                    <button type="button" class="filter-chip" data-filter="groups" role="tab" aria-selected="false">Groups</button>
+                </div>
+
+                <div class="archived-row" id="archivedRow" title="Show archived chats" role="button" tabindex="0">
+                    <div class="archived-icon"><i class="fas fa-archive"></i></div>
+                    <div class="archived-text">Archived</div>
+                    <div class="archived-count" id="archivedCount">0</div>
+                </div>
+
+                <div class="sidebar-list-label" id="sidebarListLabel">Recent</div>
+                <div class="chat-conv-list" id="convList"></div>
             </div>
-
-            <p class="list-title">Conversations</p>
-            <div class="chat-conv-list" id="convList"></div>
-
-            <a href="logout.php" class="sidebar-logout"><i class="fas fa-sign-out-alt"></i> Sign out</a>
         </aside>
 
+        <!-- Main panel -->
         <main class="chat-main" id="chatMain">
             <div class="chat-welcome" id="chatEmpty">
-                <div class="welcome-icon"><i class="fas fa-comment-dots"></i></div>
-                <h2>Start a conversation</h2>
-                <p>Search for a colleague on the left, or open a chat from your list.</p>
-                <div class="tick-guide">
-                    <span><i class="tick sent">✓</i> Sent</span>
-                    <span><i class="tick del">✓✓</i> Delivered</span>
-                    <span><i class="tick seen">✓✓</i> Seen</span>
+                <div class="welcome-card">
+                    <div class="welcome-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <span class="welcome-badge">Internal messaging</span>
+                    <h2>Balitech Workspace Chat</h2>
+                    <p>Select a conversation from the list, or search for a colleague to start a secure thread. Files, edits, and read receipts are supported.</p>
+                    <ul class="welcome-features">
+                        <li><i class="fas fa-shield-halved"></i> Company-only access</li>
+                        <li><i class="fas fa-paperclip"></i> Attach documents &amp; images</li>
+                        <li><i class="fas fa-check-double"></i> Delivery &amp; read status</li>
+                    </ul>
+                    <div class="welcome-actions">
+                        <button type="button" class="welcome-btn welcome-btn--primary" id="welcomeNewChat">
+                            <i class="fas fa-pen-to-square"></i> New chat
+                        </button>
+                        <button type="button" class="welcome-btn" id="welcomeNewGroup">
+                            <i class="fas fa-user-group"></i> Create group
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <div id="chatActive" class="chat-active-wrap hidden">
                 <header class="chat-header">
-                    <button type="button" class="btn-icon mobile-only" id="btnBackMobile"><i class="fas fa-arrow-left"></i></button>
+                    <button type="button" class="btn-icon mobile-only" id="btnBackMobile" aria-label="Back to list"><i class="fas fa-arrow-left"></i></button>
                     <div class="header-avatar-wrap">
                         <div class="avatar" id="headerAvatar">?</div>
                         <span class="presence-dot" id="presenceDot"></span>
                     </div>
                     <div class="header-info">
-                        <h2 id="headerTitle">Chat</h2>
+                        <h2 id="headerTitle">Conversation</h2>
                         <p class="sub" id="headerSub">—</p>
+                    </div>
+                    <div class="chat-header-actions">
+                        <span class="chat-ws-status" id="chatWsStatus" title="Real-time connection" aria-label="Disconnected"></span>
+                        <button type="button" class="header-action-btn" id="btnSearchInChat" title="Search in conversation"><i class="fas fa-search"></i></button>
+                        <div class="dropdown-wrap" id="chatMenuWrap">
+                            <button type="button" class="header-action-btn" id="btnChatMenu" title="Conversation options"><i class="fas fa-ellipsis-v"></i></button>
+                            <div class="chat-dropdown-menu" id="chatDropdown">
+                                <button type="button" class="chat-dropdown-item" id="menuClearChat"><i class="fas fa-broom"></i> Clear chat</button>
+                                <button type="button" class="chat-dropdown-item danger-item" id="menuDeleteChat"><i class="fas fa-trash-alt"></i> Delete chat</button>
+                                <div class="chat-dropdown-divider"></div>
+                                <button type="button" class="chat-dropdown-item" id="menuArchiveChat"><i class="fas fa-archive"></i> Archive chat</button>
+                                <button type="button" class="chat-dropdown-item" id="menuMuteChat"><i class="fas fa-bell-slash"></i> Mute notifications</button>
+                            </div>
+                        </div>
                     </div>
                 </header>
 
-                <div class="chat-messages-wrap">
+                <div class="chat-inchat-search hidden" id="chatInSearchBar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="chatInSearchInput" placeholder="Search in this conversation…" autocomplete="off">
+                    <button type="button" class="btn-icon btn-insearch-close" id="btnCloseInSearch" title="Close search"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="chat-drop-overlay hidden" id="chatDropOverlay">
+                    <div class="chat-drop-card">
+                        <i class="fas fa-cloud-arrow-up"></i>
+                        <p>Drop photos or files to send</p>
+                    </div>
+                </div>
+                <div class="chat-messages-wrap" id="messagesWrap">
+                    <div class="chat-load-older hidden" id="loadOlderBar">
+                        <button type="button" class="btn-load-older" id="btnLoadOlder"><i class="fas fa-chevron-up"></i> Load older messages</button>
+                    </div>
                     <div class="chat-messages" id="msgArea"></div>
                     <div class="chat-typing-indicator" id="typingIndicator">
                         <div class="typing-pill"><span></span><span></span><span></span></div>
@@ -74,41 +170,179 @@
                 </div>
 
                 <footer class="chat-footer">
+                    <div class="upload-preview hidden" id="uploadPreview">
+                        <div class="upload-preview-thumb" id="uploadPreviewThumb"></div>
+                        <div class="upload-preview-info">
+                            <span class="upload-preview-name" id="uploadPreviewName"></span>
+                            <div class="upload-progress-track"><div class="upload-progress-bar" id="uploadProgressBar"></div></div>
+                        </div>
+                        <button type="button" class="btn-icon" id="btnCancelUpload" title="Cancel"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="reply-preview hidden" id="replyPreview">
+                        <div class="reply-preview-body">
+                            <span class="reply-label">Replying to</span>
+                            <span class="reply-snippet" id="replySnippet"></span>
+                        </div>
+                        <button type="button" class="btn-icon" id="btnCancelReply" title="Cancel reply"><i class="fas fa-times"></i></button>
+                    </div>
                     <div class="chat-emoji-panel" id="emojiPanel"></div>
-                    <div class="composer">
-                        <button type="button" class="btn-icon" id="btnEmoji" title="Emoji"><i class="far fa-smile"></i></button>
-                        <button type="button" class="btn-icon" id="btnAttach" title="Attach"><i class="fas fa-paperclip"></i></button>
-                        <input type="file" id="fileInput" hidden accept="image/jpeg,image/png,image/gif,image/webp,.pdf,.doc,.docx,application/pdf">
-                        <textarea id="msgInput" rows="1" placeholder="Type a message…"></textarea>
-                        <button type="button" class="btn-send" id="btnSend" title="Send"><i class="fas fa-paper-plane"></i></button>
+                    <div class="composer-wrap">
+                        <div class="attach-menu hidden" id="attachMenu">
+                            <button type="button" class="attach-menu-item" id="btnPickPhoto">
+                                <span class="attach-menu-icon photo"><i class="fas fa-image"></i></span>
+                                <span class="attach-menu-label">Photos</span>
+                            </button>
+                            <button type="button" class="attach-menu-item" id="btnPickDocument">
+                                <span class="attach-menu-icon doc"><i class="fas fa-file-lines"></i></span>
+                                <span class="attach-menu-label">Document</span>
+                            </button>
+                        </div>
+                        <div class="composer">
+                            <button type="button" class="btn-icon" id="btnAttach" title="Attach"><i class="fas fa-plus"></i></button>
+                            <button type="button" class="btn-icon" id="btnEmoji" title="Insert emoji"><i class="far fa-face-smile"></i></button>
+                            <input type="file" id="photoInput" hidden accept="image/jpeg,image/png,image/gif,image/webp,image/bmp" multiple>
+                            <input type="file" id="fileInput" hidden accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                            <textarea id="msgInput" rows="1" placeholder="Type a message…"></textarea>
+                            <button type="button" class="btn-send" id="btnSend" title="Send message"><i class="fas fa-paper-plane"></i></button>
+                        </div>
                     </div>
                 </footer>
             </div>
         </main>
     </div>
 
-    <div class="chat-modal-overlay" id="groupModal">
-        <div class="chat-modal">
+    <div class="msg-context-menu hidden" id="msgContextMenu">
+        <button type="button" class="msg-ctx-item" id="ctxReply"><i class="fas fa-reply"></i> Reply</button>
+        <button type="button" class="msg-ctx-item" id="ctxEdit"><i class="fas fa-pen"></i> Edit</button>
+        <button type="button" class="msg-ctx-item msg-ctx-danger" id="ctxDelete"><i class="fas fa-trash"></i> Delete for everyone</button>
+        <button type="button" class="msg-ctx-item" id="ctxCopy"><i class="fas fa-copy"></i> Copy</button>
+    </div>
+
+    <div class="chat-modal-overlay" id="editMsgModal">
+        <div class="chat-modal edit-modal">
             <div class="modal-head">
-                <h3>New group</h3>
-                <button type="button" class="btn-icon" id="closeGroupModal"><i class="fas fa-times"></i></button>
+                <h3><i class="fas fa-pen modal-icon-accent"></i> Edit message</h3>
+                <button type="button" class="btn-icon" id="closeEditModal" aria-label="Close"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
-                <label class="lbl">Group name</label>
-                <input type="text" class="inp" id="groupTitle" placeholder="e.g. Sales team">
-                <label class="lbl">Add members</label>
-                <input type="text" class="inp" id="groupMemberSearch" placeholder="BID or Gmail…">
-                <div class="chat-search-results modal-results hidden" id="groupSearchResults"></div>
-                <div class="chip-tray" id="groupSelected"></div>
+                <textarea class="inp edit-textarea" id="editMsgInput" rows="4" placeholder="Update your message…"></textarea>
             </div>
             <div class="modal-actions">
-                <button type="button" class="btn-secondary" id="cancelGroup">Cancel</button>
-                <button type="button" class="btn-primary" id="createGroup">Create</button>
+                <button type="button" class="btn-secondary" id="cancelEditMsg">Cancel</button>
+                <button type="button" class="btn-primary" id="confirmEditMsg">Save changes</button>
             </div>
         </div>
     </div>
 
-    <div class="chat-toast" id="chatToast"></div>
-    <script src="js/chat-app.js?v=4"></script>
+    <div class="chat-modal-overlay" id="deleteMsgModal">
+        <div class="chat-modal delete-modal">
+            <div class="modal-head">
+                <h3><i class="fas fa-trash-alt modal-icon-danger"></i> Delete message</h3>
+                <button type="button" class="btn-icon" id="closeDeleteModal" aria-label="Close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-copy">This removes the message for <strong>everyone</strong> in the conversation. This action cannot be undone.</p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" id="cancelDeleteMsg">Cancel</button>
+                <button type="button" class="btn-primary btn-danger" id="confirmDeleteMsg">Delete for everyone</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-modal-overlay" id="chatActionModal">
+        <div class="chat-modal delete-modal">
+            <div class="modal-head">
+                <h3 id="chatActionTitle">Confirm</h3>
+                <button type="button" class="btn-icon" id="closeChatActionModal" aria-label="Close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p id="chatActionBody" class="modal-copy"></p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" id="cancelChatAction">Cancel</button>
+                <button type="button" class="btn-primary btn-danger" id="confirmChatAction">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-modal-overlay" id="groupModal">
+        <div class="chat-modal chat-modal--group">
+            <div class="modal-head">
+                <h3><i class="fas fa-user-group modal-icon-accent"></i> New group chat</h3>
+                <button type="button" class="btn-icon" id="closeGroupModal" aria-label="Close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body group-modal-body">
+                <div class="group-hero">
+                    <div class="group-avatar-preview" id="groupAvatarPreview"><i class="fas fa-users"></i></div>
+                    <div class="group-hero-fields">
+                        <label class="lbl" for="groupTitle">Group name</label>
+                        <input type="text" class="inp" id="groupTitle" placeholder="e.g. HR Operations, Sales Team">
+                        <p class="group-hint">Like Teams or WhatsApp — add colleagues and start chatting together.</p>
+                    </div>
+                </div>
+                <label class="lbl" for="groupMemberSearch">Add participants</label>
+                <div class="group-search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="inp group-search-inp" id="groupMemberSearch" placeholder="Search name, email, or BID…">
+                </div>
+                <div class="chat-search-results modal-results hidden" id="groupSearchResults"></div>
+                <div class="group-members-head">
+                    <span>Selected</span>
+                    <span class="group-member-count" id="groupMemberCount">0 participants</span>
+                </div>
+                <div class="group-member-tray" id="groupSelected"></div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" id="cancelGroup">Cancel</button>
+                <button type="button" class="btn-primary" id="createGroup" disabled>Create group</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-modal-overlay" id="profileModal">
+        <div class="chat-modal chat-modal--profile">
+            <div class="modal-head">
+                <h3><i class="fas fa-circle-user modal-icon-accent"></i> My profile</h3>
+                <button type="button" class="btn-icon" id="closeProfileModal" aria-label="Close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body profile-modal-body">
+                <div class="profile-dp-wrap">
+                    <button type="button" class="profile-dp-btn" id="profileDpBtn" title="Change profile photo">
+                        <div class="profile-dp-preview" id="profileDpPreview">
+                            <span class="profile-dp-initials" id="profileDpInitials">U</span>
+                            <img class="profile-dp-img hidden" id="profileDpImg" src="" alt="Profile photo">
+                        </div>
+                        <span class="profile-dp-overlay"><i class="fas fa-camera"></i><span>Change photo</span></span>
+                    </button>
+                    <input type="file" id="profilePhotoInput" hidden accept="image/jpeg,image/png,image/gif,image/webp">
+                </div>
+                <div class="profile-identity">
+                    <h4 id="profileModalName">—</h4>
+                    <p class="profile-role" id="profileModalRole">—</p>
+                    <p class="profile-meta" id="profileModalMeta">—</p>
+                </div>
+                <div class="profile-actions-row">
+                    <button type="button" class="profile-action-btn" id="btnUploadProfilePhoto">
+                        <i class="fas fa-upload"></i> Upload photo
+                    </button>
+                    <button type="button" class="profile-action-btn profile-action-btn--danger hidden" id="btnRemoveProfilePhoto">
+                        <i class="fas fa-trash-can"></i> Remove photo
+                    </button>
+                </div>
+                <p class="profile-hint">Your photo appears in conversations, search, and the nav bar. JPG, PNG, GIF, or WEBP · max 3MB.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-lightbox hidden" id="chatLightbox" role="dialog" aria-label="Image preview">
+        <button type="button" class="chat-lightbox-close" id="closeLightbox" aria-label="Close"><i class="fas fa-times"></i></button>
+        <img id="lightboxImg" src="" alt="Preview">
+        <a class="chat-lightbox-dl" id="lightboxDownload" href="#" download target="_blank" rel="noopener"><i class="fas fa-download"></i> Download</a>
+    </div>
+
+    <div class="chat-toast" id="chatToast" role="status" aria-live="polite"></div>
+    <script src="js/portal-access.js"></script>
+    <script src="js/chat-app.js?v=24"></script>
 </body>
 </html>

@@ -42,17 +42,21 @@ function ensure_portal_role_enum(mysqli $conn): void {
 
     $type = $row['Type'] ?? '';
 
-    if (stripos($type, 'data_entry') !== false) {
+    $required = ['super_admin', 'data_entry', 'dialer', 'developer', 'analytics', 'attendance', 'receptionist'];
 
-        return;
+    foreach ($required as $role) {
+
+        if (stripos($type, $role) === false) {
+
+            $enum = "'super_admin','admin','hr','recruiter','management','training','agent','receptionist','user','team_lead','floor_manager','data_entry','dialer','developer','analytics','attendance'";
+
+            @$conn->query("ALTER TABLE `users` MODIFY `portal_role` ENUM($enum) NOT NULL DEFAULT 'user'");
+
+            return;
+
+        }
 
     }
-
-
-
-    $enum = "'super_admin','admin','hr','recruiter','management','training','agent','receptionist','user','team_lead','floor_manager','data_entry','dialer','developer','analytics','attendance'";
-
-    @$conn->query("ALTER TABLE `users` MODIFY `portal_role` ENUM($enum) NOT NULL DEFAULT 'user'");
 
 }
 
@@ -253,13 +257,67 @@ function employee_portal_roles(): array {
 
 }
 
+/** Employee Self Service dashboard (all staff). */
+function employee_self_service_url(): string {
+
+    return 'employee-portal.html';
+
+}
+
+/** Work HRMS portal — pure `user` employees only get Self Service. */
+function user_can_access_work_portal(string $role): bool {
+
+    if (in_array($role, ['super_admin', 'admin'], true)) {
+
+        return true;
+
+    }
+
+    return $role !== 'user';
+
+}
+
+/** Admin user-management: who may create or assign the super_admin role. */
+function can_assign_super_admin_role(string $actor_role): bool {
+
+    return in_array($actor_role, ['admin', 'super_admin'], true);
+
+}
+
+/** Team leads & floor managers — limited admin dashboard (attendance only). */
+function team_manager_roles(): array {
+
+    return ['team_lead', 'floor_manager'];
+
+}
+
+function role_has_limited_admin_dashboard(string $role): bool {
+
+    return in_array($role, team_manager_roles(), true);
+
+}
+
+function role_can_access_admin_dashboard(string $role): bool {
+
+    return in_array($role, ['super_admin', 'admin', 'attendance', 'team_lead', 'floor_manager'], true);
+
+}
+
+/** Who may see attendance controls on the admin command center. */
+function role_can_view_admin_attendance(string $role): bool {
+
+    return in_array($role, ['super_admin', 'admin', 'attendance', 'team_lead', 'floor_manager'], true);
+
+}
 
 
-function portal_url_for_role(string $role): ?string {
 
-    if (in_array($role, employee_portal_roles(), true)) {
+/** Dedicated work portal URL (never mixes ESS into recruiter/HR/admin). */
+function work_portal_url_for_role(string $role): ?string {
 
-        return 'employee-portal.html';
+    if ($role === 'user') {
+
+        return null;
 
     }
 
@@ -287,17 +345,37 @@ function portal_url_for_role(string $role): ?string {
 
         'attendance' => 'attendance/attendance-dashboard.html',
 
+        'team_lead' => 'admin-dashboard.html',
+
+        'floor_manager' => 'admin-dashboard.html',
+
     ];
 
-    return $map[$role] ?? null;
+    if (isset($map[$role])) {
+
+        return $map[$role];
+
+    }
+
+    if (in_array($role, array_diff(employee_portal_roles(), team_manager_roles()), true)) {
+
+        return employee_self_service_url();
+
+    }
+
+    return null;
 
 }
 
+function portal_url_for_role(string $role): ?string {
 
+    return work_portal_url_for_role($role);
+
+}
 
 function portal_redirect_for_role(string $role): string {
 
-    return portal_url_for_role($role) ?? 'employee-portal.html';
+    return work_portal_url_for_role($role) ?? employee_self_service_url();
 
 }
 
@@ -331,7 +409,17 @@ function portal_role_may_access(string $user_role, string $portal_key): bool {
 
     $user_role = $aliases[$user_role] ?? $user_role;
 
+    if ($portal_key === 'employee') {
 
+        return true;
+
+    }
+
+    if (in_array($user_role, team_manager_roles(), true)) {
+
+        return in_array($portal_key, ['admin', 'attendance', 'employee'], true);
+
+    }
 
     $portal_roles = [
 
@@ -351,11 +439,7 @@ function portal_role_may_access(string $user_role, string $portal_key): bool {
 
         'admin' => ['admin'],
 
-        'employee' => employee_portal_roles(),
-
     ];
-
-
 
     if (!isset($portal_roles[$portal_key])) {
 

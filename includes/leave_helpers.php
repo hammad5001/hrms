@@ -13,7 +13,7 @@ function get_session_user(mysqli $conn): ?array {
 
 function user_is_manager(array $user): bool {
     $role = $user['portal_role'] ?? '';
-    if (in_array($role, ['team_lead', 'floor_manager', 'hr', 'admin', 'management'], true)) {
+    if (in_array($role, ['super_admin', 'team_lead', 'floor_manager', 'hr', 'admin', 'management'], true)) {
         return true;
     }
     $des = strtolower($user['designation'] ?? '');
@@ -22,6 +22,36 @@ function user_is_manager(array $user): bool {
 
 function user_can_approve_leaves(array $user): bool {
     return user_is_manager($user);
+}
+
+/** Roles that may be selected as leave approvers in employee portal search. */
+function user_can_be_leave_approver(array $user): bool {
+    $role = $user['portal_role'] ?? '';
+    return in_array($role, ['super_admin', 'admin', 'hr', 'team_lead', 'floor_manager', 'management'], true);
+}
+
+/** Managers may apply leave on behalf of another employee. */
+function user_can_select_employee_for_leave(array $user): bool {
+    return user_can_be_leave_approver($user);
+}
+
+function apply_through_for_approver(array $approver): string {
+    $level = approver_level_for_user($approver);
+    if ($level === 'team_lead') {
+        return 'team_lead';
+    }
+    if ($level === 'floor_manager') {
+        return 'floor_manager';
+    }
+    return 'hr';
+}
+
+function fetch_user_by_id(mysqli $conn, int $id): ?array {
+    $stmt = $conn->prepare("SELECT id, full_name, email, portal_role, designation, team, department, employee_code, company_branch, status FROM users WHERE id = ? LIMIT 1");
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    return $row ?: null;
 }
 
 /** @return array<int, array> */
@@ -134,6 +164,8 @@ function leave_request_row_to_array(array $row): array {
         'half_day_slot' => $row['half_day_slot'],
         'reason' => $row['reason'],
         'apply_through' => $row['apply_through'],
+        'approver_user_id' => isset($row['approver_user_id']) ? (int)$row['approver_user_id'] : null,
+        'approver_name' => $row['approver_name'] ?? null,
         'status' => $row['status'],
         'tl_status' => $row['tl_status'],
         'fm_status' => $row['fm_status'],

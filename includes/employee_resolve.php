@@ -3,6 +3,23 @@
  * Resolve real biometric BID for portal users (recruiters often have REC#### placeholders).
  */
 require_once __DIR__ . '/employee_sheet.php';
+require_once __DIR__ . '/company_branches.php';
+require_once __DIR__ . '/attendance_shift.php';
+
+/** Attendance / employee tables per company branch (main vs commercial). */
+function branch_attendance_table(?string $branch = null): string {
+    $branch = normalize_company_branch(
+        $branch ?? (function_exists('get_active_company_branch') ? get_active_company_branch() : 'main')
+    );
+    return $branch === 'commercial' ? 'attendance_commercial_raw' : 'attendance_raw';
+}
+
+function branch_employees_table(?string $branch = null): string {
+    $branch = normalize_company_branch(
+        $branch ?? (function_exists('get_active_company_branch') ? get_active_company_branch() : 'main')
+    );
+    return $branch === 'commercial' ? 'employees_commercial' : 'employees';
+}
 
 function normalize_person_name(string $name): string {
     return strtolower(preg_replace('/[^a-z0-9]/', '', trim($name)));
@@ -29,7 +46,7 @@ function employee_code_variants(string $code): array {
     return array_values(array_unique(array_filter($variants)));
 }
 
-function attendance_codes_have_punches(mysqli $conn, array $codes): bool {
+function attendance_codes_have_punches(mysqli $conn, array $codes, ?string $branch = null): bool {
     $variants = [];
     foreach ($codes as $c) {
         foreach (employee_code_variants((string)$c) as $v) {
@@ -40,9 +57,10 @@ function attendance_codes_have_punches(mysqli $conn, array $codes): bool {
     if (empty($variants)) {
         return false;
     }
+    $table = branch_attendance_table($branch);
     $placeholders = implode(',', array_fill(0, count($variants), '?'));
     $types = str_repeat('s', count($variants));
-    $stmt = $conn->prepare("SELECT 1 FROM attendance_raw WHERE user_id IN ($placeholders) LIMIT 1");
+    $stmt = $conn->prepare("SELECT 1 FROM `$table` WHERE user_id IN ($placeholders) LIMIT 1");
     $stmt->bind_param($types, ...$variants);
     $stmt->execute();
     return (bool)$stmt->get_result()->fetch_row();
@@ -74,13 +92,14 @@ function find_employee_code_by_sheet_name(mysqli $conn, string $fullName): ?stri
     return $bestCode;
 }
 
-function find_employee_code_by_attendance_name(mysqli $conn, string $fullName): ?string {
+function find_employee_code_by_attendance_name(mysqli $conn, string $fullName, ?string $branch = null): ?string {
     $want = normalize_person_name($fullName);
     if ($want === '') {
         return null;
     }
+    $table = branch_attendance_table($branch);
     $stmt = $conn->prepare("
-        SELECT user_id, name FROM attendance_raw
+        SELECT user_id, name FROM `$table`
         WHERE name IS NOT NULL AND name != ''
         AND timestamp >= DATE_SUB(NOW(), INTERVAL 90 DAY)
         GROUP BY user_id, name
@@ -109,12 +128,17 @@ function find_employee_code_by_attendance_name(mysqli $conn, string $fullName): 
     return $bestId;
 }
 
-function find_employee_code_by_email(mysqli $conn, string $email): ?string {
+function find_employee_code_by_email(mysqli $conn, string $email, ?string $branch = null): ?string {
     $email = trim(strtolower($email));
     if ($email === '') {
         return null;
     }
-    $stmt = $conn->prepare("SELECT employee_code FROM employees WHERE LOWER(email) = ? AND is_active = 1 LIMIT 1");
+    $table = branch_employees_table($branch);
+    $colCheck = $conn->query("SHOW COLUMNS FROM `$table` LIKE 'email'");
+    if (!$colCheck || $colCheck->num_rows === 0) {
+        return null;
+    }
+    $stmt = $conn->prepare("SELECT employee_code FROM `$table` WHERE LOWER(email) = ? AND is_active = 1 LIMIT 1");
     if ($stmt) {
         $stmt->bind_param('s', $email);
         $stmt->execute();
@@ -140,6 +164,7 @@ function resolve_employee_code_for_user(mysqli $conn, array $user, bool $persist
     $userId = (int)($user['id'] ?? 0);
     $fullName = trim((string)($user['full_name'] ?? ''));
     $email = trim((string)($user['email'] ?? ''));
+    $branch = normalize_company_branch($user['company_branch'] ?? null);
 
     $candidates = [];
 
@@ -148,7 +173,7 @@ function resolve_employee_code_for_user(mysqli $conn, array $user, bool $persist
     }
 
     if ($email !== '') {
-        $byEmail = find_employee_code_by_email($conn, $email);
+        $byEmail = find_employee_code_by_email($conn, $email, $branch);
         if ($byEmail) {
             $candidates[] = ['code' => $byEmail, 'source' => 'email'];
         }
@@ -159,7 +184,7 @@ function resolve_employee_code_for_user(mysqli $conn, array $user, bool $persist
         if ($bySheet) {
             $candidates[] = ['code' => $bySheet, 'source' => 'sheet_name'];
         }
-        $byAtt = find_employee_code_by_attendance_name($conn, $fullName);
+        $byAtt = find_employee_code_by_attendance_name($conn, $fullName, $branch);
         if ($byAtt) {
             $candidates[] = ['code' => $byAtt, 'source' => 'attendance_name'];
         }
@@ -188,7 +213,7 @@ function resolve_employee_code_for_user(mysqli $conn, array $user, bool $persist
     foreach ($ordered as $c) {
         $code = $c['code'];
         $variants = employee_code_variants($code);
-        $hasPunches = attendance_codes_have_punches($conn, $variants);
+        $hasPunches = attendance_codes_have_punches($conn, $variants, $branch);
         $inSheet = (bool)get_employee_from_sheet($conn, $code);
         if ($hasPunches || $inSheet) {
             $resolved = $code;
@@ -260,11 +285,12 @@ function enrich_user_from_sheet(mysqli $conn, array &$user, string $empCode): vo
     }
 }
 
-function fetch_attendance_bundle(mysqli $conn, string $empCode, string $today): array {
+function fetch_attendance_bundle(mysqli $conn, string $empCode, string $today, ?string $branch = null): array {
     $attendance_raw = [];
     $check_in = null;
     $check_out = null;
     $times = [];
+    $shift_date = ess_active_shift_date();
     $attendance_summary = [
         'present_days' => 0,
         'late_days' => 0,
@@ -273,13 +299,14 @@ function fetch_attendance_bundle(mysqli $conn, string $empCode, string $today): 
 
     $codes = employee_code_variants($empCode);
     if (empty($codes)) {
-        return compact('attendance_raw', 'check_in', 'check_out', 'times', 'attendance_summary');
+        return compact('attendance_raw', 'check_in', 'check_out', 'times', 'attendance_summary', 'shift_date');
     }
 
+    $table = branch_attendance_table($branch);
     $placeholders = implode(',', array_fill(0, count($codes), '?'));
     $types = str_repeat('s', count($codes));
 
-    $sql = "SELECT timestamp FROM attendance_raw
+    $sql = "SELECT timestamp FROM `$table`
             WHERE user_id IN ($placeholders)
             AND timestamp >= DATE_SUB(NOW(), INTERVAL 30 DAY)
             ORDER BY timestamp ASC";
@@ -287,53 +314,41 @@ function fetch_attendance_bundle(mysqli $conn, string $empCode, string $today): 
     $hist->bind_param($types, ...$codes);
     $hist->execute();
     $res = $hist->get_result();
+
+    $allTimestamps = [];
     while ($row = $res->fetch_assoc()) {
-        $attendance_raw[] = ['timestamp' => $row['timestamp']];
+        $ts = $row['timestamp'];
+        $allTimestamps[] = $ts;
+        $attendance_raw[] = [
+            'timestamp' => $ts,
+            'shift_date' => ess_shift_date_for_timestamp($ts),
+        ];
     }
     $attendance_summary['total_punches'] = count($attendance_raw);
 
-    $daySql = "SELECT timestamp FROM attendance_raw
-               WHERE user_id IN ($placeholders) AND DATE(timestamp) = ?
-               ORDER BY timestamp ASC";
-    $day = $conn->prepare($daySql);
-    $dayTypes = $types . 's';
-    $dayParams = array_merge($codes, [$today]);
-    $day->bind_param($dayTypes, ...$dayParams);
-    $day->execute();
-    $punches = $day->get_result();
-    while ($p = $punches->fetch_assoc()) {
-        $times[] = $p['timestamp'];
-    }
-    if (count($times) >= 1) {
-        $check_in = $times[0];
-    }
-    if (count($times) >= 2) {
-        $check_out = $times[count($times) - 1];
-    }
+    $shiftPunches = ess_resolve_shift_punches($allTimestamps, $shift_date);
+    $check_in = $shiftPunches['check_in'];
+    $check_out = $shiftPunches['check_out'];
+    $times = $shiftPunches['times'];
 
     $monthStart = date('Y-m-01');
     $monthEnd = date('Y-m-t');
-    $mSql = "SELECT DATE(timestamp) AS d, MIN(TIME(timestamp)) AS first_in
-             FROM attendance_raw
-             WHERE user_id IN ($placeholders) AND DATE(timestamp) BETWEEN ? AND ?
-             GROUP BY DATE(timestamp)";
-    $mStmt = $conn->prepare($mSql);
-    $mTypes = $types . 'ss';
-    $mParams = array_merge($codes, [$monthStart, $monthEnd]);
-    $mStmt->bind_param($mTypes, ...$mParams);
-    $mStmt->execute();
-    $mRes = $mStmt->get_result();
-    while ($row = $mRes->fetch_assoc()) {
-        $attendance_summary['present_days']++;
-        $parts = explode(':', $row['first_in']);
-        $h = (int)($parts[0] ?? 0);
-        $m = (int)($parts[1] ?? 0);
-        if ($h > 18 || ($h === 18 && $m > 10)) {
-            $attendance_summary['late_days']++;
+    $cursor = strtotime($monthStart);
+    $monthEndTs = strtotime($monthEnd);
+
+    while ($cursor <= $monthEndTs) {
+        $d = date('Y-m-d', $cursor);
+        $dayShift = ess_resolve_shift_punches($allTimestamps, $d);
+        if ($dayShift['check_in'] || $dayShift['check_out']) {
+            $attendance_summary['present_days']++;
+            if (ess_is_late_checkin($dayShift['check_in'], $d)) {
+                $attendance_summary['late_days']++;
+            }
         }
+        $cursor = strtotime('+1 day', $cursor);
     }
 
-    return compact('attendance_raw', 'check_in', 'check_out', 'times', 'attendance_summary');
+    return compact('attendance_raw', 'check_in', 'check_out', 'times', 'attendance_summary', 'shift_date');
 }
 
 function fetch_payroll_bundle(mysqli $conn, string $empCode, string $month, string $branch): array {

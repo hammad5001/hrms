@@ -14,7 +14,7 @@ function resolve_logged_in_user(mysqli $conn): ?array {
         $id = (int)$_SESSION['user_id'];
         $stmt = $conn->prepare("
             SELECT id, full_name, email, portal_role, employee_code, phone, department, designation,
-                   branch, team, joined_date, status,
+                   branch, team, joined_date, status, chat_avatar,
                    COALESCE(NULLIF(company_branch, ''), 'main') AS company_branch
             FROM users WHERE id = ? LIMIT 1
         ");
@@ -30,7 +30,7 @@ function resolve_logged_in_user(mysqli $conn): ?array {
         $email = $_SESSION['email'];
         $stmt = $conn->prepare("
             SELECT id, full_name, email, portal_role, employee_code, phone, department, designation,
-                   branch, team, joined_date, status,
+                   branch, team, joined_date, status, chat_avatar,
                    COALESCE(NULLIF(company_branch, ''), 'main') AS company_branch
             FROM users WHERE email = ? LIMIT 1
         ");

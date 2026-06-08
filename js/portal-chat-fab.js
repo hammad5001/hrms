@@ -1,31 +1,31 @@
 /**
- * Floating Chat button on all Balitech portals (skip login page).
+ * Floating Chat button — Employee Self Service portal only (opens in-page chat view).
  */
 (function () {
     if (document.getElementById('portalChatFab')) return;
-    const path = window.location.pathname || '';
-    if (/\/index\.html?$/i.test(path) || path.endsWith('/') && !path.includes('portal')) {
-        const baseName = path.split('/').pop();
-        if (baseName === '' || baseName === 'interview-forms' || baseName === 'interview-forms/') return;
-    }
-    if (/index\.html$/i.test(path) && !path.includes('portal')) return;
 
-    const inAttendance = /\/attendance\//i.test(path);
-    const base = inAttendance ? '..' : '.';
-    const chatUrl = base + '/chat-portal.html';
+    const path = (window.location.pathname || '').toLowerCase();
+    if (!path.includes('employee-portal.html')) {
+        return;
+    }
 
     if (!document.querySelector('link[href*="portal-chat-fab.css"]')) {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
-        link.href = base + '/css/portal-chat-fab.css';
+        link.href = 'css/portal-chat-fab.css';
         document.head.appendChild(link);
     }
 
-    const a = document.createElement('a');
-    a.id = 'portalChatFab';
-    a.href = chatUrl;
-    a.className = 'portal-chat-fab';
-    a.title = 'Balitech Chat';
-    a.innerHTML = '<i class="fas fa-comments"></i><span>Chat</span>';
-    document.body.appendChild(a);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'portalChatFab';
+    btn.className = 'portal-chat-fab';
+    btn.title = 'Balitech Chat';
+    btn.innerHTML = '<i class="fas fa-comments"></i><span>Chat</span>';
+    btn.addEventListener('click', () => {
+        if (typeof window.showView === 'function') {
+            window.showView('chat');
+        }
+    });
+    document.body.appendChild(btn);
 })();

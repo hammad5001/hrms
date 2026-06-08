@@ -34,10 +34,14 @@ $rec = $stmt->get_result()->fetch_assoc() ?: [];
 $user = array_merge($user, $rec);
 
 // Sync session
-$_SESSION['recruiter_type'] = $user['recruiter_type'] ?? 'regular';
 $_SESSION['full_name'] = $user['full_name'];
 $user['portal_role'] = sync_user_portal_role($conn, $user);
 $_SESSION['portal_role'] = $user['portal_role'];
+if ($user['portal_role'] === 'super_admin') {
+    $_SESSION['recruiter_type'] = 'super';
+} else {
+    $_SESSION['recruiter_type'] = $user['recruiter_type'] ?? 'regular';
+}
 if (empty($_SESSION['company_branch'])) {
     $_SESSION['company_branch'] = $user['company_branch'];
 }

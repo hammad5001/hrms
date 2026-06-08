@@ -67,18 +67,25 @@ function get_active_company_branch(): string {
     return is_valid_company_branch($b) ? $b : 'main';
 }
 
+/** Only Super Admin may sign in from any company branch. */
 function user_can_access_branch(?string $user_branch, string $selected_branch, ?string $portal_role = null): bool {
-    if ($portal_role === 'admin') {
+    if ($portal_role === 'super_admin') {
         return true;
     }
     $user_branch = normalize_company_branch($user_branch ?: 'main');
     return $user_branch === normalize_company_branch($selected_branch);
 }
 
+/** User-facing message when login branch does not match the account. */
+function branch_login_mismatch_message(?string $user_branch): string {
+    $label = company_branch_label(normalize_company_branch($user_branch ?: 'main'));
+    return 'This account is registered at ' . $label . '. Select ' . $label . ' on the login page, then sign in again.';
+}
+
 function branch_sql_filter(mysqli $conn, string $alias = ''): array {
     ensure_company_branch_schema($conn);
     $col = ($alias ? $alias . '.' : '') . 'company_branch';
-    if (isset($_SESSION['portal_role']) && $_SESSION['portal_role'] === 'admin') {
+    if (isset($_SESSION['portal_role']) && in_array($_SESSION['portal_role'], ['admin', 'super_admin'], true)) {
         $branch = get_active_company_branch();
         return ["$col = ?", 's', [$branch]];
     }

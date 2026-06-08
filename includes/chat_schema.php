@@ -65,15 +65,40 @@ function ensure_chat_schema(mysqli $conn): void {
 
     @$conn->query("ALTER TABLE `chat_participants` ADD COLUMN `last_active_at` DATETIME DEFAULT NULL");
     @$conn->query("ALTER TABLE `chat_participants` ADD COLUMN `typing_until` DATETIME DEFAULT NULL");
+    @$conn->query("ALTER TABLE `chat_messages` ADD COLUMN `is_edited` TINYINT(1) NOT NULL DEFAULT 0");
+    @$conn->query("ALTER TABLE `chat_messages` ADD COLUMN `is_deleted` TINYINT(1) NOT NULL DEFAULT 0");
+    @$conn->query("ALTER TABLE `chat_messages` ADD COLUMN `edited_at` DATETIME DEFAULT NULL");
+
+    @$conn->query("ALTER TABLE `chat_messages` ADD INDEX `idx_conv_id` (`conversation_id`, `id`)");
+    @$conn->query("ALTER TABLE `chat_messages` ADD INDEX `idx_conv_deleted` (`conversation_id`, `is_deleted`, `id`)");
+    @$conn->query("ALTER TABLE `chat_participants` ADD INDEX `idx_user_conv` (`user_id`, `conversation_id`)");
+    @$conn->query("ALTER TABLE `chat_message_receipts` ADD INDEX `idx_msg_read` (`message_id`, `read_at`)");
+    @$conn->query("ALTER TABLE `users` ADD COLUMN `chat_avatar` VARCHAR(255) DEFAULT NULL");
 
     $uploadDir = dirname(__DIR__) . '/uploads/chat';
     if (!is_dir($uploadDir)) {
         @mkdir($uploadDir, 0755, true);
     }
+    $avatarDir = chat_avatar_dir();
+    if (!is_dir($avatarDir)) {
+        @mkdir($avatarDir, 0755, true);
+    }
 }
 
 function chat_upload_dir(): string {
     return dirname(__DIR__) . '/uploads/chat';
+}
+
+function chat_avatar_dir(): string {
+    return dirname(__DIR__) . '/uploads/chat/avatars';
+}
+
+function chat_public_avatar_url(?string $storedName): string {
+    $storedName = $storedName ? basename($storedName) : '';
+    if ($storedName === '') {
+        return '';
+    }
+    return 'uploads/chat/avatars/' . $storedName;
 }
 
 function chat_upload_url_prefix(): string {

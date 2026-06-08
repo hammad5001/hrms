@@ -1,0 +1,21 @@
+/* Embedded chat (inside employee-portal iframe) */
+html.chat-embed-mode,
+html.chat-embed-mode body.chat-body {
+    height: 100%;
+    overflow: hidden;
+}
+
+html.chat-embed-mode .chat-nav-sidebar,
+html.chat-embed-mode #chatBackLink {
+    display: none !important;
+}
+
+html.chat-embed-mode .chat-app-frame {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+}
+
+html.chat-embed-mode .chat-sidebar {
+    border-left: none;
+}

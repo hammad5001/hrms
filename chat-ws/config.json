@@ -1,0 +1,19 @@
+{
+  "port": 8765,
+  "secret": "balitech-chat-ws-change-me",
+  "redis": {
+    "enabled": false,
+    "host": "127.0.0.1",
+    "port": 6379,
+    "password": "",
+    "db": 0,
+    "channel": "chat:events",
+    "keyPrefix": "balitech:chat:"
+  },
+  "limits": {
+    "maxSocketsPerUser": 5,
+    "wsMessagesPerMinute": 180,
+    "maxPayloadBytes": 65536
+  },
+  "onlineTtlSeconds": 120
+}

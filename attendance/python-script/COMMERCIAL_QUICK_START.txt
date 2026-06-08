@@ -1,0 +1,37 @@
+COMMERCIAL BRANCH - ATTENDANCE FETCH
+====================================
+
+Device IPs (tries both automatically):
+  Office LAN:  10.10.40.221:4370
+  Public:      125.209.68.118:4370
+Script ver:    3.2.0
+
+HOW TO RUN (for teammates at commercial office)
+-----------------------------------------------
+1. Open folder:
+   C:\xampp\htdocs\interview-forms\attendance\python-script
+
+2. Double-click:  fetch_today_commercial.bat
+
+3. You must see:  Version: 3.2.0
+
+IF YOU ARE NOT AT COMMERCIAL OFFICE (main branch PC)
+----------------------------------------------------
+The device may timeout — that is normal (firewall/VPN blocks port 4370).
+
+Workaround:
+1. Fellow at commercial office runs fetch_today_commercial.bat
+2. Fellow copies to commercial_import\ folder:
+   - attendance_master_commercial.csv
+   - all_users_commercial.xlsx
+3. You run:  python attendance_collector_commercial.py import
+
+Test network:
+  venv\Scripts\activate
+  python attendance_collector_commercial.py network
+
+IMPORTANT
+---------
+- DO NOT copy/paste Python code from chat/WhatsApp
+- Use ONLY attendance_collector_commercial.py in this folder
+- XAMPP MySQL must be running

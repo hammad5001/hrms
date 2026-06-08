@@ -4,810 +4,148 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Balitech · HRMS Enterprise Login</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="description" content="Balitech HRMS — employee self service, attendance, payroll, recruitment, and role-based work portals.">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/images/balitech-favicon-32.png?v=5">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/images/balitech-favicon-192.png?v=5">
+    <link rel="shortcut icon" type="image/png" href="assets/images/balitech-favicon-32.png?v=5">
+    <link rel="apple-touch-icon" href="assets/images/balitech-favicon-192.png?v=5">
+    <link rel="manifest" href="site.webmanifest?v=5">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Balitech · HRMS Enterprise Login">
+    <meta property="og:description" content="Balitech HRMS — employee self service, attendance, payroll, recruitment, and role-based work portals.">
+    <meta property="og:image" content="assets/images/balitech-favicon.png?v=5">
+    <meta property="og:image:alt" content="Balitech logo">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:image" content="assets/images/balitech-favicon.png?v=5">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary: #f97316;
-            --primary-dark: #ea580c;
-            --primary-light: #ffedd5;
-            --primary-glow: rgba(249,115,22,0.5);
-            --primary-glow-strong: rgba(249,115,22,0.7);
-            --secondary: #10b981;
-            --secondary-glow: rgba(16,185,129,0.3);
-            --danger: #ef4444;
-            --danger-light: #fecaca;
-            --warning: #f59e0b;
-            --info: #3b82f6;
-            --purple: #8b5cf6;
-            --dark: #0a0c15;
-            --dark-80: rgba(10, 12, 21, 0.8);
-            --dark-60: rgba(10, 12, 21, 0.6);
-            --glass: rgba(255, 255, 255, 0.07);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
-            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-            --shadow-glow: 0 0 30px var(--primary-glow);
-            --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            --gradient-primary-reverse: linear-gradient(135deg, var(--primary-dark), var(--primary));
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: radial-gradient(circle at 20% 30%, #0f0c29, #302b63, #24243e);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        /* Animated Background */
-        .animated-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -2;
-            background: linear-gradient(125deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-        }
-
-        .animated-bg::before {
-            content: '';
-            position: absolute;
-            width: 200%;
-            height: 200%;
-            top: -50%;
-            left: -50%;
-            background: radial-gradient(circle, rgba(249,115,22,0.12) 0%, transparent 70%);
-            animation: slowRotate 30s linear infinite;
-        }
-
-        @keyframes slowRotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Floating Particles - Enhanced */
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            overflow: hidden;
-        }
-
-        .particle {
-            position: absolute;
-            background: linear-gradient(135deg, rgba(249,115,22,0.4), rgba(249,115,22,0.1));
-            border-radius: 50%;
-            animation: float linear infinite;
-            backdrop-filter: blur(2px);
-        }
-
-        @keyframes float {
-            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-            10% { opacity: 0.6; }
-            90% { opacity: 0.4; }
-            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
-        }
-
-        .login-container {
-            width: 100%;
-            max-width: 1100px;
-            position: relative;
-            z-index: 10;
-            animation: fadeInUp 0.8s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-
-        .login-shell {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0;
-            border-radius: 32px;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: var(--shadow-xl), 0 0 60px rgba(249,115,22,0.12);
-            min-height: 620px;
-        }
-
-        .login-hero {
-            background: linear-gradient(145deg, rgba(249,115,22,0.2), rgba(139,92,246,0.15));
-            padding: 48px 40px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .login-hero::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.08)"/></svg>');
-            opacity: 0.5;
-        }
-
-        .login-hero > * { position: relative; z-index: 1; }
-
-        .hrms-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(0,0,0,0.35);
-            border: 1px solid rgba(255,255,255,0.12);
-            padding: 8px 16px;
-            border-radius: 40px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: rgba(255,255,255,0.8);
-            margin-bottom: 24px;
-            width: fit-content;
-        }
-
-        .login-hero h2 {
-            font-size: 36px;
-            font-weight: 800;
-            color: white;
-            line-height: 1.2;
-            margin-bottom: 16px;
-        }
-
-        .login-hero h2 span {
-            background: linear-gradient(135deg, #fff, var(--primary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .login-hero > p {
-            color: rgba(255,255,255,0.55);
-            font-size: 14px;
-            line-height: 1.7;
-            margin-bottom: 32px;
-            max-width: 380px;
-        }
-
-        .feature-list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-
-        .feature-list li {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            color: rgba(255,255,255,0.75);
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .feature-list li i {
-            width: 36px;
-            height: 36px;
-            border-radius: 12px;
-            background: rgba(255,255,255,0.08);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary);
-            flex-shrink: 0;
-        }
-
-        .login-panel {
-            background: rgba(10, 12, 21, 0.85);
-            backdrop-filter: blur(24px);
-            padding: 44px 40px;
-        }
-
-        .branch-section {
-            margin-bottom: 28px;
-        }
-
-        .branch-section label {
-            display: block;
-            margin-bottom: 12px;
-            font-weight: 600;
-            color: rgba(255,255,255,0.75);
-            font-size: 12px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-
-        .branch-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-
-        .branch-chip {
-            padding: 12px 14px;
-            border-radius: 16px;
-            border: 1.5px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.03);
-            cursor: pointer;
-            transition: all 0.25s ease;
-            text-align: left;
-            color: rgba(255,255,255,0.7);
-            font-size: 12px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .branch-chip:hover {
-            border-color: rgba(255,255,255,0.25);
-            background: rgba(255,255,255,0.06);
-        }
-
-        .branch-chip.active {
-            border-color: var(--chip-color, var(--primary));
-            background: color-mix(in srgb, var(--chip-color, var(--primary)) 18%, transparent);
-            color: white;
-            box-shadow: 0 0 20px color-mix(in srgb, var(--chip-color, var(--primary)) 35%, transparent);
-        }
-
-        .branch-chip .dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--chip-color, var(--primary));
-            flex-shrink: 0;
-        }
-
-        .branch-select-hidden {
-            position: absolute;
-            opacity: 0;
-            pointer-events: none;
-            height: 0;
-            width: 0;
-        }
-
-        .panel-logo {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 28px;
-        }
-
-        .panel-logo .logo-icon {
-            width: 52px;
-            height: 52px;
-            font-size: 22px;
-            margin: 0;
-        }
-
-        .panel-logo h1 {
-            font-size: 22px;
-            margin: 0;
-            text-align: left;
-        }
-
-        .panel-logo p {
-            font-size: 10px;
-            margin: 4px 0 0;
-            text-align: left;
-        }
-
-        .login-card {
-            background: transparent;
-            border: none;
-            box-shadow: none;
-            padding: 0;
-            border-radius: 0;
-        }
-
-        .login-card:hover {
-            transform: none;
-            box-shadow: none;
-        }
-
-        .login-card::before, .login-card::after { display: none; }
-
-        .welcome-text { text-align: left; margin-bottom: 24px; }
-        .welcome-text h2 { font-size: 22px; -webkit-text-fill-color: white; color: white; }
-        .logo { display: none; }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(40px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .login-card {
-            background: rgba(10, 12, 21, 0.7);
-            backdrop-filter: blur(24px);
-            border-radius: 40px;
-            padding: 48px 40px;
-            border: 1px solid rgba(255,255,255,0.08);
-            box-shadow: var(--shadow-xl), 0 0 0 1px rgba(249,115,22,0.05);
-            position: relative;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-
-        .login-card:hover {
-            border-color: rgba(249,115,22,0.25);
-            box-shadow: var(--shadow-xl), 0 0 30px rgba(249,115,22,0.15);
-            transform: translateY(-2px);
-        }
-
-        /* Top Gradient Line - Enhanced */
-        .login-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, #f97316, #ea580c, #f97316, transparent);
-            animation: shimmer 3s ease-in-out infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        /* Corner Glow Effect */
-        .login-card::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 150px;
-            height: 150px;
-            background: radial-gradient(circle, rgba(249,115,22,0.08), transparent 70%);
-            pointer-events: none;
-            border-radius: 50%;
-        }
-
-        /* Logo Section - Enhanced */
-        .logo {
-            text-align: center;
-            margin-bottom: 36px;
-        }
-
-        .logo-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(145deg, var(--primary), var(--primary-dark));
-            border-radius: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 36px;
-            color: white;
-            margin: 0 auto 20px;
-            box-shadow: var(--shadow-glow);
-            animation: pulse 2s infinite;
-            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-
-        .logo-icon:hover {
-            transform: scale(1.05) rotate(5deg);
-            box-shadow: 0 0 40px var(--primary-glow-strong);
-        }
-
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 0 0 var(--primary-glow); }
-            50% { box-shadow: 0 0 30px 12px var(--primary-glow); }
-        }
-
-        .logo h1 {
-            font-size: 34px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #ffffff, var(--primary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
-            margin-bottom: 6px;
-        }
-
-        .logo p {
-            color: rgba(255,255,255,0.45);
-            font-size: 11px;
-            margin-top: 8px;
-            letter-spacing: 2.5px;
-            text-transform: uppercase;
-            font-weight: 600;
-        }
-
-        /* Welcome Text - Enhanced */
-        .welcome-text {
-            text-align: center;
-            margin-bottom: 36px;
-        }
-
-        .welcome-text h2 {
-            font-size: 28px;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 10px;
-            letter-spacing: -0.3px;
-            background: linear-gradient(135deg, #fff, rgba(255,255,255,0.7));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .welcome-text p {
-            color: rgba(255,255,255,0.45);
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        /* Form Group - Enhanced */
-        .form-group {
-            margin-bottom: 24px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: rgba(255,255,255,0.75);
-            font-size: 12px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-
-        .input-wrapper {
-            position: relative;
-        }
-
-        .input-wrapper i {
-            position: absolute;
-            left: 18px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--primary);
-            font-size: 18px;
-            z-index: 1;
-            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-
-        .input-wrapper input {
-            width: 100%;
-            padding: 15px 18px 15px 52px;
-            background: rgba(255,255,255,0.04);
-            border: 1.5px solid rgba(255,255,255,0.08);
-            border-radius: 60px;
-            font-size: 14px;
-            color: white;
-            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-            font-weight: 500;
-        }
-
-        .input-wrapper input:focus {
-            outline: none;
-            border-color: var(--primary);
-            background: rgba(255,255,255,0.07);
-            box-shadow: 0 0 0 4px rgba(249,115,22,0.15);
-        }
-
-        .input-wrapper input:focus + i {
-            color: var(--primary);
-            transform: translateY(-50%) scale(1.1);
-        }
-
-        .input-wrapper input::placeholder {
-            color: rgba(255,255,255,0.25);
-            font-weight: 400;
-        }
-
-        /* Login Button - Enhanced */
-        .login-btn {
-            width: 100%;
-            padding: 15px;
-            background: var(--gradient-primary);
-            border: none;
-            border-radius: 60px;
-            color: white;
-            font-weight: 700;
-            font-size: 15px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-            margin-bottom: 24px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 10px 25px -8px rgba(249,115,22,0.4);
-        }
-
-        .login-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
-            transition: left 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-
-        .login-btn:hover::before {
-            left: 100%;
-        }
-
-        .login-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px -10px rgba(249,115,22,0.6);
-            background: var(--gradient-primary-reverse);
-        }
-
-        .login-btn:active {
-            transform: translateY(0);
-        }
-
-        .login-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* Error Message - Enhanced */
-        .error-message {
-            background: rgba(239, 68, 68, 0.12);
-            border-left: 3px solid var(--danger);
-            padding: 14px 18px;
-            border-radius: 16px;
-            margin-bottom: 24px;
-            color: var(--danger-light);
-            font-size: 13px;
-            display: none;
-            backdrop-filter: blur(8px);
-            font-weight: 500;
-        }
-
-        .error-message.show {
-            display: block;
-            animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20% { transform: translateX(-6px); }
-            40% { transform: translateX(6px); }
-            60% { transform: translateX(-3px); }
-            80% { transform: translateX(3px); }
-        }
-
-        /* Toast Container - Enhanced */
-        .toast-container {
-            position: fixed;
-            top: 24px;
-            right: 24px;
-            z-index: 10000;
-        }
-
-        .toast {
-            background: rgba(10, 12, 21, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 16px;
-            padding: 14px 24px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            box-shadow: var(--shadow-lg);
-            border-left: 3px solid var(--primary);
-            animation: slideInRight 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-            color: white;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        @keyframes slideOutRight {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-        }
-
-        /* Loading Animation */
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .fa-spinner {
-            animation: spin 1s linear infinite;
-        }
-
-        /* Responsive Design - Enhanced */
-        @media (max-width: 900px) {
-            .login-shell {
-                grid-template-columns: 1fr;
-                min-height: auto;
-            }
-            .login-hero {
-                padding: 32px 28px;
-            }
-            .login-panel {
-                padding: 32px 28px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .branch-grid {
-                grid-template-columns: 1fr;
-            }
-            .login-card {
-                padding: 0;
-            }
-            .logo h1 {
-                font-size: 28px;
-            }
-            .welcome-text h2 {
-                font-size: 24px;
-            }
-            .logo-icon {
-                width: 65px;
-                height: 65px;
-                font-size: 28px;
-            }
-            .toast-container {
-                top: 16px;
-                right: 16px;
-                left: 16px;
-            }
-            .toast {
-                font-size: 12px;
-                padding: 12px 18px;
-            }
-            .login-card::after {
-                width: 100px;
-                height: 100px;
-            }
-        }
-
-        /* Custom Scrollbar - Added */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary-dark);
-        }
-
-        /* Focus Visible for Accessibility */
-        *:focus-visible {
-            outline: 2px solid var(--primary);
-            outline-offset: 2px;
-            border-radius: 4px;
-        }
-    </style>
+    <link rel="stylesheet" href="css/index-login.css?v=3">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div class="animated-bg"></div>
-    <div class="particles" id="particles"></div>
+<body class="login-page">
+    <div class="login-bg" aria-hidden="true"></div>
+    <div class="login-bg-grid" aria-hidden="true"></div>
+    <div class="login-orb login-orb-1" aria-hidden="true"></div>
+    <div class="login-orb login-orb-2" aria-hidden="true"></div>
 
     <div class="login-container">
         <div class="login-shell">
             <aside class="login-hero">
-                <div class="hrms-badge"><i class="fas fa-building"></i> Balitech HRMS 2026</div>
-                <h2>One platform.<br><span>Every branch.</span></h2>
-                <p>Attendance, payroll insights, recruitment, and role-based portals — unified for Main, 2.0, 3.0, and Commercial operations.</p>
-                <ul class="feature-list">
-                    <li><i class="fas fa-fingerprint"></i> Check-in / check-out & attendance tracking</li>
-                    <li><i class="fas fa-file-invoice-dollar"></i> Payroll & finance visibility</li>
-                    <li><i class="fas fa-user-tie"></i> Recruiter, HR, and admin portals by role</li>
-                    <li><i class="fas fa-shield-alt"></i> Branch-isolated data workspace</li>
-                </ul>
+                <div class="login-hero-top">
+                    <img src="assets/images/balitech-logo.png?v=5" alt="Balitech Pvt. Ltd" class="balitech-logo balitech-logo--hero" width="240" height="72">
+                    <div class="hrms-badge"><i class="fas fa-building"></i> Balitech HRMS 2026</div>
+                    <h1>One platform.<br><span>Every branch.</span></h1>
+                    <p class="login-hero-desc">Unified human resources for Main, 2.0, 3.0, and Commercial — attendance, payroll, recruitment, and secure role-based portals in one workspace.</p>
+
+                    <div class="hero-stats">
+                        <div class="hero-stat"><strong>4</strong><span>Branches</span></div>
+                        <div class="hero-stat"><strong>ESS</strong><span>Self Service</span></div>
+                        <div class="hero-stat"><strong>24/7</strong><span>Access</span></div>
+                    </div>
+
+                    <ul class="feature-list">
+                        <li><i class="fas fa-id-card"></i> Employee Self Service — profile, attendance &amp; leave</li>
+                        <li><i class="fas fa-fingerprint"></i> Biometric attendance &amp; punch tracking</li>
+                        <li><i class="fas fa-file-invoice-dollar"></i> Payroll visibility &amp; finance insights</li>
+                        <li><i class="fas fa-user-tie"></i> Dedicated HR, Recruiter &amp; Admin portals</li>
+                        <li><i class="fas fa-shield-halved"></i> Branch-isolated, role-secured data</li>
+                    </ul>
+                </div>
+                <div class="login-hero-footer">
+                    <i class="fas fa-lock"></i>
+                    <span>Encrypted sign-in · Internal use only · Balitech Pvt. Ltd</span>
+                </div>
             </aside>
+
             <div class="login-panel">
-                <div class="login-card">
-                    <div class="panel-logo">
-                        <div class="logo-icon"><i class="fas fa-rocket"></i></div>
-                        <div>
-                            <h1>BALITECH</h1>
-                            <p>ENTERPRISE SIGN IN</p>
-                        </div>
-                    </div>
-
-                    <div class="welcome-text">
+                <div class="panel-header">
+                    <div class="panel-header-row">
+                        <div class="panel-icon" aria-hidden="true"><i class="fas fa-right-to-bracket"></i></div>
                         <h2>Welcome back</h2>
-                        <p>Select your branch, then sign in</p>
+                    </div>
+                    <p>Sign in using the <strong>same branch</strong> your account was created under</p>
+                </div>
+
+                <div class="branch-section">
+                    <label><i class="fas fa-code-branch"></i> Company branch</label>
+                    <p class="branch-login-hint">Main, Commercial, 2.0, and 3.0 accounts are separate — pick your assigned branch. Only <strong>Super Admin</strong> may sign in from any branch.</p>
+                    <div class="branch-grid" id="branchGrid"></div>
+                    <select id="companyBranch" class="branch-select-hidden" required aria-hidden="true" tabindex="-1">
+                        <option value="main">Main Branch</option>
+                        <option value="v2">2.0 Branch</option>
+                        <option value="v3">3.0 Branch</option>
+                        <option value="commercial">Commercial Branch</option>
+                    </select>
+                </div>
+
+                <div class="error-message" id="errorMessage" role="alert">
+                    <i class="fas fa-circle-exclamation"></i>
+                    <span id="errorText"></span>
+                </div>
+
+                <form id="loginForm" onsubmit="handleLogin(event, 'work')" novalidate>
+                    <div class="form-group">
+                        <label for="email">Email address</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope field-icon" aria-hidden="true"></i>
+                            <input type="email" id="email" name="email" placeholder="name@balitech.com" required autocomplete="username">
+                        </div>
                     </div>
 
-                    <div class="branch-section">
-                        <label><i class="fas fa-code-branch"></i> Company Branch</label>
-                        <div class="branch-grid" id="branchGrid"></div>
-                        <select id="companyBranch" class="branch-select-hidden" required aria-hidden="true">
-                            <option value="main">Main Branch</option>
-                            <option value="v2">2.0 Branch</option>
-                            <option value="v3">3.0 Branch</option>
-                            <option value="commercial">Commercial Branch</option>
-                        </select>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock field-icon" aria-hidden="true"></i>
+                            <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+                            <button type="button" class="toggle-password" id="togglePassword" aria-label="Show password" title="Show password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="error-message" id="errorMessage"></div>
+                    <div class="portal-divider">Choose portal</div>
 
-                    <form id="loginForm" onsubmit="handleLogin(event)">
-                        <div class="form-group">
-                            <label>Email Address</label>
-                            <div class="input-wrapper">
-                                <i class="fas fa-envelope"></i>
-                                <input type="email" id="email" placeholder="name@balitech.com" required autocomplete="username">
-                            </div>
+                    <div class="portal-hint">
+                        <div class="portal-hint-card ess">
+                            <strong><i class="fas fa-id-card"></i> Self Service</strong>
+                            <span>Personal dashboard — attendance, leave &amp; profile</span>
                         </div>
-
-                        <div class="form-group">
-                            <label>Password</label>
-                            <div class="input-wrapper">
-                                <i class="fas fa-lock"></i>
-                                <input type="password" id="password" placeholder="Enter your password" required autocomplete="current-password">
-                            </div>
+                        <div class="portal-hint-card work">
+                            <strong><i class="fas fa-briefcase"></i> Work HRMS</strong>
+                            <span>Role portal — HR, Recruiter, Admin &amp; more</span>
                         </div>
+                    </div>
 
-                        <button type="submit" class="login-btn" id="loginBtn">
+                    <div class="login-actions">
+                        <button type="button" class="login-btn login-btn-ess" id="essLoginBtn" onclick="handleLogin(event, 'ess')">
+                            <span>Employee Self Service Portal</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <button type="submit" class="login-btn login-btn-work" id="loginBtn">
                             <span>Sign In to HRMS</span>
                             <i class="fas fa-arrow-right"></i>
                         </button>
-                    </form>
+                    </div>
+                </form>
+
+                <div class="login-panel-footer">
+                    &copy; 2026 Balitech Pvt. Ltd &middot; Authorized personnel only
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="toast-container" id="toastContainer"></div>
+    <p class="login-page-footer">Need help? Contact your HR administrator or IT support.</p>
 
+    <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+    <script src="js/portal-access.js"></script>
     <script>
-        function createParticles() {
-            const container = document.getElementById('particles');
-            for (let i = 0; i < 50; i++) {
-                const particle = document.createElement('div');
-                particle.classList.add('particle');
-                const size = Math.random() * 5 + 2;
-                particle.style.width = size + 'px';
-                particle.style.height = size + 'px';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDuration = Math.random() * 12 + 8 + 's';
-                particle.style.animationDelay = Math.random() * 8 + 's';
-                particle.style.opacity = Math.random() * 0.5 + 0.2;
-                container.appendChild(particle);
-            }
-        }
-        createParticles();
-
         const BRANCHES = [
-            { key: 'main', label: 'Main Branch', short: 'Main', color: '#f97316' },
-            { key: 'v2', label: '2.0 Branch', short: '2.0', color: '#3b82f6' },
-            { key: 'v3', label: '3.0 Branch', short: '3.0', color: '#8b5cf6' },
-            { key: 'commercial', label: 'Commercial', short: 'Commercial', color: '#10b981' }
+            { key: 'main', label: 'Main Branch', color: '#f97316' },
+            { key: 'v2', label: '2.0 Branch', color: '#3b82f6' },
+            { key: 'v3', label: '3.0 Branch', color: '#8b5cf6' },
+            { key: 'commercial', label: 'Commercial', color: '#10b981' }
         ];
 
         let selectedBranch = localStorage.getItem('companyBranch') || 'main';
@@ -834,50 +172,58 @@
         }
         renderBranchChips();
 
+        document.getElementById('togglePassword')?.addEventListener('click', () => {
+            const input = document.getElementById('password');
+            const btn = document.getElementById('togglePassword');
+            const icon = btn.querySelector('i');
+            const show = input.type === 'password';
+            input.type = show ? 'text' : 'password';
+            icon.className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
+            btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+            btn.title = show ? 'Hide password' : 'Show password';
+        });
+
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = 'toast';
-            let icon = 'fa-check-circle';
-            let borderColor = '#10b981';
-            if (type === 'error') {
-                icon = 'fa-exclamation-circle';
-                borderColor = '#ef4444';
-            } else if (type === 'info') {
-                icon = 'fa-info-circle';
-                borderColor = '#f97316';
-            }
-            toast.style.borderLeftColor = borderColor;
-            toast.innerHTML = `<i class="fas ${icon}" style="color: ${borderColor}"></i> ${message}`;
+            const colors = { success: '#10b981', error: '#ef4444', info: '#f97316' };
+            const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+            const color = colors[type] || colors.success;
+            toast.style.borderLeftColor = color;
+            toast.innerHTML = `<i class="fas ${icons[type] || icons.success}" style="color:${color}"></i> ${message}`;
             container.appendChild(toast);
             setTimeout(() => {
-                toast.style.animation = 'slideOutRight 0.3s ease';
+                toast.style.animation = 'slideOut 0.3s ease forwards';
                 setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            }, 3200);
         }
 
-        // Clear session on logout
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('logout') === 'true') {
             localStorage.clear();
-            showToast('Logged out successfully', 'info');
+            showToast('Signed out successfully', 'info');
             window.history.replaceState({}, document.title, window.location.pathname);
         }
 
-        function handleLogin(event) {
+        function handleLogin(event, mode) {
             event.preventDefault();
-            
+            if (!mode) mode = 'work';
+
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value.trim();
 
             if (!email || !password) {
-                showError('Please enter email and password');
+                showError('Please enter your email and password.');
                 return;
             }
 
-            const btn = document.getElementById('loginBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
+            const hrmsBtn = document.getElementById('loginBtn');
+            const essBtn = document.getElementById('essLoginBtn');
+            const activeBtn = mode === 'ess' ? essBtn : hrmsBtn;
+            hrmsBtn.disabled = true;
+            essBtn.disabled = true;
+            activeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating…';
 
             const company_branch = document.getElementById('companyBranch').value;
 
@@ -891,8 +237,13 @@
                 if (data.success && data.user) {
                     const role = data.user.portal_role;
                     const name = data.user.full_name;
-                    
+
                     localStorage.setItem('userRole', role);
+                    if (role === 'super_admin' || data.is_super_admin) {
+                        localStorage.setItem('recruiter_type', 'super');
+                    } else {
+                        localStorage.removeItem('recruiter_type');
+                    }
                     localStorage.setItem('userId', data.user.id);
                     localStorage.setItem('userFullName', name);
                     localStorage.setItem('userEmail', data.user.email);
@@ -902,71 +253,79 @@
                     if (data.user.department) localStorage.setItem('userDepartment', data.user.department);
                     if (data.user.designation) localStorage.setItem('userDesignation', data.user.designation);
 
+                    const dest = window.loginDestination
+                        ? window.loginDestination(data.user, mode, data)
+                        : (mode === 'ess' ? 'employee-portal.html' : (data.work_redirect || data.redirect || null));
+
+                    if (!dest) {
+                        if (mode === 'work' && role === 'user') {
+                            showError('Your account only has Employee Self Service access. Use the Self Service button.');
+                        } else {
+                            showError('Could not open the work portal for this account. Contact IT if you should have HRMS access.');
+                        }
+                        resetButton();
+                        return;
+                    }
+
                     const shell = document.querySelector('.login-shell');
                     if (shell) {
                         shell.style.transform = 'scale(0.98)';
                         shell.style.opacity = '0';
-                        shell.style.transition = 'all 0.35s';
+                        shell.style.transition = 'all 0.35s ease';
                     }
 
                     const branchLabel = data.user.company_branch_label || 'your branch';
-                    showToast(`Welcome ${name} · ${branchLabel}`, 'success');
+                    const portalLabel = mode === 'ess' ? 'Self Service' : 'Work portal';
+                    showToast(`Welcome, ${name} · ${branchLabel} · ${portalLabel}`, 'success');
 
-                    const roleUrls = {
-                        admin: 'admin-dashboard.html',
-                        hr: 'hr-portal.html',
-                        recruiter: 'recruiter-portal.html',
-                        management: 'Management-Portal.html',
-                        training: 'training-portal.html',
-                        receptionist: 'reception-portal.html',
-                        agent: 'reception-portal.html',
-                        analytics: 'analytics-portal.html',
-                        attendance: 'attendance/attendance-dashboard.html',
-                        user: 'employee-portal.html',
-                        team_lead: 'employee-portal.html',
-                        floor_manager: 'employee-portal.html',
-                        data_entry: 'reception-portal.html',
-                        dialer: 'employee-portal.html',
-                        developer: 'employee-portal.html'
-                    };
-                    const dest = data.redirect || roleUrls[role] || 'employee-portal.html';
-                    setTimeout(() => { window.location.href = dest; }, 500);
+                    if (window.storeLoginPortalChoice) {
+                        window.storeLoginPortalChoice(data.user, mode, dest);
+                    }
+
+                    setTimeout(() => { window.location.href = dest; }, 480);
                 } else {
-                    showError(data.message || 'Invalid credentials');
+                    if (data.branch_required) {
+                        selectedBranch = data.branch_required;
+                        localStorage.setItem('companyBranch', selectedBranch);
+                        renderBranchChips();
+                    }
+                    showError(data.message || 'Invalid email or password. Please try again.');
                     resetButton();
                 }
             })
             .catch(error => {
                 console.error('Login error:', error);
-                showError('Server error. Please try again.');
+                showError('Unable to reach the server. Please try again.');
                 resetButton();
             });
         }
 
         function showError(message) {
             const errorDiv = document.getElementById('errorMessage');
-            errorDiv.textContent = message;
+            const errorText = document.getElementById('errorText');
+            errorText.textContent = message;
             errorDiv.classList.add('show');
             document.getElementById('password').value = '';
             document.getElementById('password').focus();
             resetButton();
-            setTimeout(() => {
-                errorDiv.classList.remove('show');
-            }, 5000);
+            setTimeout(() => errorDiv.classList.remove('show'), 6000);
         }
 
         function resetButton() {
-            const btn = document.getElementById('loginBtn');
-            btn.disabled = false;
-            btn.innerHTML = '<span>Sign In</span><i class="fas fa-arrow-right"></i>';
+            const hrmsBtn = document.getElementById('loginBtn');
+            const essBtn = document.getElementById('essLoginBtn');
+            if (hrmsBtn) {
+                hrmsBtn.disabled = false;
+                hrmsBtn.innerHTML = '<span>Sign In to HRMS</span><i class="fas fa-arrow-right"></i>';
+            }
+            if (essBtn) {
+                essBtn.disabled = false;
+                essBtn.innerHTML = '<span>Employee Self Service Portal</span><i class="fas fa-arrow-right"></i>';
+            }
         }
 
         window.addEventListener('load', () => {
-            setTimeout(() => document.getElementById('email').focus(), 500);
-        });
-
-        document.getElementById('password').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleLogin(e);
+            setTimeout(() => document.getElementById('email').focus(), 400);
         });
     </script>
 </body>

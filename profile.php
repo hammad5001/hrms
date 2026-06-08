@@ -286,7 +286,6 @@ if ($employee_code) {
             <div class="logo"><h1>BALI<span>TECH</span></h1></div>
             <div>
                 <a href="<?php echo $_SESSION['portal_role'] === 'admin' ? 'admin-dashboard.html' : 'user-dashboard.html'; ?>" class="btn"><i class="fas fa-arrow-left"></i> Back</a>
-                <a href="chat-portal.html" class="btn"><i class="fas fa-comments"></i> Chat</a>
                 <a href="logout.php" class="btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
@@ -353,6 +352,5 @@ if ($employee_code) {
             <p><i class="fas fa-shield-alt"></i> Secure Profile · Real-time Attendance Sync</p>
         </div>
     </div>
-    <script src="js/portal-chat-fab.js"></script>
 </body>
 </html>

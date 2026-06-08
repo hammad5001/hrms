@@ -109,8 +109,14 @@ $coreJs = file_get_contents(__DIR__ . '/../recruiter-portal-core.js');
 check('Core API has employeeHrms', str_contains($coreJs, 'employeeHrms'));
 
 $html = file_get_contents(__DIR__ . '/../recruiter-portal.html');
-check('Portal loads recruiter-portal-hrms.js', str_contains($html, 'recruiter-portal-hrms.js'));
-check('Portal has My HR nav', str_contains($html, 'My HR') && str_contains($html, 'showMyHrms'));
+check('Recruiter work portal does not embed HRMS script', !str_contains($html, 'recruiter-portal-hrms.js'));
+check('Recruiter work portal links to ESS separately', str_contains($html, 'Employee Self Service') && str_contains($html, 'employee-portal.html'));
+check('Recruiter work portal has no inline My HR nav', !str_contains($html, 'My HR') && !str_contains($html, 'showMyHrms'));
+
+$essHtml = file_get_contents(__DIR__ . '/../employee-portal.html');
+check('ESS portal has back-to-work control', str_contains($essHtml, 'essBackToWork'));
+$portalAccessJs = file_get_contents(__DIR__ . '/../js/portal-access.js');
+check('portal-access defines separate work portal helper', str_contains($portalAccessJs, 'hasSeparateWorkPortal'));
 
 echo "FUNCTIONAL CHECKLIST\n";
 echo str_repeat('=', 60) . "\n";

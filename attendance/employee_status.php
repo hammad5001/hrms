@@ -1,8 +1,27 @@
 <?php
 require_once 'config.php';
 
+function ensureEmployeeStatusColumns($conn) {
+    $col = $conn->query("SHOW COLUMNS FROM employees LIKE 'auto_inactive_exempt'");
+    if ($col && $col->num_rows === 0) {
+        $conn->query("ALTER TABLE employees ADD COLUMN auto_inactive_exempt TINYINT(1) NOT NULL DEFAULT 0 AFTER is_active");
+    }
+}
+
+ensureEmployeeStatusColumns($conn);
+
+// Keep previously reactivated employees protected from auto-inactive
+$conn->query("
+    UPDATE employees SET auto_inactive_exempt = 1
+    WHERE status = 'active'
+    AND is_active = 1
+    AND status_remarks LIKE 'Reactivated by admin%'
+    AND (auto_inactive_exempt IS NULL OR auto_inactive_exempt = 0)
+");
+
 // =====================================================
 // AUTO-INACTIVE: Mark employees inactive if no punch in last 50 days
+// (skips employees manually reactivated by admin)
 // =====================================================
 function autoMarkInactiveEmployees($conn) {
     $cutoff_date = date('Y-m-d H:i:s', strtotime('-50 days'));
@@ -18,6 +37,7 @@ function autoMarkInactiveEmployees($conn) {
         WHERE e.is_active = 1 
         AND e.status != 'inactive'
         AND e.status != 'vacation'
+        AND (e.auto_inactive_exempt IS NULL OR e.auto_inactive_exempt = 0)
         GROUP BY e.id
         HAVING last_punch IS NULL OR last_punch < '$cutoff_date'
     ";
@@ -78,23 +98,41 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $status = $conn->real_escape_string($_POST['status']);
         $remarks = $conn->real_escape_string($_POST['remarks']);
         
-        // Update employee status
-        $conn->query("
+        $is_active = ($status === 'active') ? 1 : 0;
+        $auto_exempt = ($status === 'active') ? 1 : 0;
+
+        $stmt = $conn->prepare("
             UPDATE employees SET 
-                status = '$status',
-                status_remarks = '$remarks',
+                status = ?,
+                status_remarks = ?,
                 status_updated_at = NOW(),
-                is_active = " . ($status == 'active' ? 1 : 0) . "
-            WHERE id = $employee_id
+                is_active = ?,
+                auto_inactive_exempt = ?
+            WHERE id = ?
         ");
-        
-        // Log status change
-        $conn->query("
+        $stmt->bind_param('ssiii', $status, $remarks, $is_active, $auto_exempt, $employee_id);
+        $stmt->execute();
+        $stmt->close();
+
+        $log = $conn->prepare("
             INSERT INTO employee_status_log (employee_id, status, remarks, created_at)
-            VALUES ($employee_id, '$status', '$remarks', NOW())
+            VALUES (?, ?, ?, NOW())
         ");
-        
-        header('Location: employee_status.php?msg=updated&auto=0');
+        $log->bind_param('iss', $employee_id, $status, $remarks);
+        $log->execute();
+        $log->close();
+
+        $redirect = 'employee_status.php?msg=updated&auto=0';
+        if (!empty($_POST['return_status'])) {
+            $redirect .= '&status=' . urlencode($_POST['return_status']);
+        }
+        if (!empty($_POST['return_search'])) {
+            $redirect .= '&search=' . urlencode($_POST['return_search']);
+        }
+        if (!empty($_POST['return_department'])) {
+            $redirect .= '&department=' . urlencode($_POST['return_department']);
+        }
+        header('Location: ' . $redirect);
         exit;
     }
 }
@@ -926,6 +964,9 @@ $departments = $conn->query("SELECT DISTINCT department FROM employees WHERE dep
                 <form method="POST">
                     <input type="hidden" name="action" value="update_status">
                     <input type="hidden" name="employee_id" id="employee_id">
+                    <input type="hidden" name="return_status" value="<?php echo htmlspecialchars($status_filter); ?>">
+                    <input type="hidden" name="return_search" value="<?php echo htmlspecialchars($search); ?>">
+                    <input type="hidden" name="return_department" value="<?php echo htmlspecialchars($department); ?>">
                     
                     <div class="form-group">
                         <label>Employee</label>
@@ -965,11 +1006,14 @@ $departments = $conn->query("SELECT DISTINCT department FROM employees WHERE dep
         }
 
         function reactivateEmployee(id, name) {
+            if (!confirm('Reactivate ' + name + '? They will stay active and appear on the attendance portal.')) {
+                return;
+            }
             document.getElementById('employee_id').value = id;
             document.getElementById('employee_name').value = name;
             document.getElementById('status').value = 'active';
             document.getElementById('remarks').value = 'Reactivated by admin - Employee will now appear on dashboard';
-            document.getElementById('editModal').classList.add('active');
+            document.querySelector('#editModal form').submit();
         }
 
         function closeModal(modalId) {

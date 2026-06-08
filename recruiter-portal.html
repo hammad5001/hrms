@@ -38,21 +38,12 @@
         </div>
 
         <div class="nav-section">
-          <div class="nav-label">My HR</div>
-          <div class="nav-item" data-view="myHrms" onclick="showMyHrms()">
-            <i class="fas fa-id-card"></i> <span>My Profile</span>
-          </div>
-          <div class="nav-item" data-view="myAttendance" onclick="showMyAttendance()">
-            <i class="fas fa-fingerprint"></i> <span>Attendance</span>
-          </div>
-          <div class="nav-item" data-view="myPayroll" onclick="showMyPayroll()">
-            <i class="fas fa-wallet"></i> <span>Payroll</span>
-          </div>
-          <div class="nav-item" onclick="window.location.href='chat-portal.html'">
+          <div class="nav-label">Personal</div>
+          <a class="nav-item nav-item-link" href="employee-portal.html" style="text-decoration:none;" title="Attendance, leave, payroll — separate portal">
+            <i class="fas fa-id-card"></i> <span>Employee Self Service</span>
+          </a>
+          <a class="nav-item nav-item-link" href="chat-portal.html" style="text-decoration:none;">
             <i class="fas fa-comments"></i> <span>Chat</span>
-          </div>
-          <a class="nav-item nav-item-link" href="employee-portal.html" style="text-decoration:none;">
-            <i class="fas fa-calendar-minus"></i> <span>Apply Leave</span>
           </a>
         </div>
         
@@ -108,7 +99,6 @@
   <script src="js/portal-performance.js"></script>
   <script src="recruiter-portal-core.js"></script>
   <script src="recruiter-portal-actions.js"></script>
-  <script src="recruiter-portal-hrms.js"></script>
   <script src="recruiter-portal-views.js"></script>
   <script>
     window.addEventListener('DOMContentLoaded', init);

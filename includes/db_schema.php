@@ -164,7 +164,27 @@ function ensure_app_schema(mysqli $conn): void {
     ensure_payroll_meta_columns($conn);
     ensure_interview_columns($conn);
     ensure_notification_columns($conn);
+    ensure_leave_request_columns($conn);
     ensure_leads_pipeline_indexes($conn);
+}
+
+function ensure_leave_request_columns(mysqli $conn): void {
+    static $done = false;
+    if ($done) {
+        return;
+    }
+    $done = true;
+
+    $cols = [
+        'approver_user_id' => 'INT DEFAULT NULL',
+        'approver_name' => 'VARCHAR(150) DEFAULT NULL',
+    ];
+    foreach ($cols as $col => $def) {
+        $res = $conn->query("SHOW COLUMNS FROM `leave_requests` LIKE '$col'");
+        if ($res && $res->num_rows === 0) {
+            @$conn->query("ALTER TABLE `leave_requests` ADD COLUMN `$col` $def");
+        }
+    }
 }
 
 /** Speed up portal list queries by stage + branch. */

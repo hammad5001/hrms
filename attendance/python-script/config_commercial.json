@@ -1,10 +1,23 @@
 {
+    "device_ips": [
+        "10.10.40.221",
+        "125.209.68.118"
+    ],
     "device_ip": "125.209.68.118",
     "device_port": 4370,
+    "database_host": "localhost",
+    "database_user": "root",
+    "database_password": "",
+    "database_name": "balitech",
     "start_date": "2026-02-01",
     "end_date": "2026-06-30",
     "auto_refresh_interval": 15,
+    "shift_grouping_start_hour": 14,
     "night_shift_start": 18,
     "night_shift_end": 4,
-    "grace_minutes": 10
+    "grace_minutes": 10,
+    "connection_timeout": 120,
+    "force_udp": false,
+    "import_folder": "commercial_import",
+    "import_path": ""
 }

@@ -325,7 +325,19 @@ td strong {
 
 @media (max-width: 1024px) {
     .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    .form-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .form-grid {
+        grid-template-columns: 1fr !important;
     }
 }
 
@@ -343,3 +355,44 @@ td strong {
         border-radius: 20px;
     }
 }
+
+/* Responsive grid for modal forms */
+.modal-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+/* Scrollable container for attendance log in modal */
+.modal-attendance-wrapper {
+    max-height: 380px;
+    overflow-y: auto;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    background: rgba(0, 0, 0, 0.15);
+    margin-top: 10px;
+    padding-right: 4px;
+}
+
+/* Scrollbar styles for the attendance container */
+.modal-attendance-wrapper::-webkit-scrollbar {
+    width: 6px;
+}
+.modal-attendance-wrapper::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+}
+.modal-attendance-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(249, 115, 22, 0.4);
+    border-radius: 10px;
+}
+.modal-attendance-wrapper::-webkit-scrollbar-thumb:hover {
+    background: rgba(249, 115, 22, 0.6);
+}
+
+@media (max-width: 640px) {
+    .modal-form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
