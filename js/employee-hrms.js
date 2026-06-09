@@ -523,12 +523,32 @@ function shiftWindows(shiftDateStr) {
     const next = new Date(shiftDateStr + 'T12:00:00');
     next.setDate(next.getDate() + 1);
     const nextStr = next.toISOString().slice(0, 10);
+    const checkinH = String(ESS_SHIFT.checkinHour).padStart(2, '0');
     return {
-        checkinStart: new Date(shiftDateStr + 'T14:00:00').getTime(),
+        checkinStart: new Date(shiftDateStr + `T${checkinH}:00:00`).getTime(),
         checkinEnd: new Date(shiftDateStr + 'T23:59:59').getTime(),
         checkoutStart: new Date(nextStr + 'T00:00:00').getTime(),
         checkoutEnd: new Date(nextStr + 'T03:59:59').getTime(),
     };
+}
+
+function isShiftDateUpcoming(shiftDateStr) {
+    const active = activeShiftDate();
+    if (shiftDateStr > active) return true;
+    if (shiftDateStr < active) return false;
+    const now = new Date();
+    const checkinStart = new Date(shiftDateStr + `T${String(ESS_SHIFT.checkinHour).padStart(2, '0')}:00:00`);
+    return now < checkinStart;
+}
+
+function dayStatusLabel(st) {
+    const labels = {
+        upcoming: 'Upcoming',
+        absent: 'Absent',
+        present: 'Present',
+        late: 'Late',
+    };
+    return labels[st?.status] || st?.label || 'Absent';
 }
 
 function resolveShiftPunches(shiftDateStr, allTimestamps) {
@@ -576,15 +596,15 @@ function getWeekDates(offset = 0) {
 }
 
 function dayStatus(shiftDateStr) {
-    const d = new Date(shiftDateStr + 'T12:00:00');
-    const dow = d.getDay();
-    if (dow === 0) return { status: 'weekend', label: 'Weekend', hours: '00:00 Hrs' };
+    if (isShiftDateUpcoming(shiftDateStr)) {
+        return { status: 'upcoming', label: 'Upcoming', hours: '00:00 Hrs', punchCount: 0 };
+    }
 
     const allTs = (HRMS.attendance || []).map(r => r.timestamp).filter(Boolean);
     const shift = resolveShiftPunches(shiftDateStr, allTs);
 
     if (!shift.checkIn && !shift.checkOut) {
-        return { status: 'absent', label: 'Absent', hours: '00:00 Hrs worked', punchCount: 0 };
+        return { status: 'absent', label: 'Absent', hours: '00:00 Hrs', punchCount: 0 };
     }
 
     let hrs = 0;
@@ -677,7 +697,7 @@ function resolveTodayStatus(today) {
     if (today.status) {
         return {
             status: today.status,
-            label: today.status_label || (today.status === 'late' ? 'Late' : today.status === 'present' ? 'Present' : 'Absent'),
+            label: today.status_label || dayStatusLabel({ status: today.status }),
         };
     }
     if (!today.check_in) {
@@ -692,7 +712,7 @@ function resolveTodayStatus(today) {
 function applyTodayStatus(today) {
     today = today || {};
     const st = resolveTodayStatus(today);
-    const hasIn = st.status !== 'absent';
+    const hasIn = st.status === 'present' || st.status === 'late';
     const shiftDate = today.date || activeShiftDate();
 
     const statusEl = document.getElementById('profileCardStatus');
@@ -884,30 +904,23 @@ function renderAttendance() {
     const tbody = document.getElementById('attendanceTableBody');
     if (!tbody) return;
 
-    if (!HRMS.attendance || !HRMS.attendance.length) {
+    const shiftDates = getShiftDatesFromAttendance(30);
+    if (!shiftDates.length) {
         tbody.innerHTML = '<tr><td colspan="5">No attendance records in the last 30 days</td></tr>';
         return;
     }
 
-    const shiftDates = getShiftDatesFromAttendance(30);
     const rows = shiftDates.map(sd => {
         const st = dayStatus(sd);
-        if (st.status === 'absent') return null;
-        const statusLabel = st.status === 'late' ? 'Late' : 'Present';
-        const hours = st.hours.replace(' worked', '');
+        const hours = (st.hours || '00:00 Hrs').replace(' worked', '');
         return `<tr>
             <td>${escHtml(formatDate(sd))}</td>
             <td>${st.checkIn ? formatTime(st.checkIn) : '—'}</td>
             <td>${st.checkOut ? formatTime(st.checkOut) : '—'}</td>
             <td>${escHtml(hours)}</td>
-            <td><span class="ess-pill ${st.status}">${statusLabel}</span></td>
+            <td><span class="ess-pill ${st.status}">${escHtml(dayStatusLabel(st))}</span></td>
         </tr>`;
-    }).filter(Boolean);
-
-    if (!rows.length) {
-        tbody.innerHTML = '<tr><td colspan="5">No attendance records in the last 30 days</td></tr>';
-        return;
-    }
+    });
 
     tbody.innerHTML = rows.join('');
 }

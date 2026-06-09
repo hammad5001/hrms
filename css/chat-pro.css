@@ -156,6 +156,27 @@
     border-top: 1px solid var(--c-border-hard);
 }
 
+@media (min-width: 1024px) {
+    .composer-wrap {
+        max-width: var(--chat-thread-max, 920px);
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    .chat-emoji-panel {
+        max-width: var(--chat-thread-max, 920px);
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .upload-preview,
+    .reply-preview {
+        max-width: var(--chat-thread-max, 920px);
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
 .btn-send {
     transition: transform 0.12s ease, box-shadow 0.15s ease;
 }

@@ -142,19 +142,44 @@ a.ess-header-link.ess-header-chat:hover {
 }
 
 /* Embedded chat view — URL stays employee-portal.html */
+body.ess-body.ess-chat-active {
+    height: 100vh;
+    overflow: hidden;
+}
+
+body.ess-chat-active .ess-app {
+    height: 100vh;
+    min-height: 0;
+}
+
 body.ess-chat-active .ess-left-col,
 body.ess-chat-active .ess-page-head,
-body.ess-chat-active #essTabBar {
+body.ess-chat-active #essTabBar,
+body.ess-chat-active .ess-powered-footer {
     display: none !important;
 }
 
 body.ess-chat-active .ess-layout {
-    display: block;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    padding: 0;
+    gap: 0;
 }
 
 body.ess-chat-active .ess-content-col {
     width: 100%;
     max-width: none;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+body.ess-chat-active .ess-main {
+    flex: 1;
+    min-height: 0;
 }
 
 body.ess-chat-active .portal-chat-fab {
@@ -165,24 +190,30 @@ body.ess-chat-active .portal-chat-fab {
     padding: 0;
     margin: 0;
     min-height: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#view-chat.ess-chat-view.active {
+    display: flex;
 }
 
 .ess-chat-iframe {
     display: block;
     width: 100%;
-    height: calc(100vh - 96px);
-    min-height: 480px;
+    flex: 1;
+    min-height: 0;
+    height: 100%;
     border: none;
-    border-radius: var(--r-md);
-    background: #0a0c15;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    border-radius: 0;
+    background: #f1f5f9;
+    box-shadow: none;
 }
 
 @media (max-width: 900px) {
-    .ess-chat-iframe {
-        height: calc(100vh - 88px);
-        min-height: 420px;
-        border-radius: var(--r-sm);
+    body.ess-chat-active .ess-layout {
+        padding: 0;
     }
 }
 
@@ -387,17 +418,14 @@ body.ess-chat-active .portal-chat-fab {
 
 .ess-powered-footer {
     text-align: center;
-    padding: 14px 16px 18px;
+    padding: 0;
     margin-top: auto;
     flex-shrink: 0;
 }
-.gc-powered-tag {
-    margin: 0;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.4);
+
+.ess-powered-footer .gc-powered-wrap {
+    padding-top: 12px;
+    padding-bottom: 18px;
 }
 
 .ess-tabs {
@@ -502,6 +530,7 @@ body.ess-chat-active .portal-chat-fab {
 .ess-status.present { color: var(--ess-green); }
 .ess-status.absent { color: var(--ess-red); }
 .ess-status.late { color: var(--ess-orange); }
+.ess-status.upcoming { color: #60a5fa; }
 .ess-timer-label {
     text-align: center;
     font-size: 10px;
@@ -867,6 +896,7 @@ button.ess-reportee-chip {
 .ess-pill.present { background: rgba(16, 185, 129, 0.18); color: var(--secondary); }
 .ess-pill.absent { background: rgba(239, 68, 68, 0.18); color: var(--danger); }
 .ess-pill.late { background: var(--primary-light); color: var(--primary); }
+.ess-pill.upcoming { background: rgba(59, 130, 246, 0.18); color: #60a5fa; }
 
 .ess-info-list { display: flex; flex-direction: column; gap: 10px; }
 .ess-info-list > div {
@@ -942,6 +972,7 @@ button.ess-reportee-chip {
 .ess-week-bar .absent { background: var(--ess-red); width: 100%; }
 .ess-week-bar .weekend { background: #fbbf24; width: 100%; }
 .ess-week-bar .late { background: var(--ess-orange); width: 100%; }
+.ess-week-bar .upcoming { background: #3b82f6; width: 100%; }
 .ess-week-hours { font-size: 12px; font-weight: 600; color: var(--ess-muted); white-space: nowrap; }
 
 /* Leave balances */

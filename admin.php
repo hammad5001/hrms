@@ -350,6 +350,7 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
     <link rel="stylesheet" href="css/dropdown-fix.css">
     <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
     <link rel="stylesheet" href="css/admin-users-pro.css?v=1">
+    <link rel="stylesheet" href="css/powered-by.css?v=1">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body {
@@ -1241,6 +1242,7 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
         </div>
 
         <div class="footer"><p><i class="fas fa-shield-alt"></i> Enterprise User Management · Real-time Sync</p></div>
+        <?php $gc_pb_mod = 'admin'; include __DIR__ . '/includes/powered_by_badge.php'; ?>
     </div>
 
     <!-- Modals -->

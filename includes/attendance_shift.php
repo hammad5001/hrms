@@ -105,11 +105,40 @@ function ess_is_late_checkin(?string $checkIn, string $shiftDate): bool
     return strtotime($checkIn) > $lateAfter;
 }
 
+/** True when the shift has not started yet (future shift date or before 5 PM on active shift). */
+function ess_is_shift_upcoming(string $shiftDate, ?int $timestamp = null): bool
+{
+    $timestamp = $timestamp ?? time();
+    $active = ess_active_shift_date($timestamp);
+
+    if ($shiftDate > $active) {
+        return true;
+    }
+    if ($shiftDate < $active) {
+        return false;
+    }
+
+    $checkinStart = strtotime($shiftDate . ' ' . sprintf('%02d:00:00', ESS_SHIFT_CHECKIN_HOUR));
+
+    return $timestamp < $checkinStart;
+}
+
 /**
- * Present / Absent / Late for one shift date — based only on fetched punches that day.
+ * Present / Absent / Late / Upcoming for one shift date — based only on fetched punches that day.
  */
 function ess_attendance_status_for_shift(?string $checkIn, ?string $checkOut, string $shiftDate): array
 {
+    if (!$checkIn && ess_is_shift_upcoming($shiftDate)) {
+        return [
+            'status' => 'upcoming',
+            'label' => 'Upcoming',
+            'check_in' => null,
+            'check_out' => $checkOut,
+            'on_duty' => false,
+            'is_late' => false,
+        ];
+    }
+
     if (!$checkIn) {
         return [
             'status' => 'absent',

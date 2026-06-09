@@ -1,21 +1,50 @@
-/* Embedded chat (inside employee-portal iframe) */
-html.chat-embed-mode,
-html.chat-embed-mode body.chat-body {
-    height: 100%;
-    overflow: hidden;
-}
-
-html.chat-embed-mode .chat-nav-sidebar,
-html.chat-embed-mode #chatBackLink {
-    display: none !important;
-}
-
-html.chat-embed-mode .chat-app-frame {
-    height: 100vh;
-    height: 100dvh;
-    min-height: 0;
-}
-
-html.chat-embed-mode .chat-sidebar {
-    border-left: none;
-}
+/* Embedded chat (inside employee-portal iframe) */
+html.chat-embed-mode,
+html.chat-embed-mode body.chat-body {
+    height: 100%;
+    overflow: hidden;
+}
+
+html.chat-embed-mode .chat-nav-sidebar,
+html.chat-embed-mode #chatBackLink {
+    display: none !important;
+}
+
+html.chat-embed-mode .chat-app-frame {
+    height: 100%;
+    min-height: 0;
+}
+
+html.chat-embed-mode .chat-sidebar {
+    border-left: none;
+    width: 340px;
+    max-width: 340px;
+    min-width: 300px;
+}
+
+html.chat-embed-mode .chat-main {
+    flex: 1;
+    min-width: 0;
+}
+
+@media (min-width: 1024px) {
+    html.chat-embed-mode .chat-sidebar {
+        width: 340px;
+        max-width: 340px;
+    }
+
+    html.chat-embed-mode .sidebar-head {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    html.chat-embed-mode .sidebar-quick-actions {
+        flex-direction: row;
+    }
+
+    html.chat-embed-mode .sidebar-action-pill {
+        flex: 1;
+    }
+}
+
