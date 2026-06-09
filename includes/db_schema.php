@@ -155,6 +155,41 @@ function ensure_app_schema(mysqli $conn): void {
             `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
             INDEX `idx_ln_user` (`recipient_user_id`, `is_read`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+        "CREATE TABLE IF NOT EXISTS `employee_reporting` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `employee_user_id` INT NOT NULL,
+            `employee_code` VARCHAR(32) DEFAULT NULL,
+            `employee_name` VARCHAR(150) DEFAULT NULL,
+            `manager_user_id` INT NOT NULL,
+            `manager_code` VARCHAR(32) DEFAULT NULL,
+            `manager_name` VARCHAR(150) DEFAULT NULL,
+            `company_branch` VARCHAR(32) NOT NULL DEFAULT 'main',
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY `uq_employee_user` (`employee_user_id`),
+            INDEX `idx_manager` (`manager_user_id`),
+            INDEX `idx_branch` (`company_branch`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+        "CREATE TABLE IF NOT EXISTS `employee_profile_details` (
+            `user_id` INT NOT NULL PRIMARY KEY,
+            `date_of_birth` DATE DEFAULT NULL,
+            `expertise` VARCHAR(255) DEFAULT NULL,
+            `marital_status` VARCHAR(40) DEFAULT NULL,
+            `about_me` TEXT DEFAULT NULL,
+            `emergency_contact` VARCHAR(120) DEFAULT NULL,
+            `personal_mobile` VARCHAR(20) DEFAULT NULL,
+            `extension` VARCHAR(20) DEFAULT NULL,
+            `personal_email` VARCHAR(150) DEFAULT NULL,
+            `present_address` TEXT DEFAULT NULL,
+            `permanent_address` TEXT DEFAULT NULL,
+            `added_by_user_id` INT DEFAULT NULL,
+            `modified_by_user_id` INT DEFAULT NULL,
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX `idx_profile_modified` (`modified_by_user_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
     ];
 
     foreach ($queries as $sql) {

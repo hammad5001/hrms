@@ -16,8 +16,16 @@ const HRMS = {
     weekOffset: 0,
     approvalFilter: 'pending',
     timerInterval: null,
+    attendanceRefreshInterval: null,
+    todayDuty: null,
+    reporting: null,
+    reporteesList: [],
+    selectedReportee: null,
+    selectedManager: null,
     approvalModalRequest: null,
-    approvalModalMode: 'approve'
+    approvalModalMode: 'approve',
+    currentView: 'dashboard',
+    activeNavId: 'nav-side-home',
 };
 
 const LEAVE_BALANCE_TYPES = [
@@ -76,7 +84,110 @@ function formatDate(d) {
 
 function formatTime(ts) {
     if (!ts) return '—';
-    return new Date(ts).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' });
+    const d = parseAttendanceTs(ts);
+    if (!d) return '—';
+    return d.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' });
+}
+
+/** Parse MySQL / API timestamps reliably in the browser. */
+function parseAttendanceTs(ts) {
+    if (ts == null || ts === '') return null;
+    const s = String(ts).trim();
+    const m = s.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})(?::(\d{2}))?/);
+    if (m) {
+        const sec = m[3] != null ? m[3] : '00';
+        const d = new Date(`${m[1]}T${m[2]}:${sec}`);
+        return Number.isNaN(d.getTime()) ? null : d;
+    }
+    const d = new Date(s);
+    return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function isOnDuty(checkIn, checkOut) {
+    return !!checkIn && (checkOut == null || checkOut === '');
+}
+
+function setTodayDuty(today) {
+    today = today || {};
+    const timerActive = !!today.timer_active;
+    const checkIn = today.duty_check_in || today.check_in || null;
+    const checkOut = timerActive ? null : (today.duty_check_out ?? today.check_out ?? null);
+    const checkInUnix = Number(today.duty_check_in_unix ?? today.check_in_unix);
+    const checkOutUnix = Number(today.check_out_unix);
+    const serverTs = Number(today.server_ts);
+
+    HRMS.todayDuty = {
+        checkIn,
+        checkOut,
+        timerActive,
+        checkInUnix: Number.isFinite(checkInUnix) && checkInUnix > 0 ? checkInUnix : null,
+        checkOutUnix: Number.isFinite(checkOutUnix) && checkOutUnix > 0 ? checkOutUnix : null,
+        baseSeconds: Number.isFinite(Number(today.duty_seconds))
+            ? Math.max(0, Math.floor(Number(today.duty_seconds)))
+            : 0,
+        serverTs: Number.isFinite(serverTs) && serverTs > 0 ? serverTs : null,
+        syncedAt: Date.now(),
+    };
+}
+
+function formatTimerDisplay(totalSecs) {
+    const safe = Math.max(0, Math.floor(totalSecs));
+    const h = String(Math.floor(safe / 3600)).padStart(2, '0');
+    const m = String(Math.floor((safe % 3600) / 60)).padStart(2, '0');
+    const s = String(safe % 60).padStart(2, '0');
+    return `${h} : ${m} : ${s}`;
+}
+
+/**
+ * Duty timer: first punch-in time (from machine fetch) → server now while on duty,
+ * or → check-out punch when shift ended. Example: in 6:27 PM, now 6:40 PM = 13 min.
+ */
+function dutyElapsedSeconds(duty) {
+    duty = duty || HRMS.todayDuty;
+    if (!duty?.checkIn && !duty?.checkInUnix) return 0;
+
+    const onDuty = duty.timerActive || isOnDuty(duty.checkIn, duty.checkOut);
+    let startUnix = duty.checkInUnix;
+    if (!startUnix && duty.checkIn) {
+        const parsed = parseAttendanceTs(duty.checkIn);
+        if (parsed) startUnix = Math.floor(parsed.getTime() / 1000);
+    }
+    if (!startUnix) {
+        return onDuty
+            ? Math.max(0, (duty.baseSeconds || 0) + Math.floor((Date.now() - (duty.syncedAt || Date.now())) / 1000))
+            : Math.max(0, duty.baseSeconds || 0);
+    }
+
+    if (onDuty) {
+        const drift = Math.floor((Date.now() - (duty.syncedAt || Date.now())) / 1000);
+        const fromServer = Math.max(0, (duty.baseSeconds || 0) + drift);
+        if (fromServer > 0) return fromServer;
+        const clientElapsed = Math.floor(Date.now() / 1000 - startUnix);
+        if (clientElapsed > 0) return clientElapsed;
+        if (duty.serverTs) {
+            const serverNow = duty.serverTs + (Date.now() - duty.syncedAt) / 1000;
+            return Math.max(0, Math.floor(serverNow - startUnix));
+        }
+        return 0;
+    }
+
+    let endUnix = duty.checkOutUnix;
+    if (!endUnix && duty.checkOut) {
+        const parsed = parseAttendanceTs(duty.checkOut);
+        if (parsed) endUnix = Math.floor(parsed.getTime() / 1000);
+    }
+    if (endUnix) {
+        if (endUnix < startUnix) endUnix += 86400;
+        return Math.max(0, Math.floor(endUnix - startUnix));
+    }
+
+    return Math.max(0, duty.baseSeconds || 0);
+}
+
+function resolveTodayHours(today) {
+    if (today) setTodayDuty(today);
+    if (!HRMS.todayDuty?.checkIn) return 0;
+    return dutyElapsedSeconds(HRMS.todayDuty) / 3600;
 }
 
 function avatarUrlFromUser(u) {
@@ -100,6 +211,165 @@ function applyAvatarToEl(el, url, name) {
     }
 }
 
+const PORTAL_ROLE_LABELS = {
+    user: 'Employee',
+    team_lead: 'Team Lead',
+    floor_manager: 'Floor Manager',
+    data_entry: 'Data Entry',
+    dialer: 'Dialer',
+    developer: 'Developer',
+    admin: 'Administrator',
+    super_admin: 'Super Admin',
+    hr: 'HR',
+    management: 'Management',
+    receptionist: 'Receptionist',
+};
+
+function portalRoleLabel(role) {
+    if (!role) return 'Employee';
+    return PORTAL_ROLE_LABELS[role] || role.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function splitFullName(name) {
+    const parts = (name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return { first: '—', last: '—' };
+    return { first: parts[0], last: parts.slice(1).join(' ') || '—' };
+}
+
+function formatJoinedDate(d) {
+    if (!d) return '—';
+    const dt = new Date(d + (String(d).includes('T') ? '' : 'T12:00:00'));
+    if (Number.isNaN(dt.getTime())) return d;
+    return dt.toLocaleDateString('en-PK', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function setProfileInput(id, value, fallback = '') {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (fallback === '—' && (value == null || String(value).trim() === '')) {
+        el.value = '—';
+        return;
+    }
+    el.value = (value != null && String(value).trim() !== '') ? value : fallback;
+}
+
+function setProfileTextarea(id, value) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = value != null ? String(value) : '';
+}
+
+function setProfileSelect(id, value) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = value != null ? String(value) : '';
+}
+
+function formatDateTime(ts) {
+    if (!ts) return '—';
+    const d = new Date(String(ts).replace(' ', 'T'));
+    if (Number.isNaN(d.getTime())) return ts;
+    return d.toLocaleString('en-PK', {
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+    });
+}
+
+function collectEditableProfileData() {
+    return {
+        date_of_birth: document.getElementById('pfDob')?.value || '',
+        marital_status: document.getElementById('pfMarital')?.value || '',
+        expertise: document.getElementById('pfExpertise')?.value?.trim() || '',
+        about_me: document.getElementById('pfAbout')?.value?.trim() || '',
+        emergency_contact: document.getElementById('pfEmergency')?.value?.trim() || '',
+        personal_mobile: document.getElementById('pfPersonalMobile')?.value?.trim() || '',
+        extension: document.getElementById('pfExtension')?.value?.trim() || '',
+        personal_email: document.getElementById('pfPersonalEmail')?.value?.trim() || '',
+        present_address: document.getElementById('pfPresentAddr')?.value?.trim() || '',
+        permanent_address: document.getElementById('pfPermanentAddr')?.value?.trim() || '',
+    };
+}
+
+function renderProfilePage(data) {
+    data = data || {};
+    const u = data.user || HRMS.user || {};
+    const pr = u.portal_role || 'user';
+    const names = splitFullName(u.full_name);
+    const manager = HRMS.reporting?.reporting_to;
+    const managerLabel = manager
+        ? [manager.full_name, manager.employee_code ? `(ID ${manager.employee_code})` : ''].filter(Boolean).join(' ')
+        : 'Not assigned — link your manager in Manage Reportees';
+
+    setText('profilePageName', u.full_name || 'Employee');
+    setText('profilePageRole', [portalRoleLabel(pr), u.designation].filter(Boolean).join(' · '));
+    setText('profilePageBid', u.employee_code || 'No ID');
+    const statusEl = document.getElementById('profilePageStatus');
+    if (statusEl) {
+        const active = (u.status || 'active') === 'active';
+        statusEl.textContent = active ? 'Active' : 'Inactive';
+        statusEl.className = 'ess-pill ' + (active ? 'present' : 'absent');
+    }
+
+    setProfileInput('pfEmpId', u.employee_code);
+    setProfileInput('pfEmail', u.email);
+    setProfileInput('pfFirstName', names.first);
+    setProfileInput('pfLastName', names.last);
+    setProfileInput('pfDepartment', u.department);
+    setProfileInput('pfPortalRole', portalRoleLabel(pr));
+    setProfileInput('pfBranch', u.branch || data.company_branch_label);
+    setProfileInput('pfTeam', u.team);
+    setProfileInput('pfDesignation', u.designation);
+    setProfileInput('pfEmpStatus', (u.status || 'active') === 'active' ? 'Active' : 'Inactive');
+    setProfileInput('pfJoined', formatJoinedDate(u.joined_date));
+    setProfileInput('pfBidSource', data.meta?.resolution_label || '—', '—');
+    setProfileInput('pfManager', managerLabel, '—');
+
+    const pd = data.profile_details || HRMS.profileDetails || {};
+    HRMS.profileDetails = pd;
+    setProfileInput('pfDob', pd.date_of_birth || '');
+    setProfileSelect('pfMarital', pd.marital_status || '');
+    setProfileInput('pfExpertise', pd.expertise || '');
+    setProfileTextarea('pfAbout', pd.about_me || '');
+    setProfileInput('pfEmergency', pd.emergency_contact || '');
+    setProfileInput('pfPersonalMobile', pd.personal_mobile || u.phone || '');
+    setProfileInput('pfExtension', pd.extension || '');
+    setProfileInput('pfPersonalEmail', pd.personal_email || '');
+    setProfileTextarea('pfPresentAddr', pd.present_address || '');
+    setProfileTextarea('pfPermanentAddr', pd.permanent_address || '');
+    setProfileInput('pfAddedBy', pd.added_by_name || u.full_name || '—', '—');
+    setProfileInput('pfModifiedBy', pd.modified_by_name || '—', '—');
+    setProfileInput('pfAddedTime', formatDateTime(pd.created_at), '—');
+    setProfileInput('pfModifiedTime', formatDateTime(pd.updated_at), '—');
+
+    const note = document.getElementById('pfManagerLinkNote');
+    if (note) note.classList.remove('hidden');
+
+    const avUrl = avatarUrlFromUser(u);
+    applyAvatarToEl(document.getElementById('profilePageAvatar'), avUrl, u.full_name);
+}
+
+async function saveProfile() {
+    const btn = document.getElementById('btnSaveProfile');
+    if (btn) btn.disabled = true;
+    const payload = collectEditableProfileData();
+    const res = await apiPost('api/employee_profile.php?action=save', payload);
+    if (btn) btn.disabled = false;
+    if (!res.success) {
+        toast(res.message || 'Could not save profile', 'error');
+        return;
+    }
+    HRMS.profileDetails = res.profile || HRMS.profileDetails;
+    if (HRMS.user && res.phone != null) HRMS.user.phone = res.phone;
+    setText('profPhone', res.phone || payload.personal_mobile || '—');
+    renderProfilePage({
+        user: HRMS.user,
+        meta: HRMS.profileMeta,
+        company_branch_label: HRMS.branchLabel,
+        profile_details: res.profile,
+    });
+    toast('Profile saved successfully');
+}
+
 function greetingForNow() {
     const h = new Date().getHours();
     if (h < 12) return { text: 'Good Morning', icon: 'fa-sun', sub: 'Have a productive day!' };
@@ -114,12 +384,81 @@ function ensureChatFrameLoaded() {
     frame.dataset.loaded = '1';
 }
 
-function showView(id) {
-    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-    document.querySelectorAll('.ess-side-item[data-view], .ess-tab[data-view], .ess-header-link[data-view]').forEach(n => {
-        if (n.dataset.view === id) n.classList.add('active');
-        else n.classList.remove('active');
+const ESS_DEFAULT_NAV = {
+    dashboard: 'nav-tab-activities',
+    attendance: 'nav-tab-attendance',
+    salary: 'nav-side-payroll',
+    leave: 'nav-tab-leave',
+    halfday: 'nav-tab-leave',
+    myleaves: 'nav-tab-myleaves',
+    approvals: 'nav-tab-approvals',
+    reportees: 'nav-tab-reportees',
+    profile: 'nav-tab-profile',
+    notifications: 'nav-tab-notifications',
+    chat: 'nav-side-chat',
+    'coming-soon': null,
+};
+
+const ESS_VIEW_TITLES = {
+    dashboard: ['Dashboard', 'Employee Self Service overview'],
+    attendance: ['Attendance', 'Punch history and weekly summary'],
+    salary: ['Payroll', 'Salary, bonus, and compensation details'],
+    leave: ['Leave Tracker', 'Balances and leave applications'],
+    halfday: ['Half Day Leave', 'Apply morning or afternoon half day'],
+    myleaves: ['My Leave Requests', 'Track status of your applications'],
+    approvals: ['Leave Approvals', 'Review and approve team requests'],
+    reportees: ['Manage Reportees', 'Your team — IDs and today\'s attendance'],
+    profile: ['My Profile', 'Your employee record and work information'],
+    notifications: ['Notifications', 'Alerts from HR and managers'],
+    chat: ['Workspace Chat', 'Messages with your team — secure internal chat'],
+    'coming-soon': ['Coming soon', 'This module is under development'],
+};
+
+function setActiveNav(navId) {
+    document.querySelectorAll('[data-nav-id]').forEach(n => {
+        n.classList.toggle('active', !!navId && n.dataset.navId === navId);
     });
+    HRMS.activeNavId = navId || null;
+}
+
+function showComingSoon(label, navId) {
+    HRMS.currentView = 'coming-soon';
+    setActiveNav(navId);
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-coming-soon')?.classList.add('active');
+    document.body.classList.remove('ess-chat-active');
+
+    const title = label ? `${label}` : 'This section';
+    setText('comingSoonTitle', `Working on ${title}`);
+    setText('comingSoonSubtitle', `${title} is not available yet. Our team is building it for a future release.`);
+    const t = ESS_VIEW_TITLES['coming-soon'];
+    setText('pageTitle', t[0]);
+    setText('pageSubtitle', t[1]);
+}
+
+function navigateFromEl(el) {
+    if (!el) return;
+    const view = el.dataset.view;
+    const navId = el.dataset.navId || null;
+    if (!view) return;
+    if (view === 'coming-soon') {
+        showComingSoon(el.dataset.navLabel || 'This section', navId);
+        return;
+    }
+    showView(view, navId);
+}
+
+function showView(id, navId = null) {
+    if (id === 'coming-soon') {
+        showComingSoon('This section', navId);
+        return;
+    }
+
+    HRMS.currentView = id;
+    navId = navId || ESS_DEFAULT_NAV[id] || null;
+    setActiveNav(navId);
+
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
     const view = document.getElementById('view-' + id);
     if (view) view.classList.add('active');
 
@@ -127,34 +466,33 @@ function showView(id) {
     document.body.classList.toggle('ess-chat-active', isChat);
     if (isChat) ensureChatFrameLoaded();
 
-    const titles = {
-        dashboard: ['Dashboard', 'Employee Self Service overview'],
-        attendance: ['Attendance', 'Punch history and weekly summary'],
-        salary: ['Payroll', 'Salary, bonus, and compensation details'],
-        leave: ['Leave Tracker', 'Balances and leave applications'],
-        halfday: ['Half Day Leave', 'Apply morning or afternoon half day'],
-        myleaves: ['My Leave Requests', 'Track status of your applications'],
-        approvals: ['Leave Approvals', 'Review and approve team requests'],
-        notifications: ['Notifications', 'Alerts from HR and managers'],
-        chat: ['Workspace Chat', 'Messages with your team — secure internal chat']
-    };
-    const t = titles[id] || ['HRMS', ''];
+    const t = ESS_VIEW_TITLES[id] || ['HRMS', ''];
     setText('pageTitle', t[0]);
     setText('pageSubtitle', t[1]);
+
     if (id === 'leave') { loadMyLeaves(); renderLeaveBalances(); }
     if (id === 'myleaves') loadMyLeaves(true);
     if (id === 'approvals') loadApprovals();
+    if (id === 'reportees') loadReporteesView();
+    if (id === 'profile') {
+        renderProfilePage({
+            user: HRMS.user,
+            meta: HRMS.profileMeta,
+            company_branch_label: HRMS.branchLabel,
+            profile_details: HRMS.profileDetails,
+        });
+    }
     if (id === 'notifications') loadNotifications();
     if (id === 'attendance') { renderAttendance(); renderWeekView(); }
     if (id === 'salary') renderSalary();
 }
 
-/** Night shift: check-in from 2 PM on shift date, check-out until noon next day. */
+/** Night shift: 5 PM shift date → 4 AM next day. */
 const ESS_SHIFT = {
-    checkinHour: 14,
-    shiftStartHour: 19,
+    checkinHour: 17,
+    shiftStartHour: 17,
     graceMin: 15,
-    checkoutNoonHour: 12,
+    checkoutEndHour: 4,
 };
 
 function shiftDateForTimestamp(ts) {
@@ -163,7 +501,7 @@ function shiftDateForTimestamp(ts) {
     if (Number.isNaN(d.getTime())) return String(ts).slice(0, 10);
     const h = d.getHours();
     if (h >= ESS_SHIFT.checkinHour) return d.toISOString().slice(0, 10);
-    if (h < ESS_SHIFT.checkoutNoonHour) {
+    if (h < ESS_SHIFT.checkoutEndHour) {
         const prev = new Date(d);
         prev.setDate(prev.getDate() - 1);
         return prev.toISOString().slice(0, 10);
@@ -173,7 +511,7 @@ function shiftDateForTimestamp(ts) {
 
 function activeShiftDate() {
     const now = new Date();
-    if (now.getHours() < ESS_SHIFT.checkoutNoonHour) {
+    if (now.getHours() < ESS_SHIFT.checkoutEndHour) {
         const prev = new Date(now);
         prev.setDate(prev.getDate() - 1);
         return prev.toISOString().slice(0, 10);
@@ -189,7 +527,7 @@ function shiftWindows(shiftDateStr) {
         checkinStart: new Date(shiftDateStr + 'T14:00:00').getTime(),
         checkinEnd: new Date(shiftDateStr + 'T23:59:59').getTime(),
         checkoutStart: new Date(nextStr + 'T00:00:00').getTime(),
-        checkoutEnd: new Date(nextStr + 'T11:59:59').getTime(),
+        checkoutEnd: new Date(nextStr + 'T03:59:59').getTime(),
     };
 }
 
@@ -259,8 +597,8 @@ function dayStatus(shiftDateStr) {
 
     let late = false;
     if (shift.checkIn) {
-        const graceEnd = new Date(shiftDateStr + 'T19:15:00').getTime();
-        late = new Date(shift.checkIn).getTime() > graceEnd;
+        const lateAfter = new Date(shiftDateStr + 'T18:00:00').getTime();
+        late = new Date(shift.checkIn).getTime() > lateAfter;
     }
 
     return {
@@ -299,35 +637,109 @@ function renderWeekView(targetId = 'attendanceWeekList', stripId = 'attendanceWe
     if (strip) strip.innerHTML = html;
 }
 
-function calcTodayHours(checkIn, checkOut) {
-    if (!checkIn) return 0;
-    const start = new Date(checkIn).getTime();
-    const end = checkOut ? new Date(checkOut).getTime() : Date.now();
-    return Math.max(0, (end - start) / 3600000);
-}
+function updateLiveTimer() {
+    if (HRMS.timerInterval) {
+        clearInterval(HRMS.timerInterval);
+        HRMS.timerInterval = null;
+    }
 
-function updateLiveTimer(checkIn, checkOut) {
-    if (HRMS.timerInterval) clearInterval(HRMS.timerInterval);
     const tick = () => {
         const el = document.getElementById('profileTimer');
         if (!el) return;
-        if (!checkIn) {
+
+        const duty = HRMS.todayDuty;
+        if (!duty?.checkIn) {
             el.textContent = '00 : 00 : 00';
+            el.classList.remove('running');
             return;
         }
-        const start = new Date(checkIn).getTime();
-        const end = checkOut ? new Date(checkOut).getTime() : Date.now();
-        let secs = Math.max(0, Math.floor((end - start) / 1000));
-        const h = String(Math.floor(secs / 3600)).padStart(2, '0');
-        secs %= 3600;
-        const m = String(Math.floor(secs / 60)).padStart(2, '0');
-        const s = String(secs % 60).padStart(2, '0');
-        el.textContent = `${h} : ${m} : ${s}`;
+
+        const onDuty = duty.timerActive || isOnDuty(duty.checkIn, duty.checkOut);
+        const secs = dutyElapsedSeconds(duty);
+        el.textContent = formatTimerDisplay(secs);
+        el.classList.toggle('running', onDuty);
+
+        const hrsEl = document.getElementById('dashTotalHours');
+        if (hrsEl && onDuty) {
+            hrsEl.textContent = (secs / 3600).toFixed(2) + ' Hrs';
+        }
     };
+
     tick();
-    if (checkIn && !checkOut) {
+    const duty = HRMS.todayDuty;
+    if (duty?.timerActive || isOnDuty(duty?.checkIn, duty?.checkOut)) {
         HRMS.timerInterval = setInterval(tick, 1000);
     }
+}
+
+function resolveTodayStatus(today) {
+    today = today || {};
+    if (today.status) {
+        return {
+            status: today.status,
+            label: today.status_label || (today.status === 'late' ? 'Late' : today.status === 'present' ? 'Present' : 'Absent'),
+        };
+    }
+    if (!today.check_in) {
+        return { status: 'absent', label: 'Absent' };
+    }
+    if (today.is_late) {
+        return { status: 'late', label: 'Late' };
+    }
+    return { status: 'present', label: 'Present' };
+}
+
+function applyTodayStatus(today) {
+    today = today || {};
+    const st = resolveTodayStatus(today);
+    const hasIn = st.status !== 'absent';
+    const shiftDate = today.date || activeShiftDate();
+
+    const statusEl = document.getElementById('profileCardStatus');
+    if (statusEl) {
+        statusEl.textContent = st.label;
+        statusEl.className = 'ess-status ' + st.status;
+    }
+
+    const dashStatus = document.getElementById('dashTodayStatus');
+    if (dashStatus) {
+        const shiftLabel = today.calendar_date && today.date && today.calendar_date !== today.date
+            ? `Shift ${formatDate(shiftDate)}`
+            : 'Today';
+        dashStatus.textContent = `${shiftLabel} ${st.label}`;
+        dashStatus.className = 'ess-pill ' + st.status;
+    }
+
+    setText('dashCheckIn', formatTime(today.check_in), '—');
+    setText('dashCheckOut', formatTime(today.check_out), '—');
+    setText('dashPunchCount', String(today.punch_count ?? 0), '0');
+    setTodayDuty(today);
+    setText('dashTotalHours', resolveTodayHours(today).toFixed(2) + ' Hrs');
+    updateLiveTimer();
+
+    return { st, hasIn };
+}
+
+function refreshTodayAttendance(data) {
+    if (!data?.success) return;
+    HRMS.attendance = data.attendance_raw || HRMS.attendance;
+    applyTodayStatus(data.today || {});
+    if (HRMS.reporting?.is_manager) {
+        loadReportingHierarchy();
+    }
+}
+
+function startAttendanceRefresh() {
+    if (HRMS.attendanceRefreshInterval) clearInterval(HRMS.attendanceRefreshInterval);
+    HRMS.attendanceRefreshInterval = setInterval(async () => {
+        if (document.hidden) return;
+        try {
+            const data = await apiGet('api/employee_self_service.php');
+            refreshTodayAttendance(data);
+        } catch (err) {
+            console.warn('Attendance refresh failed', err);
+        }
+    }, 30000);
 }
 
 function applyProfileData(data) {
@@ -336,14 +748,13 @@ function applyProfileData(data) {
     HRMS.payroll = data.payroll || null;
     HRMS.attendance = data.attendance_raw || [];
 
-    const roleNames = {
-        user: 'EMPLOYEE', team_lead: 'TEAM LEAD', floor_manager: 'FLOOR MANAGER',
-        data_entry: 'DATA ENTRY', dialer: 'DIALER', developer: 'DEVELOPER', admin: 'ADMINISTRATOR'
-    };
     const pr = u.portal_role || 'user';
+    HRMS.profileMeta = data.meta || {};
+    HRMS.branchLabel = data.company_branch_label;
+    HRMS.profileDetails = data.profile_details || HRMS.profileDetails || {};
 
     setText('chipName', u.full_name, 'Employee');
-    setText('chipRole', roleNames[pr] || pr.replace(/_/g, ' ').toUpperCase(), 'USER');
+    setText('chipRole', portalRoleLabel(pr).toUpperCase(), 'USER');
     setText('profileCardName', (u.employee_code ? u.employee_code + ' - ' : '') + (u.full_name || 'Employee'));
     setText('profName', u.full_name);
     setText('profEmail', u.email);
@@ -353,8 +764,10 @@ function applyProfileData(data) {
     setText('profTeam', u.team);
     setText('profBranch', u.branch || data.company_branch_label);
     setText('profPhone', u.phone);
-    setText('profRole', roleNames[pr] || pr);
+    setText('profRole', portalRoleLabel(pr));
     setText('profBidSource', data.meta?.resolution_label || '—');
+
+    renderProfilePage(data);
 
     const avUrl = avatarUrlFromUser(u);
     applyAvatarToEl(document.getElementById('profileCardAvatar'), avUrl, u.full_name);
@@ -372,36 +785,8 @@ function applyProfileData(data) {
     setText('statPunches', String(sum.total_punches ?? 0), '0');
 
     const today = data.today || {};
-    const hasIn = !!today.check_in;
-    const isLateToday = !!today.is_late;
-    const shiftDate = today.date || activeShiftDate();
-    const statusEl = document.getElementById('profileCardStatus');
-    const dashStatus = document.getElementById('dashTodayStatus');
-    const statusText = hasIn ? (isLateToday ? 'Late' : 'Present') : 'Absent';
-
-    if (statusEl) {
-        statusEl.textContent = statusText;
-        statusEl.className = 'ess-status ' + (
-            !hasIn ? 'absent' : (isLateToday ? 'late' : 'present')
-        );
-    }
-    if (dashStatus) {
-        const shiftLabel = today.calendar_date && today.date && today.calendar_date !== today.date
-            ? `Shift ${formatDate(shiftDate)}`
-            : 'Today';
-        dashStatus.textContent = shiftLabel + ' ' + statusText;
-        dashStatus.className = 'ess-pill ' + (hasIn ? (isLateToday ? 'late' : 'present') : 'absent');
-    }
-
-    setText('dashCheckIn', formatTime(today.check_in), '—');
-    setText('dashCheckOut', formatTime(today.check_out), '—');
-    setText('dashPunchCount', String(today.punch_count ?? 0), '0');
-    const hrs = today.working_hours != null
-        ? Number(today.working_hours)
-        : calcTodayHours(today.check_in, today.check_out);
-    setText('dashTotalHours', hrs.toFixed(2) + ' Hrs');
-    setText('dashShift', (data.shift && data.shift.label) || 'Night · 2:00 PM check-in – next day 12:00 PM checkout');
-    updateLiveTimer(today.check_in, today.check_out);
+    applyTodayStatus(today);
+    setText('dashShift', (data.shift && data.shift.label) || 'Night shift (5 PM – next day 4 AM)');
 
     if (data.meta && data.meta.employee_code_set === false) {
         toast('Ask HR to link your Employee ID (BID) for attendance & salary.', 'error');
@@ -435,6 +820,7 @@ async function loadProfile() {
             if (retry.success) data = retry;
         }
         applyProfileData(data);
+        await loadReportingHierarchy();
 
         const ls = await apiGet('api/leave_api.php?action=summary');
         if (ls.success) {
@@ -629,7 +1015,391 @@ function bindPersonSearch(inputId, resultsId, chipId, action, onSelect, onClear)
     input.addEventListener('blur', () => setTimeout(hideResults, 180));
 }
 
+function renderManagerCard(manager) {
+    if (!manager) return '';
+    const code = manager.employee_code ? `<span class="ess-id-badge">${escHtml(manager.employee_code)}</span>` : '';
+    const meta = [manager.role_label, manager.designation, manager.team].filter(Boolean).join(' · ');
+    return `<div class="ess-hierarchy-person">
+        ${code}
+        <strong>${escHtml(manager.full_name || 'Manager')}</strong>
+        ${meta ? `<small>${escHtml(meta)}</small>` : ''}
+    </div>`;
+}
+
+function renderCurrentManagerPanel(manager) {
+    const el = document.getElementById('reporteesCurrentManager');
+    if (!el) return;
+    if (!manager) {
+        el.classList.add('hidden');
+        el.innerHTML = '';
+        return;
+    }
+    el.classList.remove('hidden');
+    el.innerHTML = `<div class="ess-current-manager-inner">
+        <span class="ess-mini-label">Currently linked</span>
+        ${renderManagerCard(manager)}
+    </div>`;
+}
+
+function renderReporteeChips(reportees, limit = 0) {
+    if (!reportees?.length) {
+        return '<p class="ess-muted-line">No reportees yet.</p>';
+    }
+    const list = limit > 0 ? reportees.slice(0, limit) : reportees;
+    return `<div class="ess-reportee-chips">${list.map(r => {
+        const att = r.attendance || {};
+        const st = att.status || 'absent';
+        const label = att.label || (st === 'late' ? 'Late' : st === 'present' ? 'Present' : 'Absent');
+        const code = r.employee_code || '—';
+        const name = r.full_name || '—';
+        const uid = r.user_id || r.employee_code || '';
+        return `<button type="button" class="ess-reportee-chip" data-reportee-id="${escHtml(String(uid))}" title="View ${escHtml(name)} attendance">
+            <span class="ess-reportee-chip-name">${escHtml(name)}</span>
+            <span class="ess-id-badge">${escHtml(code)}</span>
+            <span class="ess-pill ${st}">${escHtml(label)}</span>
+        </button>`;
+    }).join('')}</div>`;
+}
+
+function bindReporteeChipClicks(container) {
+    if (!container) return;
+    container.querySelectorAll('.ess-reportee-chip[data-reportee-id]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.dataset.reporteeId;
+            const reportee = (HRMS.reporting?.reportees || HRMS.reporteesList || [])
+                .find(r => String(r.user_id) === id || String(r.employee_code) === id);
+            if (reportee) openReporteeAttendance(reportee);
+        });
+    });
+}
+
+function formatPunchList(punches) {
+    if (!punches?.length) return '—';
+    return punches.map(ts => formatTime(ts)).join(', ');
+}
+
+function renderReporteeHistoryRows(history) {
+    if (!history?.length) {
+        return '<tr><td colspan="7">No punch records in the last 10 days.</td></tr>';
+    }
+    return history.map(day => {
+        const st = day.status || 'absent';
+        const checkOut = day.check_out
+            ? formatTime(day.check_out)
+            : (day.on_duty ? 'On duty' : '—');
+        const hrs = day.working_hours != null ? Number(day.working_hours).toFixed(2) : '0.00';
+        return `<tr>
+            <td>${formatDate(day.shift_date)}</td>
+            <td>${day.check_in ? formatTime(day.check_in) : '—'}</td>
+            <td>${checkOut}</td>
+            <td>${hrs} Hrs</td>
+            <td>${day.punch_count ?? 0}</td>
+            <td class="ess-punch-times">${escHtml(formatPunchList(day.punches))}</td>
+            <td><span class="ess-pill ${st}">${escHtml(day.label || st)}</span></td>
+        </tr>`;
+    }).join('');
+}
+
+function renderReporteeAttendanceDetail(reportee, history, loadingHistory = false) {
+    const panel = document.getElementById('reporteeAttendancePanel');
+    if (!panel) return;
+    if (!reportee) {
+        panel.classList.add('hidden');
+        panel.innerHTML = '';
+        return;
+    }
+
+    const att = reportee.attendance || {};
+    const st = att.status || 'absent';
+    const label = att.label || (st === 'late' ? 'Late' : st === 'present' ? 'Present' : 'Absent');
+    const code = reportee.employee_code || '—';
+    const name = reportee.full_name || '—';
+    const hours = att.working_hours != null ? Number(att.working_hours).toFixed(2) + ' Hrs' : '0.00 Hrs';
+    const checkOut = att.check_out
+        ? formatTime(att.check_out)
+        : (att.on_duty ? 'On duty' : '—');
+    const shiftNote = att.shift_date ? `Shift date: ${formatDate(att.shift_date)}` : 'Night shift (5 PM – next day 4 AM)';
+    const historyBody = loadingHistory
+        ? '<tr><td colspan="7">Loading punch history…</td></tr>'
+        : renderReporteeHistoryRows(history);
+
+    panel.classList.remove('hidden');
+    panel.innerHTML = `
+        <div class="ess-reportee-att-head">
+            <div>
+                <h4>${escHtml(name)}</h4>
+                <p class="ess-muted-line"><span class="ess-id-badge">${escHtml(code)}</span>${reportee.team ? ` · ${escHtml(reportee.team)}` : ''}</p>
+            </div>
+            <span class="ess-pill ${st}">${escHtml(label)}</span>
+        </div>
+        <div class="ess-reportee-att-grid">
+            <div><span class="lbl">Check In</span><strong>${att.check_in ? formatTime(att.check_in) : '—'}</strong></div>
+            <div><span class="lbl">Check Out</span><strong>${checkOut}</strong></div>
+            <div><span class="lbl">Total Hours</span><strong>${hours}</strong></div>
+            <div><span class="lbl">Punches</span><strong>${att.punch_count ?? 0}</strong></div>
+        </div>
+        <p class="ess-shift-note" style="margin-top:12px;margin-bottom:0"><i class="fas fa-moon"></i> ${escHtml(shiftNote)}</p>
+        <div class="ess-reportee-history">
+            <h5><i class="fas fa-clock-rotate-left"></i> Last 10 days punches</h5>
+            <div class="ess-table-wrap">
+                <table class="data-table ess-reportee-history-table">
+                    <thead>
+                        <tr>
+                            <th>Shift Date</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Hours</th>
+                            <th>Punches</th>
+                            <th>All Punch Times</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>${historyBody}</tbody>
+                </table>
+            </div>
+        </div>`;
+}
+
+async function loadReporteeHistory(reportee) {
+    if (!reportee) return;
+    const token = `${reportee.user_id || ''}:${reportee.employee_code || ''}`;
+    const code = encodeURIComponent(reportee.employee_code || '');
+    const uid = reportee.user_id || '';
+    try {
+        const res = await apiGet(`api/reportees_api.php?action=reporteeHistory&employee_code=${code}&user_id=${uid}`);
+        const current = `${HRMS.selectedReportee?.user_id || ''}:${HRMS.selectedReportee?.employee_code || ''}`;
+        if (current !== token) return;
+        renderReporteeAttendanceDetail(reportee, res.success ? (res.data || []) : []);
+        if (!res.success) toast(res.error || 'Could not load punch history', 'error');
+    } catch (err) {
+        console.warn('Reportee history load failed', err);
+        const current = `${HRMS.selectedReportee?.user_id || ''}:${HRMS.selectedReportee?.employee_code || ''}`;
+        if (current === token) renderReporteeAttendanceDetail(reportee, []);
+    }
+}
+
+async function openReporteeAttendance(reportee) {
+    if (!reportee) return;
+    HRMS.selectedReportee = reportee;
+    renderReporteeAttendanceDetail(reportee, null, true);
+    renderReporteesTable(HRMS.reporteesList);
+    showView('reportees', 'nav-tab-reportees');
+    document.getElementById('reporteeAttendancePanel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    await loadReporteeHistory(reportee);
+}
+
+async function selectReportee(reportee) {
+    HRMS.selectedReportee = reportee;
+    renderReporteeAttendanceDetail(reportee, null, true);
+    renderReporteesTable(HRMS.reporteesList);
+    await loadReporteeHistory(reportee);
+}
+
+function renderReportingHierarchy(data) {
+    HRMS.reporting = data || null;
+    if (data?.reportees?.length) {
+        HRMS.reporteesList = data.reportees;
+    }
+    const hierarchyCard = document.getElementById('hierarchyCard');
+    const reportingWrap = document.getElementById('hierarchyReportingWrap');
+    const reporteesWrap = document.getElementById('hierarchyReporteesWrap');
+    const reportingEl = document.getElementById('hierarchyReporting');
+    const reporteesEl = document.getElementById('hierarchyReportees');
+    const teamCard = document.getElementById('reporteesTeamCard');
+    const isManager = !!data?.is_manager;
+    const reportees = data?.reportees || [];
+    const hasManager = !!data?.reporting_to;
+    const hasReportees = isManager && reportees.length > 0;
+
+    renderCurrentManagerPanel(data?.reporting_to);
+
+    if (reportingEl && hasManager) {
+        reportingEl.innerHTML = renderManagerCard(data.reporting_to);
+    }
+    if (reportingWrap) {
+        reportingWrap.classList.toggle('hidden', !hasManager);
+    }
+    if (reporteesEl && hasReportees) {
+        reporteesEl.innerHTML = renderReporteeChips(reportees, 6);
+        bindReporteeChipClicks(reporteesEl);
+    }
+    if (reporteesWrap) {
+        reporteesWrap.classList.toggle('hidden', !hasReportees);
+    }
+    if (hierarchyCard) {
+        hierarchyCard.classList.toggle('hidden', !hasManager && !hasReportees);
+    }
+    if (teamCard) {
+        teamCard.classList.toggle('hidden', !isManager);
+    }
+    setText('reporteesCountBadge', `${reportees.length} reportee${reportees.length === 1 ? '' : 's'}`);
+    if (document.getElementById('view-profile')?.classList.contains('active')) {
+        renderProfilePage({ user: HRMS.user, meta: HRMS.profileMeta, company_branch_label: HRMS.branchLabel });
+    }
+}
+
+async function loadReportingHierarchy() {
+    try {
+        const res = await apiGet('api/reportees_api.php?action=hierarchy');
+        if (res.success) {
+            renderReportingHierarchy(res.data);
+        }
+    } catch (err) {
+        console.warn('Reporting hierarchy load failed', err);
+    }
+}
+
+function renderReporteesTable(rows) {
+    const tbody = document.getElementById('reporteesTableBody');
+    if (!tbody) return;
+    if (!rows?.length) {
+        tbody.innerHTML = '<tr><td colspan="6">No employees have linked you as their manager yet.</td></tr>';
+        renderReporteeAttendanceDetail(null);
+        return;
+    }
+    const selectedId = HRMS.selectedReportee
+        ? String(HRMS.selectedReportee.user_id || HRMS.selectedReportee.employee_code || '')
+        : '';
+    tbody.innerHTML = rows.map(r => {
+        const att = r.attendance || {};
+        const st = att.status || 'absent';
+        const rowId = String(r.user_id || r.employee_code || '');
+        const selected = selectedId && rowId === selectedId ? ' ess-reportee-row-selected' : '';
+        return `<tr class="ess-reportee-row${selected}" data-reportee-id="${escHtml(rowId)}" tabindex="0" role="button" aria-label="View ${escHtml(r.full_name || '')} attendance">
+            <td><span class="ess-id-badge">${escHtml(r.employee_code || '—')}</span></td>
+            <td><strong>${escHtml(r.full_name || '—')}</strong>${r.team ? `<br><small>${escHtml(r.team)}</small>` : ''}</td>
+            <td>${escHtml(r.team || '—')}</td>
+            <td>${att.check_in ? formatTime(att.check_in) : '—'}</td>
+            <td>${att.check_out ? formatTime(att.check_out) : (att.on_duty ? 'On duty' : '—')}</td>
+            <td><span class="ess-pill ${st}">${escHtml(att.label || st)}</span></td>
+        </tr>`;
+    }).join('');
+
+    tbody.querySelectorAll('.ess-reportee-row').forEach(row => {
+        const pick = () => {
+            const id = row.dataset.reporteeId;
+            const reportee = rows.find(r => String(r.user_id) === id || String(r.employee_code) === id);
+            if (reportee) selectReportee(reportee);
+        };
+        row.addEventListener('click', pick);
+        row.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                pick();
+            }
+        });
+    });
+}
+
+async function loadReporteesView() {
+    let hierarchy = HRMS.reporting;
+    if (!hierarchy) {
+        const hres = await apiGet('api/reportees_api.php?action=hierarchy');
+        if (hres.success) hierarchy = hres.data;
+    }
+    if (hierarchy) renderReportingHierarchy(hierarchy);
+
+    const tbody = document.getElementById('reporteesTableBody');
+    if (!hierarchy?.is_manager) return;
+
+    if (tbody) tbody.innerHTML = '<tr><td colspan="6">Loading team…</td></tr>';
+    const res = await apiGet('api/reportees_api.php?action=reportees');
+    if (!res.success) {
+        if (tbody) tbody.innerHTML = `<tr><td colspan="6">${escHtml(res.error || 'Could not load reportees')}</td></tr>`;
+        return;
+    }
+    HRMS.reporteesList = res.data || [];
+    renderReporteesTable(HRMS.reporteesList);
+    if (HRMS.selectedReportee) {
+        const still = HRMS.reporteesList.find(r =>
+            (HRMS.selectedReportee.user_id && r.user_id === HRMS.selectedReportee.user_id)
+            || (HRMS.selectedReportee.employee_code && r.employee_code === HRMS.selectedReportee.employee_code)
+        );
+        HRMS.selectedReportee = still || null;
+        if (HRMS.selectedReportee) {
+            renderReporteeAttendanceDetail(HRMS.selectedReportee, null, true);
+            await loadReporteeHistory(HRMS.selectedReportee);
+        } else {
+            renderReporteeAttendanceDetail(null);
+        }
+    }
+    setText('reporteesCountBadge', `${HRMS.reporteesList.length} reportee${HRMS.reporteesList.length === 1 ? '' : 's'}`);
+}
+
+function bindManagerReportingSearch() {
+    const input = document.getElementById('managerSearchInput');
+    const results = document.getElementById('managerSearchResults');
+    const confirmBtn = document.getElementById('btnConfirmManager');
+    if (!input || !results) return;
+
+    const hideResults = () => results.classList.add('hidden');
+
+    input.addEventListener('input', () => {
+        const q = input.value.trim();
+        clearTimeout(HRMS.searchTimers.managerSearch);
+        if (q.length < 2) {
+            hideResults();
+            return;
+        }
+        HRMS.searchTimers.managerSearch = setTimeout(async () => {
+            const res = await apiGet(`api/reportees_api.php?action=searchManagers&q=${encodeURIComponent(q)}`);
+            const rows = res.success ? (res.data || []) : [];
+            if (!rows.length) {
+                results.innerHTML = '<div class="ess-search-empty">No manager found</div>';
+            } else {
+                results.innerHTML = rows.map(p => `
+                    <button type="button" class="ess-search-item" data-id="${p.id}">
+                        <strong>${escHtml(p.full_name)}</strong>
+                        <small>${escHtml([p.employee_code ? 'ID ' + p.employee_code : '', p.role_label, p.designation].filter(Boolean).join(' · '))}</small>
+                    </button>`).join('');
+            }
+            results.classList.remove('hidden');
+            results.querySelectorAll('.ess-search-item').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const person = rows.find(r => String(r.id) === btn.dataset.id);
+                    if (!person) return;
+                    HRMS.selectedManager = person;
+                    input.value = '';
+                    hideResults();
+                    renderSelectedPerson('managerSearchSelected', person, () => {
+                        HRMS.selectedManager = null;
+                        renderSelectedPerson('managerSearchSelected', null);
+                        if (confirmBtn) confirmBtn.disabled = true;
+                    });
+                    if (confirmBtn) confirmBtn.disabled = false;
+                });
+            });
+        }, 280);
+    });
+
+    input.addEventListener('blur', () => setTimeout(hideResults, 180));
+
+    confirmBtn?.addEventListener('click', async () => {
+        if (!HRMS.selectedManager?.id) {
+            toast('Please search and select your manager first', 'error');
+            return;
+        }
+        confirmBtn.disabled = true;
+        const res = await apiPost('api/reportees_api.php?action=assignManager', {
+            manager_user_id: HRMS.selectedManager.id
+        });
+        if (res.success) {
+            toast(res.data?.message || 'You have been added to your manager\'s reportees.');
+            HRMS.selectedManager = null;
+            renderSelectedPerson('managerSearchSelected', null);
+            renderReportingHierarchy(res.data?.hierarchy);
+            input.value = '';
+            confirmBtn.disabled = true;
+            showView('dashboard');
+        } else {
+            toast(res.error || 'Could not link manager', 'error');
+            confirmBtn.disabled = false;
+        }
+    });
+}
+
 function initLeaveForms() {
+    bindManagerReportingSearch();
     bindPersonSearch('leaveApproverSearch', 'leaveApproverResults', 'leaveApproverSelected', 'searchApprovers',
         p => { HRMS.selectedApprover = p; },
         () => { HRMS.selectedApprover = null; renderSelectedPerson('leaveApproverSelected', null); }
@@ -917,22 +1687,22 @@ async function uploadProfilePhoto(file) {
         HRMS.user.chat_avatar = res.data.avatar_url?.split('/').pop();
     }
     applyAvatarToEl(document.getElementById('profileCardAvatar'), res.data.avatar_url, HRMS.user?.full_name);
+    applyAvatarToEl(document.getElementById('profilePageAvatar'), res.data.avatar_url, HRMS.user?.full_name);
     applyAvatarToEl(document.getElementById('topAvatar'), res.data.avatar_url, HRMS.user?.full_name);
     toast('Profile photo updated');
 }
 
 function bindNavigation() {
-    document.querySelectorAll('[data-view]').forEach(el => {
-        el.addEventListener('click', () => {
-            const v = el.dataset.view;
-            if (v) showView(v);
-        });
+    document.querySelectorAll('[data-nav-id]').forEach(el => {
+        el.addEventListener('click', () => navigateFromEl(el));
     });
-    document.getElementById('btnNotifBell')?.addEventListener('click', () => showView('notifications'));
-    document.getElementById('btnUserMenu')?.addEventListener('click', () => showView('dashboard'));
+    document.getElementById('btnUserMenu')?.addEventListener('click', () => showView('profile', 'nav-tab-profile'));
     document.getElementById('essBrandHome')?.addEventListener('click', (e) => {
         e.preventDefault();
-        showView('dashboard');
+        showView('dashboard', 'nav-side-home');
+    });
+    document.getElementById('btnComingSoonBack')?.addEventListener('click', () => {
+        showView('dashboard', 'nav-side-home');
     });
 
     document.getElementById('weekPrev')?.addEventListener('click', () => {
@@ -953,9 +1723,11 @@ function bindNavigation() {
         });
     });
 
-    document.getElementById('btnChangePhoto')?.addEventListener('click', () => {
-        document.getElementById('profilePhotoInput')?.click();
-    });
+    const openPhotoPicker = () => document.getElementById('profilePhotoInput')?.click();
+    document.getElementById('btnChangePhoto')?.addEventListener('click', openPhotoPicker);
+    document.getElementById('btnProfilePagePhoto')?.addEventListener('click', openPhotoPicker);
+    document.getElementById('btnSaveProfile')?.addEventListener('click', saveProfile);
+    document.getElementById('btnGoManageReportees')?.addEventListener('click', () => showView('reportees', 'nav-tab-reportees'));
     document.getElementById('profilePhotoInput')?.addEventListener('change', e => {
         const f = e.target.files?.[0];
         e.target.value = '';
@@ -992,9 +1764,18 @@ function setupWorkPortalLink() {
 document.addEventListener('DOMContentLoaded', () => {
     bindNavigation();
     initLeaveForms();
-    loadProfile().then(() => setupWorkPortalLink());
+    loadProfile().then(() => {
+        setupWorkPortalLink();
+        startAttendanceRefresh();
+    });
     HRMS.notifyTimer = setInterval(pollNotifications, 20000);
-    if (location.hash === '#chat') showView('chat');
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && (HRMS.todayDuty?.timerActive || isOnDuty(HRMS.todayDuty?.checkIn, HRMS.todayDuty?.checkOut))) {
+            updateLiveTimer();
+        }
+    });
+    if (location.hash === '#chat') showView('chat', 'nav-side-chat');
+    else if (location.hash === '#profile') showView('profile', 'nav-tab-profile');
 });
 
 window.HRMS = HRMS;

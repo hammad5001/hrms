@@ -13,6 +13,9 @@ if ($conn->connect_error) {
 
 $conn->set_charset('utf8mb4');
 
+date_default_timezone_set('Asia/Karachi');
+$conn->query("SET time_zone = '+05:00'");
+
 require_once __DIR__ . '/includes/company_branches.php';
 require_once __DIR__ . '/includes/db_schema.php';
 require_once __DIR__ . '/includes/portal_roles.php';

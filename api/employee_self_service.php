@@ -3,6 +3,7 @@ require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/employee_resolve.php';
 require_once __DIR__ . '/../includes/session_user.php';
 require_once __DIR__ . '/../includes/chat_schema.php';
+require_once __DIR__ . '/../includes/employee_profile.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -50,9 +51,26 @@ try {
     $times = $attendance['times'];
     $attendance_summary = $attendance['attendance_summary'];
     $shift_date = $attendance['shift_date'] ?? $today;
-    $working_hours = function_exists('ess_working_hours')
-        ? ess_working_hours($check_in, $check_out)
+    $on_duty = !empty($attendance['on_duty']);
+    $attendance_status = $attendance['attendance_status'] ?? 'absent';
+    $attendance_label = $attendance['attendance_label'] ?? 'Absent';
+    $is_late_today = !empty($attendance['is_late']);
+    $serverClock = function_exists('ess_server_clock')
+        ? ess_server_clock($conn)
+        : ['ts' => time(), 'now_str' => date('Y-m-d H:i:s')];
+    $server_ts = (int)$serverClock['ts'];
+    $server_now = $serverClock['now_str'];
+    $timer_check_in = $on_duty ? $check_in : null;
+    $timer_check_out = $on_duty ? null : $check_out;
+    $duty_seconds = function_exists('ess_duty_seconds')
+        ? ess_duty_seconds($timer_check_in ?: $check_in, $timer_check_out, $conn)
         : 0;
+    $working_hours = function_exists('ess_working_hours')
+        ? ess_working_hours($timer_check_in ?: $check_in, $timer_check_out, $conn)
+        : 0;
+    $check_in_unix = ($check_in && function_exists('ess_punch_unix')) ? ess_punch_unix($conn, $check_in) : ($check_in ? strtotime($check_in) : null);
+    $check_out_unix = ($check_out && function_exists('ess_punch_unix')) ? ess_punch_unix($conn, $check_out) : ($check_out ? strtotime($check_out) : null);
+    $duty_check_in_unix = $check_in_unix;
 
     $payroll = fetch_payroll_bundle($conn, $emp_code, $month, $branch);
 
@@ -70,10 +88,13 @@ try {
     ];
 
     $user['avatar_url'] = chat_public_avatar_url($user['chat_avatar'] ?? '');
+    $profile_details = fetch_employee_profile_details($conn, (int) $user['id']);
 
     echo json_encode([
         'success' => true,
+        'server_now' => $server_now,
         'user' => $user,
+        'profile_details' => $profile_details,
         'company_branch_label' => $branchLabel,
         'active_branch' => $branch,
         'attendance_raw' => $attendance_raw,
@@ -83,17 +104,28 @@ try {
             'calendar_date' => $today,
             'check_in' => $check_in,
             'check_out' => $check_out,
+            'duty_check_in' => $timer_check_in,
+            'duty_check_out' => $timer_check_out,
             'punch_count' => count($times),
             'working_hours' => $working_hours,
-            'is_late' => function_exists('ess_is_late_checkin')
-                ? ess_is_late_checkin($check_in, $shift_date)
-                : false,
+            'duty_seconds' => $duty_seconds,
+            'check_in_unix' => $check_in_unix,
+            'check_out_unix' => $check_out_unix,
+            'duty_check_in_unix' => $duty_check_in_unix,
+            'server_ts' => $server_ts,
+            'on_duty' => $on_duty,
+            'timer_active' => $on_duty && (bool) $timer_check_in,
+            'status' => $attendance_status,
+            'status_label' => $attendance_label,
+            'is_late' => $is_late_today,
         ],
         'shift' => [
             'type' => 'night',
-            'label' => 'Night shift (2 PM – next day 12 PM)',
-            'checkin_from' => '14:00',
-            'shift_start' => '19:00',
+            'label' => 'Night shift (5 PM – next day 4 AM)',
+            'checkin_from' => '17:00',
+            'shift_start' => '17:00',
+            'checkout_until' => '04:00',
+            'late_after' => '18:00',
             'grace_minutes' => 15,
         ],
         'payroll' => $payroll,

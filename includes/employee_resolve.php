@@ -299,7 +299,14 @@ function fetch_attendance_bundle(mysqli $conn, string $empCode, string $today, ?
 
     $codes = employee_code_variants($empCode);
     if (empty($codes)) {
-        return compact('attendance_raw', 'check_in', 'check_out', 'times', 'attendance_summary', 'shift_date');
+        $on_duty = false;
+        $attendance_status = 'absent';
+        $attendance_label = 'Absent';
+        $is_late = false;
+        return compact(
+            'attendance_raw', 'check_in', 'check_out', 'times', 'attendance_summary',
+            'shift_date', 'on_duty', 'attendance_status', 'attendance_label', 'is_late'
+        );
     }
 
     $table = branch_attendance_table($branch);
@@ -326,10 +333,26 @@ function fetch_attendance_bundle(mysqli $conn, string $empCode, string $today, ?
     }
     $attendance_summary['total_punches'] = count($attendance_raw);
 
-    $shiftPunches = ess_resolve_shift_punches($allTimestamps, $shift_date);
-    $check_in = $shiftPunches['check_in'];
-    $check_out = $shiftPunches['check_out'];
-    $times = $shiftPunches['times'];
+    $shift_date = ess_active_shift_date();
+    $openDuty = ess_resolve_open_duty($allTimestamps);
+
+    if ($openDuty['on_duty']) {
+        $check_in = $openDuty['check_in'];
+        $check_out = null;
+        $times = $openDuty['times'];
+        $shift_date = $openDuty['shift_date'];
+    } else {
+        $check_in = $openDuty['check_in'];
+        $check_out = $openDuty['check_out'];
+        $times = $openDuty['times'];
+        $shift_date = $openDuty['shift_date'];
+    }
+
+    $shiftStatus = ess_attendance_status_for_shift($check_in, $check_out, $shift_date);
+    $on_duty = $shiftStatus['on_duty'];
+    $attendance_status = $shiftStatus['status'];
+    $attendance_label = $shiftStatus['label'];
+    $is_late = $shiftStatus['is_late'];
 
     $monthStart = date('Y-m-01');
     $monthEnd = date('Y-m-t');
@@ -348,7 +371,10 @@ function fetch_attendance_bundle(mysqli $conn, string $empCode, string $today, ?
         $cursor = strtotime('+1 day', $cursor);
     }
 
-    return compact('attendance_raw', 'check_in', 'check_out', 'times', 'attendance_summary', 'shift_date');
+    return compact(
+        'attendance_raw', 'check_in', 'check_out', 'times', 'attendance_summary',
+        'shift_date', 'on_duty', 'attendance_status', 'attendance_label', 'is_late'
+    );
 }
 
 function fetch_payroll_bundle(mysqli $conn, string $empCode, string $month, string $branch): array {

@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
-    <link rel="stylesheet" href="css/employee-hrms.css?v=11">
+    <link rel="stylesheet" href="css/employee-hrms.css?v=21">
     <link rel="stylesheet" href="css/dropdown-fix.css">
 </head>
 <body class="ess-body">
@@ -19,11 +19,11 @@
     <div class="ess-app">
         <header class="ess-header">
             <nav class="ess-header-nav" aria-label="Workspace">
-                <button type="button" class="ess-header-link active" data-view="dashboard">Overview</button>
-                <button type="button" class="ess-header-link" data-view="dashboard">Dashboard</button>
-                <button type="button" class="ess-header-link" data-view="attendance">Calendar</button>
-                <button type="button" class="ess-header-link hidden" data-view="approvals" id="headerApprovals">Team Approvals</button>
-                <button type="button" class="ess-header-link ess-header-chat" data-view="chat"><i class="fas fa-comments"></i> Chat</button>
+                <button type="button" class="ess-header-link" data-nav-id="nav-header-overview" data-view="coming-soon" data-nav-label="Overview">Overview</button>
+                <button type="button" class="ess-header-link active" data-nav-id="nav-header-dashboard" data-view="dashboard">Dashboard</button>
+                <button type="button" class="ess-header-link" data-nav-id="nav-header-calendar" data-view="attendance">Calendar</button>
+                <button type="button" class="ess-header-link hidden" data-nav-id="nav-header-approvals" data-view="approvals" id="headerApprovals">Team Approvals</button>
+                <button type="button" class="ess-header-link ess-header-chat" data-nav-id="nav-header-chat" data-view="chat"><i class="fas fa-comments"></i> Chat</button>
             </nav>
             <a href="#" class="ess-header-brand" id="essBrandHome" title="Balitech Employee Self Service" aria-label="Balitech — go to dashboard">
                 <span class="ess-brand-logo-wrap">
@@ -34,7 +34,7 @@
                 <a href="#" class="ess-back-work hidden" id="essBackToWork" title="Return to your work portal">
                     <i class="fas fa-briefcase"></i> Work portal
                 </a>
-                <button type="button" class="ess-icon-btn" id="btnNotifBell" title="Notifications" data-view="notifications">
+                <button type="button" class="ess-icon-btn" id="btnNotifBell" title="Notifications" data-nav-id="nav-header-notif" data-view="notifications">
                     <i class="fas fa-bell"></i>
                     <span class="ess-badge hidden" id="badgeNotif">0</span>
                 </button>
@@ -52,32 +52,33 @@
                     </span>
                 </div>
                 <nav class="ess-side-nav">
-                    <button type="button" class="ess-side-item active" data-view="dashboard"><i class="fas fa-house"></i><span>Home</span></button>
-                    <button type="button" class="ess-side-item" data-view="dashboard"><i class="fas fa-user-plus"></i><span>Onboarding</span></button>
-                    <button type="button" class="ess-side-item" data-view="leave"><i class="fas fa-calendar-minus"></i><span>Leave Tracker</span></button>
-                    <button type="button" class="ess-side-item" data-view="attendance"><i class="fas fa-fingerprint"></i><span>Attendance</span></button>
-                    <button type="button" class="ess-side-item hidden" data-view="approvals" id="navApprovals"><i class="fas fa-user-check"></i><span>Team Approvals</span><span class="ess-side-badge hidden" id="badgeApprovals">0</span></button>
-                    <button type="button" class="ess-side-item" data-view="salary"><i class="fas fa-clock"></i><span>Time Tracker</span></button>
-                    <button type="button" class="ess-side-item" data-view="salary"><i class="fas fa-wallet"></i><span>Payroll</span></button>
-                    <button type="button" class="ess-side-item" data-view="myleaves"><i class="fas fa-folder-open"></i><span>Files</span></button>
-                    <button type="button" class="ess-side-item" data-view="chat"><i class="fas fa-comments"></i><span>Chat</span></button>
-                    <button type="button" class="ess-side-item" data-view="notifications"><i class="fas fa-ellipsis"></i><span>More</span></button>
+                    <button type="button" class="ess-side-item active" data-nav-id="nav-side-home" data-view="dashboard"><i class="fas fa-house"></i><span>Home</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-onboarding" data-view="coming-soon" data-nav-label="Onboarding"><i class="fas fa-user-plus"></i><span>Onboarding</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-leave" data-view="leave"><i class="fas fa-calendar-minus"></i><span>Leave Tracker</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-attendance" data-view="attendance"><i class="fas fa-fingerprint"></i><span>Attendance</span></button>
+                    <button type="button" class="ess-side-item hidden" data-nav-id="nav-side-approvals" data-view="approvals" id="navApprovals"><i class="fas fa-user-check"></i><span>Team Approvals</span><span class="ess-side-badge hidden" id="badgeApprovals">0</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-timetracker" data-view="coming-soon" data-nav-label="Time Tracker"><i class="fas fa-clock"></i><span>Time Tracker</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-payroll" data-view="salary"><i class="fas fa-wallet"></i><span>Payroll</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-files" data-view="coming-soon" data-nav-label="Files"><i class="fas fa-folder-open"></i><span>Files</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-chat" data-view="chat"><i class="fas fa-comments"></i><span>Chat</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-more" data-view="notifications"><i class="fas fa-ellipsis"></i><span>More</span></button>
                 </nav>
                 <a href="logout.php" class="ess-logout"><i class="fas fa-right-from-bracket"></i> Sign out</a>
             </aside>
 
             <main class="ess-main">
                 <nav class="ess-tabs" id="essTabBar" aria-label="Sections">
-                    <button type="button" class="ess-tab active" data-view="dashboard">Activities</button>
-                    <button type="button" class="ess-tab" data-view="dashboard">Feeds</button>
-                    <button type="button" class="ess-tab" data-view="dashboard">Profile</button>
-                    <button type="button" class="ess-tab hidden" data-view="approvals" id="tabApprovals">Approvals</button>
-                    <button type="button" class="ess-tab" data-view="leave">Leave</button>
-                    <button type="button" class="ess-tab" data-view="attendance">Attendance</button>
-                    <button type="button" class="ess-tab" data-view="salary">Time Logs</button>
-                    <button type="button" class="ess-tab" data-view="salary">Timesheets</button>
-                    <button type="button" class="ess-tab" data-view="myleaves">My Leaves</button>
-                    <button type="button" class="ess-tab" data-view="notifications">Notifications</button>
+                    <button type="button" class="ess-tab active" data-nav-id="nav-tab-activities" data-view="dashboard">Activities</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-feeds" data-view="coming-soon" data-nav-label="Feeds">Feeds</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-profile" data-view="profile" id="tabProfile">Profile</button>
+                    <button type="button" class="ess-tab hidden" data-nav-id="nav-tab-approvals" data-view="approvals" id="tabApprovals">Approvals</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-leave" data-view="leave">Leave</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-attendance" data-view="attendance">Attendance</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-timelogs" data-view="coming-soon" data-nav-label="Time Logs">Time Logs</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-timesheets" data-view="coming-soon" data-nav-label="Timesheets">Timesheets</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-myleaves" data-view="myleaves">My Leaves</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-reportees" data-view="reportees" id="tabReportees">Manage Reportees</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-notifications" data-view="notifications">Notifications</button>
                 </nav>
 
                 <div class="ess-page-head">
@@ -101,14 +102,19 @@
                             </div>
                             <h3 id="profileCardName">—</h3>
                             <p class="ess-status-line"><span id="profileCardStatus" class="ess-status absent">Absent</span></p>
-                            <div class="ess-timer" id="profileTimer">00 : 00 : 00</div>
+                            <p class="ess-timer-label">Shift Timer</p>
+                            <div class="ess-timer" id="profileTimer" aria-live="polite">00 : 00 : 00</div>
                             <button type="button" class="ess-bio-btn" onclick="showView('attendance')"><i class="fas fa-fingerprint"></i> Biometric Attendance</button>
                         </div>
-                        <div class="ess-hierarchy-card">
-                            <h4>Reporting To</h4>
-                            <p id="hierarchyReporting">No reporting manager is currently assigned.</p>
-                            <h4>Reportees</h4>
-                            <p id="hierarchyReportees">No reportees are currently assigned.</p>
+                        <div class="ess-hierarchy-card hidden" id="hierarchyCard">
+                            <div id="hierarchyReportingWrap" class="hidden">
+                                <h4><i class="fas fa-sitemap"></i> Reporting To</h4>
+                                <div id="hierarchyReporting" class="ess-hierarchy-block"></div>
+                            </div>
+                            <div id="hierarchyReporteesWrap" class="hidden">
+                                <h4 class="ess-hierarchy-sub"><i class="fas fa-users"></i> My Reportees</h4>
+                                <div id="hierarchyReportees" class="ess-hierarchy-block"></div>
+                            </div>
                         </div>
                     </aside>
 
@@ -132,7 +138,7 @@
                                         <div><span class="lbl">Total Hours</span><strong id="dashTotalHours">0.00 Hrs</strong></div>
                                         <div><span class="lbl">Punches Today</span><strong id="dashPunchCount">0</strong></div>
                                     </div>
-                                    <p class="ess-shift-note"><i class="fas fa-moon"></i> Shift: <span id="dashShift">Night · 2:00 PM check-in – next day 12:00 PM checkout</span></p>
+                                    <p class="ess-shift-note"><i class="fas fa-moon"></i> Shift: <span id="dashShift">Night shift (5 PM – next day 4 AM)</span></p>
                                 </div>
                                 <div class="ess-card">
                                     <div class="ess-card-head"><h3>Employee Information</h3></div>
@@ -184,6 +190,202 @@
                             <div class="ess-card">
                                 <div class="ess-card-head"><h3>Work Schedule · <span id="weekRangeLabel">This week</span></h3></div>
                                 <div class="ess-week-strip" id="attendanceWeekStrip"></div>
+                            </div>
+                        </section>
+
+                        <!-- Coming soon placeholder -->
+                        <section id="view-coming-soon" class="view-section">
+                            <div class="ess-coming-soon ess-card">
+                                <div class="ess-coming-soon-icon" aria-hidden="true"><i class="fas fa-screwdriver-wrench"></i></div>
+                                <h2 id="comingSoonTitle">Working on this</h2>
+                                <p id="comingSoonSubtitle">This section is being built and will be available in a future update.</p>
+                                <p class="ess-coming-soon-hint">You can continue using Dashboard, Profile, Attendance, Leave, and Payroll in the meantime.</p>
+                                <button type="button" class="ess-btn ess-btn-primary" id="btnComingSoonBack">
+                                    <i class="fas fa-house"></i> Back to dashboard
+                                </button>
+                            </div>
+                        </section>
+
+                        <!-- Profile -->
+                        <section id="view-profile" class="view-section">
+                            <div class="ess-profile-page">
+                                <div class="ess-profile-hero ess-card">
+                                    <div class="ess-profile-hero-photo" id="profilePageAvatar"><span>U</span></div>
+                                    <div class="ess-profile-hero-meta">
+                                        <h2 id="profilePageName">—</h2>
+                                        <p id="profilePageRole">—</p>
+                                        <div class="ess-profile-hero-tags">
+                                            <span class="ess-id-badge" id="profilePageBid">—</span>
+                                            <span class="ess-pill present" id="profilePageStatus">Active</span>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="ess-btn ess-btn-outline ess-profile-photo-btn" id="btnProfilePagePhoto">
+                                        <i class="fas fa-camera"></i> Change photo
+                                    </button>
+                                </div>
+
+                                <p class="ess-profile-lock-note"><i class="fas fa-lock"></i> Biometric ID, name, and department are managed by HR and cannot be changed here.</p>
+
+                                <div class="ess-profile-section ess-card">
+                                    <h3 class="ess-profile-section-title">Basic information</h3>
+                                    <div class="ess-profile-form-grid">
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfEmpId">Biometric ID</label>
+                                            <input type="text" id="pfEmpId" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfEmail">Email address</label>
+                                            <input type="email" id="pfEmail" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfFirstName">First name</label>
+                                            <input type="text" id="pfFirstName" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfLastName">Last name</label>
+                                            <input type="text" id="pfLastName" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="ess-profile-section ess-card">
+                                    <h3 class="ess-profile-section-title">Work information</h3>
+                                    <div class="ess-profile-form-grid">
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfDepartment">Department</label>
+                                            <input type="text" id="pfDepartment" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfPortalRole">Portal role</label>
+                                            <input type="text" id="pfPortalRole" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfBranch">Branch</label>
+                                            <input type="text" id="pfBranch" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfTeam">Team</label>
+                                            <input type="text" id="pfTeam" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfDesignation">Designation</label>
+                                            <input type="text" id="pfDesignation" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfEmpStatus">Employee status</label>
+                                            <input type="text" id="pfEmpStatus" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfJoined">Date of joining</label>
+                                            <input type="text" id="pfJoined" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfBidSource">Attendance link</label>
+                                            <input type="text" id="pfBidSource" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="ess-profile-section ess-card">
+                                    <h3 class="ess-profile-section-title">Hierarchy information</h3>
+                                    <div class="ess-profile-form-grid ess-profile-form-grid--single">
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfManager">Reporting manager</label>
+                                            <input type="text" id="pfManager" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                    </div>
+                                    <p class="ess-muted-line ess-profile-hierarchy-note hidden" id="pfManagerLinkNote">
+                                        <button type="button" class="ess-link-btn" id="btnGoManageReportees">Manage reportees</button>
+                                        — view or update your reporting manager and team.
+                                    </p>
+                                </div>
+
+                                <div class="ess-profile-section ess-card">
+                                    <h3 class="ess-profile-section-title">Personal details</h3>
+                                    <div class="ess-profile-form-grid">
+                                        <div class="ess-profile-field">
+                                            <label for="pfDob">Date of birth</label>
+                                            <input type="date" id="pfDob">
+                                        </div>
+                                        <div class="ess-profile-field">
+                                            <label for="pfMarital">Marital status</label>
+                                            <select id="pfMarital">
+                                                <option value="">— Select —</option>
+                                                <option value="Single">Single</option>
+                                                <option value="Married">Married</option>
+                                                <option value="Divorced">Divorced</option>
+                                                <option value="Widowed">Widowed</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div class="ess-profile-field ess-profile-field--full">
+                                            <label for="pfExpertise">Ask me about / expertise</label>
+                                            <input type="text" id="pfExpertise" placeholder="e.g. React, payroll, dialer ops">
+                                        </div>
+                                        <div class="ess-profile-field ess-profile-field--full">
+                                            <label for="pfAbout">About me</label>
+                                            <textarea id="pfAbout" rows="4" placeholder="Short introduction about yourself…"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="ess-profile-section ess-card">
+                                    <h3 class="ess-profile-section-title">Contact details</h3>
+                                    <div class="ess-profile-form-grid">
+                                        <div class="ess-profile-field">
+                                            <label for="pfEmergency">Emergency contact</label>
+                                            <input type="text" id="pfEmergency" placeholder="Name &amp; number">
+                                        </div>
+                                        <div class="ess-profile-field">
+                                            <label for="pfPersonalMobile">Personal mobile number</label>
+                                            <input type="tel" id="pfPersonalMobile" placeholder="03xx xxxxxxx" maxlength="15" autocomplete="tel">
+                                        </div>
+                                        <div class="ess-profile-field">
+                                            <label for="pfExtension">Extension</label>
+                                            <input type="text" id="pfExtension" placeholder="e.g. 101">
+                                        </div>
+                                        <div class="ess-profile-field">
+                                            <label for="pfPersonalEmail">Personal email address</label>
+                                            <input type="email" id="pfPersonalEmail" placeholder="you@example.com" autocomplete="email">
+                                        </div>
+                                        <div class="ess-profile-field ess-profile-field--full">
+                                            <label for="pfPresentAddr">Present address</label>
+                                            <textarea id="pfPresentAddr" rows="3" placeholder="Current residential address"></textarea>
+                                        </div>
+                                        <div class="ess-profile-field ess-profile-field--full">
+                                            <label for="pfPermanentAddr">Permanent address</label>
+                                            <textarea id="pfPermanentAddr" rows="3" placeholder="Permanent home address"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="ess-profile-section ess-card">
+                                    <h3 class="ess-profile-section-title">System fields</h3>
+                                    <div class="ess-profile-form-grid">
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfAddedBy">Added by</label>
+                                            <input type="text" id="pfAddedBy" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfModifiedBy">Modified by</label>
+                                            <input type="text" id="pfModifiedBy" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfAddedTime">Added time</label>
+                                            <input type="text" id="pfAddedTime" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfModifiedTime">Modified time</label>
+                                            <input type="text" id="pfModifiedTime" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="ess-profile-save-bar">
+                                    <button type="button" class="ess-btn ess-btn-primary ess-btn-save-profile" id="btnSaveProfile">
+                                        <i class="fas fa-floppy-disk"></i> Save profile
+                                    </button>
+                                </div>
                             </div>
                         </section>
 
@@ -374,6 +576,58 @@
                             <div id="approvalsList" class="ess-approvals-list"></div>
                         </section>
 
+                        <!-- Manage Reportees -->
+                        <section id="view-reportees" class="view-section">
+                            <div class="ess-reportees-hero">
+                                <div>
+                                    <h3><i class="fas fa-users-gear"></i> Manage Reportees</h3>
+                                    <p>Link your reporting manager or view your team&apos;s attendance.</p>
+                                </div>
+                            </div>
+
+                            <div class="ess-card ess-reportees-link-card" id="reporteesLinkCard">
+                                <div class="ess-card-head">
+                                    <h3><i class="fas fa-user-tie"></i> Your Reporting Manager</h3>
+                                </div>
+                                <div id="reporteesCurrentManager" class="ess-current-manager hidden"></div>
+                                <label class="ess-mini-label" for="managerSearchInput">Search by biometric ID or name</label>
+                                <div class="ess-person-search">
+                                    <input type="text" class="ess-search-input" id="managerSearchInput" placeholder="Enter employee ID or name…" autocomplete="off">
+                                    <div class="ess-search-results hidden" id="managerSearchResults"></div>
+                                    <div class="ess-selected-person hidden" id="managerSearchSelected"></div>
+                                </div>
+                                <button type="button" class="ess-btn ess-btn-primary" id="btnConfirmManager" disabled>
+                                    <i class="fas fa-check"></i> Confirm manager
+                                </button>
+                            </div>
+
+                            <div class="ess-card hidden" id="reporteesTeamCard">
+                                <div class="ess-card-head">
+                                    <h3><i class="fas fa-users"></i> Your Reportees</h3>
+                                    <span class="ess-pill present" id="reporteesCountBadge">0 reportees</span>
+                                </div>
+                                <p class="ess-muted-line ess-reportees-team-note">Select a reportee to view their today&apos;s attendance.</p>
+                                <div id="reporteeAttendancePanel" class="ess-reportee-att-panel hidden"></div>
+                                <div class="ess-table-wrap">
+                                    <table class="data-table ess-reportees-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Biometric ID</th>
+                                                <th>Name</th>
+                                                <th>Team</th>
+                                                <th>Check In</th>
+                                                <th>Check Out</th>
+                                                <th>Today</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="reporteesTableBody">
+                                            <tr><td colspan="6">Loading team…</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </section>
+
                         <!-- Chat (embedded — same page URL) -->
                         <section id="view-chat" class="view-section ess-chat-view">
                             <iframe id="essChatFrame" class="ess-chat-iframe" title="Balitech Workspace Chat" src="about:blank" allow="clipboard-write"></iframe>
@@ -388,6 +642,10 @@
                         </section>
                     </div>
                 </div>
+
+                <footer class="ess-powered-footer">
+                    <p class="gc-powered-tag">Powered by GO CONNECTIVEO</p>
+                </footer>
             </main>
         </div>
     </div>
@@ -415,7 +673,7 @@
 
     <script src="js/portal-access.js"></script>
     <script src="js/portal-session-guard.js"></script>
-    <script src="js/employee-hrms.js?v=8"></script>
+    <script src="js/employee-hrms.js?v=26"></script>
     <script src="js/portal-chat-fab.js"></script>
 </body>
 </html>

@@ -530,6 +530,29 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
             border-top: 1px solid rgba(255,255,255,0.1);
         }
         .create-form.show { display: block; animation: fadeIn 0.3s ease; }
+        .bulk-import-zone {
+            border: 2px dashed rgba(249,115,22,0.35);
+            border-radius: 20px;
+            padding: 32px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            margin-top: 16px;
+        }
+        .bulk-import-zone:hover, .bulk-import-zone.drag-over {
+            border-color: #f97316;
+            background: rgba(249,115,22,0.06);
+        }
+        .bulk-import-zone i { font-size: 36px; color: #f97316; margin-bottom: 12px; }
+        .bulk-import-preview { margin-top: 20px; display: none; }
+        .bulk-import-preview.show { display: block; }
+        .bulk-import-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 12px; }
+        .bulk-import-table th, .bulk-import-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            text-align: left;
+        }
+        .bulk-import-table th { color: rgba(255,255,255,0.55); font-weight: 600; }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -1119,6 +1142,33 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                 </form>
             </div>
         </div>
+
+        <?php if ($current_is_super): ?>
+        <div class="create-card" id="bulkImportCard">
+            <div class="create-header">
+                <h2><i class="fas fa-file-upload"></i> Bulk Import Users</h2>
+                <button type="button" class="toggle-form-btn" style="background:linear-gradient(135deg,#10b981,#059669);" onclick="downloadUserImportTemplate()">
+                    <i class="fas fa-download"></i> Download Template
+                </button>
+            </div>
+            <p style="color:rgba(255,255,255,0.55);font-size:13px;margin:0 0 8px;">
+                Upload Excel (.xlsx) or CSV to create many accounts at once. Required columns:
+                <strong>employee_code</strong>, <strong>full_name</strong>, <strong>email</strong>, <strong>portal_role</strong>, <strong>company_branch</strong>.
+                Optional: phone, department, designation, branch, team, joined_date, password.
+            </p>
+            <div class="form-group" style="max-width:320px;margin-bottom:16px;">
+                <label><i class="fas fa-key"></i> Default password (if sheet row has no password)</label>
+                <input type="text" id="bulkDefaultPassword" value="Balitech@123" placeholder="Min 4 characters">
+            </div>
+            <div class="bulk-import-zone" id="bulkDropZone" onclick="document.getElementById('bulkFileInput').click()">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h3 style="color:white;margin:0 0 8px;font-size:16px;">Click or drag file here</h3>
+                <p style="color:rgba(255,255,255,0.45);font-size:12px;margin:0;">.xlsx, .xls, or .csv — up to 500 rows</p>
+                <input type="file" id="bulkFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleBulkUserFile(event)">
+            </div>
+            <div class="bulk-import-preview" id="bulkImportPreview"></div>
+        </div>
+        <?php endif; ?>
 
         <!-- Control Panel -->
         <div class="control-panel">
@@ -1998,6 +2048,162 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
         window.onclick = function(event) {
             if (event.target.classList.contains('modal')) event.target.classList.remove('active');
         }
+
+        <?php if ($current_is_super): ?>
+        let parsedBulkUsers = [], bulkImportFileName = '';
+
+        function downloadUserImportTemplate() {
+            const header = 'employee_code,full_name,email,phone,portal_role,department,designation,company_branch,branch,team,joined_date,password';
+            const sample = '5056,Mehmood Ali,mehmood.ali,03001234567,user,Sales,Agent,commercial,Commercial Office,Team A,2024-01-15,';
+            const blob = new Blob([header + '\n' + sample + '\n'], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'user_import_template.csv';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+
+        function normalizeBulkHeader(key) {
+            return String(key || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        }
+
+        function pickBulkValue(row, aliases) {
+            for (const [col, val] of Object.entries(row)) {
+                const norm = normalizeBulkHeader(col);
+                if (aliases.includes(norm) && String(val).trim() !== '') return String(val).trim();
+            }
+            return '';
+        }
+
+        function parseBulkUserRows(data) {
+            const out = [];
+            data.forEach(r => {
+                const employee_code = pickBulkValue(r, ['employeecode', 'employeeid', 'empid', 'bid', 'id']);
+                const full_name = pickBulkValue(r, ['fullname', 'name', 'employeename']);
+                const email = pickBulkValue(r, ['email', 'emailprefix', 'username', 'login']);
+                const phone = pickBulkValue(r, ['phone', 'mobile', 'contact']);
+                const portal_role = pickBulkValue(r, ['portalrole', 'role', 'userrole']);
+                const department = pickBulkValue(r, ['department', 'dept']);
+                const designation = pickBulkValue(r, ['designation', 'title', 'jobtitle']);
+                const company_branch = pickBulkValue(r, ['companybranch', 'loginbranch', 'branchlogin']);
+                const branch = pickBulkValue(r, ['office', 'officelocation', 'location', 'branch']);
+                const team = pickBulkValue(r, ['team']);
+                const joined_date = pickBulkValue(r, ['joineddate', 'joiningdate', 'dateofjoining']);
+                const password = pickBulkValue(r, ['password', 'pass']);
+                if (employee_code && full_name && email) {
+                    out.push({
+                        employee_code, full_name, email, phone, portal_role: portal_role || 'user',
+                        department, designation, company_branch: company_branch || 'main',
+                        branch, team, joined_date, password
+                    });
+                }
+            });
+            return out;
+        }
+
+        function handleBulkUserFile(e) {
+            const f = (e.target.files && e.target.files[0]) || null;
+            if (!f) return;
+            bulkImportFileName = f.name;
+            if (typeof XLSX === 'undefined') {
+                showNotification('Excel parser loading — try again in a moment', 'error');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const wb = XLSX.read(ev.target.result, { type: 'array' });
+                const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                parsedBulkUsers = parseBulkUserRows(data);
+                renderBulkImportPreview();
+            };
+            reader.readAsArrayBuffer(f);
+        }
+
+        function renderBulkImportPreview() {
+            const preview = document.getElementById('bulkImportPreview');
+            if (!preview) return;
+            preview.classList.add('show');
+            if (!parsedBulkUsers.length) {
+                preview.innerHTML = '<div class="message error"><i class="fas fa-exclamation-circle"></i> No valid rows. Each row needs employee_code, full_name, and email.</div>';
+                return;
+            }
+            const rows = parsedBulkUsers.slice(0, 8).map(u =>
+                `<tr><td>${escapeHtml(u.employee_code)}</td><td>${escapeHtml(u.full_name)}</td><td>${escapeHtml(u.email)}</td><td>${escapeHtml(u.portal_role)}</td><td>${escapeHtml(u.company_branch)}</td></tr>`
+            ).join('');
+            preview.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+                    <p style="color:#10b981;margin:0;"><i class="fas fa-check-circle"></i> <strong>${parsedBulkUsers.length}</strong> valid row(s) in ${escapeHtml(bulkImportFileName)}</p>
+                    <button type="button" class="btn-primary" onclick="commitBulkUserImport()"><i class="fas fa-upload"></i> Import ${parsedBulkUsers.length} User(s)</button>
+                </div>
+                <table class="bulk-import-table"><thead><tr><th>Employee ID</th><th>Name</th><th>Email</th><th>Role</th><th>Login Branch</th></tr></thead><tbody>${rows}</tbody></table>
+                ${parsedBulkUsers.length > 8 ? '<p style="color:rgba(255,255,255,0.45);font-size:11px;margin:8px 0 0;">Showing first 8 rows…</p>' : ''}`;
+        }
+
+        async function commitBulkUserImport() {
+            if (!parsedBulkUsers.length) return;
+            const defaultPassword = (document.getElementById('bulkDefaultPassword') || {}).value || 'Balitech@123';
+            if (defaultPassword.length < 4) {
+                showNotification('Default password must be at least 4 characters', 'error');
+                return;
+            }
+            const preview = document.getElementById('bulkImportPreview');
+            if (preview) preview.innerHTML = '<p style="color:rgba(255,255,255,0.7);"><i class="fas fa-spinner fa-spin"></i> Importing… please wait.</p>';
+            try {
+                const res = await fetch('api/bulk_import_users.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        file_name: bulkImportFileName,
+                        default_password: defaultPassword,
+                        users: parsedBulkUsers
+                    })
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    showNotification(data.message || 'Import failed', 'error');
+                    renderBulkImportPreview();
+                    return;
+                }
+                const d = data.data || {};
+                let msg = `Created ${d.inserted || 0}, skipped ${d.skipped || 0}`;
+                if (d.errors && d.errors.length) msg += '. ' + d.errors.slice(0, 3).join('; ');
+                showNotification(msg, d.inserted ? 'success' : 'error');
+                parsedBulkUsers = [];
+                document.getElementById('bulkFileInput').value = '';
+                if (preview) {
+                    preview.innerHTML = `<div class="message success"><i class="fas fa-check-circle"></i> ${escapeHtml(msg)}</div>`;
+                }
+                setTimeout(() => location.reload(), 1500);
+            } catch (err) {
+                console.error(err);
+                showNotification('Import request failed', 'error');
+                renderBulkImportPreview();
+            }
+        }
+
+        function escapeHtml(s) {
+            return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        (function initBulkDropZone() {
+            const zone = document.getElementById('bulkDropZone');
+            if (!zone) return;
+            zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+            zone.addEventListener('dragleave', e => { e.preventDefault(); zone.classList.remove('drag-over'); });
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('drag-over');
+                const input = document.getElementById('bulkFileInput');
+                if (e.dataTransfer.files[0] && input) {
+                    input.files = e.dataTransfer.files;
+                    handleBulkUserFile({ target: input });
+                }
+            });
+        })();
+        <?php endif; ?>
     </script>
+    <?php if ($current_is_super): ?>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <?php endif; ?>
 </body>
 </html>
