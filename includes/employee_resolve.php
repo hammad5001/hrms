@@ -338,18 +338,26 @@ function fetch_attendance_bundle(mysqli $conn, string $empCode, string $today, ?
     $serverTs = (int) $serverClock['ts'];
     $shift_date = ess_active_shift_date($serverTs);
     $openDuty = ess_resolve_open_duty($allTimestamps, $serverTs);
-    $auto_closed = !empty($openDuty['auto_closed']);
 
-    if ($openDuty['on_duty']) {
+    // Dashboard always reflects the active shift date only (e.g. 11 Jun), not older shifts.
+    $activeShift = ess_resolve_shift_punches($allTimestamps, $shift_date);
+    $check_in = $activeShift['check_in'];
+    $check_out = $activeShift['check_out'];
+    $times = $activeShift['times'];
+    $on_duty = false;
+    $auto_closed = false;
+
+    $openShiftDate = (string) ($openDuty['shift_date'] ?? $shift_date);
+    if ($openShiftDate === $shift_date && !empty($openDuty['on_duty'])) {
         $check_in = $openDuty['check_in'];
         $check_out = null;
         $times = $openDuty['times'];
-        $shift_date = $openDuty['shift_date'];
-    } else {
+        $on_duty = true;
+    } elseif ($openShiftDate === $shift_date && !empty($openDuty['auto_closed']) && !empty($openDuty['check_in'])) {
         $check_in = $openDuty['check_in'];
-        $check_out = $openDuty['check_out'];
+        $check_out = null;
         $times = $openDuty['times'];
-        $shift_date = $openDuty['shift_date'];
+        $auto_closed = true;
     }
 
     $shiftStatus = ess_attendance_status_for_shift($check_in, $check_out, $shift_date);
