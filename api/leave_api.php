@@ -90,6 +90,150 @@ switch ($action) {
         leave_respond(true, $rows);
         break;
 
+    case 'searchPolicyEmployees':
+        if (!user_can_allot_leave_policy($user)) {
+            leave_respond(false, null, 'Not authorized');
+        }
+        $q = trim($_GET['q'] ?? '');
+        if (strlen($q) < 2) {
+            leave_respond(true, []);
+        }
+        $like = '%' . $conn->real_escape_string($q) . '%';
+        $sql = "SELECT id, full_name, email, portal_role, designation, team, department, employee_code
+                FROM users
+                WHERE status = 'active' AND company_branch = ?
+                AND (full_name LIKE ? OR email LIKE ? OR employee_code LIKE ?)
+                ORDER BY full_name ASC
+                LIMIT 20";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param('ssss', $branch, $like, $like, $like);
+        $stmt->execute();
+        $rows = [];
+        $res = $stmt->get_result();
+        while ($row = $res->fetch_assoc()) {
+            $rows[] = [
+                'id' => (int)$row['id'],
+                'full_name' => $row['full_name'],
+                'email' => $row['email'],
+                'portal_role' => $row['portal_role'],
+                'designation' => $row['designation'],
+                'team' => $row['team'],
+                'department' => $row['department'],
+                'employee_code' => $row['employee_code'],
+            ];
+        }
+        leave_respond(true, $rows);
+        break;
+
+    case 'policyList':
+        $can_allot = user_can_allot_leave_policy($user);
+        $stmt = $conn->prepare("SELECT * FROM leave_requests WHERE company_branch = ? AND is_policy_allotment = 1 ORDER BY start_date DESC, created_at DESC LIMIT 120");
+        $stmt->bind_param('s', $branch);
+        $stmt->execute();
+        $rows = [];
+        $res = $stmt->get_result();
+        while ($row = $res->fetch_assoc()) {
+            $rows[] = leave_request_row_to_array($row);
+        }
+        leave_respond(true, [
+            'can_allot' => $can_allot,
+            'items' => $rows,
+        ]);
+        break;
+
+    case 'allotLeave':
+        if (!user_can_allot_leave_policy($user)) {
+            leave_respond(false, null, 'Only HR and Super Admin can allot leave');
+        }
+        $all_employees = !empty($input['all_employees']);
+        $user_ids = $input['user_ids'] ?? [];
+        if (!is_array($user_ids)) {
+            $user_ids = [];
+        }
+        $leave_type = trim($input['leave_type'] ?? 'public_holiday');
+        $start_date = trim($input['start_date'] ?? '');
+        $end_date = trim($input['end_date'] ?? $start_date);
+        $reason = trim($input['reason'] ?? '');
+
+        $allowed_types = ['public_holiday', 'eid', 'company_holiday', 'annual', 'casual', 'sick', 'other'];
+        if (!in_array($leave_type, $allowed_types, true)) {
+            leave_respond(false, null, 'Invalid leave type');
+        }
+        if (!$start_date || !$reason) {
+            leave_respond(false, null, 'Start date and occasion/reason are required');
+        }
+        if (strtotime($end_date) < strtotime($start_date)) {
+            leave_respond(false, null, 'End date cannot be before start date');
+        }
+
+        $targets = [];
+        if ($all_employees) {
+            $targets = fetch_active_branch_users($conn, $branch);
+        } else {
+            $user_ids = array_values(array_unique(array_filter(array_map('intval', $user_ids))));
+            if (count($user_ids) < 1) {
+                leave_respond(false, null, 'Select at least one employee, or choose all employees');
+            }
+            foreach ($user_ids as $uid) {
+                $picked = fetch_user_by_id($conn, $uid);
+                if (!$picked || ($picked['status'] ?? '') !== 'active') {
+                    leave_respond(false, null, 'One or more selected employees were not found');
+                }
+                if (normalize_company_branch($picked['company_branch'] ?? '') !== $branch) {
+                    leave_respond(false, null, 'One or more employees are not in your branch');
+                }
+                $targets[] = $picked;
+            }
+        }
+
+        if (empty($targets)) {
+            leave_respond(false, null, 'No employees found to allot leave');
+        }
+
+        $allotter_label = $user['full_name'] ?? 'HR';
+        $date_label = $start_date . ($end_date !== $start_date ? " to {$end_date}" : '');
+        $type_label = ucfirst(str_replace('_', ' ', $leave_type));
+        $created = 0;
+        $errors = 0;
+
+        foreach ($targets as $emp) {
+            $leave_id = create_policy_leave_for_employee(
+                $conn,
+                $user,
+                $emp,
+                $branch,
+                $leave_type,
+                $start_date,
+                $end_date,
+                $reason
+            );
+            if ($leave_id <= 0) {
+                $errors++;
+                continue;
+            }
+            $created++;
+            create_leave_notifications(
+                $conn,
+                $leave_id,
+                [(int)$emp['id']],
+                'Leave allotted',
+                "{$allotter_label} allotted {$type_label} leave ({$reason}). Dates: {$date_label}."
+            );
+        }
+
+        if ($created === 0) {
+            leave_respond(false, null, 'Could not allot leave. Please try again.');
+        }
+
+        $msg = $all_employees
+            ? "Leave allotted to {$created} employee(s)"
+            : 'Leave allotted successfully';
+        if ($errors > 0) {
+            $msg .= " ({$errors} failed)";
+        }
+        leave_respond(true, ['allotted' => $created, 'failed' => $errors], $msg);
+        break;
+
     case 'apply':
         $leave_type = trim($input['leave_type'] ?? 'annual');
         $duration_type = $input['duration_type'] ?? 'full_day';
@@ -225,9 +369,49 @@ switch ($action) {
         $rows = [];
         $res = $stmt->get_result();
         while ($row = $res->fetch_assoc()) {
-            $rows[] = leave_request_row_to_array($row);
+            $item = leave_request_row_to_array($row);
+            $item['can_withdraw'] = leave_request_can_withdraw($row, $user);
+            $rows[] = $item;
         }
         leave_respond(true, $rows);
+        break;
+
+    case 'withdrawLeave':
+        $leave_id = (int)($input['leave_id'] ?? 0);
+        $note = trim($input['note'] ?? '');
+        if ($leave_id <= 0) {
+            leave_respond(false, null, 'Invalid leave request');
+        }
+        $request = get_leave_request($conn, $leave_id);
+        if (!$request) {
+            leave_respond(false, null, 'Request not found');
+        }
+        if (!leave_request_can_withdraw($request, $user)) {
+            leave_respond(false, null, 'This leave request cannot be withdrawn');
+        }
+        $was_approved = ($request['status'] ?? '') === 'approved';
+        $withdraw_note = $note !== '' ? $note : 'Withdrawn by employee';
+        $upd = $conn->prepare("UPDATE leave_requests SET status='cancelled', hr_note=?, updated_at=NOW() WHERE id=? AND user_id=?");
+        $upd->bind_param('sii', $withdraw_note, $leave_id, $user_id);
+        if (!$upd->execute() || $upd->affected_rows === 0) {
+            leave_respond(false, null, 'Could not withdraw leave request');
+        }
+        if ($was_approved) {
+            remove_synced_leave_days($conn, $request);
+        }
+        $applicant = $request['employee_name'] ?? $user['full_name'] ?? 'Employee';
+        $date_label = $request['start_date'] . (($request['end_date'] ?? '') !== $request['start_date'] ? ' to ' . $request['end_date'] : '');
+        $recipients = leave_withdraw_notify_recipients($request);
+        if (!empty($recipients)) {
+            create_leave_notifications(
+                $conn,
+                $leave_id,
+                $recipients,
+                'Leave withdrawn',
+                "{$applicant} withdrew leave request #{$leave_id} ({$date_label})." . ($note ? " Note: {$note}" : '')
+            );
+        }
+        leave_respond(true, null, 'Leave request withdrawn successfully');
         break;
 
     case 'pendingApprovals':
@@ -435,6 +619,7 @@ switch ($action) {
         leave_respond(true, [
             'can_approve' => user_can_approve_leaves($user),
             'can_select_employee' => user_can_select_employee_for_leave($user),
+            'can_allot_leave_policy' => user_can_allot_leave_policy($user),
             'approver_level' => approver_level_for_user($user),
             'pending_approvals' => $pending_approvals,
             'my_pending_leaves' => $my_p,

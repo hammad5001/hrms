@@ -350,7 +350,7 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
     <link rel="stylesheet" href="css/dropdown-fix.css">
     <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
     <link rel="stylesheet" href="css/admin-users-pro.css?v=1">
-    <link rel="stylesheet" href="css/powered-by.css?v=1">
+    <link rel="stylesheet" href="css/powered-by.css?v=2">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body {
@@ -976,6 +976,57 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
         /* Profile info rows */
         .pinfo-row { display:flex; align-items:baseline; gap:10px; padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:13px; }
         .pinfo-row:last-of-type { border-bottom:none; }
+        .user-edit-summary {
+            margin-bottom: 18px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .user-edit-summary-head {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        .user-edit-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 800;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .user-edit-summary-meta h4 {
+            margin: 0;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .user-edit-summary-meta p {
+            margin: 4px 0 0;
+            color: rgba(255,255,255,0.55);
+            font-size: 12px;
+        }
+        .user-edit-summary-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .user-edit-quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
         .pinfo-label { color:rgba(255,255,255,0.5); min-width:110px; font-size:12px; }
         .pinfo-val   { color:rgba(255,255,255,0.9); font-weight:500; }
         
@@ -1222,8 +1273,8 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                                     <td><span class="status-badge <?php echo $row['status'] ?: 'active'; ?>"><?php echo ucfirst($row['status'] ?: 'active'); ?></span></td>
                                     <td>
                                         <div class="action-icons">
-                                            <div class="action-icon" onclick="viewUser(<?php echo $row['id']; ?>)" title="View Details"><i class="fas fa-eye"></i></div>
-                                            <div class="action-icon" onclick="editUser(<?php echo $row['id']; ?>)" title="Edit User"><i class="fas fa-edit"></i></div>
+                                            <div class="action-icon" onclick="openUserEditor(<?php echo $row['id']; ?>)" title="View &amp; Edit User"><i class="fas fa-eye"></i></div>
+                                            <div class="action-icon" onclick="openUserEditor(<?php echo $row['id']; ?>)" title="Edit User"><i class="fas fa-edit"></i></div>
                                             <div class="action-icon" onclick="resetPassword(<?php echo $row['id']; ?>)" title="Reset Password"><i class="fas fa-key"></i></div>
                                             <div class="action-icon" onclick="openPortal(<?php echo $row['id']; ?>)" title="Open Portal"><i class="fas fa-external-link-alt"></i></div>
                                             <?php if ($row['id'] != $_SESSION['user_id']): ?>
@@ -1331,33 +1382,19 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
     </div>
 
     <div class="modal" id="viewModal">
-            <div class="modal-content" style="max-width: 920px; width: 95%;">
+            <div class="modal-content" style="max-width: 780px; width: 95%;">
                 <div class="modal-header">
-                    <h2 id="viewModalTitle"><i class="fas fa-id-card"></i> User Details</h2>
+                    <h2 id="viewModalTitle"><i class="fas fa-user-edit"></i> Edit User</h2>
                     <div class="modal-close" onclick="closeModal('viewModal')">&times;</div>
                 </div>
-                <!-- Tabs -->
-                <div class="modal-tabs">
-                    <div class="modal-tab active" id="tab-profile" onclick="switchViewTab('profile')">
-                        <i class="fas fa-user-circle"></i> Profile &amp; Attendance
-                    </div>
-                    <div class="modal-tab" id="tab-edit" onclick="switchViewTab('edit')">
-                        <i class="fas fa-user-edit"></i> Edit User
-                    </div>
-                </div>
-                <!-- Profile Tab -->
-                <div class="tab-pane active" id="pane-profile">
-                    <div class="modal-body" id="viewContent">
-                        <div class="loading-state" style="text-align: center; padding: 40px;">
-                            <i class="fas fa-spinner fa-spin" style="font-size: 40px; color: #f97316;"></i>
-                            <p style="margin-top: 16px;">Loading user details...</p>
+                <div class="modal-body">
+                    <div id="viewUserSummary" class="user-edit-summary">
+                        <div class="loading-state" style="text-align:center;padding:28px;">
+                            <i class="fas fa-spinner fa-spin" style="font-size:32px;color:#f97316;"></i>
+                            <p style="margin-top:12px;">Loading user details...</p>
                         </div>
                     </div>
-                </div>
-                <!-- Edit Tab -->
-                <div class="tab-pane" id="pane-edit">
-                    <div class="modal-body">
-                        <form id="inlineEditForm" method="POST">
+                    <form id="inlineEditForm" method="POST">
                             <input type="hidden" name="action" value="update_user">
                             <input type="hidden" name="id" id="ief_id">
                             <div class="modal-form-grid">
@@ -1407,12 +1444,12 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                                     </select>
                                 </div>
                             </div>
+                            <div class="user-edit-quick-actions" id="viewUserQuickActions"></div>
                             <div class="form-actions" style="margin-top:12px;">
-                                <button type="button" class="btn" onclick="switchViewTab('profile')"><i class="fas fa-arrow-left"></i> Back</button>
-                                <button type="button" class="btn-primary" onclick="submitInlineEdit()"><i class="fas fa-save"></i> Save Changes</button>
+                                <button type="button" class="btn" onclick="closeModal('viewModal')">Cancel</button>
+                                <button type="button" class="btn-primary" id="inlineEditSaveBtn" onclick="submitInlineEdit()"><i class="fas fa-save"></i> Save Changes</button>
                             </div>
                         </form>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1722,48 +1759,97 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
             return dateStr;
         }
 
-        // Stores current viewed user id for tab switching
         let _viewedUserId = null;
 
-        function switchViewTab(tab) {
-            const vm = document.getElementById('viewModal');
-            if (!vm) return;
-            vm.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
-            vm.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-            const tabEl  = document.getElementById('tab-'  + tab);
-            const paneEl = document.getElementById('pane-' + tab);
-            if (tabEl)  tabEl.classList.add('active');
-            if (paneEl) paneEl.classList.add('active');
+        function renderUserEditSummary(user) {
+            const summary = document.getElementById('viewUserSummary');
+            const quick = document.getElementById('viewUserQuickActions');
+            if (!summary) return;
+            const currentStatus = user.status || 'active';
+            const initial = (user.full_name || '?').charAt(0).toUpperCase();
+            summary.innerHTML = `
+                <div class="user-edit-summary-head">
+                    <div class="user-edit-avatar">${initial}</div>
+                    <div class="user-edit-summary-meta">
+                        <h4>${user.full_name || 'User'}</h4>
+                        <p>${user.email || ''}${user.employee_code ? ' · ID ' + user.employee_code : ''}</p>
+                        <div class="user-edit-summary-badges">
+                            <span class="role-badge ${user.portal_role}">${user.portal_role}</span>
+                            <span class="status-badge ${currentStatus}">${currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)}</span>
+                            ${user.company_branch_label ? `<span class="role-badge" style="background:rgba(59,130,246,0.15);color:#93c5fd;border:1px solid rgba(59,130,246,0.3);">${user.company_branch_label}</span>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+            if (quick) {
+                const selfId = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
+                quick.innerHTML = `
+                    <button type="button" class="vbtn vbtn-portal" onclick="openPortal(${user.id})"><i class="fas fa-external-link-alt"></i> Open Portal</button>
+                    <button type="button" class="vbtn vbtn-key" onclick="closeModal('viewModal'); resetPassword(${user.id});"><i class="fas fa-key"></i> Reset Password</button>
+                    ${user.id != selfId ? `<button type="button" class="vbtn vbtn-del" onclick="closeModal('viewModal'); deleteUser(${user.id});"><i class="fas fa-trash"></i> Delete User</button>` : ''}`;
+            }
         }
 
-        function editFromView(userId) {
-            switchViewTab('edit');
-            loadInlineEditForm(userId);
+        function populateInlineEditFields(u) {
+            document.getElementById('ief_id').value = u.id;
+            document.getElementById('ief_employee_code').value = u.employee_code || '';
+            document.getElementById('ief_full_name').value = u.full_name || '';
+            document.getElementById('ief_email').value = u.email || '';
+            document.getElementById('ief_phone').value = u.phone || '';
+            document.getElementById('ief_department').value = u.department || '';
+            document.getElementById('ief_designation').value = u.designation || '';
+            document.getElementById('ief_branch').value = u.branch || '';
+            const cb = document.getElementById('ief_company_branch');
+            if (cb) cb.value = u.company_branch || 'main';
+            document.getElementById('ief_team').value = u.team || '';
+            document.getElementById('ief_joined_date').value = u.joined_date || '';
+            document.getElementById('ief_portal_role').value = u.portal_role || 'user';
+            syncSuperAdminCheckbox(u.portal_role, 'ief_as_super_admin', 'ief_portal_role');
+            document.getElementById('ief_status').value = u.status || 'active';
         }
 
-        function loadInlineEditForm(userId) {
-            fetch(`get_user_details.php?id=${userId}`)
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success && data.user) {
-                        const u = data.user;
-                        document.getElementById('ief_id').value = u.id;
-                        document.getElementById('ief_employee_code').value = u.employee_code || '';
-                        document.getElementById('ief_full_name').value = u.full_name;
-                        document.getElementById('ief_email').value = u.email;
-                        document.getElementById('ief_phone').value = u.phone || '';
-                        document.getElementById('ief_department').value = u.department || '';
-                        document.getElementById('ief_designation').value = u.designation || '';
-                        document.getElementById('ief_branch').value = u.branch || '';
-                        const cb = document.getElementById('ief_company_branch');
-                        if (cb) cb.value = u.company_branch || 'main';
-                        document.getElementById('ief_team').value = u.team || '';
-                        document.getElementById('ief_joined_date').value = u.joined_date || '';
-                        document.getElementById('ief_portal_role').value = u.portal_role || 'user';
-                        syncSuperAdminCheckbox(u.portal_role, 'ief_as_super_admin', 'ief_portal_role');
-                        document.getElementById('ief_status').value = u.status || 'active';
+        async function loadInlineEditForm(userId) {
+            const summary = document.getElementById('viewUserSummary');
+            const form = document.getElementById('inlineEditForm');
+            if (summary) {
+                summary.innerHTML = '<div class="loading-state" style="text-align:center;padding:28px;"><i class="fas fa-spinner fa-spin" style="font-size:32px;color:#f97316;"></i><p style="margin-top:12px;">Loading user details...</p></div>';
+            }
+            if (form) {
+                form.style.opacity = '0.55';
+                form.querySelectorAll('input, select, textarea, button').forEach(el => { el.disabled = true; });
+            }
+            try {
+                const res = await fetch(`get_user_details.php?id=${userId}`);
+                const data = await res.json();
+                if (!data.success || !data.user) {
+                    if (form) {
+                        form.style.opacity = '1';
+                        form.querySelectorAll('input, select, textarea, button').forEach(el => { el.disabled = false; });
                     }
-                });
+                    showNotification(data.message || 'Could not load user details', 'error');
+                    closeModal('viewModal');
+                    return false;
+                }
+                const u = data.user;
+                populateInlineEditFields(u);
+                renderUserEditSummary(u);
+                const title = document.getElementById('viewModalTitle');
+                if (title) title.innerHTML = `<i class="fas fa-user-edit"></i> ${u.full_name}`;
+                if (form) {
+                    form.style.opacity = '1';
+                    form.querySelectorAll('input, select, textarea, button').forEach(el => { el.disabled = false; });
+                }
+                return true;
+            } catch (e) {
+                showNotification('Error loading user details', 'error');
+                closeModal('viewModal');
+                return false;
+            }
+        }
+
+        async function openUserEditor(id) {
+            _viewedUserId = id;
+            document.getElementById('viewModal').classList.add('active');
+            await loadInlineEditForm(id);
         }
 
         function validateInlineEdit() {
@@ -1782,7 +1868,7 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
         async function submitInlineEdit() {
             if (!validateInlineEdit()) return;
 
-            const saveBtn = document.querySelector('#pane-edit .btn-primary');
+            const saveBtn = document.getElementById('inlineEditSaveBtn');
             const origHTML = saveBtn ? saveBtn.innerHTML : '';
             if (saveBtn) { saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...'; saveBtn.disabled = true; }
 
@@ -1792,12 +1878,9 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
 
                 if (resp.ok) {
                     showNotification('User updated successfully!', 'success');
-                    // Refresh the profile tab with new data
                     const uid = document.getElementById('ief_id').value;
                     if (uid) {
-                        switchViewTab('profile');
-                        await viewUser(parseInt(uid));
-                        // Also refresh the table row status badge
+                        await loadInlineEditForm(parseInt(uid, 10));
                         const statusVal = document.getElementById('ief_status').value;
                         const statusLabels = { active:'Active', inactive:'Inactive', vacation:'Vacation', terminated:'Terminated', resigned:'Resigned' };
                         document.querySelectorAll('#usersTable tbody tr').forEach(tr => {
@@ -1847,8 +1930,9 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                 const resp = await fetch('admin.php', { method:'POST', body: form });
                 if (resp.ok) {
                     showNotification(`Status updated to "${labels[newStatus]}"`, 'success');
-                    // Refresh profile tab
-                    await viewUser(userId);
+                    if (_viewedUserId === userId) {
+                        await loadInlineEditForm(userId);
+                    }
                 } else {
                     showNotification('Update failed', 'error');
                 }
@@ -1858,179 +1942,11 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
         }
 
         async function viewUser(id) {
-            _viewedUserId = id;
-            const modal = document.getElementById('viewModal');
-            const content = document.getElementById('viewContent');
-            // Always start on profile tab
-            switchViewTab('profile');
-            modal.classList.add('active');
-            content.innerHTML = '<div class="loading-state" style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin" style="font-size: 40px;"></i><p>Loading user details...</p></div>';
-            
-            try {
-                const response = await fetch(`get_user_details.php?id=${id}`);
-                const data = await response.json();
-                
-                if (data.success) {
-                    const user = data.user;
-                    const rawAttendance = data.attendance_raw || [];
-                    
-                    const shifts = {};
-                    rawAttendance.forEach(record => {
-                        const shiftDate = getShiftDate(record.timestamp);
-                        if (!shifts[shiftDate]) shifts[shiftDate] = [];
-                        shifts[shiftDate].push(record.timestamp);
-                    });
-                    
-                    const attendance = [];
-                    for (const [shiftDate, punches] of Object.entries(shifts)) {
-                        punches.sort();
-                        const firstPunch = punches[0];
-                        const lastPunch = punches.length > 1 ? punches[punches.length - 1] : null;
-                        
-                        const inTime = new Date(firstPunch).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-                        const outTime = lastPunch ? new Date(lastPunch).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '---';
-                        
-                        let hours = '0 hrs';
-                        if (lastPunch) {
-                            const inDate = new Date(firstPunch);
-                            let outDate = new Date(lastPunch);
-                            if (outDate < inDate) outDate.setDate(outDate.getDate() + 1);
-                            const diffHours = (outDate - inDate) / 3600000;
-                            hours = diffHours.toFixed(2) + ' hrs';
-                        }
-                        
-                        const punchHour = new Date(firstPunch).getHours();
-                        let status = 'present';
-                        if (punchHour >= 18) {
-                            const minutes = new Date(firstPunch).getMinutes();
-                            if (punchHour === 18 && minutes > 10) status = 'late';
-                            else if (punchHour > 18) status = 'late';
-                        }
-                        
-                        attendance.push({ date: shiftDate, in_time: inTime, out_time: outTime, hours: hours, status: status });
-                    }
-                    
-                    attendance.sort((a, b) => b.date.localeCompare(a.date));
-                    
-                    let attendanceHtml = '';
-                    if (attendance.length > 0) {
-                        attendanceHtml = `
-                            <h4 style="margin: 0 0 12px; color: white; display: flex; align-items: center; gap: 8px; font-size: 15px;"><i class="fas fa-clock" style="color: #f97316;"></i> Recent Attendance (Last 30 Days)</h4>
-                            <div class="modal-attendance-wrapper">
-                                <table style="width: 100%; border-collapse: collapse;">
-                                    <thead style="position: sticky; top: 0; z-index: 10; background: #1a1c2c;"><tr style="background: rgba(255,255,255,0.05);"><th style="padding: 12px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.6);">Date</th><th style="padding: 12px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.6);">Check In</th><th style="padding: 12px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.6);">Check Out</th><th style="padding: 12px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.6);">Hours</th><th style="padding: 12px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.6);">Status</th></tr></thead>
-                                    <tbody>
-                                        ${attendance.map(a => `<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 10px; font-weight: 500;">${a.date}</td><td style="padding: 10px;">${a.in_time}</td><td style="padding: 10px;">${a.out_time}</td><td style="padding: 10px; font-variant-numeric: tabular-nums;">${a.hours}</td><td style="padding: 10px;"><span class="status-badge ${a.status === 'present' ? 'active' : 'vacation'}">${a.status === 'present' ? 'Present' : 'Late'}</span></td></tr>`).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                        `;
-                    } else {
-                        attendanceHtml = '<p style="color: rgba(255,255,255,0.6); margin-top: 20px; text-align: center;">No attendance records found for this user.</p>';
-                    }
-                    
-                    const statusColors = { active:'#10b981', inactive:'#ef4444', vacation:'#f59e0b', terminated:'#f87171', resigned:'#9ca3af' };
-                    const statusIcons  = { active:'fa-check-circle', inactive:'fa-times-circle', vacation:'fa-umbrella-beach', terminated:'fa-ban', resigned:'fa-door-open' };
-                    const currentStatus = user.status || 'active';
-
-                    document.getElementById('viewModalTitle').innerHTML = `<i class="fas fa-id-card"></i> ${user.full_name}`;
-
-                    content.innerHTML = `
-                        <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start;">
-
-                            <!-- LEFT: Profile Card -->
-                            <div style="flex: 0 0 270px; min-width:240px;">
-                                <div style="background: rgba(255,255,255,0.05); border-radius: 20px; padding: 20px;">
-
-                                    <!-- Avatar + Name -->
-                                    <div style="text-align:center; margin-bottom:16px;">
-                                        <div style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#f97316,#ea580c);display:inline-flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:white;margin-bottom:10px;">
-                                            ${user.full_name.charAt(0).toUpperCase()}
-                                        </div>
-                                        <div style="font-size:16px;font-weight:700;color:white;">${user.full_name}</div>
-                                        <div style="font-size:12px;color:rgba(255,255,255,0.5);">${user.email}</div>
-                                        <div style="margin-top:8px;">
-                                            <span class="role-badge ${user.portal_role}" style="margin-right:6px;">${user.portal_role}</span>
-                                            <span class="status-badge ${currentStatus}">${currentStatus.charAt(0).toUpperCase()+currentStatus.slice(1)}</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Info Rows -->
-                                    <div class="pinfo-row"><span class="pinfo-label"><i class="fas fa-id-card"></i> Emp ID</span><span class="pinfo-val">${user.employee_code || '—'}</span></div>
-                                    <div class="pinfo-row"><span class="pinfo-label"><i class="fas fa-phone"></i> Phone</span><span class="pinfo-val">${user.phone || '—'}</span></div>
-                                    <div class="pinfo-row"><span class="pinfo-label"><i class="fas fa-building"></i> Dept</span><span class="pinfo-val">${user.department || '—'}</span></div>
-                                    <div class="pinfo-row"><span class="pinfo-label"><i class="fas fa-user-tie"></i> Role</span><span class="pinfo-val">${user.designation || '—'}</span></div>
-                                    <div class="pinfo-row"><span class="pinfo-label"><i class="fas fa-map-marker-alt"></i> Office</span><span class="pinfo-val">${user.branch || '—'}</span></div>
-                                    <div class="pinfo-row"><span class="pinfo-label"><i class="fas fa-users"></i> Team</span><span class="pinfo-val">${user.team || '—'}</span></div>
-                                    <div class="pinfo-row"><span class="pinfo-label"><i class="fas fa-calendar"></i> Joined</span><span class="pinfo-val">${user.joined_date || '—'}</span></div>
-
-                                    <!-- Quick Status Panel -->
-                                    <div class="quick-status-panel">
-                                        <p><i class="fas fa-sliders-h"></i> Quick Status</p>
-                                        <div class="qs-grid">
-                                            <button class="qs-btn qs-active ${currentStatus==='active'?'qs-current':''}"     onclick="quickStatus(${user.id},'active')">✅ Active</button>
-                                            <button class="qs-btn qs-inactive ${currentStatus==='inactive'?'qs-current':''}" onclick="quickStatus(${user.id},'inactive')">❌ Inactive</button>
-                                            <button class="qs-btn qs-vacation ${currentStatus==='vacation'?'qs-current':''}" onclick="quickStatus(${user.id},'vacation')">🌴 Vacation</button>
-                                            <button class="qs-btn qs-terminated ${currentStatus==='terminated'?'qs-current':''}" onclick="quickStatus(${user.id},'terminated')">🚫 Terminated</button>
-                                            <button class="qs-btn qs-resigned ${currentStatus==='resigned'?'qs-current':''}"   onclick="quickStatus(${user.id},'resigned')">🚪 Resigned</button>
-                                        </div>
-                                    </div>
-
-                                    <!-- Action Bar -->
-                                    <div class="view-action-bar" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.08);">
-                                        <button class="vbtn vbtn-edit" onclick="editFromView(${user.id})"><i class="fas fa-user-edit"></i> Edit Info</button>
-                                        <button class="vbtn vbtn-portal" onclick="openPortal(${user.id}); closeModal('viewModal');"><i class="fas fa-external-link-alt"></i> Portal</button>
-                                        <button class="vbtn vbtn-key" onclick="closeModal('viewModal'); resetPassword(${user.id});"><i class="fas fa-key"></i> Reset PW</button>
-                                        ${user.id != <?php echo $_SESSION['user_id']; ?> ? `<button class="vbtn vbtn-del" onclick="closeModal('viewModal'); deleteUser(${user.id});"><i class="fas fa-trash"></i> Delete</button>` : ''}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- RIGHT: Attendance -->
-                            <div style="flex: 1; min-width:280px;">
-                                ${attendanceHtml}
-                                ${user.employee_code ? `<div style="margin-top: 20px; text-align: center;">
-                                    <a href="attendance/attendance-dashboard.html?employee=${user.employee_code}" class="btn-primary" style="padding: 10px 24px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-                                        <i class="fas fa-chart-line"></i> View Full Attendance Report
-                                    </a>
-                                </div>` : ''}
-                            </div>
-
-                        </div>
-                    `;
-                } else {
-                    content.innerHTML = `<div style="text-align: center; padding: 40px; color: #f87171;"><i class="fas fa-exclamation-circle"></i> ${data.message}</div>`;
-                }
-            } catch (error) {
-                content.innerHTML = `<div style="text-align: center; padding: 40px; color: #f87171;"><i class="fas fa-exclamation-circle"></i> Error loading user details</div>`;
-            }
+            await openUserEditor(id);
         }
 
-        function editUser(id) {
-            fetch(`get_user_details.php?id=${id}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success && data.user) {
-                        const u = data.user;
-                        document.getElementById('edit_id').value = u.id;
-                        document.getElementById('edit_employee_code').value = u.employee_code || '';
-                        document.getElementById('edit_full_name').value = u.full_name;
-                        document.getElementById('edit_email').value = u.email;
-                        document.getElementById('edit_phone').value = u.phone || '';
-                        document.getElementById('edit_department').value = u.department || '';
-                        document.getElementById('edit_designation').value = u.designation || '';
-                        document.getElementById('edit_branch').value = u.branch || '';
-                        if (document.getElementById('edit_company_branch')) {
-                            document.getElementById('edit_company_branch').value = u.company_branch || 'main';
-                        }
-                        document.getElementById('edit_team').value = u.team || '';
-                        document.getElementById('edit_joined_date').value = u.joined_date || '';
-                        document.getElementById('edit_portal_role').value = u.portal_role;
-                        syncSuperAdminCheckbox(u.portal_role, 'edit_as_super_admin', 'edit_portal_role');
-                        document.getElementById('edit_status').value = u.status || 'active';
-                        document.getElementById('editModal').classList.add('active');
-                    }
-                });
+        async function editUser(id) {
+            await openUserEditor(id);
         }
 
         function resetPassword(id) {

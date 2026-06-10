@@ -693,3 +693,222 @@ body.login-page {
     outline: none;
 }
 
+/* ── Desktop density at 100% zoom (same design — spacing & type only) ── */
+@media (min-width: 769px) {
+    body.login-page {
+        font-size: 14px;
+        line-height: 1.5;
+        padding: 16px 20px 24px;
+        overflow-y: auto;
+    }
+
+    .login-container {
+        max-width: 1020px;
+    }
+
+    .login-shell {
+        min-height: 0;
+        grid-template-columns: 1.05fr 0.95fr;
+    }
+
+    .login-hero {
+        padding: 32px 30px;
+    }
+
+    .balitech-logo--hero {
+        width: 200px;
+        margin-bottom: 20px;
+    }
+
+    .hrms-badge {
+        padding: 6px 12px;
+        font-size: 10px;
+        margin-bottom: 14px;
+    }
+
+    .login-hero h1 {
+        font-size: 28px;
+        margin-bottom: 10px;
+    }
+
+    .login-hero-desc {
+        font-size: 13px;
+        margin-bottom: 20px;
+        max-width: 380px;
+    }
+
+    .hero-stats {
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .hero-stat {
+        padding: 11px 10px;
+    }
+
+    .hero-stat strong {
+        font-size: 16px;
+    }
+
+    .feature-list {
+        gap: 8px;
+    }
+
+    .feature-list li {
+        font-size: 12px;
+        gap: 10px;
+    }
+
+    .feature-list li i {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+
+    .login-hero-footer {
+        padding-top: 18px;
+        margin-top: 18px;
+        font-size: 11px;
+    }
+
+    .login-panel {
+        padding: 32px 28px;
+    }
+
+    .panel-header {
+        margin-bottom: 20px;
+    }
+
+    .panel-header-row {
+        gap: 12px;
+        margin-bottom: 6px;
+    }
+
+    .panel-icon {
+        width: 42px;
+        height: 42px;
+        font-size: 18px;
+    }
+
+    .panel-header h2 {
+        font-size: 20px;
+    }
+
+    .panel-header p {
+        font-size: 12px;
+        padding-left: 54px;
+    }
+
+    .branch-section {
+        margin-bottom: 18px;
+    }
+
+    .branch-login-hint {
+        font-size: 11px;
+        margin-bottom: 10px;
+    }
+
+    .branch-chip {
+        padding: 9px 11px;
+        font-size: 11px;
+    }
+
+    .form-group {
+        margin-bottom: 14px;
+    }
+
+    .form-group label {
+        margin-bottom: 6px;
+        font-size: 10px;
+    }
+
+    .input-wrapper input {
+        padding: 11px 40px 11px 40px;
+        font-size: 13px;
+    }
+
+    .portal-divider {
+        margin: 16px 0 12px;
+        font-size: 10px;
+    }
+
+    .portal-hint {
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .portal-hint-card {
+        padding: 10px;
+    }
+
+    .login-actions {
+        gap: 8px;
+    }
+
+    .login-btn {
+        padding: 12px 16px;
+        font-size: 13px;
+    }
+
+    .login-panel-footer {
+        margin-top: 18px;
+        padding-top: 16px;
+    }
+
+    .login-page-footer {
+        margin-top: 14px;
+        font-size: 10px;
+    }
+
+    body.login-page .gc-powered-wrap--login {
+        padding: 6px 20px 18px;
+    }
+}
+
+@media (min-width: 769px) and (max-height: 820px) {
+    .login-hero {
+        padding: 26px 24px;
+    }
+
+    .login-panel {
+        padding: 26px 24px;
+    }
+
+    .login-hero h1 {
+        font-size: 24px;
+    }
+
+    .balitech-logo--hero {
+        width: 176px;
+        margin-bottom: 14px;
+    }
+
+    .hero-stats {
+        margin-bottom: 14px;
+    }
+
+    .login-hero-desc {
+        margin-bottom: 14px;
+    }
+
+    .feature-list li {
+        font-size: 11px;
+    }
+
+    .panel-header {
+        margin-bottom: 14px;
+    }
+
+    .branch-section {
+        margin-bottom: 14px;
+    }
+
+    .form-group {
+        margin-bottom: 12px;
+    }
+
+    .portal-divider {
+        margin: 12px 0 10px;
+    }
+}
+

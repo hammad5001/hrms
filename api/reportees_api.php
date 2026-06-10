@@ -25,13 +25,50 @@ switch ($action) {
         reportees_respond(true, fetch_reporting_hierarchy($conn, $user, $branch));
         break;
 
+    case 'searchReportees':
+        if (!user_can_manage_reportees($user)) {
+            reportees_respond(false, null, 'Not authorized to search reportees');
+        }
+        $q = trim($_GET['q'] ?? '');
+        $rows = search_employees_for_reporting($conn, $q, $branch, $user_id);
+        reportees_respond(true, $rows);
+        break;
+
+    case 'assignReportee':
+        if (!user_can_manage_reportees($user)) {
+            reportees_respond(false, null, 'Only team leads, managers, HR, and admins can assign reportees');
+        }
+        $employee_id = (int)($input['employee_user_id'] ?? 0);
+        if ($employee_id <= 0) {
+            reportees_respond(false, null, 'Please select an employee');
+        }
+        $employee = fetch_user_by_id($conn, $employee_id);
+        if (!$employee) {
+            reportees_respond(false, null, 'Employee not found');
+        }
+        $result = assign_manager_reportee($conn, $user, $employee, $branch);
+        if (!$result['ok']) {
+            reportees_respond(false, null, $result['error'] ?? 'Could not assign reportee');
+        }
+        reportees_respond(true, [
+            'message' => ($employee['full_name'] ?? 'Employee') . ' has been added to your reportees.',
+            'hierarchy' => fetch_reporting_hierarchy($conn, $user, $branch),
+        ]);
+        break;
+
     case 'searchManagers':
+        if (!user_can_assign_own_manager($user)) {
+            reportees_respond(false, null, 'Manager self-assignment is disabled. Your reporting line is assigned by your manager or HR.');
+        }
         $q = trim($_GET['q'] ?? '');
         $rows = search_managers_for_reporting($conn, $q, $branch, $user_id);
         reportees_respond(true, $rows);
         break;
 
     case 'assignManager':
+        if (!user_can_assign_own_manager($user)) {
+            reportees_respond(false, null, 'Employees cannot assign their own manager. Contact your team lead, HR, or admin.');
+        }
         $manager_id = (int)($input['manager_user_id'] ?? 0);
         if ($manager_id <= 0) {
             reportees_respond(false, null, 'Please select a manager');
@@ -45,7 +82,7 @@ switch ($action) {
             reportees_respond(false, null, $result['error'] ?? 'Could not assign manager');
         }
         reportees_respond(true, [
-            'message' => 'You have been added to ' . ($manager['full_name'] ?? 'your manager') . "'s reportees.",
+            'message' => ($manager['full_name'] ?? 'Manager') . ' is now your reporting manager.',
             'hierarchy' => fetch_reporting_hierarchy($conn, $user, $branch),
         ]);
         break;

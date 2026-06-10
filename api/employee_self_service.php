@@ -55,6 +55,7 @@ try {
     $attendance_status = $attendance['attendance_status'] ?? 'absent';
     $attendance_label = $attendance['attendance_label'] ?? 'Absent';
     $is_late_today = !empty($attendance['is_late']);
+    $auto_closed = !empty($attendance['auto_closed']);
     $serverClock = function_exists('ess_server_clock')
         ? ess_server_clock($conn)
         : ['ts' => time(), 'now_str' => date('Y-m-d H:i:s')];
@@ -63,11 +64,14 @@ try {
     $timer_check_in = $on_duty ? $check_in : null;
     $timer_check_out = $on_duty ? null : $check_out;
     $duty_seconds = function_exists('ess_duty_seconds')
-        ? ess_duty_seconds($timer_check_in ?: $check_in, $timer_check_out, $conn)
+        ? ess_duty_seconds($timer_check_in ?: $check_in, $timer_check_out, $conn, $shift_date)
         : 0;
     $working_hours = function_exists('ess_working_hours')
-        ? ess_working_hours($timer_check_in ?: $check_in, $timer_check_out, $conn)
+        ? ess_working_hours($timer_check_in ?: $check_in, $timer_check_out, $conn, $shift_date)
         : 0;
+    $shift_deadline = $shift_date
+        ? date('Y-m-d', strtotime($shift_date . ' +1 day')) . ' 11:00:00'
+        : null;
     $check_in_unix = ($check_in && function_exists('ess_punch_unix')) ? ess_punch_unix($conn, $check_in) : ($check_in ? strtotime($check_in) : null);
     $check_out_unix = ($check_out && function_exists('ess_punch_unix')) ? ess_punch_unix($conn, $check_out) : ($check_out ? strtotime($check_out) : null);
     $duty_check_in_unix = $check_in_unix;
@@ -118,13 +122,15 @@ try {
             'status' => $attendance_status,
             'status_label' => $attendance_label,
             'is_late' => $is_late_today,
+            'auto_closed' => $auto_closed,
+            'shift_deadline' => $shift_deadline,
         ],
         'shift' => [
             'type' => 'night',
-            'label' => 'Night shift (5 PM – next day 4 AM)',
-            'checkin_from' => '17:00',
-            'shift_start' => '17:00',
-            'checkout_until' => '04:00',
+            'label' => 'Night shift (6 PM – 4 AM) · window 4 PM – next day 11 AM',
+            'checkin_from' => '16:00',
+            'shift_start' => '18:00',
+            'checkout_until' => '11:00',
             'late_after' => '18:00',
             'grace_minutes' => 15,
         ],

@@ -1,0 +1,403 @@
+/**
+ * Admin Command Center — desktop density & layout polish
+ * Loaded only from admin-dashboard.html
+ */
+
+body.admin-dash {
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Super Admin / Admin view banner — keep sidebar below yellow bar */
+body.admin-dash:has(#adminPortalBanner) .sidebar {
+    top: 44px;
+    height: calc(100dvh - 44px);
+}
+
+body.admin-dash .particles {
+    opacity: 0.55;
+}
+
+/* —— Sidebar —— */
+body.admin-dash .sidebar {
+    width: 236px;
+}
+
+body.admin-dash .sidebar-header {
+    padding: 16px 14px;
+}
+
+body.admin-dash .sidebar-logo {
+    gap: 10px;
+    margin-bottom: 4px;
+}
+
+body.admin-dash .sidebar-logo-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    border-radius: 12px;
+    animation: none;
+    box-shadow: 0 0 14px rgba(249, 115, 22, 0.35);
+}
+
+body.admin-dash .sidebar-logo-text h2 {
+    font-size: 18px;
+}
+
+body.admin-dash .sidebar-logo-text p {
+    font-size: 9px;
+    letter-spacing: 0.08em;
+}
+
+body.admin-dash .sidebar-nav {
+    padding: 12px 10px;
+}
+
+body.admin-dash .nav-section {
+    margin-bottom: 16px;
+}
+
+body.admin-dash .nav-section-title {
+    font-size: 10px;
+    margin-bottom: 8px;
+    padding-left: 10px;
+}
+
+body.admin-dash .nav-item {
+    padding: 9px 12px;
+    font-size: 13px;
+    border-radius: 10px;
+    gap: 10px;
+    margin-bottom: 2px;
+}
+
+body.admin-dash .nav-item i {
+    font-size: 15px;
+    width: 18px;
+}
+
+body.admin-dash .nav-item:hover {
+    transform: translateX(3px);
+}
+
+body.admin-dash .nav-item.active {
+    box-shadow: 0 0 14px rgba(249, 115, 22, 0.22);
+}
+
+body.admin-dash .sidebar-footer {
+    padding: 12px 14px;
+}
+
+body.admin-dash .user-info-sidebar {
+    padding: 10px;
+    border-radius: 12px;
+}
+
+body.admin-dash .user-avatar-small {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+    border-radius: 10px;
+}
+
+body.admin-dash .sidebar-logout-btn {
+    padding: 10px 12px;
+    font-size: 12px;
+    margin-top: 10px;
+    border-radius: 12px;
+}
+
+/* —— Main layout —— */
+body.admin-dash .main-content {
+    margin-left: 236px;
+    padding: 16px 20px 24px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, transparent 140px);
+}
+
+body.admin-dash .main-content > .top-header,
+body.admin-dash .main-content > .stats-grid,
+body.admin-dash .main-content > .charts-row,
+body.admin-dash .main-content > .portal-section,
+body.admin-dash .main-content > .activity-section,
+body.admin-dash .main-content > .system-status,
+body.admin-dash .main-content > .footer {
+    max-width: 1620px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+body.admin-dash .top-header {
+    margin-bottom: 18px;
+    padding: 14px 20px;
+    border-radius: 16px;
+    gap: 12px;
+}
+
+body.admin-dash .page-title h1 {
+    font-size: 20px;
+    margin-bottom: 2px;
+}
+
+body.admin-dash .page-title p {
+    font-size: 12px;
+}
+
+body.admin-dash .header-actions {
+    gap: 10px;
+}
+
+body.admin-dash .date-badge,
+body.admin-dash .refresh-btn {
+    padding: 7px 14px;
+    font-size: 12px;
+}
+
+body.admin-dash .admin-menu-btn {
+    padding: 4px 12px 4px 8px;
+    gap: 8px;
+}
+
+body.admin-dash .user-name {
+    font-size: 12px;
+}
+
+body.admin-dash .user-avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
+    border-radius: 10px;
+}
+
+/* —— Stats —— */
+body.admin-dash .stats-grid {
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+body.admin-dash .stat-card {
+    border-radius: 16px;
+    padding: 16px 18px;
+}
+
+body.admin-dash .stat-card:hover {
+    transform: translateY(-2px);
+}
+
+body.admin-dash .stat-header {
+    margin-bottom: 10px;
+}
+
+body.admin-dash .stat-title {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+}
+
+body.admin-dash .stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 17px;
+}
+
+body.admin-dash .stat-value {
+    font-size: 28px;
+    margin-bottom: 2px;
+}
+
+body.admin-dash .stat-trend {
+    font-size: 10px;
+    margin-top: 6px;
+    padding: 3px 8px;
+}
+
+/* —— Charts —— */
+body.admin-dash .charts-row {
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+body.admin-dash .chart-card {
+    border-radius: 16px;
+    padding: 16px 18px;
+}
+
+body.admin-dash .chart-header {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+}
+
+body.admin-dash .chart-header h3 {
+    font-size: 14px;
+}
+
+body.admin-dash .chart-container {
+    height: 220px;
+}
+
+/* —— Portal access —— */
+body.admin-dash .portal-section {
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
+}
+
+body.admin-dash .portal-header {
+    margin-bottom: 16px;
+}
+
+body.admin-dash .portal-header h3 {
+    font-size: 15px;
+}
+
+body.admin-dash .portal-badge {
+    font-size: 11px;
+    padding: 5px 12px;
+}
+
+body.admin-dash .portal-grid {
+    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+}
+
+body.admin-dash .portal-card {
+    border-radius: 14px;
+    padding: 14px 10px;
+}
+
+body.admin-dash .portal-card:hover {
+    transform: translateY(-2px);
+}
+
+body.admin-dash .portal-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+    border-radius: 13px;
+    margin-bottom: 10px;
+    box-shadow: 0 0 14px rgba(249, 115, 22, 0.3);
+}
+
+body.admin-dash .portal-card:hover .portal-icon {
+    transform: scale(1.04);
+    box-shadow: 0 0 18px rgba(249, 115, 22, 0.4);
+}
+
+body.admin-dash .portal-title {
+    font-size: 12px;
+}
+
+body.admin-dash .portal-sub {
+    font-size: 9px;
+}
+
+/* —— Activity —— */
+body.admin-dash .activity-section {
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+body.admin-dash .activity-card {
+    border-radius: 16px;
+    padding: 16px 18px;
+}
+
+body.admin-dash .activity-header {
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+}
+
+body.admin-dash .activity-header h3 {
+    font-size: 14px;
+}
+
+body.admin-dash .activity-list {
+    gap: 8px;
+}
+
+body.admin-dash .activity-item {
+    padding: 10px;
+    border-radius: 12px;
+    gap: 12px;
+}
+
+body.admin-dash .activity-item:hover {
+    transform: translateX(3px);
+}
+
+body.admin-dash .activity-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 15px;
+    border-radius: 10px;
+}
+
+body.admin-dash .activity-title {
+    font-size: 12px;
+}
+
+/* —— System status & footer —— */
+body.admin-dash .system-status {
+    border-radius: 16px;
+    padding: 16px 18px;
+}
+
+body.admin-dash .status-header {
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+}
+
+body.admin-dash .status-header h3 {
+    font-size: 14px;
+}
+
+body.admin-dash .status-grid {
+    gap: 12px;
+}
+
+body.admin-dash .status-item {
+    padding: 12px 10px;
+    border-radius: 12px;
+}
+
+body.admin-dash .status-item .value {
+    font-size: 15px;
+}
+
+body.admin-dash .footer {
+    border-radius: 14px;
+    padding: 14px 20px;
+    margin-top: 18px;
+    font-size: 11px;
+}
+
+body.admin-dash .toast {
+    border-radius: 12px;
+    padding: 12px 18px;
+    font-size: 13px;
+}
+
+@media (max-width: 1200px) {
+    body.admin-dash .portal-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    body.admin-dash .main-content {
+        margin-left: 0;
+        padding: 14px;
+    }
+
+    body.admin-dash:has(#adminPortalBanner) .sidebar {
+        top: 44px;
+        height: calc(100dvh - 44px);
+    }
+}
+
+@media (min-width: 1600px) {
+    body.admin-dash .stats-grid,
+    body.admin-dash .charts-row {
+        gap: 18px;
+    }
+}

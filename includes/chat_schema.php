@@ -74,6 +74,25 @@ function ensure_chat_schema(mysqli $conn): void {
     @$conn->query("ALTER TABLE `chat_participants` ADD INDEX `idx_user_conv` (`user_id`, `conversation_id`)");
     @$conn->query("ALTER TABLE `chat_message_receipts` ADD INDEX `idx_msg_read` (`message_id`, `read_at`)");
     @$conn->query("ALTER TABLE `users` ADD COLUMN `chat_avatar` VARCHAR(255) DEFAULT NULL");
+    @$conn->query("ALTER TABLE `chat_participants` ADD COLUMN `participant_status` ENUM('active','pending','declined') NOT NULL DEFAULT 'active'");
+
+    @$conn->query("CREATE TABLE IF NOT EXISTS `chat_blocks` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `blocker_id` INT NOT NULL,
+        `blocked_id` INT NOT NULL,
+        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY `uq_chat_block` (`blocker_id`, `blocked_id`),
+        INDEX `idx_blocked` (`blocked_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    @$conn->query("CREATE TABLE IF NOT EXISTS `chat_message_hides` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `message_id` INT NOT NULL,
+        `hidden_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY `uq_hide` (`user_id`, `message_id`),
+        INDEX `idx_user` (`user_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
     $uploadDir = dirname(__DIR__) . '/uploads/chat';
     if (!is_dir($uploadDir)) {

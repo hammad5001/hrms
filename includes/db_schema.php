@@ -213,6 +213,9 @@ function ensure_leave_request_columns(mysqli $conn): void {
     $cols = [
         'approver_user_id' => 'INT DEFAULT NULL',
         'approver_name' => 'VARCHAR(150) DEFAULT NULL',
+        'is_policy_allotment' => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'allotted_by_user_id' => 'INT DEFAULT NULL',
+        'allotted_by_name' => 'VARCHAR(150) DEFAULT NULL',
     ];
     foreach ($cols as $col => $def) {
         $res = $conn->query("SHOW COLUMNS FROM `leave_requests` LIKE '$col'");

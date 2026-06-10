@@ -284,6 +284,13 @@ function can_assign_super_admin_role(string $actor_role): bool {
 
 }
 
+/** Who may view or edit any user account in admin user management. */
+function user_can_manage_user_accounts(array $user): bool {
+
+    return in_array($user['portal_role'] ?? '', ['admin', 'super_admin'], true);
+
+}
+
 /** Team leads & floor managers — limited admin dashboard (attendance only). */
 function team_manager_roles(): array {
 

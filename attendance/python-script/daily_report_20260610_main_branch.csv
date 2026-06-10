@@ -1,0 +1,1384 @@
+user_id,name,device_name,device_ip,check_in,check_out,hours,status,has_check_out
+1,S.Naqi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+2,Ahmed Sabaoon,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+3,ZaCk,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+4,Muhammad Ehtesham,Main Branch,203.215.161.244,17:17,---,0.00,Present,No
+5,"Abdullah,Ishar",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+6,Hassan Asif,Main Branch,203.215.161.244,17:33,---,0.00,Present,No
+7,Waqar Ahmed,Main Branch,203.215.161.244,17:18,---,0.00,Present,No
+8,Maswar Minhas,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+9,"Amir,Shareef",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+10,Hamza Farooq,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+11,Muhammad Umer,Main Branch,203.215.161.244,17:30,---,0.00,Present,No
+12,Hanna Emmanuel,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+13,"Hilal,Muneeb",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+14,"Haroon,Khan",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+15,"Ahmed,Noor",Main Branch,203.215.161.244,16:56,17:10,0.24,Present,Yes
+16,M.Uzair,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+17,"M,Tanees",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+18,Arslan Basharat,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+19,Maryam Sadheer,Main Branch,203.215.161.244,17:25,---,0.00,Present,No
+20,Ahmad Farid,Main Branch,203.215.161.244,17:35,---,0.00,Present,No
+21,"Muhammad,Rehman",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+22,"Zubash,Akhlaq",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+23,"Adil,Mehmood",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+24,"Naeem,Sajjad",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+25,"Sharyar,Manzoor",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+26,Asghar Ayub,Main Branch,203.215.161.244,17:30,---,0.00,Present,No
+27,Ali Hassnain,Main Branch,203.215.161.244,17:26,---,0.00,Present,No
+28,Shehroz Ahmed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+29,Nadima Mehr,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+30,"Munzir,Ali",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+31,Jahangir Ahmed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+32,"Adna,Safeer",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+33,Farhan Khaliq,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+34,"Shahzad,Ali",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+35,Mehboob Ali,Main Branch,203.215.161.244,17:18,---,0.00,Present,No
+36,"Saqlain,Arshad",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+37,Zimmel Shahid,Main Branch,203.215.161.244,18:00,---,0.00,Present,No
+38,Malik Abdullah Siddique,Main Branch,203.215.161.244,17:09,---,0.00,Present,No
+39,Arslan Abbasi,Main Branch,203.215.161.244,17:38,---,0.00,Present,No
+40,Malik Umer Jalal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+41,"Musharaf,Islam",Main Branch,203.215.161.244,17:28,---,0.00,Present,No
+42,"Ahsan,Ali",Main Branch,203.215.161.244,17:30,---,0.00,Present,No
+43,"Zain,Mughal",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+44,"Wasif,Abbasi",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+45,"Musaddiq,hussain",Main Branch,203.215.161.244,17:06,---,0.00,Present,No
+46,Hooria Shahid,Main Branch,203.215.161.244,18:00,---,0.00,Present,No
+47,Hassan Multani,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+48,Khan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+49,Shujja Uddin,Main Branch,203.215.161.244,17:30,---,0.00,Present,No
+50,Ali Bashir,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+51,Noman Raheel,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+52,Murtaza Jadoon,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+53,Zara,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+54,"Muhammad,Hassan",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+55,"Ahmad,Fawad",Main Branch,203.215.161.244,17:35,---,0.00,Present,No
+56,M.Gulzar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+57,Anees,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+58,Mubashir,Main Branch,203.215.161.244,17:29,---,0.00,Present,No
+59,M.Ibrar,Main Branch,203.215.161.244,18:11,---,0.00,Late (11min),No
+60,"Iftikhar,Abbasi",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+61,"Hafiz,Arslan",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+62,"Junaid,Liaqat",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+63,"Nabeel,Iftikhar",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+64,"M,Zubair",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+65,"Aniqa,Malik",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+66,"Sebghat,Ullah",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+67,"KhawAja,Shanawar",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+68,"Adeel,Khurshid",Main Branch,203.215.161.244,17:19,---,0.00,Present,No
+69,"Muhaib,Ullah",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+70,"Sharoon,qamar",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+71,"Abdullah,Khan",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+72,"Hammad,Jamil",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+73,"Anwar,Zaibshah",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+74,"Abdul,Wahab",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+75,"Sharjeel,Ramazan",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+76,"S,Ali,kazmi",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+77,"Abdul,Wahid",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+78,"Malik,Hamza",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+79,"Hammad,Liaqat",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+80,"Osama,Hadi",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+81,"Fasahat,Saghir",Main Branch,203.215.161.244,17:33,---,0.00,Present,No
+82,"M,Shoaib",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+83,Aliha,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+84,"M,Hassan,Shahzad",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+85,"Faiq,Malik",Main Branch,203.215.161.244,17:37,---,0.00,Present,No
+86,Elmer,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+87,"Alven,Sarfraz",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+88,"Noureen,Akhtar",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+89,"Waleed,Nisar",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+90,"Afzaal,Ahmed",Main Branch,203.215.161.244,16:50,---,0.00,Present,No
+91,"Abdul,Qadir",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+92,"Muhammad,Wasi",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+93,"Sawera,Sajjad",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+94,"Kaleem,baig",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+95,"Adnan,Tariq",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+96,"Umar,Qadeer",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+97,"Basim,Ahmad",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+98,"Hafeez,Ullah",Main Branch,203.215.161.244,17:24,---,0.00,Present,No
+99,"Naila,Kousar",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+100,"Hamza,Saif",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+101,"Zohaib,Ishfaq",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+102,"Waqas,Bali",Main Branch,203.215.161.244,17:22,---,0.00,Present,No
+103,"Tauqeer,Abbasi",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+104,"Sattar,Ali,Shah",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+105,"Ehtisham,Abbasi",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+106,"Zohaib,Javed",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+107,"Kashan,Akhtar",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+108,"Imran,Khan",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+109,"Jawad,Javed",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+110,"Shaheryar,Javaid",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+111,"Zain,Ijaz",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+112,"Awais,Jahangir",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+113,"Muzamil,Khan",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+114,"Farha,Raheel",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+115,"Sarah,Hassan",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+116,"Arooj,Malek",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+117,"Inshal,Zohaib",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+118,"Asma,Hameed",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+119,"Shahgee,kazmi",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+120,"Asadullah,BugTi",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+121,"Naeem,Nadeem",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+122,"Hussain,Kazmi",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+123,"Mohsin,Nazir",Main Branch,203.215.161.244,17:16,---,0.00,Present,No
+124,"Dayaan,Ahmer",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+125,"Bushra,qaiser",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+126,"Sana,Qaisar",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+127,"Shaffat,abbasi",Main Branch,203.215.161.244,17:40,---,0.00,Present,No
+128,"Arooj,Qamer",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+129,"Abdul,Wajid,Shah",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+130,"Usman,ayaz",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+131,Aryan Amir,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+132,Qadir Joshi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+133,Huraira Kamal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+134,Saqib Ali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+135,"Muhammad,Akmal",Main Branch,203.215.161.244,14:54,---,0.00,Present,No
+136,"Abdullah,Riaz",Main Branch,203.215.161.244,17:28,---,0.00,Present,No
+137,"Muhammad,Ibrar",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+138,"Hira,Shah",Main Branch,203.215.161.244,17:14,---,0.00,Present,No
+139,"Muneeb,Khan",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+140,"Shahan,Akbar",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+141,"Noman,Naseer",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+142,"Talha,Saeed",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+143,"Faiq,Bin,Mazhar",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+144,"Simran,Sabir",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+145,"Sholmit,Nazir",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+146,"Bilal,Noor",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+147,"Zohaib,Rajpoot",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+148,"Ateeb,Khan",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+149,"Ester,Francis",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+150,"Haroon,Ayub",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+151,"Muhammad,Rohan",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+152,"Mujtaba,Shah",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+153,"Taha,Shaeikh",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+154,"Daim,Wadood",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+155,"Hamza,Areeb",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+156,"Hamza,Aliyan",Main Branch,203.215.161.244,17:27,17:27,0.00,Present,Yes
+157,"Anas,Ali",Main Branch,203.215.161.244,17:32,---,0.00,Present,No
+158,"Hassan,Satti",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+159,"Saeed,Gul",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+160,"Naina,Pervaiz",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+161,"Ebad,Bin,Sher",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+162,"Muhammad,Ijaz",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+163,"Amar,Abbas",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+164,"Ryan,Junaid,Satti",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+165,"Arsalan,Zahid",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+166,"Syed,Hasnain,Ali",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+167,"Ali,Abbasi",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+168,"Arif,Hussain",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+169,"Rehan,Malik",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+170,"Zoha,Noor",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+171,"Syed,Hamza",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+172,Haroon,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+173,"Ramsha,Abbasi",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+174,"Muhammad,Haseeb",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+175,"Ahmad,Fawad",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+176,"Azan,Ali",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+177,"Awaisa,Imtiaz",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+178,"Muhammad,Qamar",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+179,"Sidra,Batool",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+180,"Talha,Abbasi",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+181,"Hassan,Shahzad",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+182,Hussnain Ali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+183,Hammad Akhtar Qureshi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+184,Mustaqeem Hassan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+185,Ahmad Siddiqui,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+186,Umer Javed Dar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+187,Muhammad Ibaad Hameed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+188,Javed Ali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+189,Osama Saeed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+190,Uzair Akhtar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+191,Arslan Azhar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+192,"Atique,Albert",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+193,"Ahsan,Imtiaz",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+194,"Sajeel,Mir",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+195,"Rimsha,Shamroz",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+196,"M.Umar,Hassan",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+197,"Muhammad,Souman",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+198,"Izhar,Hassan",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+199,"Faraz,Ahmed",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+200,"Wishal,Arif",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+201,"Muhammad,Tayyab",Main Branch,203.215.161.244,17:22,---,0.00,Present,No
+202,"M.Zeeshan,ASif",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+203,"Basil,Ali",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+204,"Muhammad,Abbas",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+205,"Asad,Mehmood",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+206,"Muhammad,Haider",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+207,"Muhammad,Rameez",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+208,"Mushaf,Sabeeh",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+209,"Hamza,Hassan",Main Branch,203.215.161.244,17:19,---,0.00,Present,No
+210,"Umer,Sharif",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+211,"Afzaal,Ahmed",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+212,"Shehryar,Mazhar",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+213,"Muhammad,Asad",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+214,"Umer,Awais",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+215,"Adi,Farooq",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+216,"Hamna,Khursheed",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+217,"Muneeb,",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+218,"Saad,Abdullah",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+219,"Farhan,Ajaz",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+220,"Natasha,Shakeel",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+221,"Muhammad,Zakria",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+222,"Muzzamil,Munir",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+223,"Rohail,Ishfaq",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+224,"Rubab,Tariq",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+225,"Muhammad,Usman",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+226,"Sani,Yousuf",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+227,"Muhammad,Rehan",Main Branch,203.215.161.244,17:19,---,0.00,Present,No
+228,"Zakir,Hussain",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+229,"Muhammad,Maaz",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+230,"Gulistan,Malik",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+231,"Tipusultan,Awan",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+232,"Rehan,Hussain",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+233,"Yasin,Ahmed",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+234,"Muhammad,ghayas",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+235,"Haider,Ali",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+236,"Ayesha,Mustafa",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+237,"Muhammad,Mannan",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+238,"Haseeb,Sajjad",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+239,"Muhammad,Umer",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+240,"Shanawar,Parwiz",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+241,"Tasif,Amir",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+242,"Syed,Waqar",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+243,"Ishaq,Ahmed",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+244,"Ahmed,Ahsun",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+245,"Faraz,Malik",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+246,"Alyan,Nasir",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+247,"Arbaz,Malik",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+248,"S,Muhammad,Shoaib",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+249,"Alyan,Ali",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+250,"Ibrahim,Khan",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+251,"Waheed,Ullah",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+252,"Awaiz,Ashir",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+253,"Ali,Sadra,Naderi",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+254,"Marwa,Hameed",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+255,"Muhammad,Bin,Imran",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+256,MuhammadAbubakar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+257,"Haroon,Khan",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+258,"Sabeel,Abrar",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+259,"Talha,Saeed",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+260,"Bakht,Ali",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+261,"Boez,Tahir",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+262,"Gulnaz,Abbasi",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+263,"Nida,Kawan",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+264,"Maham,Rajput",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+265,"Yasir,Khan",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+266,"Shahwaiz,Nawaz",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+267,"Raees,Pervaiz",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+268,"Muhammad,Qadir",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+269,"Rabia,Ghafoor",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+270,"Moheen,Asghar",Main Branch,203.215.161.244,17:15,---,0.00,Present,No
+271,"Musa,Sultan",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+272,"Leeza,Murad",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+273,"Atif,Shahzad",Main Branch,203.215.161.244,17:16,17:16,0.00,Present,Yes
+274,"Qaiser,Ali",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+275,"Adnan,Nowroz",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+276,"Raja,Adnan,Kiyani",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+277,"Amama,Abbasi",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+278,"Fazal,Ahmed",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+279,"Jalil,Ur,Rehman",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+280,"Zeeshan,Latif",Main Branch,203.215.161.244,17:19,---,0.00,Present,No
+281,"Ubaid,Abbasi",Main Branch,203.215.161.244,17:09,---,0.00,Present,No
+282,"Abdul,Moiz",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+283,"Afaq,Ali",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+284,"Malik,Abdullah,Altaf",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+285,"Habib,Ullah",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+286,Nouman Abbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+287,Muhammad Naveed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+288,Fowad Abdul Hameed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+289,Muneeb Ur Rehman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+290,Ali Awais,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+291,Tayyab Mughal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+292,Abdul Momin,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+293,Bakhtawar Khan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+294,Shanifa shahjahan,Main Branch,203.215.161.244,17:31,---,0.00,Present,No
+295,"Naeem,Razakhan",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+296,"Usman,Munir",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+297,"Faisal,hammad",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+298,Mamoon Iftakhar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+299,299,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+300,300,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+301,301,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+302,302,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+303,Irfan Nayab Khel,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+304,Aneeta,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+305,305,Main Branch,203.215.161.244,17:29,---,0.00,Present,No
+306,306,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+307,307,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+308,308,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+309,Abdul AHAD,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+310,310,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+311,Safran,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+312,312,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+313,Anas,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+314,Sabahat,Main Branch,203.215.161.244,16:54,---,0.00,Present,No
+315,315,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+316,316,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+317,Abeer Taj,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+318,318,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+319,Samreen Iqbal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+320,Ayyad Baig,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+321,321,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+322,322,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+323,Junaid Jahanzaib,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+324,Usman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+325,Ahmed Raza,Main Branch,203.215.161.244,18:09,---,0.00,Present,No
+326,Nayab,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+327,Asfand Yar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+328,Ubaid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+329,Mustafa Shah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+330,Meer Balaaj Mirza,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+331,Aqdas Bali,Main Branch,203.215.161.244,17:28,---,0.00,Present,No
+332,332,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+333,Jawad Shah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+334,Abdul Basit,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+335,Asif Ali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+336,336,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+337,Umar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+338,Zohaib Tariq,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+339,Zainab,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+340,Shayan Fiaz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+341,Adnan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+342,342,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+343,Abdullah Malik,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+344,Muhammad Basit,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+345,Tahir Mehmood,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+346,Awais Sharif,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+347,Danish Abbas,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+348,Safaniah,Main Branch,203.215.161.244,17:25,---,0.00,Present,No
+349,Abdul Wahab,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+350,Shehzad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+351,Shehryar,Main Branch,203.215.161.244,17:16,---,0.00,Present,No
+352,Arafat Abbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+353,Sherdil Mubarik,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+354,Abdul Wahab,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+355,Muhammad Ahmad Khan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+356,SAFWAN ULLAH,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+357,Qaim Ali Shigri,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+358,Muhammad Ehtisham Faisal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+359,Muhammad Azan Ali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+360,Hashim Nawaz Abbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+361,Ali Sheharyar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+362,Noman Qayyum,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+363,Muhammad Kashif Syed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+364,Muhammad Faizan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+365,Farhan Shoukat,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+366,Zeeshan Ali,Main Branch,203.215.161.244,17:26,---,0.00,Present,No
+367,Tahir Ahmad,Main Branch,203.215.161.244,17:16,---,0.00,Present,No
+368,Urwa Riaz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+369,Najam Shafayat,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+370,Awais Ahmed Ashfaq,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+371,Farhan Hassan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+372,Daniyal Ahmed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+373,Umar Zaman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+374,Asif Khan Rokhri,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+375,Wishal Imtiaz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+376,Uzair Sayyam,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+377,Najam Shafayat Abbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+378,Awais Ahmed Ashfaq,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+379,Purwa Riaz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+380,Ibadurrehman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+381,Saim,Main Branch,203.215.161.244,17:20,---,0.00,Present,No
+382,Arsalan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+383,Mhassan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+384,Hammad khan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+385,Wishal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+386,Muhammad Hamza,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+387,Nancy,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+388,Anil,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+389,Anwar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+390,Junaid ullah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+391,Dawood,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+392,Haidershahid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+393,AliZain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+394,HasnainHaider,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+395,Ramsha,Main Branch,203.215.161.244,17:21,---,0.00,Present,No
+396,M.Hasnain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+397,"Ahmad,Zakir",Main Branch,203.215.161.244,---,---,0.00,Absent,No
+398,M.Sharyar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+399,Muhammad Umar Wahab,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+400,Danish,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+401,Aqeel khan,Main Branch,203.215.161.244,17:25,---,0.00,Present,No
+402,Abdul Rehman,Main Branch,203.215.161.244,17:30,---,0.00,Present,No
+403,Muhammad Irfan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+404,Zeeshan Ahmed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+405,Hasnat Amir,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+406,Shoukat Ali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+407,Muhammad Zeeshan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+408,Shahrukh Fiaz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+409,Muhammad Abdullah Usman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+410,Akhtasham Ahmed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+411,Abdul Ghafoor,Main Branch,203.215.161.244,17:29,---,0.00,Present,No
+412,Zeeshan Ali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+413,SulemanRehmanALi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+414,Syed Turab Ali Kazmi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+415,Ahmad shamoon,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+416,Muhammad Kashan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+417,Arbaz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+418,Azlankhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+419,Qadeer,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+420,LaibaEman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+421,Abdullah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+422,Zain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+423,Mohsin,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+424,Haseebhaider,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+425,Safiuddin,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+426,Aamirwaris,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+427,Ruhbham,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+428,Saairakhter,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+429,Abdullahsajid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+430,Arsalanqureshi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+431,Ehtishamkhaleeq,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+432,Saadabdulrehman,Main Branch,203.215.161.244,17:23,---,0.00,Present,No
+433,Ammad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+434,Moheeb,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+435,Haseebabbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+436,Abdulrehmanmalik,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+437,Aamirali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+438,Ambersiddique,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+439,Cshman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+440,Sumat,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+441,Danishkhan,Main Branch,203.215.161.244,17:10,---,0.00,Present,No
+442,Ayesha,Main Branch,203.215.161.244,17:24,---,0.00,Present,No
+443,Zaighum,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+444,Ayeshamughal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+445,Taimoorali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+446,Kashifali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+447,Saba,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+448,Hussanain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+449,Kiran,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+450,Subhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+451,Suleman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+452,Noman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+453,Adeelaslam,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+454,Ahmadhashmi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+455,Msalman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+456,Nida,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+457,Neelam,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+458,Hina,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+459,Zaratariq,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+460,Ambar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+461,Aaqib,Main Branch,203.215.161.244,17:24,---,0.00,Present,No
+462,Yasir,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+463,Shamsudin,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+464,Hassan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+465,Junaidyameen,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+466,Aamirsohail,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+467,Hamzanabbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+468,Sameer,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+469,Sumat,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+470,Umairayub,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+471,Nidasha,Main Branch,203.215.161.244,17:31,---,0.00,Present,No
+472,SohamShahid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+473,NAEEMGul,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+474,Chmshahryariqbal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+475,Saimaahmed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+476,Ahmadbukhari,Main Branch,203.215.161.244,14:54,---,0.00,Present,No
+477,HaseebUsman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+478,MuhammadIbtisam,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+479,MuhammadAbdullah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+480,AkashQiser,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+481,GulZaman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+482,Uzairrasheed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+483,MuhammadZeeshanAli,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+484,Malaika,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+485,Saadsaeed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+486,Zahidmaken,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+487,Usamasiraj,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+488,Zeeshaniftikhar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+489,SyedKhubabshah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+490,MuhammadAli,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+491,YusufKhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+492,ShahmirKhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+493,WaleedAbbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+494,AreebaHaroon,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+495,RohaEjaz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+496,DanyalAhmed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+497,Sohafareed,Main Branch,203.215.161.244,18:08,---,0.00,Present,No
+498,Samiiftikhar,Main Branch,203.215.161.244,17:27,---,0.00,Present,No
+499,Ziaurrehman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+500,MalikImran,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+501,AbdulQadir,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+502,UsamaMagray,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+503,Shamsulhaq,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+504,RubabMughal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+505,AmmarBinYasir,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+506,IhsanUlhaq,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+507,MuhammadTahir,Main Branch,203.215.161.244,17:35,---,0.00,Present,No
+508,NainaFareed,Main Branch,203.215.161.244,17:19,---,0.00,Present,No
+509,MuhammadAsif,Main Branch,203.215.161.244,17:35,---,0.00,Present,No
+510,MohsinAli,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+511,ShakeelKhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+512,MuhammadShoaib,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+513,HamzaBilal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+514,RajaSalarAbbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+515,MugheesAbbas,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+516,WaqarHameed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+517,MuhammadAzeem,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+518,SamarSaleem,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+519,UzairAzam,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+520,TauqeerUlhaq,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+521,MuhammadObaid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+522,MalikKashif,Main Branch,203.215.161.244,18:20,---,0.00,Late (20min),No
+523,NabeelNadeemAhmed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+524,MuhammadHaris,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+525,SobanQamar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+526,OsamaHaider,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+527,SyedYahya,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+528,AjazYousaf,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+529,Nooruleeman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+530,MuhammadAboozar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+531,AbdulWahab,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+532,Shehryar,Main Branch,203.215.161.244,17:25,17:26,0.00,Present,Yes
+533,MariaKhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+534,Asadzafar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+535,Mubashirsabir,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+536,Mwajahat,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+537,HasanAli,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+538,AimanAbbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+539,IqtidarAli,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+540,RohaibHussain,Main Branch,203.215.161.244,17:23,---,0.00,Present,No
+541,Danishrehman,Main Branch,203.215.161.244,18:15,---,0.00,Late (15min),No
+542,MuhammadJunaid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+543,Azkarauf,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+544,ShamilKhan,Main Branch,203.215.161.244,17:32,---,0.00,Present,No
+545,MadahHassnain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+546,AbidHussain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+547,Hadiqa,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+548,HaleemaObaid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+549,DaimAliKhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+550,HussainMohiuddin,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+551,HamzaJaved,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+552,RajaTahir,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+553,MuhammadNadeem,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+554,AshalAhmad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+555,Shahzaib,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+556,SamiUrRehman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+557,AmnaFarooq,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+558,JanetteAmir,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+559,MuhammadIrfanArif,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+560,SulemanKhalid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+561,MehrajAbbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+562,ZaidKamran,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+563,AbdulHadi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+564,MKashifIjaz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+565,AbdulRehmanKiyani,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+566,EjafAbbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+567,HubdarHaider,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+568,MuhammadMuddasir,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+569,HaroonAlam,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+570,AnilaAmjad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+571,RazaAbbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+572,FarazAli,Main Branch,203.215.161.244,17:17,---,0.00,Present,No
+573,SobiaMajeed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+574,AliArshman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+575,JeremiahAftab,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+576,UsmanMughal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+577,ZokhaKhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+578,Abdullah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+579,HarisZaheer,Main Branch,203.215.161.244,17:42,---,0.00,Present,No
+580,Bilalrauf,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+581,Sulemanmasih,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+582,Mshoaib,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+583,Kanwal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+584,Abdulhanan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+585,Syedahmed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+586,Kanwalzaheer,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+587,AjabKhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+588,HamasHaider,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+589,HamidNawaz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+590,WaheedAhmed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+591,ZainNaqvi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+592,RohailJaved,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+593,Sohailgul,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+594,Ayeshaarshad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+595,MuhammadShoaib,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+596,MuhammadHassanRaza,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+597,AqsaIftikhar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+598,Mshoaib,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+599,HamzaHamid,Main Branch,203.215.161.244,17:40,---,0.00,Present,No
+600,HaziqBinShahid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+601,SundasSaleem,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+602,Yashab,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+603,Fahadamjad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+604,AliMuhammad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+605,Abdulbasit,Main Branch,203.215.161.244,17:20,---,0.00,Present,No
+606,Faizanrahim,Main Branch,203.215.161.244,17:23,---,0.00,Present,No
+607,Salmansoomro,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+608,Sheikhayan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+609,Mariam,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+610,Madnan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+611,SyedaManahil,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+612,MuhammadZohaib,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+613,MuhammadZeeshan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+614,AkashHabib,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+615,SyedNabeelAliShah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+616,UmarFarooq,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+617,AsifQureshi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+618,MalikAtif,Main Branch,203.215.161.244,17:25,---,0.00,Present,No
+619,MukaramTanveer,Main Branch,203.215.161.244,17:27,17:27,0.00,Present,Yes
+620,AsadAli,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+621,FahadWajid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+622,EhtishamKiani,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+623,Hasnain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+624,AhadSatti,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+625,ShayanPeerzada,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+626,AliHaider,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+627,SobanYasir,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+628,MuhammadAsbab,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+629,NomanSaddique,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+630,WajihaKanwal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+631,RaeesIqbal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+632,AbdullahJamil,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+633,SheikhAsim,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+634,MuhammadAli,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+635,MuhammadUsmanKhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+636,AimalKhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+637,ZainAliKhalid,Main Branch,203.215.161.244,17:23,---,0.00,Present,No
+638,Abdulrehman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+639,AbdullahZaheer,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+640,MubashraJaved,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+641,AdamImran,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+642,SaadiaAli,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+643,AhmadFiaz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+644,FahadRiaz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+645,Muhammadkhizar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+646,SulemanAli,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+647,MuhammadAli,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+648,SharyarAli,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+649,Abubakar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+650,MuhammadKaif,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+651,FarhanIsrar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+652,ShahirKhattak,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+653,SaqlainSarwar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+654,RojaAfzal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+655,AdnanAli,Main Branch,203.215.161.244,17:25,---,0.00,Present,No
+656,AyeshaNoor,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+657,NoorFatima,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+658,SaifShahzad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+659,AbdulRehman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+660,SaifKiyani,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+661,AsmaMalik,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+662,HaroonAmjad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+663,ArsalanHassan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+664,AyshaMalik,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+665,SyedHadeedBukhari,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+666,Kanwalsadeem,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+667,AnasAli,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+668,MuhammadSaad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+669,TalalAbbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+670,SamiKhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+671,FahadAziz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+672,MuhammadSaud,Main Branch,203.215.161.244,17:35,---,0.00,Present,No
+673,AzlanShah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+674,Faizanqureshi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+675,Tayyabusman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+676,Syedramish,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+677,ImranZaibShah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+678,MuhammadSalarAbbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+679,HuzaifaAyoub,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+680,AfshaNaz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+681,MuhammadZunnorain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+682,Syedaumerubab,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+683,Abdullahsethi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+684,Rehmanaliabbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+685,Junaidahmad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+686,Yousafullah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+687,Hilalanwar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+688,Aliraza,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+689,Youhanna,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+690,Umarsharif,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+691,Muazzamiqbal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+692,Muzammil,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+693,MianNaumanAhmad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+694,ZeeshanRana,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+695,AbdulRafay,Main Branch,203.215.161.244,17:30,---,0.00,Present,No
+696,HamzaZubair,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+697,MuhammadSohail,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+698,AlyanTanveer,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+699,ZainNaeem,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+700,HasnainAbbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+701,RayedKazmi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+702,MuhammadRehman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+703,PeerZadaUmer,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+704,MuhammadAman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+705,ShamsUddin,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+706,ShayanBhatti,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+707,AbdulHadi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+708,AbdulRehman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+709,SherazAhmad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+710,HuzaifaAltaf,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+711,AbdulMoizKhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+712,BasilHussain,Main Branch,203.215.161.244,17:31,---,0.00,Present,No
+713,MuhammadFarhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+714,Foziakosar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+715,Daim,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+716,Elisha,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+717,Muzair,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+718,Mfaizanali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+719,Qamarabdullah,Main Branch,203.215.161.244,17:03,---,0.00,Present,No
+720,UmarTayyab,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+721,TaimoorBhatti,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+722,SaadAliKhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+723,DanyalHaider,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+724,UmairAli,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+725,AbdulRehman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+726,MohsinAli,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+727,MuhammadSalman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+728,KiranJabeen,Main Branch,203.215.161.244,17:14,---,0.00,Present,No
+729,ImranHaider,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+730,MusabAbbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+731,FurqanBinAshraf,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+732,Muneeba,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+733,Tariqmurtaza,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+734,ShahmirKhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+735,AbdulWahab,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+736,GhaniUrRehman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+737,AliAzam,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+738,HuzaifaAhsan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+739,MuhammadAbubakarNaeem,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+740,MeerAhmad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+741,RabailTariq,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+742,NoorUlAin,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+743,KinzaTariq,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+744,SimranShafaqat,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+745,HooriaNadeem,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+746,SweraWaheed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+747,SabaParveen,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+748,MuhammadHumdoon,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+749,ShahramKhokhar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+750,MuhammadAbdullah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+751,MussavirRaza,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+752,SabirHussain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+753,AliNawaz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+754,MesakGeorge,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+755,UsamaMumtaz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+756,AbdullahMalik,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+757,HasnainNazeer,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+758,SyedSohaibShah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+759,HuzaifaQurishi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+760,AryanAhmed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+761,MuhammadIhsan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+762,MohibAli,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+763,MuhammadAbdullah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+764,AhsanAli,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+765,AbihaHashmi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+766,MuhammadOwais,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+767,MuhammadIbrahim,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+768,SalmanKhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+769,MuhammadShamraiz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+770,AliAhmad,Main Branch,203.215.161.244,17:06,---,0.00,Present,No
+771,AbuHuraira,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+772,Alizahwaseem,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+773,ArmanHussain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+774,HARISKHAN,Main Branch,203.215.161.244,17:19,---,0.00,Present,No
+775,MuhammadHammad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+776,HassanRaza,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+777,MuhammadMubeen,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+778,SajidaBano,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+779,OzanNisar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+780,RabiaZafar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+781,WasidKhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+782,JawadAnwar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+783,HuzaifaMujahid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+784,SaudKhadil,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+785,AdnanAli,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+786,Imranali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+787,HassanAli,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+788,Sufianchangezi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+789,SahilKhokhar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+790,ImranKhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+791,MohammadRamzan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+792,Saadwajid,Main Branch,203.215.161.244,17:26,---,0.00,Present,No
+793,Aroonsameer,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+794,Muhammadrehan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+795,ZohaibSohail,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+796,HamzaSajjad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+797,HassamIftikhar,Main Branch,203.215.161.244,17:27,---,0.00,Present,No
+798,UbaidUllah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+799,AbdulRaheem,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+800,800,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+801,801,Main Branch,203.215.161.244,17:40,---,0.00,Present,No
+802,802,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+803,803,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+804,804,Main Branch,203.215.161.244,17:24,---,0.00,Present,No
+805,Zaryab,Main Branch,203.215.161.244,17:25,---,0.00,Present,No
+806,806,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+807,807,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+808,808,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+809,809,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+810,UmmeAmmara,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+811,SalarRashid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+812,RabailRashid,Main Branch,203.215.161.244,17:29,---,0.00,Present,No
+813,Asadmalik,Main Branch,203.215.161.244,17:22,17:22,0.00,Present,Yes
+814,Hamzaabbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+815,HammadKhurshid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+816,SyedFaizanMustafa,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+817,YashirIqbal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+818,ZarghamAzhar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+819,OsamaSadiq,Main Branch,203.215.161.244,17:51,---,0.00,Present,No
+820,IrfanRaheem,Main Branch,203.215.161.244,17:23,---,0.00,Present,No
+821,Alinaqvi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+822,Izan Abbas,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+823,Mahad Khan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+824,Sharjeel Mumtaz,Main Branch,203.215.161.244,17:08,17:10,0.04,Present,Yes
+825,AbdurRehman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+826,TashfeenAbbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+827,Muhammad Haris Mirza,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+828,Nimra  Rukhsar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+829,Hamza Ali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+830,Abuhurairah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+831,Ashder,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+832,Umair Ajab,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+833,Mishaljaved,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+834,Hafsa Eman,Main Branch,203.215.161.244,17:14,---,0.00,Present,No
+835,Muhammad Waleed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+836,Abdulkabeer,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+837,MuhammadAqdas,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+838,Adnan Siddique,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+839,Fatima Noor,Main Branch,203.215.161.244,16:51,---,0.00,Present,No
+840,BabarHassin,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+841,MuhammadTaha,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+842,AneelShahid,Main Branch,203.215.161.244,17:21,---,0.00,Present,No
+843,FarihaAman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+844,MuhammadSajjad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+845,Mubasher,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+846,Harry Chris,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+847,Muhammadzain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+848,Shahzaibshakoor,Main Branch,203.215.161.244,17:56,---,0.00,Present,No
+849,Usamajaved,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+850,Syed Farzam Ali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+851,Hamza Waheed,Main Branch,203.215.161.244,17:27,---,0.00,Present,No
+852,MaizaBibi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+853,AqsaGulzar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+854,Mussavirkhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+855,Sajidjaved,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+856,Ahsansunny,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+857,Noorulain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+858,Muhammadusama,Main Branch,203.215.161.244,17:28,---,0.00,Present,No
+859,Shamoon,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+860,Muhammadmusab,Main Branch,203.215.161.244,17:08,---,0.00,Present,No
+861,Waneeza,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+862,Muhammad Faisal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+863,TabeelZafar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+864,Syedhaji,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+865,Muhammad Ali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+866,UmarFarooq,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+867,Ahmad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+868,Saad Ahmad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+869,Hasnainhashmi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+870,Muhammad AbdulHadi Malik,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+871,Sana James,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+872,Amir Afraz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+873,Abdul Khaliq,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+874,Hammad Khalid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+875,JamalHassan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+876,AwaisShah,Main Branch,203.215.161.244,17:21,---,0.00,Present,No
+877,Adil Islam,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+878,Sheikhdaniyal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+879,MarvaAbbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+880,MominaSafeer,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+881,Usman Ali,Main Branch,203.215.161.244,17:07,17:07,0.00,Present,Yes
+882,Waqas Anwar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+883,Shayan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+884,Amna,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+885,Sanam Jan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+886,Abdullah Asghar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+887,Muhammad Shahzaib,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+888,Syedashir,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+889,Zunairali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+890,Abdulsamad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+891,Samraijaz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+892,HashirUzair,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+893,AqsaWaheed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+894,Khowlah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+895,Abdullah Malik,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+896,Aziz Ullah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+897,Abdullah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+898,Gulfam,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+899,Abdulrehman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+900,MoarefaMohammadi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+901,MehranPervaiz,Main Branch,203.215.161.244,17:41,---,0.00,Present,No
+902,Jamshed Liaqat,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+903,Areeba Satti,Main Branch,203.215.161.244,17:14,---,0.00,Present,No
+904,Asad Butt,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+905,Rajab Ali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+906,Shad Azam,Main Branch,203.215.161.244,16:52,---,0.00,Present,No
+907,Mubeen Abbas,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+908,Adilfaryad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+909,Misbah Ahmad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+910,Kainat Hanif,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+911,Muhammad Ahmad Jamal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+912,Siraj Qaisar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+913,Abdul Rafay,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+914,Ibrahim Khan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+915,Zain Ul Hassan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+916,Harris,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+917,Ehtesham Khan,Main Branch,203.215.161.244,17:24,---,0.00,Present,No
+918,Syed Ammar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+919,Malik Abdullah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+920,Muhammad Jamal,Main Branch,203.215.161.244,17:17,---,0.00,Present,No
+921,Mubashirali,Main Branch,203.215.161.244,17:38,---,0.00,Present,No
+922,QiratAamir,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+923,Zainab Zahra,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+924,Atif Riaz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+925,Samiulhassan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+926,Haroon Khan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+927,Ayyan Malik,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+928,Fizza Liaqat,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+929,AdnanKhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+930,AtikaKhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+931,Abdullahjaved,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+932,DawoodRaz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+933,MShaheer,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+934,UbaidMalik,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+935,Saadhamid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+936,Muhammad Ahmad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+937,Saadbinwaqas,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+938,Abbas,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+939,Waqarabbas,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+940,Aliabbas,Main Branch,203.215.161.244,17:22,---,0.00,Present,No
+941,Tayyab,Main Branch,203.215.161.244,17:29,---,0.00,Present,No
+942,Hadia,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+943,Ayeshaimtiaz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+944,SalmanAli,Main Branch,203.215.161.244,18:07,---,0.00,Present,No
+945,Anwarzeb,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+946,Saba,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+947,Saifurrehman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+948,HamzaArif,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+949,Laiba Awan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+950,Iqra Zaheer,Main Branch,203.215.161.244,17:16,---,0.00,Present,No
+951,Romail,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+952,Yasra Nadeem,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+953,Hasnainarif,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+954,Shahzad Aziz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+955,Huzaifa Shahid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+956,Farhan Malik,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+957,Manan Khan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+958,Hasnain Raza,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+959,Mushahid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+960,AliHASSAN,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+961,MoeezAwan,Main Branch,203.215.161.244,17:25,---,0.00,Present,No
+962,MuhammadQasim,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+963,ShahidButt,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+964,MahmoodTariq,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+965,Jiya Ikram,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+966,Momina Ikram,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+967,Mehreeba,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+968,Younas Khan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+969,Zeeshanhaider,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+970,Ahtesham Arshed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+971,Shoaiburrehman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+972,Nubhan Safdar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+973,Rabia Mazhar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+974,Daud Saleem,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+975,SalehAbbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+976,JosephJhon,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+977,Umair,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+978,Sannan Karim,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+979,Sundassaleem,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+980,Ahmerfarooqi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+981,Shabbirahmed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+982,Basatsomina,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+983,RajaAwab,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+984,RayyanAmjad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+985,Ghaniurrehman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+986,Ahmer Hussain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+987,Hamzafarooq,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+988,Safa Marwa,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+989,Ummerubab,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+990,MoeedRashid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+991,Sheroz Zakir,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+992,AdnanAzmat,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+993,HamadRahim,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+994,AhsanAli,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+995,HumaJaved,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+996,KashifHameed,Main Branch,203.215.161.244,17:49,---,0.00,Present,No
+997,RajaMoon,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+998,MaviaAtiq,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+999,MalaikaAmjad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1000,HazibRamzan,Main Branch,203.215.161.244,17:29,---,0.00,Present,No
+1001,Hadi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1002,Sherafzalkhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1003,Waqas Butt,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1004,Taha Abbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1005,Saif Ullah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1006,Aizurehman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1007,Ubaidurehman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1008,Syedhassan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1009,Bilal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1010,MushahidQureshi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1011,SherAfghanWali,Main Branch,203.215.161.244,17:42,---,0.00,Present,No
+1012,Saifurrehman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1013,Shawaiz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1014,Aliyan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1015,Hira,Main Branch,203.215.161.244,17:31,---,0.00,Present,No
+1016,Mehak,Main Branch,203.215.161.244,17:32,---,0.00,Present,No
+1017,IqraAmjad,Main Branch,203.215.161.244,17:31,---,0.00,Present,No
+1018,Ghulam Dastegeer,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1019,Muhammad Jameel,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1020,MuhammadFahad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1021,Abdulrafay,Main Branch,203.215.161.244,17:51,---,0.00,Present,No
+1022,Ahsan Khalid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1023,Talhaliaqat,Main Branch,203.215.161.244,17:56,---,0.00,Present,No
+1024,Amaan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1025,Abdul Wasif,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1026,MuhammadShahzaib,Main Branch,203.215.161.244,17:23,---,0.00,Present,No
+1027,Irtiza Haider,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1028,TatheerHussain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1029,Fazal Adnan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1030,Hamza Maqbool,Main Branch,203.215.161.244,17:31,---,0.00,Present,No
+1031,Rizwan Chaudry,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1032,Saqibiqbal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1033,Sahil Anwar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1034,Muhammad Awais,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1035,Abdulahad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1036,EjazULAkbar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1037,HasnainMalik,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1038,ShujaAli,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1039,ShebazAli,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1040,Huzaifa Zafar Niazi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1041,Sabir Khan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1042,Alishba Waheed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1043,Amina Latif,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1044,Muneebashamshad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1045,Muhammad Ibrahim Akbar,Main Branch,203.215.161.244,17:11,---,0.00,Present,No
+1046,Muhammad Ali Hassan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1047,AbrarAnsari,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1048,WajihaHassan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1049,DanialFaisal,Main Branch,203.215.161.244,16:58,---,0.00,Present,No
+1050,Saqlain Ejaz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1051,Sharifa Shah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1052,Bilal Irshad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1053,Altaf Hussain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1054,Hadiaarshad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1055,Shafiq Ur Rehman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1056,Sheikhali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1057,Qamrosh,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1058,ArslanAbbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1059,AhmadIrshad,Main Branch,203.215.161.244,17:20,---,0.00,Present,No
+1060,Kainat,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1061,Hamzasajjad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1062,Sabirahmad,Main Branch,203.215.161.244,17:20,---,0.00,Present,No
+1063,Hasnain,Main Branch,203.215.161.244,17:29,---,0.00,Present,No
+1064,Muhammadsaif,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1065,Muhammad Rashid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1066,AbdulMalik,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1067,Hammad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1068,Adil Khan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1069,Rabbia Seher,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1070,Mudasirabbas,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1071,Ammarraza,Main Branch,203.215.161.244,17:34,---,0.00,Present,No
+1072,Muhammad Yasin Azad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1073,Umer Sadiq,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1074,Suhail Bahadur,Main Branch,203.215.161.244,17:31,---,0.00,Present,No
+1075,Muhammad Shahzad Khan,Main Branch,203.215.161.244,17:17,---,0.00,Present,No
+1076,Muhammad Mehtab,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1077,Umar Farooq,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1078,Muhammadfaraz,Main Branch,203.215.161.244,17:35,---,0.00,Present,No
+1079,Ghulam Abbas,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1080,Fatima,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1081,Minahil,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1082,RajjabAli,Main Branch,203.215.161.244,17:21,---,0.00,Present,No
+1083,Haroon Zahid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1084,Muhammad Usman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1085,Bisma Ahmad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1086,Anayat Ali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1087,Muhammad Asad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1088,Zeeshan Hassan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1089,Muhammadali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1090,Muhammadabubakar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1091,Huzaifa,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1092,Muhammadsiddique,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1093,Rehanahmed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1094,Awais,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1095,Tariq Mehmood,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1096,Saim Imtiaz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1097,Zeeshan Hasnain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1098,Khadija Nadeem,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1099,Muhammad Asim,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1100,Owais Khan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1101,Tariqjillani,Main Branch,203.215.161.244,17:25,---,0.00,Present,No
+1102,Umer,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1103,Ahsaan,Main Branch,203.215.161.244,17:34,---,0.00,Present,No
+1104,Haroon,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1105,Maryam Azad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1106,Sawaira,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1107,MuhammadMubashir,Main Branch,203.215.161.244,17:56,---,0.00,Present,No
+1108,SalmanWahid,Main Branch,203.215.161.244,17:08,---,0.00,Present,No
+1109,Muhammad Zulqarnain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1110,Abdullahjamal,Main Branch,203.215.161.244,17:25,---,0.00,Present,No
+1111,Huzaifa,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1112,Mashal,Main Branch,203.215.161.244,17:14,---,0.00,Present,No
+1113,Khawar Abbas,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1114,Adilmehmood,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1115,Muhammadshayan,Main Branch,203.215.161.244,17:30,---,0.00,Present,No
+1116,Muhammad Abraiz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1117,Inamullah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1118,Moiz Hassan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1119,Binshumaz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1120,Awais Ur Rehman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1121,Ramsha Shahid,Main Branch,203.215.161.244,17:19,---,0.00,Present,No
+1122,AliImran,Main Branch,203.215.161.244,17:54,---,0.00,Present,No
+1123,SajidALI,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1124,Muhammad Masood Alam,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1125,Atta Ul Mohsin,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1126,Muhammadkhizer,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1127,Fahim Khan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1128,Muhammad Sanwal,Main Branch,203.215.161.244,17:36,---,0.00,Present,No
+1129,Abdul Rafay Abbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1130,Rida E Amna,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1131,Faizanbahadar,Main Branch,203.215.161.244,17:31,---,0.00,Present,No
+1132,Inzamam Ul Haq,Main Branch,203.215.161.244,17:20,---,0.00,Present,No
+1133,Muhammad Aftab,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1134,Khoula Abbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1135,Malka Amir,Main Branch,203.215.161.244,17:19,---,0.00,Present,No
+1136,Aiman Abbasi,Main Branch,203.215.161.244,17:26,---,0.00,Present,No
+1137,AliBasit,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1138,MaazAbbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1139,Afnan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1140,Kashan Saeed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1141,HibaAbid,Main Branch,203.215.161.244,17:30,---,0.00,Present,No
+1142,Sadaf Kazmi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1143,Najam,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1144,MHusnain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1145,Alihusnain,Main Branch,203.215.161.244,17:23,---,0.00,Present,No
+1146,Asma Bibi Abid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1147,Muhammad Ayyan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1148,Ali Saleem,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1149,Muhammad Sadeem,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1150,Moiz Ul Hassan,Main Branch,203.215.161.244,17:47,---,0.00,Present,No
+1151,Muhammad Ibrahim Ali,Main Branch,203.215.161.244,17:46,---,0.00,Present,No
+1152,Arsam Idrees,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1153,AliRaza,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1154,SheikhMehrab,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1155,Raja Faisal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1156,Muhammad Ahmed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1157,JahangirUzair,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1158,Mahrukh,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1159,Zubair Khan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1160,Sikandar Ali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1161,Asima Qureshi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1162,HafsaRehman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1163,Kawish,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1164,SajawalHassan,Main Branch,203.215.161.244,17:12,17:12,0.00,Present,Yes
+1165,Abubakar Elahi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1166,EhtishamSafi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1167,HusnaiMasood,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1168,Abdul Jabbar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1169,MuhammadAliUlvee,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1170,Irum,Main Branch,203.215.161.244,17:00,---,0.00,Present,No
+1171,MuhammadAhmad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1172,GulamNabi,Main Branch,203.215.161.244,17:22,---,0.00,Present,No
+1173,FaryalKhawar,Main Branch,203.215.161.244,16:56,---,0.00,Present,No
+1174,Zainab,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1175,Muhammad Hammad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1176,Muskan Arif,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1177,Soban Hussain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1178,Kamil,Main Branch,203.215.161.244,17:59,---,0.00,Present,No
+1179,Asifa Kamran,Main Branch,203.215.161.244,17:03,---,0.00,Present,No
+1180,Shahir Ahmad,Main Branch,203.215.161.244,17:59,---,0.00,Present,No
+1181,Zain Raza Khan,Main Branch,203.215.161.244,17:35,---,0.00,Present,No
+1182,Muhammad Bilal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1183,Samina Bashir,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1184,Kashif,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1185,Ahmad Hassan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1186,UmerShehzad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1187,Muhammad Ali,Main Branch,203.215.161.244,17:40,---,0.00,Present,No
+1188,Ali Raza,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1189,Aqeel Ahmed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1190,Abdul Moiz,Main Branch,203.215.161.244,17:16,---,0.00,Present,No
+1191,Mubariz bin Rafay,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1192,Abubakar,Main Branch,203.215.161.244,17:26,---,0.00,Present,No
+1193,Ramish Masih,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1194,Mrizwan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1195,Malik Daud Patras,Main Branch,203.215.161.244,18:00,---,0.00,Present,No
+1196,Fardad Ahmed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1197,Israr Yaqoob,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1198,Raheel Mushtaq,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1199,Mahad Bin Rafay,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1200,Mohsin,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1201,Sabeeh,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1202,Yahya Mir,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1203,Shams Khan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1204,Maaz Khan,Main Branch,203.215.161.244,17:45,---,0.00,Present,No
+1205,FaizanAslam,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1206,Bilal Hussain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1207,Bilal.Usman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1208,Rayyan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1209,Safi Amin,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1210,Danish Ahmad,Main Branch,203.215.161.244,17:45,---,0.00,Present,No
+1211,Zulfiqar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1212,Faizan Thaheem,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1213,Hafiz Sufyan,Main Branch,203.215.161.244,17:38,---,0.00,Present,No
+1214,Faiza Abid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1215,Wajid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1216,Hamra Shaheen,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1217,Wazir,Main Branch,203.215.161.244,17:28,---,0.00,Present,No
+1218,Hajra,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1219,Saira,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1220,Arslan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1221,Aarzo,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1222,Mazhar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1223,Mehak Fatima,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1224,Muhammad Ali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1225,Kashan Ali,Main Branch,203.215.161.244,17:55,---,0.00,Present,No
+1226,Zoya Zafar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1227,Mudassir,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1228,Awais,Main Branch,203.215.161.244,17:27,---,0.00,Present,No
+1229,Esha Hafeez,Main Branch,203.215.161.244,17:59,---,0.00,Present,No
+1230,Hunain Ahmad,Main Branch,203.215.161.244,17:34,---,0.00,Present,No
+1231,Usman Fayyaz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1232,Sheikh Hussain,Main Branch,203.215.161.244,18:10,---,0.00,Present,No
+1233,Syed Rabte Ali,Main Branch,203.215.161.244,17:39,---,0.00,Present,No
+1234,Zeeshan,Main Branch,203.215.161.244,17:26,---,0.00,Present,No
+1235,Amaan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1236,Saleh,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1237,Muhammad Bilal Ahmed,Main Branch,203.215.161.244,18:08,---,0.00,Present,No
+1238,Muhammad Faraz Aly,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1239,Fahad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1240,Abdul Rehman Tariq,Main Branch,203.215.161.244,17:45,---,0.00,Present,No
+1241,Zaryab,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1242,Ifra,Main Branch,203.215.161.244,17:03,---,0.00,Present,No
+1243,Syeda Itrat Zahra,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1244,IsraAbbassi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1245,ZohaJaved,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1246,HammadSULTAN,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1247,Hizb Ullah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1248,Ahmad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1249,AliHassan,Main Branch,203.215.161.244,17:33,---,0.00,Present,No
+1250,Waleed,Main Branch,203.215.161.244,17:27,---,0.00,Present,No
+1251,Fahad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1252,Abdulrehman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1253,Zeeshan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1254,Areeb,Main Branch,203.215.161.244,17:27,---,0.00,Present,No
+1255,Huzaifa,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1256,Subhan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1257,Arslan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1258,Noman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1259,Hamza,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1260,Kashafabbasi,Main Branch,203.215.161.244,17:27,---,0.00,Present,No
+1261,Afzaal,Main Branch,203.215.161.244,17:48,---,0.00,Present,No
+1262,Hafsa,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1263,Aayan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1264,Hamza,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1265,Muhammad Usman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1266,Agha Hassaan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1267,M Ubaid Ullah,Main Branch,203.215.161.244,17:39,---,0.00,Present,No
+1268,David,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1269,Hammad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1270,Muhammad Kamal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1271,Salma Israr,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1272,Nimra,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1273,Mazhar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1274,Alisha Ali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1275,Javeria Ali,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1276,Abdul Wasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1277,Salman Waheed,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1278,Aziz,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1279,Bakhtawar,Main Branch,203.215.161.244,17:28,---,0.00,Present,No
+1280,Talha,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1281,Shayan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1282,Haris,Main Branch,203.215.161.244,17:16,---,0.00,Present,No
+1283,Ahmad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1284,Musa,Main Branch,203.215.161.244,17:01,---,0.00,Present,No
+1285,Mansoor,Main Branch,203.215.161.244,17:19,---,0.00,Present,No
+1286,Marvi,Main Branch,203.215.161.244,17:14,---,0.00,Present,No
+1287,Azhar Hussain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1288,M Mohsin,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1289,Kanwal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1290,Samiullah Abbasi,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1291,Raja Obaidullah,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1292,Majid,Main Branch,203.215.161.244,17:41,---,0.00,Present,No
+1293,Eman,Main Branch,203.215.161.244,17:31,---,0.00,Present,No
+1294,Sahil,Main Branch,203.215.161.244,17:25,---,0.00,Present,No
+1295,Abdullah,Main Branch,203.215.161.244,17:45,---,0.00,Present,No
+1296,Ibrahim,Main Branch,203.215.161.244,17:46,---,0.00,Present,No
+1297,Zeshan,Main Branch,203.215.161.244,17:34,---,0.00,Present,No
+1298,Tayyab,Main Branch,203.215.161.244,17:46,---,0.00,Present,No
+1299,Hasnain,Main Branch,203.215.161.244,17:23,---,0.00,Present,No
+1300,AbdulBasit,Main Branch,203.215.161.244,17:30,---,0.00,Present,No
+1301,Sarmad,Main Branch,203.215.161.244,17:54,---,0.00,Present,No
+1302,Wahhab,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1303,Rizwan,Main Branch,203.215.161.244,17:41,---,0.00,Present,No
+1304,Sehar,Main Branch,203.215.161.244,17:44,---,0.00,Present,No
+1305,Sufyan,Main Branch,203.215.161.244,17:58,---,0.00,Present,No
+1306,Hunain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1307,Aoun,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1308,Ahmad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1309,Hasnain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1310,Shoaib,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1311,Muzamil,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1312,Qasim,Main Branch,203.215.161.244,17:46,---,0.00,Present,No
+1313,Tayyab,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1314,Hammad,Main Branch,203.215.161.244,17:28,---,0.00,Present,No
+1315,Ruhbham,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1316,Sufian,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1317,Maha,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1318,Zafar,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1319,Muzammil,Main Branch,203.215.161.244,18:04,---,0.00,Present,No
+1320,Saad Ahmed,Main Branch,203.215.161.244,17:30,---,0.00,Present,No
+1321,usman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1322,Arbaz,Main Branch,203.215.161.244,17:55,---,0.00,Present,No
+1323,Malaika Nadeem,Main Branch,203.215.161.244,17:05,---,0.00,Present,No
+1324,Muhammad Ibrahim,Main Branch,203.215.161.244,17:21,---,0.00,Present,No
+1325,Faisal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1326,Daud,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1327,Faisal,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1328,Shaneela,Main Branch,203.215.161.244,17:17,---,0.00,Present,No
+1329,Amir,Main Branch,203.215.161.244,17:53,---,0.00,Present,No
+1330,Neha,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1331,Sohan,Main Branch,203.215.161.244,17:31,---,0.00,Present,No
+1332,Tahir Hussain,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1333,Zakir,Main Branch,203.215.161.244,17:21,---,0.00,Present,No
+1334,Aniba,Main Branch,203.215.161.244,18:13,---,0.00,Late (13min),No
+1335,Mishaq,Main Branch,203.215.161.244,18:00,---,0.00,Present,No
+1336,Eman,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1337,Qanita,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1338,Uzair,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1339,Abdulwahid,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1340,Shahzaib,Main Branch,203.215.161.244,18:18,---,0.00,Late (18min),No
+1341,Asim,Main Branch,203.215.161.244,18:18,---,0.00,Late (18min),No
+1342,Faisal,Main Branch,203.215.161.244,17:26,---,0.00,Present,No
+1343,Asad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1344,Nauman,Main Branch,203.215.161.244,17:31,---,0.00,Present,No
+1345,Aisar,Main Branch,203.215.161.244,18:19,---,0.00,Late (19min),No
+1346,Ahad,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1347,Zain,Main Branch,203.215.161.244,17:37,---,0.00,Present,No
+1348,Pervaiz,Main Branch,203.215.161.244,17:42,---,0.00,Present,No
+1349,Salal,Main Branch,203.215.161.244,17:07,---,0.00,Present,No
+1350,Abdullah,Main Branch,203.215.161.244,17:25,---,0.00,Present,No
+1351,Abdul.Rehman,Main Branch,203.215.161.244,17:22,---,0.00,Present,No
+1352,Tabeer,Main Branch,203.215.161.244,17:19,---,0.00,Present,No
+1353,Rameesha,Main Branch,203.215.161.244,16:53,---,0.00,Present,No
+1354,Zain,Main Branch,203.215.161.244,17:24,---,0.00,Present,No
+1355,Saim,Main Branch,203.215.161.244,17:38,---,0.00,Present,No
+1356,Jedidiah,Main Branch,203.215.161.244,17:27,---,0.00,Present,No
+1357,Alisha,Main Branch,203.215.161.244,17:29,---,0.00,Present,No
+1358,Shehlla,Main Branch,203.215.161.244,17:06,---,0.00,Present,No
+1359,Ahmed,Main Branch,203.215.161.244,17:16,---,0.00,Present,No
+1360,Usman,Main Branch,203.215.161.244,17:13,---,0.00,Present,No
+1361,Azharhussain,Main Branch,203.215.161.244,17:42,---,0.00,Present,No
+1362,Danial,Main Branch,203.215.161.244,17:20,---,0.00,Present,No
+1363,Stephen,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1364,Abdullah,Main Branch,203.215.161.244,17:29,---,0.00,Present,No
+1365,Arslan,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1366,Rahul,Main Branch,203.215.161.244,17:57,---,0.00,Present,No
+1367,Asim,Main Branch,203.215.161.244,17:17,---,0.00,Present,No
+1368,Shoaib,Main Branch,203.215.161.244,17:14,---,0.00,Present,No
+1369,Mubashir,Main Branch,203.215.161.244,17:25,---,0.00,Present,No
+1370,Numan,Main Branch,203.215.161.244,17:15,---,0.00,Present,No
+1371,Sadaf,Main Branch,203.215.161.244,17:29,---,0.00,Present,No
+1372,Noor,Main Branch,203.215.161.244,17:42,---,0.00,Present,No
+1373,Emanfatima,Main Branch,203.215.161.244,17:47,---,0.00,Present,No
+1374,Muhammadali,Main Branch,203.215.161.244,18:11,---,0.00,Late (11min),No
+1375,Furqan,Main Branch,203.215.161.244,17:57,---,0.00,Present,No
+1376,Harryson,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1377,Harris,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1378,Jhonson,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1379,Tehmina,Main Branch,203.215.161.244,---,---,0.00,Absent,No
+1380,Mudassir,Main Branch,203.215.161.244,17:51,17:51,0.00,Present,Yes
+1381,Qasim,Main Branch,203.215.161.244,16:27,---,0.00,Present,No
+1382,Irfan,Main Branch,203.215.161.244,16:26,---,0.00,Present,No
+1383,Ishaq,Main Branch,203.215.161.244,15:51,---,0.00,Present,No

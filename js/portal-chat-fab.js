@@ -21,7 +21,7 @@
     btn.id = 'portalChatFab';
     btn.className = 'portal-chat-fab';
     btn.title = 'Balitech Chat';
-    btn.innerHTML = '<i class="fas fa-comments"></i><span>Chat</span>';
+    btn.innerHTML = '<i class="fas fa-comments"></i><span>Chat</span><span class="portal-chat-fab-badge hidden" id="badgeChatFab">0</span>';
     btn.addEventListener('click', () => {
         if (typeof window.showView === 'function') {
             window.showView('chat');

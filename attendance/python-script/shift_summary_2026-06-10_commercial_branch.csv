@@ -1,0 +1,54 @@
+user_id,name,device_name,device_ip,shift_date,check_in,check_in_time,check_out,check_out_time,punch_count,late_minutes,working_hours,status
+5059,Malikarslan,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 18:07:56,18:07,,,1,0,0.0,present
+5066,Mabdullah,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:39:08,17:39,,,1,0,0.0,present
+5056,Mehmood,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 18:29:02,18:29,,,1,29,0.0,late
+5042,Azharhussain,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:00:17,17:00,,,1,0,0.0,present
+5050,Altafhussain,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:44:52,17:44,,,1,0,0.0,present
+5053,Mshabbir,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:28:17,17:28,,,1,0,0.0,present
+5052,Hammad,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:44:55,17:44,,,1,0,0.0,present
+5054,Uzair,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:28:56,17:28,,,1,0,0.0,present
+5051,Sadamshah,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:34:12,17:34,,,1,0,0.0,present
+5055,Tahir,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 18:06:23,18:06,,,1,0,0.0,present
+5085,Abdul.Wasi,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:24:11,17:24,,,1,0,0.0,present
+5047,Chaudarymuhammadshehryar,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:03:41,17:03,,,1,0,0.0,present
+5039,Raheel,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:44:23,17:44,,,1,0,0.0,present
+5062,Muskanarif,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:35:56,17:35,,,1,0,0.0,present
+5021,Shumaz,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:22:49,17:22,,,1,0,0.0,present
+5036,Javeriali,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:24:52,17:24,,,1,0,0.0,present
+5031,Tayelamjad,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 18:27:09,18:27,,,1,27,0.0,late
+5032,Haseebhaider,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:13:34,17:13,2026-06-10 17:14:13,17:14,2,0,0.01,present
+5033,Maneeque,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:40:53,17:40,,,1,0,0.0,present
+5073,Rafia,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:52:04,17:52,,,1,0,0.0,present
+5075,Shehryar,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:26:31,17:26,,,1,0,0.0,present
+5063,Abdulwahid,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:44:07,17:44,2026-06-10 17:44:08,17:44,2,0,0.0,present
+5086,Aftab.Ahmad,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:52:11,17:52,,,1,0,0.0,present
+5023,Moiz,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:33:22,17:33,2026-06-10 17:33:24,17:33,2,0,0.0,present
+5084,Adan,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:28:00,17:28,,,1,0,0.0,present
+5020,Aqeel,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:06:51,17:06,,,1,0,0.0,present
+5049,Umershehzad,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:28:11,17:28,,,1,0,0.0,present
+5022,Huzaifa,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 18:03:39,18:03,,,1,0,0.0,present
+5058,Mhammad,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:31:33,17:31,,,1,0,0.0,present
+5029,Abubaker,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:26:38,17:26,,,1,0,0.0,present
+5028,Muhammadali,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:47:27,17:47,,,1,0,0.0,present
+5048,Daud,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:42:19,17:42,,,1,0,0.0,present
+5060,Salmanwaheed,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:20:32,17:20,,,1,0,0.0,present
+5078,MehrabAli,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:46:27,17:46,,,1,0,0.0,present
+5077,Aliyan,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:20:41,17:20,,,1,0,0.0,present
+5038,Hashim,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:27:19,17:27,,,1,0,0.0,present
+2,Sn,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 18:14:22,18:14,,,1,14,0.0,late
+5001,Owais,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:06:53,17:06,,,1,0,0.0,present
+5045,mohsin,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:20:24,17:20,,,1,0,0.0,present
+5067,Awaisurrehman,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:20:47,17:20,,,1,0,0.0,present
+5087,Syeda.Hijab,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:26:47,17:26,,,1,0,0.0,present
+5082,Gohar.Anil,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:27:04,17:27,,,1,0,0.0,present
+5037,Farhanmalik,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:29:48,17:29,,,1,0,0.0,present
+5068,Arbaz,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:34:20,17:34,,,1,0,0.0,present
+5044,Salman,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:36:58,17:36,,,1,0,0.0,present
+5004,Faizan,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:37:16,17:37,,,1,0,0.0,present
+5071,Misbah,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:39:18,17:39,,,1,0,0.0,present
+5030,Zeshan,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:42:26,17:42,,,1,0,0.0,present
+5034,Awaisatti,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:44:29,17:44,,,1,0,0.0,present
+5061,Malikhassan,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:46:29,17:46,,,1,0,0.0,present
+5019,Sikandar,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:46:40,17:46,,,1,0,0.0,present
+5002,Abdulhadi,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 17:49:05,17:49,,,1,0,0.0,present
+5064,Asadbilal,Commercial Branch,125.209.68.118,2026-06-10,2026-06-10 18:27:13,18:27,,,1,27,0.0,late

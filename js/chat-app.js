@@ -35,8 +35,13 @@ const Chat = {
     deleteMsgId: null,
     chatActionPending: null,   // { action: 'clear'|'delete', cid }
     archivedIds: [],
-    listFilter: 'all',         // all | unread | groups
+    listFilter: 'all',         // all | unread | groups | requests
     showArchived: false,
+    requestCount: 0,
+    blockedCount: 0,
+    blockedUsers: [],
+    activeMeta: null,
+    activePeerId: null,
     inChatSearch: '',
     replyTo: null,
     mutedIds: new Set(),
@@ -599,6 +604,7 @@ function updateSidebarListLabel() {
     if (Chat.showArchived) el.textContent = 'Archived';
     else if (Chat.listFilter === 'unread') el.textContent = 'Unread';
     else if (Chat.listFilter === 'groups') el.textContent = 'Groups';
+    else if (Chat.listFilter === 'requests') el.textContent = 'Message requests';
     else el.textContent = 'Recent';
 }
 
@@ -607,6 +613,9 @@ async function startDirectChat(userId) {
     if (!res.success) { toast(res.error || 'Could not start chat'); return; }
     closeSidebarSearch();
     await loadConversations();
+    if (res.data.is_new_request) {
+        toast('Message request sent — they must accept before replying');
+    }
     openConversation(res.data.conversation_id);
 }
 
@@ -627,6 +636,8 @@ function getFilteredConversations() {
     });
     if (Chat.listFilter === 'unread') list = list.filter(c => (c.unread || 0) > 0);
     if (Chat.listFilter === 'groups') list = list.filter(c => c.type === 'group');
+    if (Chat.listFilter === 'requests') list = list.filter(c => c.is_request);
+    else if (!Chat.showArchived) list = list.filter(c => !c.is_request);
     return list;
 }
 
@@ -642,6 +653,11 @@ function updateFilterCounts() {
     if (archEl) archEl.textContent = String(archCount);
     const archRow = document.getElementById('archivedRow');
     if (archRow) archRow.classList.toggle('archived-active', Chat.showArchived);
+    const reqEl = document.getElementById('requestsFilterCount');
+    if (reqEl) {
+        reqEl.textContent = Chat.requestCount > 0 ? String(Chat.requestCount) : '';
+        reqEl.classList.toggle('hidden', Chat.requestCount === 0);
+    }
 }
 
 function renderConversationList() {
@@ -664,6 +680,7 @@ function renderConversationList() {
         const hints = {
             unread: { title: 'All caught up', body: 'You have no unread messages.', icon: 'fa-check-double' },
             groups: { title: 'No groups', body: 'Create a team group with the group button above.', icon: 'fa-user-group' },
+            requests: { title: 'No message requests', body: 'When someone messages you for the first time, their request will appear here.', icon: 'fa-user-clock' },
             all: { title: Chat.showArchived ? 'No archived chats' : 'Nothing here', body: Chat.showArchived ? 'Archive chats from the menu inside a conversation.' : 'Try another filter or start a new chat.', icon: 'fa-inbox' },
         };
         const h = hints[Chat.listFilter] || hints.all;
@@ -685,21 +702,22 @@ function renderConversationList() {
         const lm = c.last_message;
         const muted = Chat.mutedIds.has(c.id);
         const typeIcon = c.type === 'group' ? '<i class="fas fa-user-group conv-type-icon" title="Group"></i>' : '';
+        const requestBadge = c.is_request ? '<span class="conv-request-badge">Request</span>' : '';
         const av = c.type === 'group'
             ? avatarHtml({ name: c.display_title, id: c.id, group: true, groupIcon: true, color: c.avatar_color })
             : avatarHtml({ url: c.avatar_url, name: c.display_title, id: c.peer_id || c.id, color: c.avatar_color });
         return `
-        <div class="chat-conv-item ${active}${c.unread > 0 ? ' has-unread' : ''}" data-id="${c.id}">
+        <div class="chat-conv-item ${active}${c.unread > 0 ? ' has-unread' : ''}${c.is_request ? ' is-request' : ''}" data-id="${c.id}">
             ${av}
             <div class="chat-conv-body">
                 <div class="top">
-                    <span class="title">${typeIcon}${escapeHtml(c.display_title)}</span>
+                    <span class="title">${typeIcon}${escapeHtml(c.display_title)}${requestBadge}</span>
                     <span class="top-end">
                         ${c.unread > 0 ? `<span class="chat-unread">${c.unread > 99 ? '99+' : c.unread}</span>` : ''}
                         <span class="time">${lm ? formatTime(lm.created_at) : ''}</span>
                     </span>
                 </div>
-                <div class="preview">${muted ? '<i class="fas fa-bell-slash conv-muted-icon"></i> ' : ''}${escapeHtml(previewText(lm))}</div>
+                <div class="preview">${muted ? '<i class="fas fa-bell-slash conv-muted-icon"></i> ' : ''}${escapeHtml(c.is_request ? (previewText(lm) || 'New message request') : previewText(lm))}</div>
             </div>
         </div>`;
     }).join('');
@@ -708,8 +726,11 @@ function renderConversationList() {
 async function loadConversations() {
     const res = await chatApi('listConversations');
     if (!res.success) return;
-    Chat.conversations = res.data;
+    const payload = res.data;
+    Chat.conversations = Array.isArray(payload) ? payload : (payload.items || []);
+    Chat.requestCount = Array.isArray(payload) ? Chat.conversations.filter(c => c.is_request).length : (payload.request_count || 0);
     renderConversationList();
+    notifyParentUnread();
 }
 
 async function markAllConversationsRead() {
@@ -903,11 +924,13 @@ function showMessageContextMenu(e, msgId, isMine) {
     Chat.contextMsgId = msgId;
     const menu = document.getElementById('msgContextMenu');
 
-    const ctxEdit   = document.getElementById('ctxEdit');
+    const ctxEdit = document.getElementById('ctxEdit');
     const ctxDelete = document.getElementById('ctxDelete');
-    const ctxReply  = document.getElementById('ctxReply');
-    ctxEdit.style.display   = isMine ? 'flex' : 'none';
+    const ctxDeleteForMe = document.getElementById('ctxDeleteForMe');
+    const ctxReply = document.getElementById('ctxReply');
+    ctxEdit.style.display = isMine ? 'flex' : 'none';
     ctxDelete.style.display = isMine ? 'flex' : 'none';
+    if (ctxDeleteForMe) ctxDeleteForMe.style.display = isMine ? 'none' : 'flex';
     if (ctxReply) ctxReply.style.display = 'flex';
 
     menu.classList.remove('hidden');
@@ -966,6 +989,15 @@ async function confirmDelete() {
     toast('Message deleted');
 }
 
+async function deleteMessageForMe(msgId) {
+    if (!msgId) return;
+    const res = await chatApi('deleteMessage', { method: 'POST', body: { message_id: msgId, for_all: false } });
+    if (!res.success) { toast(res.error || 'Could not delete message'); return; }
+    Chat.messages = Chat.messages.filter(m => m.id !== msgId);
+    renderMessages(renderScrollMode());
+    toast('Message removed');
+}
+
 /* ─── Clear / Delete Chat ───────────────────────────────── */
 function openChatActionModal(action) {
     Chat.chatActionPending = { action, cid: Chat.activeId };
@@ -984,7 +1016,21 @@ function openChatActionModal(action) {
 
 async function confirmChatAction() {
     if (!Chat.chatActionPending) return;
-    const { action, cid } = Chat.chatActionPending;
+    const { action, cid, user_id } = Chat.chatActionPending;
+    if (action === 'block') {
+        const res = await chatApi('blockUser', { method: 'POST', body: { user_id } });
+        document.getElementById('chatActionModal').classList.remove('open');
+        Chat.chatActionPending = null;
+        if (!res.success) { toast(res.error || 'Could not block user'); return; }
+        toast('User blocked — open Settings to unblock anytime');
+        Chat.activeId = null;
+        document.getElementById('chatActive')?.classList.add('hidden');
+        document.getElementById('chatEmpty')?.classList.remove('hidden');
+        await loadBlockedUsers();
+        renderSettingsBlockedList();
+        await loadConversations();
+        return;
+    }
     const apiAction = action === 'clear' ? 'clearChat' : 'deleteChat';
     const res = await chatApi(apiAction, { method: 'POST', body: { conversation_id: cid } });
     document.getElementById('chatActionModal').classList.remove('open');
@@ -1069,9 +1115,39 @@ async function loadOlderMessages() {
     updateLoadOlderBar();
 }
 
+function getTotalUnread() {
+    return (Chat.conversations || []).reduce((sum, c) => sum + (c.unread || 0), 0);
+}
+
+function notifyParentUnread() {
+    const total = getTotalUnread();
+    try {
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'portal-chat-unread', total }, '*');
+        }
+    } catch { /* ignore */ }
+    if (typeof window.updatePortalChatBadge === 'function') {
+        window.updatePortalChatBadge(total);
+    }
+}
+
+function shouldAlertIncomingChat(ev) {
+    if (!ev?.message) return false;
+    if (parseInt(ev.message.sender_id, 10) === parseInt(Chat.me?.id, 10)) return false;
+    const cid = parseInt(ev.conversation_id, 10);
+    if (Chat.mutedIds.has(cid)) return false;
+    const onActive = Chat.activeId && parseInt(Chat.activeId, 10) === cid;
+    if (onActive && document.visibilityState === 'visible') return false;
+    return true;
+}
+
 function maybeNotifyIncoming(ev) {
-    if (!ev?.message || document.visibilityState === 'visible') return;
-    if (parseInt(ev.message.sender_id, 10) === parseInt(Chat.me?.id, 10)) return;
+    if (!shouldAlertIncomingChat(ev)) return;
+
+    window.PortalNotifySound?.play();
+
+    if (document.visibilityState === 'visible') return;
+
     const conv = Chat.conversations.find(c => c.id === parseInt(ev.conversation_id, 10));
     const title = conv?.display_title || 'New message';
     const body = (ev.message.body || '').slice(0, 120) || 'Sent an attachment';
@@ -1334,6 +1410,14 @@ function handleChatWsEvent(ev) {
     if (ev.type === 'chat.cleared') {
         Chat.messages = [];
         renderMessages('bottom');
+        return;
+    }
+
+    if (ev.type === 'request.accepted' || ev.type === 'request.declined') {
+        loadConversations();
+        if (active) {
+            openConversation(cid);
+        }
     }
 }
 
@@ -1363,9 +1447,11 @@ async function openConversation(id) {
     Chat.messages  = res.data.messages;
     Chat.hasMoreHistory = !!res.data.has_more;
     updateLoadOlderBar();
-    Chat.convType  = res.data.conversation.type;
-    Chat.presence  = res.data.presence;
-    Chat.lastRead  = res.data.last_read;
+    Chat.convType = res.data.conversation.type;
+    Chat.presence = res.data.presence;
+    Chat.lastRead = res.data.last_read;
+    Chat.activeMeta = res.data.meta || null;
+    Chat.activePeerId = Chat.activeMeta?.peer_id || convMeta?.peer_id || null;
 
     const unreadCount = res.data.unread_count ?? convMeta?.unread ?? 0;
     const lastReadAt = res.data.last_read_at || null;
@@ -1406,6 +1492,9 @@ async function openConversation(id) {
     setTimeout(() => { Chat.scroll.opening = false; }, 400);
     updateMuteMenuLabel();
     updateArchiveMenuLabel();
+    updateBlockMenuVisibility();
+    updateRequestBanner();
+    updateComposerState();
     clearReply();
     closeInChatSearch();
 
@@ -1468,10 +1557,90 @@ function closeInChatSearch() {
     renderMessages(renderScrollMode());
 }
 
+function updateBlockMenuVisibility() {
+    const btn = document.getElementById('menuBlockUser');
+    const divider = document.getElementById('menuBlockDivider');
+    const show = Chat.convType === 'direct' && Chat.activePeerId;
+    btn?.classList.toggle('hidden', !show);
+    divider?.classList.toggle('hidden', !show);
+}
+
+function updateRequestBanner() {
+    const banner = document.getElementById('chatRequestBanner');
+    const actions = document.getElementById('chatRequestActions');
+    const title = document.getElementById('chatRequestTitle');
+    const sub = document.getElementById('chatRequestSub');
+    if (!banner) return;
+    const meta = Chat.activeMeta || {};
+    const isRequest = meta.is_request;
+    const peerPending = meta.peer_status === 'pending' && meta.my_status === 'active';
+    if (!isRequest && !peerPending) {
+        banner.classList.add('hidden');
+        return;
+    }
+    banner.classList.remove('hidden');
+    if (isRequest) {
+        title.textContent = 'Message request';
+        sub.textContent = 'Accept this request to reply and continue the conversation.';
+        actions?.classList.remove('hidden');
+    } else if (peerPending) {
+        title.textContent = 'Request sent';
+        sub.textContent = 'Waiting for them to accept your message request. You can still send messages.';
+        actions?.classList.add('hidden');
+    }
+}
+
+function updateComposerState() {
+    const footer = document.querySelector('.chat-footer');
+    const input = document.getElementById('msgInput');
+    const sendBtn = document.getElementById('btnSend');
+    const canReply = Chat.activeMeta?.can_reply !== false;
+    footer?.classList.toggle('composer-locked', !canReply);
+    if (input) {
+        input.disabled = !canReply;
+        input.placeholder = canReply ? 'Type a message…' : 'Accept the message request to reply…';
+    }
+    if (sendBtn) sendBtn.disabled = !canReply;
+}
+
+async function acceptMessageRequest() {
+    if (!Chat.activeId) return;
+    const res = await chatApi('acceptRequest', { method: 'POST', body: { conversation_id: Chat.activeId } });
+    if (!res.success) { toast(res.error || 'Could not accept request'); return; }
+    toast('Request accepted — you can reply now');
+    await loadConversations();
+    await openConversation(Chat.activeId);
+}
+
+async function declineMessageRequest() {
+    if (!Chat.activeId) return;
+    const res = await chatApi('declineRequest', { method: 'POST', body: { conversation_id: Chat.activeId } });
+    if (!res.success) { toast(res.error || 'Could not decline request'); return; }
+    toast('Message request declined');
+    Chat.activeId = null;
+    document.getElementById('chatActive')?.classList.add('hidden');
+    document.getElementById('chatEmpty')?.classList.remove('hidden');
+    await loadConversations();
+}
+
+function openBlockUserModal() {
+    if (!Chat.activePeerId) return;
+    Chat.chatActionPending = { action: 'block', cid: Chat.activeId, user_id: Chat.activePeerId };
+    const modal = document.getElementById('chatActionModal');
+    document.getElementById('chatActionTitle').innerHTML = '<i class="fas fa-ban modal-icon-danger"></i> Block user';
+    document.getElementById('chatActionBody').textContent = 'They will not be able to message you or send new requests. Unblock anytime from Settings → Blocked users.';
+    document.getElementById('confirmChatAction').textContent = 'Block user';
+    modal.classList.add('open');
+}
+
 async function sendText() {
     const input = document.getElementById('msgInput');
     let body  = input.value.trim();
     if (!Chat.activeId || !body) return;
+    if (Chat.activeMeta?.can_reply === false) {
+        toast('Accept the message request to reply');
+        return;
+    }
     body = buildOutgoingBody(body);
 
     const tempId = 'tmp-' + Date.now();
@@ -1740,8 +1909,112 @@ function renderProfileModal() {
     }
 }
 
+function updateBlockedCountBadge() {
+    const n = Chat.blockedCount || 0;
+    const label = n === 1 ? '1 blocked' : `${n} blocked`;
+    document.getElementById('blockedCountBadge')?.classList.toggle('hidden', n === 0);
+    const profileBadge = document.getElementById('blockedCountBadge');
+    if (profileBadge) profileBadge.textContent = String(n);
+    ['navSettingsBadge', 'sidebarSettingsBadge'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = String(n);
+        el.classList.toggle('hidden', n === 0);
+    });
+    const countEl = document.getElementById('settingsBlockedCount');
+    if (countEl) countEl.textContent = n === 0 ? 'No one blocked' : label;
+}
+
+async function loadBlockedUsers() {
+    const res = await chatApi('listBlockedUsers');
+    if (!res.success) {
+        Chat.blockedUsers = [];
+        Chat.blockedCount = 0;
+        updateBlockedCountBadge();
+        return [];
+    }
+    Chat.blockedUsers = res.data?.items || [];
+    Chat.blockedCount = res.data?.count ?? Chat.blockedUsers.length;
+    updateBlockedCountBadge();
+    return Chat.blockedUsers;
+}
+
+function formatBlockedDate(iso) {
+    if (!iso) return '';
+    try {
+        const d = new Date(iso.replace(' ', 'T'));
+        return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch {
+        return '';
+    }
+}
+
+function renderSettingsBlockedList() {
+    const list = document.getElementById('settingsBlockedList');
+    if (!list) return;
+    const items = Chat.blockedUsers || [];
+    if (!items.length) {
+        list.innerHTML = `<div class="blocked-empty"><i class="fas fa-circle-check"></i><strong>No blocked users</strong><span>When you block someone, they will appear in this list.</span></div>`;
+        return;
+    }
+    list.innerHTML = items.map(u => {
+        const meta = [u.designation, u.employee_code ? `BID ${u.employee_code}` : ''].filter(Boolean).join(' · ');
+        const blockedOn = formatBlockedDate(u.blocked_at);
+        return `<div class="blocked-item" data-id="${u.id}">
+            ${avatarHtml({ url: u.avatar_url, name: u.full_name, id: u.id, color: u.avatar_color })}
+            <div class="blocked-item-body">
+                <strong>${escapeHtml(u.full_name)}</strong>
+                <small>${escapeHtml(meta || u.email || '')}</small>
+                ${blockedOn ? `<span class="blocked-item-date">Blocked ${escapeHtml(blockedOn)}</span>` : ''}
+            </div>
+            <button type="button" class="btn-unblock" data-unblock-id="${u.id}" title="Unblock ${escapeHtml(u.full_name)}">
+                <i class="fas fa-unlock"></i> Unblock
+            </button>
+        </div>`;
+    }).join('');
+    list.querySelectorAll('[data-unblock-id]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const uid = parseInt(btn.dataset.unblockId, 10);
+            if (uid > 0) await unblockContact(uid, btn);
+        });
+    });
+}
+
+async function unblockContact(userId, btn) {
+    if (btn) btn.disabled = true;
+    const res = await chatApi('unblockUser', { method: 'POST', body: { user_id: userId } });
+    if (!res.success) {
+        if (btn) btn.disabled = false;
+        toast(res.error || 'Could not unblock user');
+        return;
+    }
+    toast('User unblocked — they can message you again');
+    await loadBlockedUsers();
+    renderSettingsBlockedList();
+    await loadConversations();
+}
+
+async function openSettingsModal() {
+    closeProfileModal();
+    document.getElementById('chatDropdown')?.classList.remove('open');
+    document.getElementById('settingsModal')?.classList.add('open');
+    document.body.classList.add('chat-modal-open');
+    const list = document.getElementById('settingsBlockedList');
+    if (list) list.innerHTML = '<div class="blocked-loading"><i class="fas fa-spinner fa-spin"></i> Loading blocked users…</div>';
+    await loadBlockedUsers();
+    renderSettingsBlockedList();
+}
+
+function closeSettingsModal() {
+    document.getElementById('settingsModal')?.classList.remove('open');
+    if (!document.getElementById('profileModal')?.classList.contains('open')) {
+        document.body.classList.remove('chat-modal-open');
+    }
+}
+
 function openProfileModal() {
     renderProfileModal();
+    updateBlockedCountBadge();
     document.getElementById('profileModal')?.classList.add('open');
     document.body.classList.add('chat-modal-open');
 }
@@ -1895,6 +2168,14 @@ function initGroupModal() {
 
 /* ─── DOMContentLoaded ──────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', async () => {
+    document.addEventListener('click', () => window.PortalNotifySound?.unlock?.(), { once: true, capture: true });
+    document.getElementById('btnEmbedBackDashboard')?.addEventListener('click', () => {
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'portal-navigate', view: 'dashboard' }, '*');
+        } else {
+            window.location.href = 'employee-portal.html';
+        }
+    });
     initChatPrefs();
     const meRes = await chatApi('me');
     if (!meRes.success) { window.location.href = 'index.html'; return; }
@@ -1941,6 +2222,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     await loadConversations();
+    await loadBlockedUsers();
     initConversationListEvents();
     await initChatWebSocket();
     Chat.heartbeatTimer = setInterval(() => chatApi('heartbeat'), 30000);
@@ -2018,6 +2300,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         chatDropdown.classList.toggle('open');
     });
 
+    document.getElementById('menuBlockUser')?.addEventListener('click', () => {
+        chatDropdown.classList.remove('open');
+        if (!Chat.activePeerId) return;
+        openBlockUserModal();
+    });
+
+    document.getElementById('menuBlockedContacts')?.addEventListener('click', () => {
+        chatDropdown.classList.remove('open');
+        openSettingsModal();
+    });
+
+    document.getElementById('btnOpenSettingsFromProfile')?.addEventListener('click', openSettingsModal);
+    document.getElementById('navBtnSettings')?.addEventListener('click', openSettingsModal);
+    document.getElementById('btnSidebarSettings')?.addEventListener('click', openSettingsModal);
+    document.getElementById('closeSettingsModal')?.addEventListener('click', closeSettingsModal);
+    document.getElementById('settingsModal')?.addEventListener('click', e => {
+        if (e.target.id === 'settingsModal') closeSettingsModal();
+    });
+    document.getElementById('settingsOpenProfile')?.addEventListener('click', () => {
+        closeSettingsModal();
+        openProfileModal();
+    });
+
+    document.getElementById('btnAcceptRequest')?.addEventListener('click', acceptMessageRequest);
+    document.getElementById('btnDeclineRequest')?.addEventListener('click', declineMessageRequest);
+
     document.getElementById('menuClearChat')?.addEventListener('click', () => {
         chatDropdown.classList.remove('open');
         if (!Chat.activeId) return;
@@ -2054,6 +2362,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('ctxDelete')?.addEventListener('click', () => {
         const id = Chat.contextMsgId; hideContextMenu();
         if (id) openDeleteModal(id);
+    });
+
+    document.getElementById('ctxDeleteForMe')?.addEventListener('click', () => {
+        const id = Chat.contextMsgId; hideContextMenu();
+        if (id) deleteMessageForMe(id);
     });
 
     document.getElementById('ctxCopy')?.addEventListener('click', () => {
@@ -2172,6 +2485,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('editMsgModal')?.classList.remove('open');
             document.getElementById('deleteMsgModal')?.classList.remove('open');
             document.getElementById('chatActionModal')?.classList.remove('open');
+            closeSettingsModal();
         }
     });
 

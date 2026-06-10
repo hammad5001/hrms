@@ -10,9 +10,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script>if (/(?:\?|&)embed=1(?:&|$)/.test(location.search)) document.documentElement.classList.add('chat-embed-mode');</script>
-    <link rel="stylesheet" href="css/chat.css?v=24">
-    <link rel="stylesheet" href="css/chat-pro.css?v=24">
-    <link rel="stylesheet" href="css/chat-embed.css?v=2">
+    <link rel="stylesheet" href="css/chat.css?v=27">
+    <link rel="stylesheet" href="css/chat-pro.css?v=29">
+    <link rel="stylesheet" href="css/chat-embed.css?v=5">
 </head>
 <body class="chat-body">
     <div class="chat-app-frame">
@@ -32,6 +32,10 @@
                 <button type="button" class="nav-sidebar-item nav-sidebar-btn" id="navBtnNewGroup" title="Create a group" data-nav-label="New group">
                     <i class="fas fa-user-group"></i>
                 </button>
+                <button type="button" class="nav-sidebar-item nav-sidebar-btn nav-sidebar-settings" id="navBtnSettings" title="Settings" data-nav-label="Settings">
+                    <i class="fas fa-gear"></i>
+                    <span class="nav-settings-badge hidden" id="navSettingsBadge">0</span>
+                </button>
             </div>
             <div class="nav-sidebar-spacer" aria-hidden="true"></div>
             <div class="nav-sidebar-bottom">
@@ -47,6 +51,10 @@
         <!-- Conversation list -->
         <aside class="chat-sidebar" id="listPanel">
             <header class="sidebar-head">
+                <button type="button" class="chat-embed-back" id="btnEmbedBackDashboard" title="Back to Employee Portal dashboard">
+                    <i class="fas fa-arrow-left" aria-hidden="true"></i>
+                    <span>Dashboard</span>
+                </button>
                 <div class="sidebar-brand">
                     <span class="sidebar-brand-mark"><i class="fas fa-building"></i></span>
                     <div>
@@ -82,6 +90,7 @@
                     <button type="button" class="filter-chip active" data-filter="all" role="tab" aria-selected="true">All</button>
                     <button type="button" class="filter-chip" data-filter="unread" role="tab" aria-selected="false">Unread <span class="filter-count hidden" id="unreadFilterCount"></span></button>
                     <button type="button" class="filter-chip" data-filter="groups" role="tab" aria-selected="false">Groups</button>
+                    <button type="button" class="filter-chip" data-filter="requests" role="tab" aria-selected="false">Requests <span class="filter-count hidden" id="requestsFilterCount"></span></button>
                 </div>
 
                 <div class="archived-row" id="archivedRow" title="Show archived chats" role="button" tabindex="0">
@@ -92,6 +101,16 @@
 
                 <div class="sidebar-list-label" id="sidebarListLabel">Recent</div>
                 <div class="chat-conv-list" id="convList"></div>
+
+                <button type="button" class="sidebar-settings-row" id="btnSidebarSettings" title="Chat settings">
+                    <span class="sidebar-settings-icon"><i class="fas fa-gear"></i></span>
+                    <span class="sidebar-settings-text">
+                        <span class="sidebar-settings-label">Settings</span>
+                        <span class="sidebar-settings-sub">Blocked users &amp; unblock</span>
+                    </span>
+                    <span class="sidebar-settings-badge hidden" id="sidebarSettingsBadge">0</span>
+                    <i class="fas fa-chevron-right sidebar-settings-chevron"></i>
+                </button>
             </div>
         </aside>
 
@@ -138,6 +157,9 @@
                         <div class="dropdown-wrap" id="chatMenuWrap">
                             <button type="button" class="header-action-btn" id="btnChatMenu" title="Conversation options"><i class="fas fa-ellipsis-v"></i></button>
                             <div class="chat-dropdown-menu" id="chatDropdown">
+                                <button type="button" class="chat-dropdown-item danger-item hidden" id="menuBlockUser"><i class="fas fa-ban"></i> Block user</button>
+                                <button type="button" class="chat-dropdown-item" id="menuBlockedContacts"><i class="fas fa-gear"></i> Settings · Unblock users</button>
+                                <div class="chat-dropdown-divider hidden" id="menuBlockDivider"></div>
                                 <button type="button" class="chat-dropdown-item" id="menuClearChat"><i class="fas fa-broom"></i> Clear chat</button>
                                 <button type="button" class="chat-dropdown-item danger-item" id="menuDeleteChat"><i class="fas fa-trash-alt"></i> Delete chat</button>
                                 <div class="chat-dropdown-divider"></div>
@@ -147,6 +169,20 @@
                         </div>
                     </div>
                 </header>
+
+                <div class="chat-request-banner hidden" id="chatRequestBanner">
+                    <div class="chat-request-banner-inner">
+                        <div class="chat-request-banner-icon"><i class="fas fa-user-clock"></i></div>
+                        <div class="chat-request-banner-text">
+                            <strong id="chatRequestTitle">Message request</strong>
+                            <p id="chatRequestSub">Accept to reply and continue chatting.</p>
+                        </div>
+                        <div class="chat-request-actions hidden" id="chatRequestActions">
+                            <button type="button" class="btn-request-decline" id="btnDeclineRequest">Decline</button>
+                            <button type="button" class="btn-request-accept" id="btnAcceptRequest"><i class="fas fa-check"></i> Accept</button>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="chat-inchat-search hidden" id="chatInSearchBar">
                     <i class="fas fa-search"></i>
@@ -214,7 +250,8 @@
     <div class="msg-context-menu hidden" id="msgContextMenu">
         <button type="button" class="msg-ctx-item" id="ctxReply"><i class="fas fa-reply"></i> Reply</button>
         <button type="button" class="msg-ctx-item" id="ctxEdit"><i class="fas fa-pen"></i> Edit</button>
-        <button type="button" class="msg-ctx-item msg-ctx-danger" id="ctxDelete"><i class="fas fa-trash"></i> Delete for everyone</button>
+        <button type="button" class="msg-ctx-item msg-ctx-danger" id="ctxDelete"><i class="fas fa-trash"></i> Delete</button>
+        <button type="button" class="msg-ctx-item msg-ctx-danger" id="ctxDeleteForMe"><i class="fas fa-eye-slash"></i> Delete for me</button>
         <button type="button" class="msg-ctx-item" id="ctxCopy"><i class="fas fa-copy"></i> Copy</button>
     </div>
 
@@ -331,6 +368,47 @@
                     </button>
                 </div>
                 <p class="profile-hint">Your photo appears in conversations, search, and the nav bar. JPG, PNG, GIF, or WEBP · max 3MB.</p>
+                <div class="profile-privacy-section">
+                    <h4><i class="fas fa-shield-halved"></i> Privacy</h4>
+                    <button type="button" class="profile-privacy-btn" id="btnOpenSettingsFromProfile">
+                        <span class="profile-privacy-btn-icon"><i class="fas fa-gear"></i></span>
+                        <span class="profile-privacy-btn-text">
+                            <strong>Settings</strong>
+                            <small>Blocked users &amp; unblock</small>
+                        </span>
+                        <span class="profile-privacy-badge hidden" id="blockedCountBadge">0</span>
+                        <i class="fas fa-chevron-right profile-privacy-chevron"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-modal-overlay" id="settingsModal">
+        <div class="chat-modal chat-modal--settings">
+            <div class="modal-head">
+                <h3><i class="fas fa-gear modal-icon-accent"></i> Settings</h3>
+                <button type="button" class="btn-icon" id="closeSettingsModal" aria-label="Close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body settings-modal-body">
+                <button type="button" class="settings-quick-link" id="settingsOpenProfile">
+                    <span class="settings-quick-icon"><i class="fas fa-circle-user"></i></span>
+                    <span><strong>My profile</strong><small>Photo and account details</small></span>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+
+                <div class="settings-section settings-section--blocked">
+                    <div class="settings-section-head">
+                        <h4><i class="fas fa-user-slash"></i> Blocked users</h4>
+                        <span class="settings-blocked-count" id="settingsBlockedCount">0 blocked</span>
+                    </div>
+                    <p class="settings-section-desc">Anyone you block is listed here. They cannot message you or appear in search until you unblock them.</p>
+                    <div class="blocked-list-wrap settings-blocked-wrap">
+                        <div class="blocked-list" id="settingsBlockedList">
+                            <div class="blocked-empty"><i class="fas fa-circle-check"></i><strong>No blocked users</strong><span>When you block someone, they will appear in this list.</span></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -343,6 +421,7 @@
 
     <div class="chat-toast" id="chatToast" role="status" aria-live="polite"></div>
     <script src="js/portal-access.js"></script>
-    <script src="js/chat-app.js?v=24"></script>
+    <script src="js/portal-notify-sound.js?v=1"></script>
+    <script src="js/chat-app.js?v=29"></script>
 </body>
 </html>

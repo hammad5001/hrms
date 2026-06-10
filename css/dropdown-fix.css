@@ -101,3 +101,33 @@ select.form-control option,
     overflow-y: auto !important;
     overflow-x: visible !important;
 }
+
+/* Employee portal — leave apply modal (dark custom selects) */
+.ess-leave-modal,
+.ess-leave-modal * {
+    color-scheme: dark;
+}
+.ess-leave-modal .ess-leave-select,
+.ess-leave-modal select.ess-leave-select {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-color: #161b2e !important;
+    background-image: none !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+.ess-leave-modal .ess-leave-select option,
+.ess-leave-modal .ess-leave-select optgroup {
+    background-color: #161b2e !important;
+    color: #ffffff !important;
+}
+.ess-leave-modal .ess-leave-input,
+.ess-leave-modal .ess-search-input.ess-leave-input {
+    background-color: #161b2e !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+.ess-leave-modal .ess-leave-date {
+    color-scheme: dark !important;
+}

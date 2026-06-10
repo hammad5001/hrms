@@ -303,9 +303,10 @@ function fetch_attendance_bundle(mysqli $conn, string $empCode, string $today, ?
         $attendance_status = 'absent';
         $attendance_label = 'Absent';
         $is_late = false;
+        $auto_closed = false;
         return compact(
             'attendance_raw', 'check_in', 'check_out', 'times', 'attendance_summary',
-            'shift_date', 'on_duty', 'attendance_status', 'attendance_label', 'is_late'
+            'shift_date', 'on_duty', 'attendance_status', 'attendance_label', 'is_late', 'auto_closed'
         );
     }
 
@@ -333,8 +334,11 @@ function fetch_attendance_bundle(mysqli $conn, string $empCode, string $today, ?
     }
     $attendance_summary['total_punches'] = count($attendance_raw);
 
-    $shift_date = ess_active_shift_date();
-    $openDuty = ess_resolve_open_duty($allTimestamps);
+    $serverClock = ess_server_clock($conn);
+    $serverTs = (int) $serverClock['ts'];
+    $shift_date = ess_active_shift_date($serverTs);
+    $openDuty = ess_resolve_open_duty($allTimestamps, $serverTs);
+    $auto_closed = !empty($openDuty['auto_closed']);
 
     if ($openDuty['on_duty']) {
         $check_in = $openDuty['check_in'];
@@ -353,6 +357,18 @@ function fetch_attendance_bundle(mysqli $conn, string $empCode, string $today, ?
     $attendance_status = $shiftStatus['status'];
     $attendance_label = $shiftStatus['label'];
     $is_late = $shiftStatus['is_late'];
+
+    if ($auto_closed) {
+        $check_out = null;
+        $on_duty = false;
+    }
+
+    // Before shift check-in opens, today is Upcoming — not Absent
+    if (!$check_in && !$on_duty && ess_is_shift_upcoming($shift_date)) {
+        $attendance_status = 'upcoming';
+        $attendance_label = 'Upcoming';
+        $is_late = false;
+    }
 
     $monthStart = date('Y-m-01');
     $monthEnd = date('Y-m-t');
@@ -373,7 +389,7 @@ function fetch_attendance_bundle(mysqli $conn, string $empCode, string $today, ?
 
     return compact(
         'attendance_raw', 'check_in', 'check_out', 'times', 'attendance_summary',
-        'shift_date', 'on_duty', 'attendance_status', 'attendance_label', 'is_late'
+        'shift_date', 'on_duty', 'attendance_status', 'attendance_label', 'is_late', 'auto_closed'
     );
 }
 

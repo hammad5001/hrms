@@ -102,6 +102,10 @@ function chat_require_conversation_access(mysqli $conn, int $conversation_id, in
 function chat_process_upload(mysqli $conn, int $me_id): void {
     $cid = chat_parse_conversation_id();
     chat_require_conversation_access($conn, $cid, $me_id);
+    $sendErr = chat_assert_can_send($conn, $cid, $me_id);
+    if ($sendErr) {
+        chat_json(false, null, $sendErr);
+    }
 
     if (empty($_FILES['file'])) {
         $hint = empty($_POST) && empty($_FILES)
@@ -664,4 +668,114 @@ function chat_ws_push_new_message(mysqli $conn, int $message_id): void {
     }
     chat_ws_notify_conversation($conn, $cid, 'message.new', ['message' => $msg]);
     chat_ws_notify_inbox($conn, $cid);
+}
+
+/** True if either user blocked the other. */
+function chat_is_blocked(mysqli $conn, int $user_a, int $user_b): bool {
+    if ($user_a <= 0 || $user_b <= 0 || $user_a === $user_b) {
+        return false;
+    }
+    $stmt = $conn->prepare('SELECT 1 FROM chat_blocks WHERE (blocker_id = ? AND blocked_id = ?) OR (blocker_id = ? AND blocked_id = ?) LIMIT 1');
+    $stmt->bind_param('iiii', $user_a, $user_b, $user_b, $user_a);
+    $stmt->execute();
+    return (bool)$stmt->get_result()->fetch_row();
+}
+
+function chat_get_participant_status(mysqli $conn, int $conversation_id, int $user_id): string {
+    $stmt = $conn->prepare('SELECT participant_status FROM chat_participants WHERE conversation_id = ? AND user_id = ? LIMIT 1');
+    $stmt->bind_param('ii', $conversation_id, $user_id);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    return $row['participant_status'] ?? 'active';
+}
+
+function chat_direct_peer_id(mysqli $conn, int $conversation_id, int $me_id): ?int {
+    $stmt = $conn->prepare('SELECT user_id FROM chat_participants WHERE conversation_id = ? AND user_id != ? LIMIT 1');
+    $stmt->bind_param('ii', $conversation_id, $me_id);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    return $row ? (int)$row['user_id'] : null;
+}
+
+/** @return string|null Error message if sending is not allowed. */
+function chat_assert_can_send(mysqli $conn, int $conversation_id, int $sender_id): ?string {
+    $convStmt = $conn->prepare('SELECT type FROM chat_conversations WHERE id = ? LIMIT 1');
+    $convStmt->bind_param('i', $conversation_id);
+    $convStmt->execute();
+    $conv = $convStmt->get_result()->fetch_assoc();
+    if (!$conv) {
+        return 'Conversation not found';
+    }
+    if (($conv['type'] ?? '') !== 'direct') {
+        return null;
+    }
+    $peer_id = chat_direct_peer_id($conn, $conversation_id, $sender_id);
+    if (!$peer_id) {
+        return null;
+    }
+    if (chat_is_blocked($conn, $sender_id, $peer_id)) {
+        return 'You cannot message this user';
+    }
+    $my_status = chat_get_participant_status($conn, $conversation_id, $sender_id);
+    $peer_status = chat_get_participant_status($conn, $conversation_id, $peer_id);
+    if ($my_status === 'declined') {
+        return 'This conversation was declined';
+    }
+    if ($my_status === 'pending') {
+        return 'Accept the message request to reply';
+    }
+    if ($peer_status === 'declined') {
+        return 'This user declined your message request';
+    }
+    return null;
+}
+
+function chat_conversation_meta_for_user(mysqli $conn, int $conversation_id, int $me_id, array $conv): array {
+    $my_status = chat_get_participant_status($conn, $conversation_id, $me_id);
+    $meta = [
+        'my_status' => $my_status,
+        'is_request' => false,
+        'can_reply' => true,
+        'peer_id' => null,
+    ];
+    if (($conv['type'] ?? '') === 'direct') {
+        $peer_id = chat_direct_peer_id($conn, $conversation_id, $me_id);
+        $meta['peer_id'] = $peer_id;
+        $peer_status = $peer_id ? chat_get_participant_status($conn, $conversation_id, $peer_id) : 'active';
+        $meta['peer_status'] = $peer_status;
+        $meta['is_request'] = ($my_status === 'pending');
+        $meta['can_reply'] = ($my_status !== 'pending' && $my_status !== 'declined');
+        if ($peer_id && chat_is_blocked($conn, $me_id, $peer_id)) {
+            $meta['is_blocked'] = true;
+            $meta['can_reply'] = false;
+        }
+    }
+    return $meta;
+}
+
+function chat_add_participant(mysqli $conn, int $conversation_id, int $user_id, string $status = 'active'): void {
+    $stmt = $conn->prepare('INSERT INTO chat_participants (conversation_id, user_id, participant_status) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE participant_status = VALUES(participant_status)');
+    $stmt->bind_param('iis', $conversation_id, $user_id, $status);
+    $stmt->execute();
+}
+
+/** Remove messages hidden by this viewer. */
+function chat_filter_hidden_messages(mysqli $conn, array $messages, int $viewer_id): array {
+    if (empty($messages)) {
+        return $messages;
+    }
+    $ids = array_map(fn($m) => (int)$m['id'], $messages);
+    $ids = array_filter($ids, fn($id) => $id > 0);
+    if (empty($ids)) {
+        return $messages;
+    }
+    $ph = implode(',', $ids);
+    $hidden = [];
+    $res = $conn->query("SELECT message_id FROM chat_message_hides WHERE user_id = " . (int)$viewer_id . " AND message_id IN ($ph)");
+    if ($res) {
+        while ($row = $res->fetch_assoc()) {
+            $hidden[(int)$row['message_id']] = true;
+        }
+    }
+    return array_values(array_filter($messages, fn($m) => !isset($hidden[(int)$m['id']])));
 }

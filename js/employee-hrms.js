@@ -5,6 +5,9 @@ const HRMS = {
     attendance: [],
     leaveSummary: null,
     leaveRequests: [],
+    policyAllotments: [],
+    canAllotLeavePolicy: false,
+    selectedPolicyEmployees: [],
     selectedRoute: 'team_lead',
     selectedApprover: null,
     selectedEmployee: null,
@@ -13,6 +16,9 @@ const HRMS = {
     canSelectEmployee: false,
     searchTimers: {},
     notifyTimer: null,
+    chatPollTimer: null,
+    lastNotifUnread: null,
+    lastChatUnread: null,
     weekOffset: 0,
     approvalFilter: 'pending',
     timerInterval: null,
@@ -21,11 +27,13 @@ const HRMS = {
     reporting: null,
     reporteesList: [],
     selectedReportee: null,
-    selectedManager: null,
+    selectedAssignReportee: null,
+    selectedAssignManager: null,
     approvalModalRequest: null,
     approvalModalMode: 'approve',
+    withdrawLeaveRequest: null,
     currentView: 'dashboard',
-    activeNavId: 'nav-side-home',
+    activeNavId: 'nav-tab-activities',
 };
 
 const LEAVE_BALANCE_TYPES = [
@@ -107,19 +115,50 @@ function isOnDuty(checkIn, checkOut) {
     return !!checkIn && (checkOut == null || checkOut === '');
 }
 
+function shiftDeadlineUnix(shiftDateStr) {
+    if (!shiftDateStr) return null;
+    const next = addDaysToDateStr(shiftDateStr, 1);
+    const d = new Date(next + 'T11:00:00');
+    const t = d.getTime();
+    return Number.isNaN(t) ? null : Math.floor(t / 1000);
+}
+
+function applyShiftConfig(shift) {
+    if (!shift) return;
+    if (shift.checkin_from) {
+        const h = parseInt(String(shift.checkin_from).split(':')[0], 10);
+        if (Number.isFinite(h)) ESS_SHIFT.checkinHour = h;
+    }
+    if (shift.shift_start) {
+        const h = parseInt(String(shift.shift_start).split(':')[0], 10);
+        if (Number.isFinite(h)) ESS_SHIFT.shiftStartHour = h;
+    }
+    if (shift.checkout_until) {
+        const h = parseInt(String(shift.checkout_until).split(':')[0], 10);
+        if (Number.isFinite(h)) ESS_SHIFT.checkoutEndHour = h;
+    }
+    if (shift.grace_minutes != null) ESS_SHIFT.graceMin = Number(shift.grace_minutes) || 15;
+}
+
 function setTodayDuty(today) {
     today = today || {};
     const timerActive = !!today.timer_active;
     const checkIn = today.duty_check_in || today.check_in || null;
-    const checkOut = timerActive ? null : (today.duty_check_out ?? today.check_out ?? null);
+    const checkOut = (timerActive || today.auto_closed)
+        ? null
+        : (today.duty_check_out ?? today.check_out ?? null);
     const checkInUnix = Number(today.duty_check_in_unix ?? today.check_in_unix);
     const checkOutUnix = Number(today.check_out_unix);
     const serverTs = Number(today.server_ts);
+    const shiftDate = today.date || (checkIn ? shiftDateForTimestamp(checkIn) : activeShiftDate());
 
     HRMS.todayDuty = {
         checkIn,
         checkOut,
         timerActive,
+        shiftDate,
+        autoClosed: !!today.auto_closed,
+        shiftDeadlineUnix: shiftDeadlineUnix(shiftDate),
         checkInUnix: Number.isFinite(checkInUnix) && checkInUnix > 0 ? checkInUnix : null,
         checkOutUnix: Number.isFinite(checkOutUnix) && checkOutUnix > 0 ? checkOutUnix : null,
         baseSeconds: Number.isFinite(Number(today.duty_seconds))
@@ -160,15 +199,20 @@ function dutyElapsedSeconds(duty) {
 
     if (onDuty) {
         const drift = Math.floor((Date.now() - (duty.syncedAt || Date.now())) / 1000);
-        const fromServer = Math.max(0, (duty.baseSeconds || 0) + drift);
-        if (fromServer > 0) return fromServer;
-        const clientElapsed = Math.floor(Date.now() / 1000 - startUnix);
-        if (clientElapsed > 0) return clientElapsed;
-        if (duty.serverTs) {
-            const serverNow = duty.serverTs + (Date.now() - duty.syncedAt) / 1000;
-            return Math.max(0, Math.floor(serverNow - startUnix));
+        let fromServer = Math.max(0, (duty.baseSeconds || 0) + drift);
+        if (fromServer <= 0) {
+            const clientNow = Math.floor(Date.now() / 1000);
+            fromServer = Math.max(0, clientNow - startUnix);
+            if (fromServer <= 0 && duty.serverTs) {
+                const serverNow = duty.serverTs + (Date.now() - duty.syncedAt) / 1000;
+                fromServer = Math.max(0, Math.floor(serverNow - startUnix));
+            }
         }
-        return 0;
+        const deadline = duty.shiftDeadlineUnix || shiftDeadlineUnix(duty.shiftDate);
+        if (deadline) {
+            fromServer = Math.min(fromServer, Math.max(0, deadline - startUnix));
+        }
+        return fromServer;
     }
 
     let endUnix = duty.checkOutUnix;
@@ -297,8 +341,8 @@ function renderProfilePage(data) {
     const names = splitFullName(u.full_name);
     const manager = HRMS.reporting?.reporting_to;
     const managerLabel = manager
-        ? [manager.full_name, manager.employee_code ? `(ID ${manager.employee_code})` : ''].filter(Boolean).join(' ')
-        : 'Not assigned — link your manager in Manage Reportees';
+        ? [manager.full_name, manager.employee_code ? `(ID ${manager.employee_code})` : '', manager.role_label].filter(Boolean).join(' · ')
+        : 'Not assigned — contact your team lead or HR';
 
     setText('profilePageName', u.full_name || 'Employee');
     setText('profilePageRole', [portalRoleLabel(pr), u.designation].filter(Boolean).join(' · '));
@@ -323,6 +367,13 @@ function renderProfilePage(data) {
     setProfileInput('pfJoined', formatJoinedDate(u.joined_date));
     setProfileInput('pfBidSource', data.meta?.resolution_label || '—', '—');
     setProfileInput('pfManager', managerLabel, '—');
+
+    const linkNote = document.getElementById('pfManagerLinkNote');
+    const goBtn = document.getElementById('btnGoManageReportees');
+    if (linkNote) linkNote.classList.remove('hidden');
+    if (goBtn) {
+        goBtn.textContent = HRMS.reporting?.is_manager ? 'Manage reportees' : 'View my reporting';
+    }
 
     const pd = data.profile_details || HRMS.profileDetails || {};
     HRMS.profileDetails = pd;
@@ -391,6 +442,7 @@ const ESS_DEFAULT_NAV = {
     leave: 'nav-tab-leave',
     halfday: 'nav-tab-leave',
     myleaves: 'nav-tab-myleaves',
+    'leave-policy': 'nav-tab-leave-policy',
     approvals: 'nav-tab-approvals',
     reportees: 'nav-tab-reportees',
     profile: 'nav-tab-profile',
@@ -406,8 +458,9 @@ const ESS_VIEW_TITLES = {
     leave: ['Leave Tracker', 'Balances and leave applications'],
     halfday: ['Half Day Leave', 'Apply morning or afternoon half day'],
     myleaves: ['My Leave Requests', 'Track status of your applications'],
+    'leave-policy': ['Leave Policy', 'Entitlements, holidays, and company allotments'],
     approvals: ['Leave Approvals', 'Review and approve team requests'],
-    reportees: ['Manage Reportees', 'Your team — IDs and today\'s attendance'],
+    reportees: ['My Reporting', 'Your reporting line and team'],
     profile: ['My Profile', 'Your employee record and work information'],
     notifications: ['Notifications', 'Alerts from HR and managers'],
     chat: ['Workspace Chat', 'Messages with your team — secure internal chat'],
@@ -463,15 +516,28 @@ function showView(id, navId = null) {
     if (view) view.classList.add('active');
 
     const isChat = (id === 'chat');
+    const isDashboard = (id === 'dashboard');
     document.body.classList.toggle('ess-chat-active', isChat);
-    if (isChat) ensureChatFrameLoaded();
+    document.body.classList.toggle('ess-dashboard-active', isDashboard);
+    if (isChat) {
+        ensureChatFrameLoaded();
+    } else {
+        document.getElementById('view-chat')?.classList.remove('active');
+        pollChatUnread();
+    }
 
     const t = ESS_VIEW_TITLES[id] || ['HRMS', ''];
     setText('pageTitle', t[0]);
     setText('pageSubtitle', t[1]);
 
+    if (id === 'dashboard') {
+        renderSidebarHierarchy(HRMS.reporting);
+    } else {
+        document.getElementById('hierarchyCard')?.classList.add('hidden');
+    }
     if (id === 'leave') { loadMyLeaves(); renderLeaveBalances(); }
     if (id === 'myleaves') loadMyLeaves(true);
+    if (id === 'leave-policy') loadLeavePolicy();
     if (id === 'approvals') loadApprovals();
     if (id === 'reportees') loadReporteesView();
     if (id === 'profile') {
@@ -487,26 +553,40 @@ function showView(id, navId = null) {
     if (id === 'salary') renderSalary();
 }
 
-/** Night shift: 5 PM shift date → 4 AM next day. */
+/** Night shift: 4 PM shift date → 11 AM next day (duty 6 PM – 4 AM). */
 const ESS_SHIFT = {
-    checkinHour: 17,
-    shiftStartHour: 17,
+    checkinHour: 16,
+    shiftStartHour: 18,
     graceMin: 15,
-    checkoutEndHour: 4,
+    checkoutEndHour: 11,
 };
+
+/** Local calendar date YYYY-MM-DD (avoid UTC drift from toISOString). */
+function localDateStr(d = new Date()) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+function addDaysToDateStr(dateStr, days) {
+    const d = new Date(dateStr + 'T12:00:00');
+    d.setDate(d.getDate() + days);
+    return localDateStr(d);
+}
 
 function shiftDateForTimestamp(ts) {
     if (!ts) return '';
-    const d = new Date(ts);
+    const d = parseAttendanceTs(ts) || new Date(ts);
     if (Number.isNaN(d.getTime())) return String(ts).slice(0, 10);
     const h = d.getHours();
-    if (h >= ESS_SHIFT.checkinHour) return d.toISOString().slice(0, 10);
+    if (h >= ESS_SHIFT.checkinHour) return localDateStr(d);
     if (h < ESS_SHIFT.checkoutEndHour) {
         const prev = new Date(d);
         prev.setDate(prev.getDate() - 1);
-        return prev.toISOString().slice(0, 10);
+        return localDateStr(prev);
     }
-    return d.toISOString().slice(0, 10);
+    return localDateStr(d);
 }
 
 function activeShiftDate() {
@@ -514,21 +594,19 @@ function activeShiftDate() {
     if (now.getHours() < ESS_SHIFT.checkoutEndHour) {
         const prev = new Date(now);
         prev.setDate(prev.getDate() - 1);
-        return prev.toISOString().slice(0, 10);
+        return localDateStr(prev);
     }
-    return now.toISOString().slice(0, 10);
+    return localDateStr(now);
 }
 
 function shiftWindows(shiftDateStr) {
-    const next = new Date(shiftDateStr + 'T12:00:00');
-    next.setDate(next.getDate() + 1);
-    const nextStr = next.toISOString().slice(0, 10);
+    const nextStr = addDaysToDateStr(shiftDateStr, 1);
     const checkinH = String(ESS_SHIFT.checkinHour).padStart(2, '0');
     return {
         checkinStart: new Date(shiftDateStr + `T${checkinH}:00:00`).getTime(),
         checkinEnd: new Date(shiftDateStr + 'T23:59:59').getTime(),
         checkoutStart: new Date(nextStr + 'T00:00:00').getTime(),
-        checkoutEnd: new Date(nextStr + 'T03:59:59').getTime(),
+        checkoutEnd: new Date(nextStr + 'T11:00:00').getTime(),
     };
 }
 
@@ -547,6 +625,7 @@ function dayStatusLabel(st) {
         absent: 'Absent',
         present: 'Present',
         late: 'Late',
+        weekend: 'Weekend',
     };
     return labels[st?.status] || st?.label || 'Absent';
 }
@@ -590,21 +669,90 @@ function getWeekDates(offset = 0) {
     for (let i = 0; i < 7; i++) {
         const d = new Date(monday);
         d.setDate(monday.getDate() + i);
-        dates.push(d.toISOString().slice(0, 10));
+        dates.push(localDateStr(d));
     }
     return dates;
 }
 
+function formatDurationFromHours(hours) {
+    const totalMin = Math.max(0, Math.round(hours * 60));
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+function isWeekendShiftDate(shiftDateStr) {
+    const d = new Date(shiftDateStr + 'T12:00:00');
+    const dow = d.getDay();
+    return dow === 0 || dow === 6;
+}
+
+function weekShiftScheduleLabel() {
+    const h = ESS_SHIFT.checkinHour;
+    const endH = ESS_SHIFT.checkoutEndHour;
+    const start = new Date(`2000-01-01T${String(h).padStart(2, '0')}:00:00`).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' });
+    const end = new Date(`2000-01-01T${String(endH).padStart(2, '0')}:00:00`).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' });
+    return `Night shift · ${start} – next day ${end}`;
+}
+
+function weekTimeRange(st, shiftDateStr) {
+    if (st.status === 'weekend') return 'Weekly off · no shift scheduled';
+    if (st.status === 'upcoming') return weekShiftScheduleLabel();
+    if (st.status === 'absent') return 'No check-in recorded for this shift';
+    if (st.checkIn) {
+        const inT = formatTime(st.checkIn);
+        let outT;
+        if (st.checkOut) {
+            outT = formatTime(st.checkOut);
+        } else if (shiftDateStr) {
+            const deadline = shiftDeadlineUnix(shiftDateStr);
+            const pastClose = deadline && Date.now() >= deadline * 1000;
+            outT = pastClose ? '—' : 'Still on duty';
+        } else {
+            outT = 'Still on duty';
+        }
+        return `${inT}  →  ${outT}`;
+    }
+    return '—';
+}
+
 function dayStatus(shiftDateStr) {
     if (isShiftDateUpcoming(shiftDateStr)) {
-        return { status: 'upcoming', label: 'Upcoming', hours: '00:00 Hrs', punchCount: 0 };
+        return {
+            status: 'upcoming',
+            label: 'Upcoming',
+            hours: '00:00 Hrs',
+            hoursShort: '00:00',
+            punchCount: 0,
+            checkIn: null,
+            checkOut: null,
+        };
     }
 
     const allTs = (HRMS.attendance || []).map(r => r.timestamp).filter(Boolean);
     const shift = resolveShiftPunches(shiftDateStr, allTs);
 
     if (!shift.checkIn && !shift.checkOut) {
-        return { status: 'absent', label: 'Absent', hours: '00:00 Hrs', punchCount: 0 };
+        if (isWeekendShiftDate(shiftDateStr)) {
+            return {
+                status: 'weekend',
+                label: 'Weekend',
+                hours: '—',
+                hoursShort: '—',
+                punchCount: 0,
+                checkIn: null,
+                checkOut: null,
+            };
+        }
+        return {
+            status: 'absent',
+            label: 'Absent',
+            hours: '00:00 Hrs',
+            hoursShort: '00:00',
+            punchCount: 0,
+            checkIn: null,
+            checkOut: null,
+        };
     }
 
     let hrs = 0;
@@ -613,48 +761,122 @@ function dayStatus(shiftDateStr) {
         let end = new Date(shift.checkOut).getTime();
         if (end < start) end += 86400000;
         hrs = Math.max(0, (end - start) / 3600000);
+    } else if (shift.checkIn && shiftDateStr === activeShiftDate()) {
+        const start = new Date(shift.checkIn).getTime();
+        let end = Date.now();
+        const deadline = shiftDeadlineUnix(shiftDateStr);
+        if (deadline) end = Math.min(end, deadline * 1000);
+        if (end >= start) hrs = Math.max(0, (end - start) / 3600000);
     }
 
     let late = false;
     if (shift.checkIn) {
-        const lateAfter = new Date(shiftDateStr + 'T18:00:00').getTime();
+        const lateH = String(ESS_SHIFT.shiftStartHour).padStart(2, '0');
+        const lateAfter = new Date(shiftDateStr + `T${lateH}:00:00`).getTime();
         late = new Date(shift.checkIn).getTime() > lateAfter;
     }
 
+    const dur = formatDurationFromHours(hrs);
     return {
         status: late ? 'late' : 'present',
         label: late ? 'Late' : 'Present',
-        hours: hrs.toFixed(2) + ' Hrs worked',
+        hours: `${dur} Hrs`,
+        hoursShort: dur,
         punchCount: shift.punches.length,
         checkIn: shift.checkIn,
         checkOut: shift.checkOut,
     };
 }
 
-function renderWeekView(targetId = 'attendanceWeekList', stripId = 'attendanceWeekStrip') {
+function formatActivitiesDate(d) {
+    if (!d) return '—';
+    const dt = new Date(d + 'T12:00:00');
+    const day = String(dt.getDate()).padStart(2, '0');
+    const mon = dt.toLocaleDateString('en-GB', { month: 'short' });
+    return `${day}-${mon}-${dt.getFullYear()}`;
+}
+
+function activitiesStatusLabel(st) {
+    const map = {
+        present: 'Present',
+        late: 'Late',
+        absent: 'Absent',
+        upcoming: 'Upcoming',
+        weekend: 'Weekend',
+    };
+    return map[st?.status] || st?.label || '—';
+}
+
+function buildActivitiesDayCell(dateStr) {
+    const d = new Date(dateStr + 'T12:00:00');
+    const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+    const dayNum = String(d.getDate()).padStart(2, '0');
+    const st = dayStatus(dateStr);
+    const isToday = dateStr === activeShiftDate();
+    const status = activitiesStatusLabel(st);
+
+    return `<div class="ess-act-day ess-act-day--${st.status}${isToday ? ' ess-act-day--today' : ''}" role="listitem" title="${escHtml(weekTimeRange(st, dateStr))}">
+        <span class="ess-act-dow">${escHtml(dayName)}</span>
+        <span class="ess-act-dom">${dayNum}</span>
+        <span class="ess-act-status ess-act-status--${st.status}">${escHtml(status)}</span>
+    </div>`;
+}
+
+function renderActivitiesTimeline() {
+    const el = document.getElementById('activitiesTimeline');
+    if (!el) return;
+    const dates = getWeekDates(0);
+    const label = document.getElementById('activitiesRangeLabel');
+    if (label && dates.length) {
+        label.textContent = `${formatActivitiesDate(dates[0])} - ${formatActivitiesDate(dates[6])}`;
+    }
+    el.innerHTML = dates.map(buildActivitiesDayCell).join('');
+}
+
+function buildWeekDayRow(dateStr) {
+    const d = new Date(dateStr + 'T12:00:00');
+    const dayName = d.toLocaleDateString('en-PK', { weekday: 'short' });
+    const dayNum = String(d.getDate()).padStart(2, '0');
+    const st = dayStatus(dateStr);
+    const isToday = dateStr === activeShiftDate();
+    const timeRange = weekTimeRange(st, dateStr);
+    const hoursMain = st.hoursShort === '—' ? '—' : st.hoursShort;
+    const hoursSub = st.status === 'weekend' ? 'Off day' : 'Hrs worked';
+
+    return `<article class="ess-week-day ess-week-day--${st.status}${isToday ? ' ess-week-day--today' : ''}">
+        <div class="ess-week-date">
+            ${isToday ? '<span class="ess-week-today">Today</span>' : ''}
+            <span class="ess-week-dow">${escHtml(dayName)}</span>
+            <span class="ess-week-dom">${dayNum}</span>
+        </div>
+        <div class="ess-week-track">
+            <div class="ess-week-line ess-week-line--${st.status}" role="presentation">
+                <span class="ess-week-chip">${escHtml(st.label)}</span>
+            </div>
+            <p class="ess-week-times">${escHtml(timeRange)}</p>
+        </div>
+        <div class="ess-week-summary">
+            <strong>${escHtml(hoursMain)}</strong>
+            <span>${escHtml(hoursSub)}</span>
+        </div>
+    </article>`;
+}
+
+function renderWeekView(targetId = 'attendanceWeekList') {
     const list = document.getElementById(targetId);
-    const strip = document.getElementById(stripId);
-    const label = document.getElementById('attWeekLabel') || document.getElementById('weekRangeLabel');
+    const label = document.getElementById('attWeekLabel');
     const dates = getWeekDates(HRMS.weekOffset);
     if (label && dates.length) {
         label.textContent = formatDate(dates[0]) + ' – ' + formatDate(dates[6]);
     }
-    const html = dates.map(dateStr => {
-        const d = new Date(dateStr + 'T12:00:00');
-        const dayName = d.toLocaleDateString('en-PK', { weekday: 'short' });
-        const dayNum = d.getDate();
-        const st = dayStatus(dateStr);
-        return `<div class="ess-week-day">
-            <div><div class="day-label">${dayName} ${String(dayNum).padStart(2, '0')}</div></div>
-            <div>
-                <div class="ess-week-bar"><span class="${st.status}"></span></div>
-                <div class="day-sub">${st.label}</div>
-            </div>
-            <div class="ess-week-hours">${st.hours}</div>
-        </div>`;
-    }).join('');
-    if (list) list.innerHTML = html;
-    if (strip) strip.innerHTML = html;
+    const header = `<div class="ess-week-head">
+        <span>Day</span>
+        <span>Shift status &amp; punch window</span>
+        <span>Duration</span>
+    </div>`;
+    const rows = dates.map(buildWeekDayRow).join('');
+    if (list) list.innerHTML = header + rows;
+    renderActivitiesTimeline();
 }
 
 function updateLiveTimer() {
@@ -687,8 +909,18 @@ function updateLiveTimer() {
 
     tick();
     const duty = HRMS.todayDuty;
-    if (duty?.timerActive || isOnDuty(duty?.checkIn, duty?.checkOut)) {
-        HRMS.timerInterval = setInterval(tick, 1000);
+    const onDuty = duty?.timerActive || isOnDuty(duty?.checkIn, duty?.checkOut);
+    if (onDuty) {
+        HRMS.timerInterval = setInterval(() => {
+            const deadline = duty.shiftDeadlineUnix || shiftDeadlineUnix(duty.shiftDate);
+            if (deadline && Math.floor(Date.now() / 1000) >= deadline) {
+                clearInterval(HRMS.timerInterval);
+                HRMS.timerInterval = null;
+                apiGet('api/employee_self_service.php').then(refreshTodayAttendance);
+                return;
+            }
+            tick();
+        }, 1000);
     }
 }
 
@@ -701,6 +933,10 @@ function resolveTodayStatus(today) {
         };
     }
     if (!today.check_in) {
+        const shiftDate = today.date || activeShiftDate();
+        if (isShiftDateUpcoming(shiftDate)) {
+            return { status: 'upcoming', label: 'Upcoming' };
+        }
         return { status: 'absent', label: 'Absent' };
     }
     if (today.is_late) {
@@ -731,7 +967,7 @@ function applyTodayStatus(today) {
     }
 
     setText('dashCheckIn', formatTime(today.check_in), '—');
-    setText('dashCheckOut', formatTime(today.check_out), '—');
+    setText('dashCheckOut', today.auto_closed ? '—' : formatTime(today.check_out), '—');
     setText('dashPunchCount', String(today.punch_count ?? 0), '0');
     setTodayDuty(today);
     setText('dashTotalHours', resolveTodayHours(today).toFixed(2) + ' Hrs');
@@ -742,8 +978,14 @@ function applyTodayStatus(today) {
 
 function refreshTodayAttendance(data) {
     if (!data?.success) return;
+    const wasOnDuty = HRMS.todayDuty?.timerActive;
     HRMS.attendance = data.attendance_raw || HRMS.attendance;
     applyTodayStatus(data.today || {});
+    const today = data.today || {};
+    if (today.auto_closed && wasOnDuty) {
+        toast('Shift window ended at 11:00 AM — duty closed automatically.', 'info');
+    }
+    renderActivitiesTimeline();
     if (HRMS.reporting?.is_manager) {
         loadReportingHierarchy();
     }
@@ -767,6 +1009,7 @@ function applyProfileData(data) {
     HRMS.user = u;
     HRMS.payroll = data.payroll || null;
     HRMS.attendance = data.attendance_raw || [];
+    applyShiftConfig(data.shift);
 
     const pr = u.portal_role || 'user';
     HRMS.profileMeta = data.meta || {};
@@ -806,7 +1049,11 @@ function applyProfileData(data) {
 
     const today = data.today || {};
     applyTodayStatus(today);
-    setText('dashShift', (data.shift && data.shift.label) || 'Night shift (5 PM – next day 4 AM)');
+    const dashShiftLabel = ((data.shift && data.shift.label) || 'Night shift (6 PM – 4 AM)')
+        .replace(/\s*·\s*window\s+.+$/i, '')
+        .trim();
+    setText('dashShift', dashShiftLabel || 'Night shift (6 PM – 4 AM)');
+    setText('activitiesShiftHours', '6:00 PM – 4:00 AM');
 
     if (data.meta && data.meta.employee_code_set === false) {
         toast('Ask HR to link your Employee ID (BID) for attendance & salary.', 'error');
@@ -847,7 +1094,9 @@ async function loadProfile() {
             HRMS.leaveSummary = ls.data;
             setText('statPendingLeave', String(ls.data.my_pending_leaves ?? 0), '0');
             HRMS.canSelectEmployee = !!ls.data.can_select_employee;
+            HRMS.canAllotLeavePolicy = !!ls.data.can_allot_leave_policy;
             toggleLeaveEmployeeFields();
+            toggleLeavePolicyAllotUI();
             updateManagerApprovalUI(ls.data);
             ['navApprovals', 'badgeApprovals', 'headerApprovals', 'tabApprovals'].forEach(id => {
                 const el = document.getElementById(id);
@@ -895,7 +1144,7 @@ function getShiftDatesFromAttendance(days = 30) {
     for (let i = 0; i < days; i++) {
         const d = new Date(today);
         d.setDate(today.getDate() - i);
-        dates.add(d.toISOString().slice(0, 10));
+        dates.add(localDateStr(d));
     }
     return [...dates].sort((a, b) => b.localeCompare(a)).slice(0, days);
 }
@@ -912,7 +1161,7 @@ function renderAttendance() {
 
     const rows = shiftDates.map(sd => {
         const st = dayStatus(sd);
-        const hours = (st.hours || '00:00 Hrs').replace(' worked', '');
+        const hours = st.hoursShort && st.hoursShort !== '—' ? `${st.hoursShort} Hrs` : (st.hours || '00:00 Hrs').replace(' worked', '');
         return `<tr>
             <td>${escHtml(formatDate(sd))}</td>
             <td>${st.checkIn ? formatTime(st.checkIn) : '—'}</td>
@@ -948,12 +1197,219 @@ function renderLeaveBalances() {
     }).join('');
 }
 
+function toggleLeavePolicyAllotUI() {
+    const card = document.getElementById('leavePolicyAllotCard');
+    if (card) card.classList.toggle('hidden', !HRMS.canAllotLeavePolicy);
+}
+
+function togglePolicyEmployeeField() {
+    const field = document.getElementById('policyEmployeeField');
+    const target = document.querySelector('input[name="policy_target"]:checked')?.value || 'all';
+    if (field) field.classList.toggle('hidden', target !== 'selected');
+}
+
+function addPolicyEmployee(person) {
+    if (!person?.id) return;
+    const list = HRMS.selectedPolicyEmployees;
+    if (list.some(p => p.id === person.id)) return;
+    list.push(person);
+    renderPolicyEmployeeChips();
+}
+
+function removePolicyEmployee(id) {
+    HRMS.selectedPolicyEmployees = HRMS.selectedPolicyEmployees.filter(p => p.id !== id);
+    renderPolicyEmployeeChips();
+}
+
+function renderPolicyEmployeeChips() {
+    const wrap = document.getElementById('policyEmployeeSelected');
+    if (!wrap) return;
+    const list = HRMS.selectedPolicyEmployees;
+    if (!list.length) {
+        wrap.classList.add('hidden');
+        wrap.innerHTML = '';
+        return;
+    }
+    wrap.classList.remove('hidden');
+    wrap.innerHTML = list.map(p => `
+        <span class="ess-person-chip ess-policy-chip">
+            <i class="fas fa-user"></i>
+            <span><strong>${escHtml(p.full_name)}</strong><small>${escHtml([p.employee_code, p.team].filter(Boolean).join(' · '))}</small></span>
+            <button type="button" class="ess-chip-clear" data-id="${p.id}" title="Remove" aria-label="Remove ${escHtml(p.full_name)}"><i class="fas fa-times"></i></button>
+        </span>
+    `).join('');
+    wrap.querySelectorAll('.ess-chip-clear').forEach(btn => {
+        btn.addEventListener('click', () => removePolicyEmployee(parseInt(btn.dataset.id, 10)));
+    });
+}
+
+async function resolvePolicyEmployeesFromSearchInput() {
+    const input = document.getElementById('policyEmployeeSearch');
+    const q = input?.value.trim() || '';
+    if (!q || q.length < 2) return;
+    const rows = await searchLeavePeople('searchPolicyEmployees', q);
+    if (!rows.length) return;
+    const exact = rows.find(p =>
+        String(p.employee_code || '').toLowerCase() === q.toLowerCase()
+        || String(p.id) === q
+    );
+    if (exact) {
+        addPolicyEmployee(exact);
+        if (input) input.value = '';
+        return;
+    }
+    if (rows.length === 1) {
+        addPolicyEmployee(rows[0]);
+        if (input) input.value = '';
+    }
+}
+
+function initLeavePolicyForm() {
+    document.querySelectorAll('input[name="policy_target"]').forEach(r => {
+        r.addEventListener('change', togglePolicyEmployeeField);
+    });
+    bindPersonSearch(
+        'policyEmployeeSearch', 'policyEmployeeResults', null, 'searchPolicyEmployees',
+        p => { addPolicyEmployee(p); },
+        null,
+        { multi: true }
+    );
+    document.getElementById('formPolicyAllot')?.addEventListener('submit', async e => {
+        e.preventDefault();
+        await submitPolicyAllot();
+    });
+    const start = document.getElementById('policyStartDate');
+    const end = document.getElementById('policyEndDate');
+    start?.addEventListener('change', () => {
+        if (end && !end.value) end.value = start.value;
+    });
+}
+
+async function submitPolicyAllot() {
+    if (!HRMS.canAllotLeavePolicy) {
+        toast('Only HR and Super Admin can allot leave', 'error');
+        return;
+    }
+    const fd = new FormData(document.getElementById('formPolicyAllot'));
+    const target = fd.get('policy_target') || 'all';
+    const start_date = fd.get('start_date');
+    const end_date = fd.get('end_date') || start_date;
+    const reason = (fd.get('reason') || '').toString().trim();
+    if (!start_date || !reason) {
+        toast('Start date and occasion are required', 'error');
+        return;
+    }
+    const payload = {
+        all_employees: target === 'all',
+        leave_type: fd.get('leave_type') || 'public_holiday',
+        start_date,
+        end_date,
+        reason,
+        user_ids: [],
+    };
+    if (target === 'selected') {
+        await resolvePolicyEmployeesFromSearchInput();
+        const ids = HRMS.selectedPolicyEmployees.map(p => p.id).filter(Boolean);
+        if (!ids.length) {
+            toast('Search and add at least one employee, or choose all employees', 'error');
+            return;
+        }
+        payload.user_ids = ids;
+    }
+    const btn = document.getElementById('btnPolicyAllot');
+    if (btn) btn.disabled = true;
+    const res = await apiPost('api/leave_api.php?action=allotLeave', payload);
+    if (btn) btn.disabled = false;
+    toast(res.error || res.data?.message || 'Leave allotted', res.success ? 'success' : 'error');
+    if (res.success) {
+        document.getElementById('formPolicyAllot')?.reset();
+        HRMS.selectedPolicyEmployees = [];
+        renderPolicyEmployeeChips();
+        document.querySelector('input[name="policy_target"][value="all"]')?.click();
+        togglePolicyEmployeeField();
+        await loadLeavePolicy();
+        pollNotifications();
+    }
+}
+
+function renderLeavePolicyHistory(items) {
+    const tbody = document.getElementById('leavePolicyHistoryBody');
+    if (!tbody) return;
+    if (!items?.length) {
+        tbody.innerHTML = '<tr><td colspan="6">No company allotments recorded yet.</td></tr>';
+        return;
+    }
+    const groups = [];
+    const map = new Map();
+    items.forEach(r => {
+        const key = [r.reason, r.start_date, r.end_date, r.allotted_by_name || '', (r.created_at || '').slice(0, 16)].join('\0');
+        if (!map.has(key)) {
+            const g = { ...r, count: 1 };
+            map.set(key, g);
+            groups.push(g);
+        } else {
+            map.get(key).count += 1;
+        }
+    });
+    tbody.innerHTML = groups.map(r => {
+        const dates = r.start_date === r.end_date ? r.start_date : `${r.start_date} → ${r.end_date}`;
+        const empCell = r.count > 1
+            ? `All employees <span class="ess-pill present ess-pill-sm">${r.count}</span>`
+            : `${escHtml(r.employee_name)} <small class="ess-muted-inline">${escHtml(r.employee_code || '')}</small>`;
+        return `<tr>
+            <td>${escHtml(r.reason || '—')}</td>
+            <td>${escHtml(leaveTypeLabel(r.leave_type))}</td>
+            <td>${escHtml(dates)}</td>
+            <td>${empCell}</td>
+            <td>${escHtml(r.allotted_by_name || 'HR')}</td>
+            <td>${escHtml((r.created_at || '').slice(0, 16))}</td>
+        </tr>`;
+    }).join('');
+}
+
+async function loadLeavePolicy() {
+    toggleLeavePolicyAllotUI();
+    const res = await apiGet('api/leave_api.php?action=policyList');
+    if (!res.success) {
+        renderLeavePolicyHistory([]);
+        return;
+    }
+    HRMS.canAllotLeavePolicy = !!res.data.can_allot;
+    HRMS.policyAllotments = res.data.items || [];
+    toggleLeavePolicyAllotUI();
+    renderLeavePolicyHistory(HRMS.policyAllotments);
+    const hint = document.getElementById('leavePolicyHistoryHint');
+    if (hint) {
+        hint.textContent = HRMS.canAllotLeavePolicy
+            ? 'All leave you allot appears here. Employees are notified automatically.'
+            : 'Company-wide holidays and leave allotted by HR for your branch.';
+    }
+}
+
 function toggleLeaveEmployeeFields() {
     const show = HRMS.canSelectEmployee;
     ['leaveEmployeeField', 'halfLeaveEmployeeField'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.toggle('hidden', !show);
     });
+}
+
+function openLeaveApplyModal() {
+    toggleLeaveEmployeeFields();
+    const modal = document.getElementById('leaveApplyModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('ess-modal-open');
+    setTimeout(() => document.getElementById('leaveApproverSearch')?.focus(), 120);
+}
+
+function closeLeaveApplyModal() {
+    const modal = document.getElementById('leaveApplyModal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('ess-modal-open');
 }
 
 function escHtml(s) {
@@ -985,12 +1441,23 @@ async function searchLeavePeople(action, query) {
     return res.success ? (res.data || []) : [];
 }
 
-function bindPersonSearch(inputId, resultsId, chipId, action, onSelect, onClear) {
+function bindPersonSearch(inputId, resultsId, chipId, action, onSelect, onClear, opts = {}) {
     const input = document.getElementById(inputId);
     const results = document.getElementById(resultsId);
     if (!input || !results) return;
 
     const hideResults = () => results.classList.add('hidden');
+    let lastRows = [];
+
+    const pickPerson = (person) => {
+        if (!person) return;
+        onSelect(person);
+        input.value = '';
+        hideResults();
+        if (!opts.multi && chipId) {
+            renderSelectedPerson(chipId, person, onClear);
+        }
+    };
 
     input.addEventListener('input', () => {
         const q = input.value.trim();
@@ -998,34 +1465,44 @@ function bindPersonSearch(inputId, resultsId, chipId, action, onSelect, onClear)
         if (q.length < 2) {
             hideResults();
             results.innerHTML = '';
+            lastRows = [];
             return;
         }
         HRMS.searchTimers[inputId] = setTimeout(async () => {
             const rows = await searchLeavePeople(action, q);
+            lastRows = rows;
             if (!rows.length) {
                 results.innerHTML = '<div class="ess-search-empty">No matches found</div>';
             } else {
                 results.innerHTML = rows.map(p => `
                     <button type="button" class="ess-search-item" data-id="${p.id}">
                         <strong>${escHtml(p.full_name)}</strong>
-                        <small>${escHtml([p.role_label || p.portal_role, p.designation, p.employee_code].filter(Boolean).join(' · '))}</small>
+                        <small>${escHtml([p.role_label || p.portal_role, p.designation, p.employee_code ? 'ID ' + p.employee_code : ''].filter(Boolean).join(' · '))}</small>
                     </button>`).join('');
             }
             results.classList.remove('hidden');
             results.querySelectorAll('.ess-search-item').forEach(btn => {
+                btn.addEventListener('mousedown', e => e.preventDefault());
                 btn.addEventListener('click', () => {
-                    const person = rows.find(r => String(r.id) === btn.dataset.id);
-                    if (!person) return;
-                    onSelect(person);
-                    input.value = '';
-                    hideResults();
-                    renderSelectedPerson(chipId, person, onClear);
+                    pickPerson(rows.find(r => String(r.id) === btn.dataset.id));
                 });
             });
         }, 280);
     });
 
-    input.addEventListener('blur', () => setTimeout(hideResults, 180));
+    input.addEventListener('keydown', e => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        if (!lastRows.length) return;
+        const q = input.value.trim().toLowerCase();
+        const exact = lastRows.find(p =>
+            String(p.employee_code || '').toLowerCase() === q
+            || String(p.id) === q
+        );
+        pickPerson(exact || (lastRows.length === 1 ? lastRows[0] : null));
+    });
+
+    input.addEventListener('blur', () => setTimeout(hideResults, 200));
 }
 
 function renderManagerCard(manager) {
@@ -1039,19 +1516,208 @@ function renderManagerCard(manager) {
     </div>`;
 }
 
-function renderCurrentManagerPanel(manager) {
-    const el = document.getElementById('reporteesCurrentManager');
-    if (!el) return;
-    if (!manager) {
-        el.classList.add('hidden');
-        el.innerHTML = '';
-        return;
-    }
-    el.classList.remove('hidden');
-    el.innerHTML = `<div class="ess-current-manager-inner">
-        <span class="ess-mini-label">Currently linked</span>
-        ${renderManagerCard(manager)}
+function renderDashPersonCard(person) {
+    if (!person) return '';
+    const name = person.full_name || '—';
+    const code = person.employee_code || '';
+    const meta = [person.role_label, person.designation, person.team].filter(Boolean).join(' · ');
+    return `<div class="ess-hierarchy-person-card">
+        <span class="ess-hierarchy-person-avatar" aria-hidden="true">${escHtml(initials(name))}</span>
+        <div class="ess-hierarchy-person-info">
+            <strong>${escHtml(name)}</strong>
+            <span class="ess-hierarchy-person-meta">${code ? `<span class="ess-id-badge">${escHtml(code)}</span>` : ''}${meta ? `<span>${escHtml(meta)}</span>` : ''}</span>
+        </div>
     </div>`;
+}
+
+function renderSidebarReporteesList(reportees) {
+    if (!reportees?.length) return '';
+    return `<div class="ess-sidebar-reportee-list">${reportees.map(r => {
+        const att = r.attendance || {};
+        const st = att.status || 'absent';
+        const label = dayStatusLabel({ status: st, label: att.label });
+        const name = r.full_name || '—';
+        const code = r.employee_code || '—';
+        return `<div class="ess-sidebar-reportee-row">
+            <span class="ess-sidebar-reportee-name">${escHtml(name)}</span>
+            <span class="ess-id-badge">${escHtml(code)}</span>
+            <span class="ess-pill ${st}">${escHtml(label)}</span>
+        </div>`;
+    }).join('')}</div>`;
+}
+
+function renderSidebarManagerRow(manager) {
+    if (!manager) return '';
+    const code = manager.employee_code || '';
+    const meta = [manager.role_label, manager.designation].filter(Boolean).join(' · ');
+    return `<div class="ess-sidebar-manager-row">
+        <span class="ess-sidebar-person-avatar" aria-hidden="true">${escHtml(initials(manager.full_name || 'M'))}</span>
+        <div class="ess-sidebar-person-details">
+            <strong>${escHtml(manager.full_name || 'Manager')}</strong>
+            ${code ? `<span class="ess-id-badge">${escHtml(code)}</span>` : ''}
+            ${meta ? `<small>${escHtml(meta)}</small>` : ''}
+        </div>
+    </div>`;
+}
+
+function renderReporteesAttendanceRows(reportees, { clickable = false } = {}) {
+    if (!reportees?.length) return '';
+    return `<div class="ess-dash-reportee-list">${reportees.map(r => {
+        const att = r.attendance || {};
+        const st = att.status || 'absent';
+        const label = dayStatusLabel({ status: st, label: att.label });
+        const name = r.full_name || '—';
+        const code = r.employee_code || '—';
+        const uid = r.user_id || r.employee_code || '';
+        const hint = att.check_in
+            ? `${formatTime(att.check_in)}${att.check_out ? ' → ' + formatTime(att.check_out) : (att.on_duty ? ' · on duty' : '')}`
+            : '';
+        const tag = clickable ? 'button' : 'div';
+        const extra = clickable
+            ? ` type="button" class="ess-dash-reportee-row ess-dash-reportee-row--click" data-reportee-id="${escHtml(String(uid))}" title="${escHtml(name)}${hint ? ' · ' + hint : ''}"`
+            : ' class="ess-dash-reportee-row"';
+        return `<${tag}${extra}>
+            <span class="ess-dash-reportee-name">${escHtml(name)}</span>
+            <span class="ess-id-badge">${escHtml(code)}</span>
+            <span class="ess-pill ${st}">${escHtml(label)}</span>
+        </${tag}>`;
+    }).join('')}</div>`;
+}
+
+function renderSidebarHierarchy(data) {
+    data = data || HRMS.reporting || {};
+    const manager = data.reporting_to;
+    const reportees = data.reportees || [];
+    const isManager = !!(data.can_manage_reportees || data.is_manager);
+    const onDashboard = HRMS.currentView === 'dashboard';
+
+    const card = document.getElementById('hierarchyCard');
+    if (card) {
+        card.classList.toggle('hidden', !onDashboard);
+    }
+
+    document.getElementById('btnSidebarManageReportees')?.classList.toggle('hidden', !isManager && !data.can_assign_manager);
+
+    const reportingEl = document.getElementById('hierarchyReporting');
+    const reportingEmpty = document.getElementById('hierarchyReportingEmpty');
+    if (manager && reportingEl) {
+        reportingEl.innerHTML = renderSidebarManagerRow(manager);
+        reportingEmpty?.classList.add('hidden');
+    } else {
+        if (reportingEl) reportingEl.innerHTML = '';
+        reportingEmpty?.classList.remove('hidden');
+    }
+
+    const reporteesEl = document.getElementById('hierarchyReportees');
+    const reporteesEmpty = document.getElementById('hierarchyReporteesEmpty');
+    const countBadge = document.getElementById('sidebarReporteesCount');
+    if (countBadge) {
+        if (reportees.length) {
+            countBadge.textContent = String(reportees.length);
+            countBadge.classList.remove('hidden');
+        } else {
+            countBadge.classList.add('hidden');
+        }
+    }
+
+    if (reportees.length && reporteesEl) {
+        reporteesEl.innerHTML = renderSidebarReporteesList(reportees);
+        reporteesEmpty?.classList.add('hidden');
+    } else {
+        if (reporteesEl) reporteesEl.innerHTML = '';
+        reporteesEmpty?.classList.remove('hidden');
+        if (reporteesEmpty) {
+            reporteesEmpty.textContent = isManager
+                ? 'No reportees assigned yet.'
+                : 'No reportees assigned';
+        }
+    }
+}
+
+function renderDashboardHierarchy(data) {
+    renderSidebarHierarchy(data);
+}
+
+function renderReporteesTeamOverview(reportees) {
+    const overview = document.getElementById('reporteesTeamOverview');
+    const chipsEl = document.getElementById('reporteesTeamChips');
+    const emptyEl = document.getElementById('reporteesTeamOverviewEmpty');
+    const countEl = document.getElementById('reporteesOverviewCount');
+    const isManager = !!(HRMS.reporting?.is_manager || HRMS.reporting?.can_manage_reportees);
+
+    overview?.classList.toggle('hidden', !isManager);
+    if (!isManager || !overview) return;
+
+    if (countEl) countEl.textContent = String(reportees?.length || 0);
+
+    if (reportees?.length && chipsEl) {
+        chipsEl.innerHTML = renderReporteeChips(reportees, 0);
+        chipsEl.classList.remove('hidden');
+        bindReporteeChipClicks(chipsEl);
+        emptyEl?.classList.add('hidden');
+    } else {
+        if (chipsEl) {
+            chipsEl.innerHTML = '';
+            chipsEl.classList.add('hidden');
+        }
+        emptyEl?.classList.remove('hidden');
+    }
+}
+
+function renderReporteesPageLayout(data) {
+    data = data || HRMS.reporting || {};
+    const isManager = !!data.is_manager;
+    const manager = data.reporting_to;
+    const pageTitle = isManager ? 'Manage Reportees' : 'My Reporting';
+
+    const tab = document.getElementById('tabReportees');
+    const sideLabel = document.querySelector('[data-nav-id="nav-side-reportees"] span');
+    if (tab) tab.textContent = pageTitle;
+    if (sideLabel) sideLabel.textContent = isManager ? 'Reportees' : 'Reporting';
+
+    const heroTitle = document.getElementById('reporteesPageTitle');
+    const heroSub = document.getElementById('reporteesPageSubtitle');
+    if (heroTitle) {
+        heroTitle.innerHTML = `<i class="fas fa-${isManager ? 'users-gear' : 'sitemap'}"></i> ${pageTitle}`;
+    }
+    if (heroSub) {
+        heroSub.textContent = isManager
+            ? 'Search employees and add them to your team. Review attendance and punch history below.'
+            : 'Your reporting manager is assigned by your team lead, floor manager, HR, or admin.';
+    }
+
+    const canAssignMgr = !!data.can_assign_manager;
+    const viewEl = document.getElementById('reporteesReportingView');
+    const emptyEl = document.getElementById('reporteesReportingEmpty');
+    const managerAssign = document.getElementById('reporteesManagerAssign');
+    const emptyHint = document.getElementById('reporteesReportingEmptyHint');
+
+    if (manager && viewEl) {
+        viewEl.classList.remove('hidden');
+        viewEl.innerHTML = renderDashPersonCard(manager);
+        emptyEl?.classList.add('hidden');
+    } else {
+        viewEl?.classList.add('hidden');
+        if (viewEl) viewEl.innerHTML = '';
+        emptyEl?.classList.remove('hidden');
+    }
+
+    managerAssign?.classList.toggle('hidden', !canAssignMgr);
+    if (emptyHint) {
+        emptyHint.textContent = canAssignMgr
+            ? 'Search and assign your reporting manager below.'
+            : 'Your team lead, floor manager, HR, or admin will link you to the correct reporting line.';
+    }
+
+    document.getElementById('reporteesAssignCard')?.classList.toggle('hidden', !isManager);
+    renderReporteesTeamOverview(data.reportees || []);
+
+    if (HRMS.currentView === 'reportees') {
+        setText('pageTitle', pageTitle);
+        setText('pageSubtitle', isManager
+            ? 'Add employees to your team and monitor attendance'
+            : 'View who you report to');
+    }
 }
 
 function renderReporteeChips(reportees, limit = 0) {
@@ -1062,11 +1728,14 @@ function renderReporteeChips(reportees, limit = 0) {
     return `<div class="ess-reportee-chips">${list.map(r => {
         const att = r.attendance || {};
         const st = att.status || 'absent';
-        const label = att.label || (st === 'late' ? 'Late' : st === 'present' ? 'Present' : 'Absent');
+        const label = dayStatusLabel({ status: st, label: att.label });
         const code = r.employee_code || '—';
         const name = r.full_name || '—';
         const uid = r.user_id || r.employee_code || '';
-        return `<button type="button" class="ess-reportee-chip" data-reportee-id="${escHtml(String(uid))}" title="View ${escHtml(name)} attendance">
+        const hint = st === 'upcoming'
+            ? 'Shift not started'
+            : (att.check_in ? `${formatTime(att.check_in)}${att.check_out ? ' → ' + formatTime(att.check_out) : (att.on_duty ? ' · on duty' : '')}` : '');
+        return `<button type="button" class="ess-reportee-chip" data-reportee-id="${escHtml(String(uid))}" title="${escHtml(name)}${hint ? ' · ' + hint : ''}">
             <span class="ess-reportee-chip-name">${escHtml(name)}</span>
             <span class="ess-id-badge">${escHtml(code)}</span>
             <span class="ess-pill ${st}">${escHtml(label)}</span>
@@ -1124,7 +1793,7 @@ function renderReporteeAttendanceDetail(reportee, history, loadingHistory = fals
 
     const att = reportee.attendance || {};
     const st = att.status || 'absent';
-    const label = att.label || (st === 'late' ? 'Late' : st === 'present' ? 'Present' : 'Absent');
+    const label = dayStatusLabel({ status: st, label: att.label });
     const code = reportee.employee_code || '—';
     const name = reportee.full_name || '—';
     const hours = att.working_hours != null ? Number(att.working_hours).toFixed(2) + ' Hrs' : '0.00 Hrs';
@@ -1213,39 +1882,18 @@ function renderReportingHierarchy(data) {
     if (data?.reportees?.length) {
         HRMS.reporteesList = data.reportees;
     }
-    const hierarchyCard = document.getElementById('hierarchyCard');
-    const reportingWrap = document.getElementById('hierarchyReportingWrap');
-    const reporteesWrap = document.getElementById('hierarchyReporteesWrap');
-    const reportingEl = document.getElementById('hierarchyReporting');
-    const reporteesEl = document.getElementById('hierarchyReportees');
     const teamCard = document.getElementById('reporteesTeamCard');
     const isManager = !!data?.is_manager;
     const reportees = data?.reportees || [];
-    const hasManager = !!data?.reporting_to;
-    const hasReportees = isManager && reportees.length > 0;
 
-    renderCurrentManagerPanel(data?.reporting_to);
+    renderReporteesPageLayout(data);
+    renderSidebarHierarchy(data);
 
-    if (reportingEl && hasManager) {
-        reportingEl.innerHTML = renderManagerCard(data.reporting_to);
-    }
-    if (reportingWrap) {
-        reportingWrap.classList.toggle('hidden', !hasManager);
-    }
-    if (reporteesEl && hasReportees) {
-        reporteesEl.innerHTML = renderReporteeChips(reportees, 6);
-        bindReporteeChipClicks(reporteesEl);
-    }
-    if (reporteesWrap) {
-        reporteesWrap.classList.toggle('hidden', !hasReportees);
-    }
-    if (hierarchyCard) {
-        hierarchyCard.classList.toggle('hidden', !hasManager && !hasReportees);
-    }
     if (teamCard) {
         teamCard.classList.toggle('hidden', !isManager);
     }
     setText('reporteesCountBadge', `${reportees.length} reportee${reportees.length === 1 ? '' : 's'}`);
+    renderReporteesTeamOverview(reportees);
     if (document.getElementById('view-profile')?.classList.contains('active')) {
         renderProfilePage({ user: HRMS.user, meta: HRMS.profileMeta, company_branch_label: HRMS.branchLabel });
     }
@@ -1266,7 +1914,7 @@ function renderReporteesTable(rows) {
     const tbody = document.getElementById('reporteesTableBody');
     if (!tbody) return;
     if (!rows?.length) {
-        tbody.innerHTML = '<tr><td colspan="6">No employees have linked you as their manager yet.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6">No reportees yet. Use <strong>Add Reportee</strong> above to build your team.</td></tr>';
         renderReporteeAttendanceDetail(null);
         return;
     }
@@ -1284,7 +1932,7 @@ function renderReporteesTable(rows) {
             <td>${escHtml(r.team || '—')}</td>
             <td>${att.check_in ? formatTime(att.check_in) : '—'}</td>
             <td>${att.check_out ? formatTime(att.check_out) : (att.on_duty ? 'On duty' : '—')}</td>
-            <td><span class="ess-pill ${st}">${escHtml(att.label || st)}</span></td>
+            <td><span class="ess-pill ${st}">${escHtml(dayStatusLabel({ status: st, label: att.label }))}</span></td>
         </tr>`;
     }).join('');
 
@@ -1312,9 +1960,13 @@ async function loadReporteesView() {
     }
     if (hierarchy) renderReportingHierarchy(hierarchy);
 
-    const tbody = document.getElementById('reporteesTableBody');
-    if (!hierarchy?.is_manager) return;
+    if (!hierarchy?.is_manager) {
+        const teamCard = document.getElementById('reporteesTeamCard');
+        teamCard?.classList.add('hidden');
+        return;
+    }
 
+    const tbody = document.getElementById('reporteesTableBody');
     if (tbody) tbody.innerHTML = '<tr><td colspan="6">Loading team…</td></tr>';
     const res = await apiGet('api/reportees_api.php?action=reportees');
     if (!res.success) {
@@ -1323,6 +1975,7 @@ async function loadReporteesView() {
     }
     HRMS.reporteesList = res.data || [];
     renderReporteesTable(HRMS.reporteesList);
+    renderReporteesTeamOverview(HRMS.reporteesList);
     if (HRMS.selectedReportee) {
         const still = HRMS.reporteesList.find(r =>
             (HRMS.selectedReportee.user_id && r.user_id === HRMS.selectedReportee.user_id)
@@ -1339,80 +1992,165 @@ async function loadReporteesView() {
     setText('reporteesCountBadge', `${HRMS.reporteesList.length} reportee${HRMS.reporteesList.length === 1 ? '' : 's'}`);
 }
 
-function bindManagerReportingSearch() {
-    const input = document.getElementById('managerSearchInput');
-    const results = document.getElementById('managerSearchResults');
-    const confirmBtn = document.getElementById('btnConfirmManager');
+function bindPersonSearchField({
+    inputId, resultsId, selectedId, confirmId, action, onSelect, onClear, onConfirm,
+}) {
+    const input = document.getElementById(inputId);
+    const results = document.getElementById(resultsId);
+    const confirmBtn = confirmId ? document.getElementById(confirmId) : null;
     if (!input || !results) return;
 
     const hideResults = () => results.classList.add('hidden');
+    const timerKey = inputId;
+    let lastRows = [];
+
+    const pickPerson = (person) => {
+        if (!person) return;
+        onSelect(person);
+        input.value = '';
+        hideResults();
+        renderSelectedPerson(selectedId, person, () => {
+            onClear();
+            renderSelectedPerson(selectedId, null);
+            if (confirmBtn) confirmBtn.disabled = true;
+        });
+        if (confirmBtn) confirmBtn.disabled = false;
+    };
+
+    const bindResultButtons = (rows) => {
+        results.querySelectorAll('.ess-search-item').forEach(btn => {
+            btn.addEventListener('mousedown', (e) => e.preventDefault());
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const person = rows.find(r => String(r.id) === btn.dataset.id);
+                pickPerson(person);
+            });
+        });
+    };
 
     input.addEventListener('input', () => {
         const q = input.value.trim();
-        clearTimeout(HRMS.searchTimers.managerSearch);
+        clearTimeout(HRMS.searchTimers[timerKey]);
         if (q.length < 2) {
             hideResults();
+            results.innerHTML = '';
+            lastRows = [];
             return;
         }
-        HRMS.searchTimers.managerSearch = setTimeout(async () => {
-            const res = await apiGet(`api/reportees_api.php?action=searchManagers&q=${encodeURIComponent(q)}`);
+        HRMS.searchTimers[timerKey] = setTimeout(async () => {
+            const res = await apiGet(`api/reportees_api.php?action=${action}&q=${encodeURIComponent(q)}`);
             const rows = res.success ? (res.data || []) : [];
+            lastRows = rows;
             if (!rows.length) {
-                results.innerHTML = '<div class="ess-search-empty">No manager found</div>';
+                results.innerHTML = '<div class="ess-search-empty">No match found</div>';
             } else {
                 results.innerHTML = rows.map(p => `
-                    <button type="button" class="ess-search-item" data-id="${p.id}">
+                    <button type="button" class="ess-search-item" data-id="${escHtml(String(p.id))}">
                         <strong>${escHtml(p.full_name)}</strong>
-                        <small>${escHtml([p.employee_code ? 'ID ' + p.employee_code : '', p.role_label, p.designation].filter(Boolean).join(' · '))}</small>
+                        <small>${escHtml([p.employee_code ? 'ID ' + p.employee_code : '', p.role_label, p.team || p.designation].filter(Boolean).join(' · '))}</small>
                     </button>`).join('');
             }
             results.classList.remove('hidden');
-            results.querySelectorAll('.ess-search-item').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const person = rows.find(r => String(r.id) === btn.dataset.id);
-                    if (!person) return;
-                    HRMS.selectedManager = person;
-                    input.value = '';
-                    hideResults();
-                    renderSelectedPerson('managerSearchSelected', person, () => {
-                        HRMS.selectedManager = null;
-                        renderSelectedPerson('managerSearchSelected', null);
-                        if (confirmBtn) confirmBtn.disabled = true;
-                    });
-                    if (confirmBtn) confirmBtn.disabled = false;
-                });
-            });
+            bindResultButtons(rows);
         }, 280);
     });
 
-    input.addEventListener('blur', () => setTimeout(hideResults, 180));
+    input.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        if (!lastRows.length) return;
+        const q = input.value.trim().toLowerCase();
+        const exact = lastRows.find(p =>
+            String(p.employee_code || '').toLowerCase() === q
+            || String(p.id) === q
+            || String(p.full_name || '').toLowerCase() === q
+        );
+        pickPerson(exact || (lastRows.length === 1 ? lastRows[0] : null));
+    });
 
-    confirmBtn?.addEventListener('click', async () => {
-        if (!HRMS.selectedManager?.id) {
-            toast('Please search and select your manager first', 'error');
-            return;
-        }
-        confirmBtn.disabled = true;
-        const res = await apiPost('api/reportees_api.php?action=assignManager', {
-            manager_user_id: HRMS.selectedManager.id
-        });
-        if (res.success) {
-            toast(res.data?.message || 'You have been added to your manager\'s reportees.');
-            HRMS.selectedManager = null;
-            renderSelectedPerson('managerSearchSelected', null);
-            renderReportingHierarchy(res.data?.hierarchy);
-            input.value = '';
-            confirmBtn.disabled = true;
-            showView('dashboard');
-        } else {
-            toast(res.error || 'Could not link manager', 'error');
-            confirmBtn.disabled = false;
-        }
+    input.addEventListener('blur', () => setTimeout(hideResults, 220));
+    confirmBtn?.addEventListener('click', onConfirm);
+}
+
+function bindReporteesPageEditors() {
+    bindPersonSearchField({
+        inputId: 'reporteeManagerSearchInput',
+        resultsId: 'reporteeManagerSearchResults',
+        selectedId: 'reporteeManagerSearchSelected',
+        confirmId: 'btnConfirmReporteeManager',
+        action: 'searchManagers',
+        onSelect: (person) => { HRMS.selectedAssignManager = person; },
+        onClear: () => { HRMS.selectedAssignManager = null; },
+        onConfirm: async () => {
+            const btn = document.getElementById('btnConfirmReporteeManager');
+            if (!HRMS.selectedAssignManager?.id) {
+                toast('Please search and select a manager first', 'error');
+                return;
+            }
+            if (btn) btn.disabled = true;
+            const res = await apiPost('api/reportees_api.php?action=assignManager', {
+                manager_user_id: HRMS.selectedAssignManager.id,
+            });
+            if (res.success) {
+                toast(res.data?.message || 'Reporting manager saved.');
+                HRMS.selectedAssignManager = null;
+                renderSelectedPerson('reporteeManagerSearchSelected', null);
+                const inp = document.getElementById('reporteeManagerSearchInput');
+                if (inp) inp.value = '';
+                renderReportingHierarchy(res.data?.hierarchy);
+            } else {
+                toast(res.error || 'Could not assign manager', 'error');
+                if (btn) btn.disabled = false;
+            }
+        },
+    });
+}
+
+function bindReporteeAssignSearch() {
+    bindPersonSearchField({
+        inputId: 'reporteeSearchInput',
+        resultsId: 'reporteeSearchResults',
+        selectedId: 'reporteeSearchSelected',
+        confirmId: 'btnConfirmReportee',
+        action: 'searchReportees',
+        onSelect: (person) => { HRMS.selectedAssignReportee = person; },
+        onClear: () => { HRMS.selectedAssignReportee = null; },
+        onConfirm: async () => {
+            const confirmBtn = document.getElementById('btnConfirmReportee');
+            if (!HRMS.selectedAssignReportee?.id) {
+                toast('Please search and select an employee first', 'error');
+                return;
+            }
+            if (confirmBtn) confirmBtn.disabled = true;
+            const res = await apiPost('api/reportees_api.php?action=assignReportee', {
+                employee_user_id: HRMS.selectedAssignReportee.id,
+            });
+            if (res.success) {
+                toast(res.data?.message || 'Reportee added to your team.');
+                HRMS.selectedAssignReportee = null;
+                renderSelectedPerson('reporteeSearchSelected', null);
+                const inp = document.getElementById('reporteeSearchInput');
+                if (inp) inp.value = '';
+                renderReportingHierarchy(res.data?.hierarchy);
+                await loadReporteesView();
+                if (confirmBtn) confirmBtn.disabled = true;
+            } else {
+                toast(res.error || 'Could not add reportee', 'error');
+                if (confirmBtn) confirmBtn.disabled = false;
+            }
+        },
     });
 }
 
 function initLeaveForms() {
-    bindManagerReportingSearch();
+    bindReporteesPageEditors();
+    bindReporteeAssignSearch();
+    document.getElementById('btnSidebarManageReportees')?.addEventListener('click', () => {
+        showView('reportees', 'nav-tab-reportees');
+    });
+    document.getElementById('btnDashReviewApprovals')?.addEventListener('click', () => {
+        showView('approvals', 'nav-tab-approvals');
+    });
     bindPersonSearch('leaveApproverSearch', 'leaveApproverResults', 'leaveApproverSelected', 'searchApprovers',
         p => { HRMS.selectedApprover = p; },
         () => { HRMS.selectedApprover = null; renderSelectedPerson('leaveApproverSelected', null); }
@@ -1429,6 +2167,27 @@ function initLeaveForms() {
         p => { HRMS.halfEmployee = p; },
         () => { HRMS.halfEmployee = null; renderSelectedPerson('halfEmployeeSelected', null); }
     );
+
+    document.getElementById('btnOpenLeaveApply')?.addEventListener('click', openLeaveApplyModal);
+    document.getElementById('btnPolicyApplyLeave')?.addEventListener('click', () => {
+        showView('leave', 'nav-tab-leave');
+        openLeaveApplyModal();
+    });
+    document.getElementById('leaveApplyModalClose')?.addEventListener('click', closeLeaveApplyModal);
+    document.getElementById('leaveApplyModalCancel')?.addEventListener('click', closeLeaveApplyModal);
+    document.getElementById('leaveApplyModal')?.addEventListener('click', e => {
+        if (e.target.id === 'leaveApplyModal') closeLeaveApplyModal();
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key !== 'Escape') return;
+        if (!document.getElementById('leaveWithdrawModal')?.classList.contains('hidden')) {
+            closeLeaveWithdrawModal();
+            return;
+        }
+        if (!document.getElementById('leaveApplyModal')?.classList.contains('hidden')) {
+            closeLeaveApplyModal();
+        }
+    });
 
     document.getElementById('formFullLeave')?.addEventListener('submit', async e => {
         e.preventDefault();
@@ -1479,6 +2238,7 @@ async function submitLeave(durationType, formId) {
             HRMS.selectedEmployee = null;
             renderSelectedPerson('leaveApproverSelected', null);
             renderSelectedPerson('leaveEmployeeSelected', null);
+            closeLeaveApplyModal();
         }
         await loadProfile();
         showView('leave');
@@ -1487,21 +2247,123 @@ async function submitLeave(durationType, formId) {
     }
 }
 
+function leaveStatusLabel(status) {
+    const map = {
+        pending: 'Pending',
+        approved: 'Approved',
+        rejected: 'Rejected',
+        cancelled: 'Withdrawn',
+    };
+    return map[status] || status;
+}
+
+function leaveWithdrawActionCell(r) {
+    if (!r.can_withdraw) {
+        return '<td class="ess-leave-actions-col"><span class="ess-leave-no-action">—</span></td>';
+    }
+    const label = r.status === 'approved' ? 'Revert' : 'Withdraw';
+    return `<td class="ess-leave-actions-col">
+        <button type="button" class="ess-leave-withdraw-btn" data-leave-id="${r.id}" title="${label} this leave request">
+            <i class="fas fa-undo"></i> ${label}
+        </button>
+    </td>`;
+}
+
 function renderLeaveRows(data, tbodyId) {
     const tbody = document.getElementById(tbodyId);
     if (!tbody) return;
     if (!data.length) {
-        tbody.innerHTML = '<tr><td colspan="6">No leave applications found yet.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7">No leave applications found yet.</td></tr>';
         return;
     }
     tbody.innerHTML = data.map(r => `<tr>
         <td>${r.duration_type === 'half_day' ? 'Half (' + (r.half_day_slot || '') + ')' : 'Full'}</td>
-        <td>${r.leave_type}</td>
+        <td>${escHtml(leaveTypeLabel(r.leave_type) || r.leave_type)}</td>
         <td>${formatDate(r.start_date)}${r.end_date !== r.start_date ? ' – ' + formatDate(r.end_date) : ''}</td>
         <td>${escHtml(r.approver_name || (r.apply_through || '').replace(/_/g, ' '))}</td>
-        <td><span class="status-pill ${r.status}">${r.status}</span></td>
+        <td><span class="status-pill ${r.status}">${leaveStatusLabel(r.status)}</span></td>
         <td>${new Date(r.created_at).toLocaleString()}</td>
+        ${leaveWithdrawActionCell(r)}
     </tr>`).join('');
+    tbody.querySelectorAll('.ess-leave-withdraw-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = parseInt(btn.dataset.leaveId, 10);
+            const row = (HRMS.leaveRequests || []).find(x => parseInt(x.id, 10) === id);
+            openLeaveWithdrawModal(row || { id });
+        });
+    });
+}
+
+function openLeaveWithdrawModal(row) {
+    if (!row?.id) return;
+    HRMS.withdrawLeaveRequest = row;
+    const modal = document.getElementById('leaveWithdrawModal');
+    const summary = document.getElementById('leaveWithdrawSummary');
+    const note = document.getElementById('leaveWithdrawNote');
+    const title = document.getElementById('leaveWithdrawModalTitle');
+    if (!modal || !summary) return;
+    const isApproved = row.status === 'approved';
+    if (title) {
+        title.textContent = isApproved ? 'Revert approved leave' : 'Withdraw leave request';
+    }
+    const dur = row.duration_type === 'half_day'
+        ? `Half day (${row.half_day_slot || 'session'})`
+        : 'Full day';
+    const dates = formatDate(row.start_date) + (row.end_date !== row.start_date ? ' – ' + formatDate(row.end_date) : '');
+    summary.innerHTML = `
+        <div class="ess-withdraw-summary-grid">
+            <div class="ess-withdraw-summary-item">
+                <span class="ess-withdraw-summary-label">Leave type</span>
+                <strong>${escHtml(leaveTypeLabel(row.leave_type) || row.leave_type)}</strong>
+            </div>
+            <div class="ess-withdraw-summary-item">
+                <span class="ess-withdraw-summary-label">Duration</span>
+                <strong>${escHtml(dur)}</strong>
+            </div>
+            <div class="ess-withdraw-summary-item ess-withdraw-summary-item--wide">
+                <span class="ess-withdraw-summary-label">Dates</span>
+                <strong>${dates}</strong>
+            </div>
+            <div class="ess-withdraw-summary-item ess-withdraw-summary-item--wide">
+                <span class="ess-withdraw-summary-label">Current status</span>
+                <strong><span class="status-pill ${row.status}">${leaveStatusLabel(row.status)}</span></strong>
+            </div>
+        </div>
+        <p class="ess-withdraw-hint">${isApproved
+            ? 'This approved leave will be cancelled and removed from your schedule.'
+            : 'Your approver will be notified that you no longer need this leave.'}</p>`;
+    if (note) note.value = '';
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('ess-modal-open');
+    setTimeout(() => note?.focus(), 120);
+}
+
+function closeLeaveWithdrawModal() {
+    const modal = document.getElementById('leaveWithdrawModal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('ess-modal-open');
+    HRMS.withdrawLeaveRequest = null;
+}
+
+async function submitLeaveWithdraw() {
+    const row = HRMS.withdrawLeaveRequest;
+    if (!row?.id) return;
+    const note = (document.getElementById('leaveWithdrawNote')?.value || '').trim();
+    const btn = document.getElementById('leaveWithdrawModalConfirm');
+    if (btn) btn.disabled = true;
+    const res = await apiPost('api/leave_api.php?action=withdrawLeave', { leave_id: row.id, note });
+    if (btn) btn.disabled = false;
+    if (res.success) {
+        toast(res.error || 'Leave request withdrawn successfully');
+        closeLeaveWithdrawModal();
+        await loadMyLeaves();
+        await loadProfile();
+    } else {
+        toast(res.error || 'Could not withdraw leave request', 'error');
+    }
 }
 
 async function loadMyLeaves(tabOnly = false) {
@@ -1522,10 +2384,31 @@ function updateManagerApprovalUI(summary) {
     if (statWrap) statWrap.classList.toggle('hidden', !canApprove);
     setText('managerPendingCount', String(pending), '0');
     setText('statTeamPending', String(pending), '0');
+
+    const dashCard = document.getElementById('dashLeaveApprovalsCard');
+    if (dashCard) dashCard.classList.toggle('hidden', !canApprove);
+    document.getElementById('essDashBottomGrid')?.classList.toggle('ess-dash-bottom-grid--solo', !canApprove);
+    setText('dashLeaveApprovalsBadge', String(pending), '0');
+    const dashText = document.getElementById('dashLeaveApprovalsText');
+    if (dashText) {
+        dashText.textContent = pending > 0
+            ? `${pending} leave request${pending === 1 ? '' : 's'} waiting for your review.`
+            : 'No pending leave requests from your team right now.';
+    }
 }
 
 function leaveTypeLabel(type) {
-    const map = { casual: 'Casual', sick: 'Sick', annual: 'Annual', emergency: 'On Duty', unpaid: 'Comp Off' };
+    const map = {
+        casual: 'Casual',
+        sick: 'Sick',
+        annual: 'Annual',
+        emergency: 'On Duty',
+        unpaid: 'Comp Off',
+        public_holiday: 'Public Holiday',
+        eid: 'Eid Vacation',
+        company_holiday: 'Company Holiday',
+        other: 'Other',
+    };
     return map[type] || (type || 'Leave').replace(/_/g, ' ');
 }
 
@@ -1666,15 +2549,64 @@ async function loadNotifications() {
     document.getElementById('badgeNotif')?.classList.add('hidden');
 }
 
+function formatBadgeCount(n) {
+    return n > 99 ? '99+' : String(n);
+}
+
+function updateChatBadges(unread) {
+    const count = Math.max(0, parseInt(unread, 10) || 0);
+    ['badgeHeaderChat', 'badgeSideChat', 'badgeChatFab'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (count > 0) {
+            el.textContent = formatBadgeCount(count);
+            el.classList.remove('hidden');
+        } else {
+            el.classList.add('hidden');
+        }
+    });
+}
+
+async function pollChatUnread() {
+    const res = await apiGet('api/chat_api.php?action=unreadSummary');
+    if (!res.success) return;
+    const unread = res.data?.total_unread ?? 0;
+    updateChatBadges(unread);
+    const onChat = HRMS.currentView === 'chat';
+    if (!onChat && HRMS.lastChatUnread != null && unread > HRMS.lastChatUnread) {
+        window.PortalNotifySound?.play();
+    }
+    HRMS.lastChatUnread = unread;
+}
+
 async function pollNotifications() {
     const res = await apiGet('api/leave_api.php?action=notifications');
-    if (res.success && res.data.unread > 0) {
-        const b = document.getElementById('badgeNotif');
-        if (b) {
-            b.textContent = res.data.unread;
+    if (!res.success) return;
+    const unread = res.data.unread || 0;
+    const b = document.getElementById('badgeNotif');
+    if (b) {
+        if (unread > 0) {
+            b.textContent = formatBadgeCount(unread);
             b.classList.remove('hidden');
+        } else {
+            b.classList.add('hidden');
         }
     }
+    if (HRMS.lastNotifUnread != null && unread > HRMS.lastNotifUnread) {
+        window.PortalNotifySound?.play();
+    }
+    HRMS.lastNotifUnread = unread;
+}
+
+function startPortalNotificationPolling() {
+    pollNotifications();
+    pollChatUnread();
+    if (HRMS.notifyTimer) clearInterval(HRMS.notifyTimer);
+    if (HRMS.chatPollTimer) clearInterval(HRMS.chatPollTimer);
+    HRMS.notifyTimer = setInterval(pollNotifications, 20000);
+    HRMS.chatPollTimer = setInterval(() => {
+        if (HRMS.currentView !== 'chat') pollChatUnread();
+    }, 6000);
 }
 
 async function uploadProfilePhoto(file) {
@@ -1710,6 +2642,12 @@ function bindNavigation() {
         el.addEventListener('click', () => navigateFromEl(el));
     });
     document.getElementById('btnUserMenu')?.addEventListener('click', () => showView('profile', 'nav-tab-profile'));
+    document.getElementById('btnChatBackDashboard')?.addEventListener('click', () => {
+        if (location.hash === '#chat') {
+            history.replaceState(null, '', location.pathname + location.search);
+        }
+        showView('dashboard', 'nav-tab-activities');
+    });
     document.getElementById('essBrandHome')?.addEventListener('click', (e) => {
         e.preventDefault();
         showView('dashboard', 'nav-side-home');
@@ -1747,6 +2685,13 @@ function bindNavigation() {
         if (f) uploadProfilePhoto(f);
     });
 
+    document.getElementById('leaveWithdrawModalClose')?.addEventListener('click', closeLeaveWithdrawModal);
+    document.getElementById('leaveWithdrawModalCancel')?.addEventListener('click', closeLeaveWithdrawModal);
+    document.getElementById('leaveWithdrawModalConfirm')?.addEventListener('click', submitLeaveWithdraw);
+    document.getElementById('leaveWithdrawModal')?.addEventListener('click', e => {
+        if (e.target.id === 'leaveWithdrawModal') closeLeaveWithdrawModal();
+    });
+
     document.getElementById('approvalModalClose')?.addEventListener('click', closeApprovalModal);
     document.getElementById('approvalModalCancel')?.addEventListener('click', closeApprovalModal);
     document.getElementById('approvalModalApprove')?.addEventListener('click', () => submitApprovalModal(true));
@@ -1777,21 +2722,46 @@ function setupWorkPortalLink() {
 document.addEventListener('DOMContentLoaded', () => {
     bindNavigation();
     initLeaveForms();
+    initLeavePolicyForm();
+    if (location.hash === '#chat') showView('chat', 'nav-side-chat');
+    else if (location.hash === '#profile') showView('profile', 'nav-tab-profile');
+    else showView('dashboard', 'nav-tab-activities');
     loadProfile().then(() => {
         setupWorkPortalLink();
         startAttendanceRefresh();
     });
-    HRMS.notifyTimer = setInterval(pollNotifications, 20000);
-    document.addEventListener('visibilitychange', () => {
-        if (!document.hidden && (HRMS.todayDuty?.timerActive || isOnDuty(HRMS.todayDuty?.checkIn, HRMS.todayDuty?.checkOut))) {
-            updateLiveTimer();
+    startPortalNotificationPolling();
+    window.addEventListener('message', (e) => {
+        if (e.data?.type === 'portal-chat-unread') {
+            const total = parseInt(e.data.total, 10) || 0;
+            updateChatBadges(total);
+            HRMS.lastChatUnread = total;
+        }
+        if (e.data?.type === 'portal-navigate' && e.data.view) {
+            if (location.hash === '#chat') {
+                history.replaceState(null, '', location.pathname + location.search);
+            }
+            showView(e.data.view, ESS_DEFAULT_NAV[e.data.view] || null);
         }
     });
-    if (location.hash === '#chat') showView('chat', 'nav-side-chat');
-    else if (location.hash === '#profile') showView('profile', 'nav-tab-profile');
+    document.addEventListener('click', () => window.PortalNotifySound?.unlock?.(), { once: true, capture: true });
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            pollNotifications();
+            if (HRMS.currentView !== 'chat') pollChatUnread();
+            if (HRMS.todayDuty?.timerActive || isOnDuty(HRMS.todayDuty?.checkIn, HRMS.todayDuty?.checkOut)) {
+                updateLiveTimer();
+            }
+        }
+    });
 });
 
 window.HRMS = HRMS;
+window.openLeaveApplyModal = openLeaveApplyModal;
+window.closeLeaveApplyModal = closeLeaveApplyModal;
+window.openLeaveWithdrawModal = openLeaveWithdrawModal;
+window.closeLeaveWithdrawModal = closeLeaveWithdrawModal;
+window.updatePortalChatBadge = updateChatBadges;
 window.HRMS.approveLeave = approveLeave;
 window.HRMS.openApprovalModal = openApprovalModal;
 window.HRMS.closeApprovalModal = closeApprovalModal;

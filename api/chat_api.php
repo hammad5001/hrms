@@ -129,34 +129,71 @@ switch ($action) {
         $rows = [];
         $res = $stmt->get_result();
         while ($row = $res->fetch_assoc()) {
+            if (chat_is_blocked($conn, $me_id, (int)$row['id'])) {
+                continue;
+            }
             $rows[] = chat_format_user($row);
         }
         chat_json(true, $rows);
         break;
 
-    case 'listConversations':
+    case 'unreadSummary':
         $stmt = $conn->prepare("
-            SELECT c.id, c.type, c.title, c.avatar_color, c.updated_at
+            SELECT c.id, c.type
             FROM chat_conversations c
             INNER JOIN chat_participants p ON p.conversation_id = c.id AND p.user_id = ?
+            WHERE p.participant_status != 'declined'
+            ORDER BY c.updated_at DESC
+            LIMIT 80
+        ");
+        $stmt->bind_param('i', $me_id);
+        $stmt->execute();
+        $total_unread = 0;
+        $res = $stmt->get_result();
+        while ($row = $res->fetch_assoc()) {
+            $cid = (int)$row['id'];
+            if (($row['type'] ?? '') === 'direct') {
+                $peer = chat_direct_peer_row($conn, $cid, $me_id);
+                if ($peer && chat_is_blocked($conn, $me_id, (int)$peer['id'])) {
+                    continue;
+                }
+            }
+            $total_unread += chat_unread_count($conn, $cid, $me_id);
+        }
+        chat_json(true, ['total_unread' => $total_unread]);
+        break;
+
+    case 'listConversations':
+        $stmt = $conn->prepare("
+            SELECT c.id, c.type, c.title, c.avatar_color, c.updated_at, p.participant_status AS my_status
+            FROM chat_conversations c
+            INNER JOIN chat_participants p ON p.conversation_id = c.id AND p.user_id = ?
+            WHERE p.participant_status != 'declined'
             ORDER BY c.updated_at DESC
             LIMIT 80
         ");
         $stmt->bind_param('i', $me_id);
         $stmt->execute();
         $list = [];
+        $request_count = 0;
         $res = $stmt->get_result();
         while ($conv = $res->fetch_assoc()) {
             $cid = (int)$conv['id'];
             $conv['id'] = $cid;
+            $my_status = $conv['my_status'] ?? 'active';
+            $conv['my_status'] = $my_status;
+            $conv['is_request'] = ($conv['type'] === 'direct' && $my_status === 'pending');
+            if ($conv['is_request']) {
+                $request_count++;
+            }
             $conv['display_title'] = chat_conversation_title($conn, $conv, $me_id);
             $conv['unread'] = chat_unread_count($conn, $cid, $me_id);
 
             $last = $conn->prepare("
-                SELECT m.body, m.msg_type, m.created_at, u.full_name AS sender_name
+                SELECT m.body, m.msg_type, m.created_at, u.full_name AS sender_name, m.is_deleted
                 FROM chat_messages m
                 INNER JOIN users u ON u.id = m.sender_id
-                WHERE m.conversation_id = ?
+                WHERE m.conversation_id = ? AND m.is_deleted = 0
                 ORDER BY m.id DESC LIMIT 1
             ");
             $last->bind_param('i', $cid);
@@ -166,6 +203,9 @@ switch ($action) {
             if ($conv['type'] === 'direct') {
                 $peer = chat_direct_peer_row($conn, $cid, $me_id);
                 if ($peer) {
+                    if (chat_is_blocked($conn, $me_id, (int)$peer['id'])) {
+                        continue;
+                    }
                     $conv['avatar_url'] = chat_public_avatar_url($peer['chat_avatar'] ?? '');
                     $conv['avatar_color'] = chat_user_avatar_color((int)$peer['id']);
                     $conv['peer_id'] = (int)$peer['id'];
@@ -174,7 +214,7 @@ switch ($action) {
 
             $list[] = $conv;
         }
-        chat_json(true, $list);
+        chat_json(true, ['items' => $list, 'request_count' => $request_count]);
         break;
 
     case 'getMessages':
@@ -262,6 +302,7 @@ switch ($action) {
             chat_mark_delivered_for_viewer($conn, $cid, $me_id, $incoming_ids);
         }
         chat_attach_message_meta($conn, $messages, $me_id);
+        $messages = chat_filter_hidden_messages($conn, $messages, $me_id);
 
         $parts = $conn->prepare("
             SELECT u.id, u.full_name, u.email, u.employee_code, u.department, u.designation,
@@ -291,6 +332,8 @@ switch ($action) {
         $lrStmt->execute();
         $last_read_at = $lrStmt->get_result()->fetch_assoc()['last_read_at'] ?? null;
 
+        $conv_meta = chat_conversation_meta_for_user($conn, $cid, $me_id, $conv);
+
         chat_json(true, [
             'conversation' => $conv,
             'messages' => $messages,
@@ -300,6 +343,7 @@ switch ($action) {
             'last_read_at' => $last_read_at,
             'unread_count' => chat_unread_count($conn, $cid, $me_id),
             'has_more' => $has_more,
+            'meta' => $conv_meta,
         ]);
         break;
 
@@ -308,6 +352,10 @@ switch ($action) {
         $body = chat_sanitize_message_body($input['body'] ?? '');
         if (!$cid || !chat_validate_conversation_access($conn, $cid, $me_id)) {
             chat_json(false, null, 'Conversation not found');
+        }
+        $sendErr = chat_assert_can_send($conn, $cid, $me_id);
+        if ($sendErr) {
+            chat_json(false, null, $sendErr);
         }
         if ($body === '') {
             chat_json(false, null, 'Message cannot be empty');
@@ -351,6 +399,9 @@ switch ($action) {
         if ($other_id <= 0 || $other_id === $me_id) {
             chat_json(false, null, 'Invalid user');
         }
+        if (chat_is_blocked($conn, $me_id, $other_id)) {
+            chat_json(false, null, 'You cannot message this user');
+        }
         $check = $conn->prepare('SELECT id FROM users WHERE id = ? AND status = ? LIMIT 1');
         $active = 'active';
         $check->bind_param('is', $other_id, $active);
@@ -361,7 +412,17 @@ switch ($action) {
 
         $existing = chat_find_direct($conn, $me_id, $other_id);
         if ($existing) {
-            chat_json(true, ['conversation_id' => $existing]);
+            $peer_status = chat_get_participant_status($conn, $existing, $other_id);
+            if ($peer_status === 'declined') {
+                $reopen = $conn->prepare("UPDATE chat_participants SET participant_status = 'pending' WHERE conversation_id = ? AND user_id = ?");
+                $reopen->bind_param('ii', $existing, $other_id);
+                $reopen->execute();
+                chat_ws_notify_inbox($conn, $existing);
+            }
+            chat_json(true, [
+                'conversation_id' => $existing,
+                'my_status' => chat_get_participant_status($conn, $existing, $me_id),
+            ]);
         }
 
         $ins = $conn->prepare("INSERT INTO chat_conversations (type, created_by, company_branch) VALUES ('direct', ?, ?)");
@@ -369,13 +430,16 @@ switch ($action) {
         $ins->execute();
         $cid = (int)$conn->insert_id;
 
-        $part = $conn->prepare('INSERT INTO chat_participants (conversation_id, user_id, last_read_at) VALUES (?, ?, NOW())');
-        foreach ([$me_id, $other_id] as $uid) {
-            $part->bind_param('ii', $cid, $uid);
-            $part->execute();
-        }
-        chat_ws_publish(array_merge([$me_id, $other_id]), 'inbox', ['conversation_id' => $cid]);
-        chat_json(true, ['conversation_id' => $cid]);
+        $status_active = 'active';
+        $status_pending = 'pending';
+        $part = $conn->prepare('INSERT INTO chat_participants (conversation_id, user_id, participant_status, last_read_at) VALUES (?, ?, ?, NOW())');
+        $part->bind_param('iis', $cid, $me_id, $status_active);
+        $part->execute();
+        $part->bind_param('iis', $cid, $other_id, $status_pending);
+        $part->execute();
+
+        chat_ws_notify_inbox($conn, $cid);
+        chat_json(true, ['conversation_id' => $cid, 'my_status' => 'active', 'is_new_request' => true]);
         break;
 
     case 'createGroup':
@@ -484,6 +548,10 @@ switch ($action) {
             $upd = $conn->prepare("UPDATE chat_messages SET is_deleted = 1, body = '', file_path = NULL, file_name = NULL WHERE id = ?");
             $upd->bind_param('i', $mid);
             $upd->execute();
+        } else {
+            $hide = $conn->prepare('INSERT IGNORE INTO chat_message_hides (user_id, message_id) VALUES (?, ?)');
+            $hide->bind_param('ii', $me_id, $mid);
+            $hide->execute();
         }
         $cid = (int)$mrow['conversation_id'];
         chat_touch_conversation($conn, $cid);
@@ -491,7 +559,79 @@ switch ($action) {
             chat_ws_notify_conversation($conn, $cid, 'message.delete', ['message_id' => $mid]);
             chat_ws_notify_inbox($conn, $cid);
         }
-        chat_json(true, ['message_id' => $mid]);
+        chat_json(true, ['message_id' => $mid, 'for_all' => $forAll]);
+        break;
+
+    case 'listBlockedUsers':
+        $stmt = $conn->prepare("
+            SELECT u.id, u.full_name, u.email, u.employee_code, u.department, u.designation,
+                   u.portal_role, u.chat_avatar, b.created_at AS blocked_at
+            FROM chat_blocks b
+            INNER JOIN users u ON u.id = b.blocked_id
+            WHERE b.blocker_id = ?
+            ORDER BY b.created_at DESC
+            LIMIT 100
+        ");
+        $stmt->bind_param('i', $me_id);
+        $stmt->execute();
+        $rows = [];
+        $res = $stmt->get_result();
+        while ($row = $res->fetch_assoc()) {
+            $user = chat_format_user($row);
+            $user['blocked_at'] = $row['blocked_at'];
+            $rows[] = $user;
+        }
+        chat_json(true, ['items' => $rows, 'count' => count($rows)]);
+        break;
+
+    case 'blockUser':
+        $other_id = (int)($input['user_id'] ?? 0);
+        if ($other_id <= 0 || $other_id === $me_id) {
+            chat_json(false, null, 'Invalid user');
+        }
+        $ins = $conn->prepare('INSERT IGNORE INTO chat_blocks (blocker_id, blocked_id) VALUES (?, ?)');
+        $ins->bind_param('ii', $me_id, $other_id);
+        $ins->execute();
+        chat_json(true, ['ok' => true]);
+        break;
+
+    case 'unblockUser':
+        $other_id = (int)($input['user_id'] ?? 0);
+        if ($other_id <= 0) {
+            chat_json(false, null, 'Invalid user');
+        }
+        $del = $conn->prepare('DELETE FROM chat_blocks WHERE blocker_id = ? AND blocked_id = ?');
+        $del->bind_param('ii', $me_id, $other_id);
+        $del->execute();
+        chat_json(true, ['ok' => true]);
+        break;
+
+    case 'acceptRequest':
+        $cid = (int)($input['conversation_id'] ?? 0);
+        if (!$cid || chat_get_participant_status($conn, $cid, $me_id) !== 'pending') {
+            chat_json(false, null, 'No pending message request');
+        }
+        $active = 'active';
+        $upd = $conn->prepare("UPDATE chat_participants SET participant_status = ? WHERE conversation_id = ? AND user_id = ?");
+        $upd->bind_param('sii', $active, $cid, $me_id);
+        $upd->execute();
+        chat_mark_conversation_read($conn, $cid, $me_id);
+        chat_ws_notify_conversation($conn, $cid, 'request.accepted', ['conversation_id' => $cid, 'user_id' => $me_id]);
+        chat_ws_notify_inbox($conn, $cid);
+        chat_json(true, ['ok' => true]);
+        break;
+
+    case 'declineRequest':
+        $cid = (int)($input['conversation_id'] ?? 0);
+        if (!$cid || chat_get_participant_status($conn, $cid, $me_id) !== 'pending') {
+            chat_json(false, null, 'No pending message request');
+        }
+        $declined = 'declined';
+        $upd = $conn->prepare("UPDATE chat_participants SET participant_status = ? WHERE conversation_id = ? AND user_id = ?");
+        $upd->bind_param('sii', $declined, $cid, $me_id);
+        $upd->execute();
+        chat_ws_notify_conversation($conn, $cid, 'request.declined', ['conversation_id' => $cid, 'user_id' => $me_id]);
+        chat_json(true, ['ok' => true]);
         break;
 
     case 'clearChat':
