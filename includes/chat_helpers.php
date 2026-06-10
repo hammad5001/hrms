@@ -8,6 +8,39 @@ function chat_json(bool $ok, $data = null, ?string $error = null): void {
     exit;
 }
 
+/** mysqli bind_param requires references — safe on all PHP versions used in production. */
+function chat_mysqli_bind(mysqli_stmt $stmt, string $types, array $values): bool {
+    if ($types === '' || count($values) !== strlen($types)) {
+        return false;
+    }
+    $bind = array_merge([$types], array_values($values));
+    $refs = [];
+    foreach ($bind as $i => $_) {
+        $refs[$i] = &$bind[$i];
+    }
+    return call_user_func_array([$stmt, 'bind_param'], $refs);
+}
+
+function chat_table_has_column(mysqli $conn, string $table, string $column): bool {
+    static $cache = [];
+    $key = $table . '.' . $column;
+    if (array_key_exists($key, $cache)) {
+        return $cache[$key];
+    }
+    $stmt = $conn->prepare(
+        'SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1'
+    );
+    if (!$stmt) {
+        $cache[$key] = false;
+        return false;
+    }
+    $stmt->bind_param('ss', $table, $column);
+    $stmt->execute();
+    $cache[$key] = (bool)$stmt->get_result()->fetch_row();
+    return $cache[$key];
+}
+
 /** @return int[] */
 function chat_participant_user_ids(mysqli $conn, int $conversation_id): array {
     $stmt = $conn->prepare('SELECT user_id FROM chat_participants WHERE conversation_id = ?');
@@ -213,6 +246,192 @@ function chat_find_direct(mysqli $conn, int $user_a, int $user_b): ?int {
 function chat_user_avatar_color(int $user_id): string {
     $colors = ['#4f46e5', '#0891b2', '#059669', '#d97706', '#dc2626', '#7c3aed', '#db2777'];
     return $colors[abs($user_id) % count($colors)];
+}
+
+/** Parse sidebar/group search text (supports "5070 - Syed Ramish" display format). */
+function chat_parse_user_search_query(string $q): array {
+    $raw = trim(preg_replace('/\s+/u', ' ', $q));
+    if ($raw === '') {
+        return ['raw' => '', 'text' => '', 'code' => null, 'tokens' => []];
+    }
+
+    $code = null;
+    $text = $raw;
+    if (preg_match('/^(\d+)\s*[-–—]\s*(.+)$/u', $raw, $m)) {
+        $code = $m[1];
+        $text = trim($m[2]);
+    }
+
+    $tokens = preg_split('/\s+/u', strtolower($text), -1, PREG_SPLIT_NO_EMPTY);
+    if ($code !== null && $code !== '') {
+        array_unshift($tokens, strtolower($code));
+    } elseif (preg_match('/^\d+$/', $raw)) {
+        $code = $raw;
+        $tokens = array_values(array_unique(array_merge([strtolower($raw)], $tokens)));
+    }
+
+    return [
+        'raw' => $raw,
+        'text' => $text,
+        'code' => $code,
+        'tokens' => $tokens,
+    ];
+}
+
+function chat_user_search_blob_sql(mysqli $conn): string {
+    $parts = [
+        'u.full_name',
+        'u.email',
+        "IFNULL(u.employee_code, '')",
+        "IFNULL(u.phone, '')",
+        "IFNULL(u.designation, '')",
+        "IFNULL(u.department, '')",
+        "CONCAT(IFNULL(u.employee_code, ''), ' - ', u.full_name)",
+        "TRIM(CONCAT(IFNULL(u.employee_code, ''), ' ', u.full_name))",
+    ];
+    if (chat_table_has_column($conn, 'users', 'team')) {
+        $parts[] = "IFNULL(u.team, '')";
+    }
+    return 'LOWER(CONCAT_WS(\' \', ' . implode(', ', $parts) . '))';
+}
+
+function chat_user_search_blob(array $row): string {
+    return strtolower(trim(implode(' ', array_filter([
+        $row['full_name'] ?? '',
+        $row['email'] ?? '',
+        $row['employee_code'] ?? '',
+        $row['phone'] ?? '',
+        $row['designation'] ?? '',
+        $row['department'] ?? '',
+        $row['team'] ?? '',
+        trim(($row['employee_code'] ?? '') . ' - ' . ($row['full_name'] ?? '')),
+    ]))));
+}
+
+/**
+ * Search active colleagues for new direct chat or group members.
+ *
+ * @return array<int, array<string, mixed>>
+ */
+function chat_search_users(mysqli $conn, int $me_id, string $q, int $limit = 25): array {
+    require_once __DIR__ . '/employee_resolve.php';
+
+    $parsed = chat_parse_user_search_query($q);
+    if ($parsed['raw'] === '') {
+        return [];
+    }
+
+    $blob = chat_user_search_blob_sql($conn);
+    $types = 'i';
+    $params = [$me_id];
+    $matchParts = [];
+    $needles = ['%' . strtolower($parsed['raw']) . '%'];
+
+    if ($parsed['text'] !== '' && strcasecmp($parsed['text'], $parsed['raw']) !== 0) {
+        $needles[] = '%' . strtolower($parsed['text']) . '%';
+    }
+    foreach ($needles as $needle) {
+        $matchParts[] = $blob . ' LIKE ?';
+        $types .= 's';
+        $params[] = $needle;
+    }
+
+    $codeVariants = [];
+    if ($parsed['code'] !== null && $parsed['code'] !== '') {
+        $codeVariants = employee_code_variants($parsed['code']);
+    } elseif (preg_match('/^\d+$/', $parsed['raw'])) {
+        $codeVariants = employee_code_variants($parsed['raw']);
+    }
+    foreach ($codeVariants as $variant) {
+        $matchParts[] = "LOWER(IFNULL(u.employee_code, '')) = LOWER(?)";
+        $types .= 's';
+        $params[] = $variant;
+    }
+
+    $sql = "
+        SELECT u.id, u.full_name, u.email, u.employee_code, u.department, u.designation,
+               u.portal_role, u.chat_avatar
+        FROM users u
+        WHERE u.status = 'active' AND u.id != ?
+        AND (" . implode(' OR ', $matchParts) . ")
+        ORDER BY u.full_name ASC
+        LIMIT ?
+    ";
+    $types .= 'i';
+    $params[] = max($limit * 3, 60);
+
+    $stmt = $conn->prepare($sql);
+    if (!$stmt || !chat_mysqli_bind($stmt, $types, $params)) {
+        error_log('chat_search_users prepare/bind failed: ' . ($conn->error ?? 'unknown'));
+        return chat_search_users_fallback($conn, $me_id, $parsed, $limit);
+    }
+
+    if (!$stmt->execute()) {
+        error_log('chat_search_users execute failed: ' . $stmt->error);
+        return chat_search_users_fallback($conn, $me_id, $parsed, $limit);
+    }
+
+    $filterTokens = array_values(array_filter(
+        preg_split('/\s+/u', strtolower($parsed['text']), -1, PREG_SPLIT_NO_EMPTY) ?: [],
+        static fn(string $tok): bool => strlen($tok) >= 2
+    ));
+
+    $rows = [];
+    $res = $stmt->get_result();
+    while ($row = $res->fetch_assoc()) {
+        if (chat_is_blocked($conn, $me_id, (int)$row['id'])) {
+            continue;
+        }
+        if (!empty($filterTokens)) {
+            $haystack = chat_user_search_blob($row);
+            $matched = true;
+            foreach ($filterTokens as $tok) {
+                if (!str_contains($haystack, $tok)) {
+                    $matched = false;
+                    break;
+                }
+            }
+            if (!$matched) {
+                continue;
+            }
+        }
+        $rows[] = chat_format_user($row);
+        if (count($rows) >= $limit) {
+            break;
+        }
+    }
+
+    return $rows;
+}
+
+/** Minimal search used when the main query cannot run on a given server schema. */
+function chat_search_users_fallback(mysqli $conn, int $me_id, array $parsed, int $limit = 25): array {
+    $needle = '%' . strtolower($parsed['raw']) . '%';
+    $sql = "
+        SELECT id, full_name, email, employee_code, department, designation, portal_role, chat_avatar
+        FROM users
+        WHERE status = 'active' AND id != ?
+        AND (
+            LOWER(full_name) LIKE ? OR LOWER(email) LIKE ?
+            OR LOWER(IFNULL(employee_code, '')) LIKE ?
+        )
+        ORDER BY full_name ASC
+        LIMIT ?
+    ";
+    $stmt = $conn->prepare($sql);
+    if (!$stmt || !chat_mysqli_bind($stmt, 'issssi', [$me_id, $needle, $needle, $needle, $limit])) {
+        return [];
+    }
+    $stmt->execute();
+    $rows = [];
+    $res = $stmt->get_result();
+    while ($row = $res->fetch_assoc()) {
+        if (chat_is_blocked($conn, $me_id, (int)$row['id'])) {
+            continue;
+        }
+        $rows[] = chat_format_user($row);
+    }
+    return $rows;
 }
 
 function chat_format_user(array $row): array {

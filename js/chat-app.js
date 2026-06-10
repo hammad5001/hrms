@@ -24,6 +24,9 @@ const Chat = {
     },
     groupMembers: [],
     searchTimer: null,
+    sidebarSearchTimer: null,
+    groupSearchTimer: null,
+    searchRequestId: 0,
     typingTimer: null,
     typingSent: false,
     convType: 'direct',
@@ -264,31 +267,57 @@ function initChatPrefs() {
 const EMOJIS = ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','😉','😍','🥰','😘','😋','😎','🤔','😐','😢','😭','😡','👍','👎','👏','🙏','💪','❤️','🔥','✅','❌','⭐','🎉','📎','📷','💼','☕','🚀'];
 
 /* ─── Utility ───────────────────────────────────────────── */
+function chatApiRoot() {
+    if (window.CHAT_API_ROOT) {
+        return String(window.CHAT_API_ROOT).replace(/\/?$/, '/');
+    }
+    return new URL('./', window.location.href).href;
+}
+
+function chatApiUrl(action, params = {}) {
+    const url = new URL('api/chat_api.php', chatApiRoot());
+    url.searchParams.set('action', action);
+    Object.entries(params || {}).forEach(([key, value]) => {
+        if (value != null && String(value) !== '') {
+            url.searchParams.set(key, String(value));
+        }
+    });
+    return url.href;
+}
+
 async function parseChatResponse(r) {
     const text = await r.text();
+    if (!r.ok) {
+        console.error('Chat API HTTP', r.status, r.url, text.slice(0, 240));
+        return { success: false, error: r.status === 401 ? 'Session expired. Please sign in again.' : 'Server error. Try again.' };
+    }
     try { return JSON.parse(text); }
-    catch { return { success: false, error: 'Server error. Try again.' }; }
+    catch {
+        console.error('Chat API invalid JSON', r.url, text.slice(0, 240));
+        return { success: false, error: 'Server error. Try again.' };
+    }
 }
 
 async function chatApi(action, opts = {}) {
     const method = opts.method || 'GET';
     if (method === 'GET') {
-        const q = new URLSearchParams({ action, ...opts.params });
-        const r = await fetch('api/chat_api.php?' + q, { credentials: 'include' });
+        const r = await fetch(chatApiUrl(action, opts.params || {}), { credentials: 'include' });
         return parseChatResponse(r);
     }
     if (opts.formData) {
         if (!opts.formData.has('action')) opts.formData.append('action', action);
-        let url = 'api/chat_api.php?action=' + encodeURIComponent(action);
+        let url = chatApiUrl(action);
         const cid = opts.conversationId || Chat.activeId;
         if (cid && action === 'upload') {
-            url += '&conversation_id=' + encodeURIComponent(String(cid));
+            const uploadUrl = new URL(url);
+            uploadUrl.searchParams.set('conversation_id', String(cid));
+            url = uploadUrl.href;
             if (!opts.formData.has('conversation_id')) opts.formData.append('conversation_id', String(cid));
         }
         const r = await fetch(url, { method: 'POST', credentials: 'include', body: opts.formData });
         return parseChatResponse(r);
     }
-    const r = await fetch('api/chat_api.php?action=' + encodeURIComponent(action), {
+    const r = await fetch(chatApiUrl(action), {
         method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(opts.body || {})
@@ -533,21 +562,36 @@ function notifyTyping() {
 }
 
 /* ─── Search ────────────────────────────────────────────── */
+function chatSearchDisplayName(user) {
+    if (!user) return '';
+    const code = (user.employee_code || '').trim();
+    const name = (user.full_name || '').trim();
+    return code ? `${code} - ${name}` : name;
+}
+
 function renderSearchResults(users, container, onPick) {
     const el = document.getElementById(container);
-    if (!users.length) { el.classList.add('hidden'); el.innerHTML = ''; return; }
+    if (!el) return;
+    if (!users.length) {
+        el.classList.remove('hidden');
+        el.innerHTML = '<div class="chat-search-empty">No colleagues found. Try name, BID, or email.</div>';
+        return;
+    }
     el.classList.remove('hidden');
     el.innerHTML = users.map(u => `
         <div class="chat-search-hit" data-id="${u.id}">
             ${avatarHtml({ url: u.avatar_url, name: u.full_name, id: u.id, color: u.avatar_color })}
             <div class="meta">
-                <div class="name">${escapeHtml(u.full_name)}</div>
-                <div class="sub">BID: ${escapeHtml(u.employee_code || '—')} · ${escapeHtml(u.email)}</div>
+                <div class="name">${escapeHtml(chatSearchDisplayName(u))}</div>
+                <div class="sub">${escapeHtml([u.designation, u.department, u.email].filter(Boolean).join(' · '))}</div>
             </div>
         </div>
     `).join('');
     el.querySelectorAll('.chat-search-hit').forEach(hit => {
-        hit.addEventListener('click', () => onPick(parseInt(hit.dataset.id, 10), users.find(x => x.id === parseInt(hit.dataset.id, 10))));
+        hit.addEventListener('click', () => {
+            const id = Number(hit.dataset.id);
+            onPick(id, users.find(x => Number(x.id) === id));
+        });
     });
 }
 
@@ -563,15 +607,34 @@ function closeSidebarSearch() {
     clearBtn?.classList.add('hidden');
 }
 
-async function searchUsers(q, container, onPick) {
+async function searchUsers(q, container, onPick, opts = {}) {
     const clearBtn = document.getElementById('btnClearSearch');
+    const el = document.getElementById(container);
     if (q.length < 1) {
-        closeSidebarSearch();
+        if (opts.sidebar) closeSidebarSearch();
+        else if (el) {
+            el.classList.add('hidden');
+            el.innerHTML = '';
+        }
         return;
     }
-    clearBtn?.classList.remove('hidden');
+    if (opts.sidebar) clearBtn?.classList.remove('hidden');
+    const requestId = ++Chat.searchRequestId;
+    if (el) {
+        el.classList.remove('hidden');
+        el.innerHTML = '<div class="chat-search-empty">Searching…</div>';
+    }
     const res = await chatApi('searchUsers', { params: { q } });
-    if (res.success) renderSearchResults(res.data, container, onPick);
+    if (requestId !== Chat.searchRequestId) return;
+    if (!res.success) {
+        if (el) {
+            el.classList.remove('hidden');
+            el.innerHTML = `<div class="chat-search-empty">${escapeHtml(res.error || 'Search failed. Try again.')}</div>`;
+        }
+        toast(res.error || 'Search failed. Try again.');
+        return;
+    }
+    renderSearchResults(Array.isArray(res.data) ? res.data : [], container, onPick);
 }
 
 function initConversationListEvents() {
@@ -2135,9 +2198,9 @@ function initGroupModal() {
         if (e.target === modal) closeGroupModal();
     });
     document.getElementById('groupMemberSearch').addEventListener('input', e => {
-        clearTimeout(Chat.searchTimer);
+        clearTimeout(Chat.groupSearchTimer);
         const q = e.target.value.trim();
-        Chat.searchTimer = setTimeout(() => {
+        Chat.groupSearchTimer = setTimeout(() => {
             searchUsers(q, 'groupSearchResults', (id, user) => {
                 if (Chat.groupMembers.some(m => m.id === id)) {
                     toast('Already added to group');
@@ -2230,9 +2293,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     /* ── Sidebar search ── */
     const userSearch = document.getElementById('userSearch');
     userSearch?.addEventListener('input', e => {
-        clearTimeout(Chat.searchTimer);
+        clearTimeout(Chat.sidebarSearchTimer);
         const q = e.target.value.trim();
-        Chat.searchTimer = setTimeout(() => searchUsers(q, 'searchResults', id => startDirectChat(id)), 280);
+        Chat.sidebarSearchTimer = setTimeout(
+            () => searchUsers(q, 'searchResults', id => startDirectChat(id), { sidebar: true }),
+            280
+        );
     });
     userSearch?.addEventListener('keydown', e => {
         if (e.key === 'Escape') closeSidebarSearch();

@@ -217,7 +217,7 @@ html, body.chat-body {
     flex-direction: column;
     height: 100%;
     min-height: 0;
-    overflow: hidden;
+    overflow: visible;
     box-shadow: 4px 0 24px rgba(15, 23, 42, 0.06);
     position: relative;
     z-index: 15;
@@ -234,7 +234,7 @@ html, body.chat-body {
 .sidebar-search-wrap {
     position: relative;
     flex-shrink: 0;
-    z-index: 30;
+    z-index: 80;
     padding: 0 16px;
     margin-bottom: 4px;
 }
@@ -895,7 +895,8 @@ html, body.chat-body {
     border: 1px solid var(--c-border-hard);
     border-radius: var(--r-lg);
     box-shadow: var(--shadow-menu);
-    z-index: 50;
+    z-index: 90;
+    pointer-events: auto;
 }
 
 .chat-search-results.hidden {
@@ -934,6 +935,13 @@ html, body.chat-body {
 
 .chat-search-hit .name { font-size: 14px; font-weight: 600; color: var(--c-text-1); }
 .chat-search-hit .sub { font-size: 12px; color: var(--c-text-3); margin-top: 2px; }
+
+.chat-search-empty {
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--c-text-3);
+    text-align: center;
+}
 
 /* ── Main panel ── */
 .chat-main {
@@ -2376,6 +2384,20 @@ body.chat-modal-open .chat-modal-overlay.open {
     color: var(--c-text-4);
     margin-top: 8px;
     line-height: 1.5;
+}
+
+.group-search-field {
+    position: relative;
+    margin-bottom: 8px;
+}
+
+.group-search-field .chat-search-results.modal-results {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    margin: 0;
+    z-index: 95;
 }
 
 .group-search-wrap {

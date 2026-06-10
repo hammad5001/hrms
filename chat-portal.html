@@ -10,9 +10,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script>if (/(?:\?|&)embed=1(?:&|$)/.test(location.search)) document.documentElement.classList.add('chat-embed-mode');</script>
-    <link rel="stylesheet" href="css/chat.css?v=27">
+    <link rel="stylesheet" href="css/chat.css?v=29">
     <link rel="stylesheet" href="css/chat-pro.css?v=29">
-    <link rel="stylesheet" href="css/chat-embed.css?v=5">
+    <link rel="stylesheet" href="css/chat-embed.css?v=6">
 </head>
 <body class="chat-body">
     <div class="chat-app-frame">
@@ -77,7 +77,7 @@
             <div class="sidebar-search-wrap">
                 <div class="sidebar-search">
                     <i class="fas fa-search" aria-hidden="true"></i>
-                    <input type="text" id="userSearch" placeholder="Search people by name or BID…" autocomplete="off" aria-label="Search colleagues">
+                    <input type="text" id="userSearch" placeholder="Search by name, BID, or email…" autocomplete="off" aria-label="Search colleagues">
                     <button type="button" class="btn-clear-search hidden" id="btnClearSearch" title="Clear search" aria-label="Clear search">
                         <i class="fas fa-times"></i>
                     </button>
@@ -319,11 +319,13 @@
                     </div>
                 </div>
                 <label class="lbl" for="groupMemberSearch">Add participants</label>
-                <div class="group-search-wrap">
-                    <i class="fas fa-search"></i>
-                    <input type="text" class="inp group-search-inp" id="groupMemberSearch" placeholder="Search name, email, or BID…">
+                <div class="group-search-field">
+                    <div class="group-search-wrap">
+                        <i class="fas fa-search"></i>
+                        <input type="text" class="inp group-search-inp" id="groupMemberSearch" placeholder="Search name, email, or BID…">
+                    </div>
+                    <div class="chat-search-results modal-results hidden" id="groupSearchResults"></div>
                 </div>
-                <div class="chat-search-results modal-results hidden" id="groupSearchResults"></div>
                 <div class="group-members-head">
                     <span>Selected</span>
                     <span class="group-member-count" id="groupMemberCount">0 participants</span>
@@ -422,6 +424,6 @@
     <div class="chat-toast" id="chatToast" role="status" aria-live="polite"></div>
     <script src="js/portal-access.js"></script>
     <script src="js/portal-notify-sound.js?v=1"></script>
-    <script src="js/chat-app.js?v=29"></script>
+    <script src="js/chat-app.js?v=31"></script>
 </body>
 </html>

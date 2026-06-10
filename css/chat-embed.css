@@ -115,6 +115,11 @@ html.chat-embed-mode .sidebar-action-pill--primary {
 html.chat-embed-mode .sidebar-search-wrap {
     padding: 0 14px;
     margin-bottom: 2px;
+    z-index: 80;
+}
+
+html.chat-embed-mode .chat-search-results {
+    z-index: 95;
 }
 
 html.chat-embed-mode .sidebar-search {

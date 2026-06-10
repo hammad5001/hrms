@@ -108,33 +108,12 @@ switch ($action) {
         break;
 
     case 'searchUsers':
-        $q = trim($_GET['q'] ?? $input['q'] ?? '');
-        if (strlen($q) < 1) {
+        $q = trim((string)($_GET['q'] ?? $input['q'] ?? ''));
+        if ($q === '') {
             chat_json(true, []);
         }
-        $like = '%' . $q . '%';
-        $stmt = $conn->prepare("
-            SELECT id, full_name, email, employee_code, department, designation, portal_role, chat_avatar
-            FROM users
-            WHERE status = 'active' AND id != ?
-            AND (
-                email LIKE ? OR employee_code LIKE ? OR full_name LIKE ?
-                OR phone LIKE ?
-            )
-            ORDER BY full_name ASC
-            LIMIT 25
-        ");
-        $stmt->bind_param('issss', $me_id, $like, $like, $like, $like);
-        $stmt->execute();
-        $rows = [];
-        $res = $stmt->get_result();
-        while ($row = $res->fetch_assoc()) {
-            if (chat_is_blocked($conn, $me_id, (int)$row['id'])) {
-                continue;
-            }
-            $rows[] = chat_format_user($row);
-        }
-        chat_json(true, $rows);
+        $results = chat_search_users($conn, $me_id, $q);
+        chat_json(true, $results);
         break;
 
     case 'unreadSummary':
