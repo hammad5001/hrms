@@ -131,3 +131,25 @@ select.form-control option,
 .ess-leave-modal .ess-leave-date {
     color-scheme: dark !important;
 }
+
+/* Employee portal — approvals action select (override global white native dropdown) */
+.ess-approval-card,
+.ess-approval-actions {
+    color-scheme: dark;
+}
+.ess-approval-action-select {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-color: #161b2e !important;
+    color: #e2e8f0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color-scheme: dark !important;
+}
+.ess-approval-action-select option {
+    background-color: #161b2e !important;
+    color: #ffffff !important;
+}
+.ess-approval-action-select option[value=""] {
+    color: #94a3b8 !important;
+}

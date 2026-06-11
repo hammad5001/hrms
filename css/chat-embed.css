@@ -32,32 +32,7 @@ html.chat-embed-mode .chat-main {
 }
 
 .chat-embed-back {
-    display: none;
-}
-html.chat-embed-mode .chat-embed-back {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    align-self: flex-start;
-    padding: 8px 12px;
-    margin-bottom: 2px;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    background: #f8fafc;
-    color: #334155;
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-html.chat-embed-mode .chat-embed-back:hover {
-    background: #eef2ff;
-    border-color: #c7d2fe;
-    color: #4338ca;
-}
-html.chat-embed-mode .chat-embed-back i {
-    font-size: 12px;
+    display: none !important;
 }
 
 /* ── Sidebar header ── */
@@ -106,9 +81,18 @@ html.chat-embed-mode .sidebar-action-pill {
 }
 
 html.chat-embed-mode .sidebar-action-pill--primary {
-    background: linear-gradient(180deg, #5b57eb 0%, #4f46e5 100%);
-    border-color: transparent;
-    box-shadow: 0 1px 2px rgba(79, 70, 229, 0.2), 0 4px 12px rgba(79, 70, 229, 0.22);
+    background: linear-gradient(180deg, #7dd3fc 0%, #38bdf8 100%);
+    border-color: #0ea5e9;
+    color: #0c4a6e;
+    font-weight: 700;
+    box-shadow: 0 1px 2px rgba(14, 165, 233, 0.2), 0 4px 14px rgba(56, 189, 248, 0.45);
+}
+
+html.chat-embed-mode .sidebar-action-pill--primary:hover {
+    background: linear-gradient(180deg, #38bdf8 0%, #0ea5e9 100%);
+    border-color: #0284c7;
+    color: #fff;
+    box-shadow: 0 2px 4px rgba(14, 165, 233, 0.25), 0 6px 16px rgba(14, 165, 233, 0.4);
 }
 
 /* ── Search ── */
@@ -469,8 +453,17 @@ html.chat-embed-mode .welcome-btn {
 }
 
 html.chat-embed-mode .welcome-btn--primary {
-    background: linear-gradient(180deg, #5b57eb 0%, #4f46e5 100%);
-    box-shadow: 0 1px 2px rgba(79, 70, 229, 0.2), 0 4px 12px rgba(79, 70, 229, 0.25);
+    background: linear-gradient(180deg, #7dd3fc 0%, #38bdf8 100%);
+    border: 1px solid #0ea5e9;
+    color: #0c4a6e;
+    font-weight: 700;
+    box-shadow: 0 1px 2px rgba(14, 165, 233, 0.2), 0 4px 14px rgba(56, 189, 248, 0.45);
+}
+
+html.chat-embed-mode .welcome-btn--primary:hover {
+    background: linear-gradient(180deg, #38bdf8 0%, #0ea5e9 100%);
+    border-color: #0284c7;
+    color: #fff;
 }
 
 html.chat-embed-mode .welcome-btn:active {

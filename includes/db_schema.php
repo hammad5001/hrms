@@ -172,6 +172,57 @@ function ensure_app_schema(mysqli $conn): void {
             INDEX `idx_branch` (`company_branch`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
 
+        "CREATE TABLE IF NOT EXISTS `leave_policies` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `company_branch` VARCHAR(32) NOT NULL DEFAULT 'main',
+            `policy_name` VARCHAR(150) NOT NULL,
+            `policy_code` VARCHAR(32) NOT NULL,
+            `leave_type` VARCHAR(40) NOT NULL,
+            `leave_category` VARCHAR(32) NOT NULL DEFAULT 'paid',
+            `unit` VARCHAR(16) NOT NULL DEFAULT 'days',
+            `credit_value` INT NOT NULL DEFAULT 0,
+            `reset_enabled` TINYINT(1) NOT NULL DEFAULT 0,
+            `reset_frequency` VARCHAR(20) DEFAULT 'yearly',
+            `reset_day_month` VARCHAR(20) DEFAULT '31-Dec',
+            `carry_forward_enabled` TINYINT(1) NOT NULL DEFAULT 0,
+            `carry_forward_value` INT NOT NULL DEFAULT 0,
+            `encash_enabled` TINYINT(1) NOT NULL DEFAULT 0,
+            `encash_value` INT NOT NULL DEFAULT 0,
+            `valid_from` DATE DEFAULT NULL,
+            `expires_on` DATE DEFAULT NULL,
+            `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+            `created_by` VARCHAR(150) DEFAULT NULL,
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY `uk_lp_branch_code` (`company_branch`, `policy_code`),
+            INDEX `idx_lp_branch_active` (`company_branch`, `is_active`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+        "CREATE TABLE IF NOT EXISTS `employee_leave_policy_map` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `employee_code` VARCHAR(32) NOT NULL,
+            `policy_id` INT NOT NULL,
+            `company_branch` VARCHAR(32) NOT NULL DEFAULT 'main',
+            `assigned_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY `uk_elpm_emp_policy` (`employee_code`, `policy_id`),
+            INDEX `idx_elpm_policy` (`policy_id`),
+            INDEX `idx_elpm_branch` (`company_branch`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+        "CREATE TABLE IF NOT EXISTS `leave_balance` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `employee_code` VARCHAR(32) NOT NULL,
+            `company_branch` VARCHAR(32) NOT NULL DEFAULT 'main',
+            `casual_leaves` DECIMAL(8,1) NOT NULL DEFAULT 0,
+            `sick_leaves` DECIMAL(8,1) NOT NULL DEFAULT 0,
+            `annual_leaves` DECIMAL(8,1) NOT NULL DEFAULT 0,
+            `compensatory_leaves` DECIMAL(8,1) NOT NULL DEFAULT 0,
+            `on_duty_leaves` DECIMAL(8,1) NOT NULL DEFAULT 0,
+            `wfh_leaves` DECIMAL(8,1) NOT NULL DEFAULT 0,
+            `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY `uk_lb_emp_branch` (`employee_code`, `company_branch`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
         "CREATE TABLE IF NOT EXISTS `employee_profile_details` (
             `user_id` INT NOT NULL PRIMARY KEY,
             `date_of_birth` DATE DEFAULT NULL,
@@ -216,6 +267,8 @@ function ensure_leave_request_columns(mysqli $conn): void {
         'is_policy_allotment' => 'TINYINT(1) NOT NULL DEFAULT 0',
         'allotted_by_user_id' => 'INT DEFAULT NULL',
         'allotted_by_name' => 'VARCHAR(150) DEFAULT NULL',
+        'policy_credit_value' => 'DECIMAL(8,1) DEFAULT NULL',
+        'policy_id' => 'INT DEFAULT NULL',
     ];
     foreach ($cols as $col => $def) {
         $res = $conn->query("SHOW COLUMNS FROM `leave_requests` LIKE '$col'");

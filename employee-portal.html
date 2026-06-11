@@ -11,8 +11,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
-    <link rel="stylesheet" href="css/employee-hrms.css?v=43">
-    <link rel="stylesheet" href="css/dropdown-fix.css?v=2">
+    <link rel="stylesheet" href="css/employee-hrms.css?v=55">
+    <link rel="stylesheet" href="css/dropdown-fix.css?v=3">
 </head>
 <body class="ess-body">
     <div class="ess-animated-bg" aria-hidden="true"></div>
@@ -27,7 +27,7 @@
                 <button type="button" class="ess-header-link" data-nav-id="nav-header-overview" data-view="coming-soon" data-nav-label="Overview">Overview</button>
                 <button type="button" class="ess-header-link" data-nav-id="nav-header-dashboard" data-view="dashboard">Dashboard</button>
                 <button type="button" class="ess-header-link" data-nav-id="nav-header-calendar" data-view="attendance">Calendar</button>
-                <button type="button" class="ess-header-link hidden" data-nav-id="nav-header-approvals" data-view="approvals" id="headerApprovals">Team Approvals</button>
+                <button type="button" class="ess-header-link hidden" data-nav-id="nav-header-approvals" data-view="approvals" id="headerApprovals">Approvals</button>
                 <button type="button" class="ess-header-link ess-header-chat" data-nav-id="nav-header-chat" data-view="chat"><i class="fas fa-comments"></i> Chat<span class="ess-badge hidden" id="badgeHeaderChat">0</span></button>
             </nav>
             </div>
@@ -60,10 +60,10 @@
                 <nav class="ess-side-nav">
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-home" data-view="dashboard"><i class="fas fa-house"></i><span>Home</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-onboarding" data-view="coming-soon" data-nav-label="Onboarding"><i class="fas fa-user-plus"></i><span>Onboarding</span></button>
-                    <button type="button" class="ess-side-item" data-nav-id="nav-side-leave" data-view="leave"><i class="fas fa-calendar-minus"></i><span>Leave Tracker</span></button>
-                    <button type="button" class="ess-side-item" data-nav-id="nav-side-leave-policy" data-view="leave-policy"><i class="fas fa-scale-balanced"></i><span>Leave Policy</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-leave" data-view="leave"><i class="fas fa-calendar-minus"></i><span>Leaves</span></button>
+                    <button type="button" class="ess-side-item hidden" data-nav-id="nav-side-leave-policy" data-view="leave-policy" id="navSideLeavePolicy"><i class="fas fa-scale-balanced"></i><span>Leave Policy</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-attendance" data-view="attendance"><i class="fas fa-fingerprint"></i><span>Attendance</span></button>
-                    <button type="button" class="ess-side-item hidden" data-nav-id="nav-side-approvals" data-view="approvals" id="navApprovals"><i class="fas fa-user-check"></i><span>Team Approvals</span><span class="ess-side-badge hidden" id="badgeApprovals">0</span></button>
+                    <button type="button" class="ess-side-item hidden" data-nav-id="nav-side-approvals" data-view="approvals" id="navApprovals"><i class="fas fa-user-check"></i><span>Approvals</span><span class="ess-side-badge hidden" id="badgeApprovals">0</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-timetracker" data-view="coming-soon" data-nav-label="Time Tracker"><i class="fas fa-clock"></i><span>Time Tracker</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-payroll" data-view="salary"><i class="fas fa-wallet"></i><span>Payroll</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-files" data-view="coming-soon" data-nav-label="Files"><i class="fas fa-folder-open"></i><span>Files</span></button>
@@ -79,12 +79,11 @@
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-feeds" data-view="coming-soon" data-nav-label="Feeds">Feeds</button>
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-profile" data-view="profile" id="tabProfile">Profile</button>
                     <button type="button" class="ess-tab hidden" data-nav-id="nav-tab-approvals" data-view="approvals" id="tabApprovals">Approvals</button>
-                    <button type="button" class="ess-tab" data-nav-id="nav-tab-leave" data-view="leave">Leave</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-leave" data-view="leave">Leaves</button>
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-attendance" data-view="attendance">Attendance</button>
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-timelogs" data-view="coming-soon" data-nav-label="Time Logs">Time Logs</button>
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-timesheets" data-view="coming-soon" data-nav-label="Timesheets">Timesheets</button>
-                    <button type="button" class="ess-tab" data-nav-id="nav-tab-myleaves" data-view="myleaves">My Leaves</button>
-                    <button type="button" class="ess-tab" data-nav-id="nav-tab-leave-policy" data-view="leave-policy">Leave Policy</button>
+                    <button type="button" class="ess-tab hidden" data-nav-id="nav-tab-leave-policy" data-view="leave-policy" id="tabLeavePolicy">Leave Policy</button>
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-reportees" data-view="reportees" id="tabReportees">Manage Reportees</button>
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-notifications" data-view="notifications">Notifications</button>
                 </nav>
@@ -401,6 +400,20 @@
                                 </div>
                                 <div class="ess-week-list" id="attendanceWeekList"></div>
                             </div>
+
+                            <div class="ess-card ess-att-weekly-card">
+                                <div class="ess-activities-head">
+                                    <h3><i class="fas fa-chart-bar"></i> Weekly Report</h3>
+                                    <p id="attWeeklyRangeLabel">This week</p>
+                                </div>
+                                <div class="ess-activities-shift">
+                                    <strong>Night Shift</strong>
+                                    <span id="attWeeklyShiftHours">6pm to 4am</span>
+                                </div>
+                                <div class="ess-att-weekly-summary" id="attWeeklySummary" aria-label="Week summary"></div>
+                                <div class="ess-activities-timeline ess-att-weekly-timeline" id="attendanceWeeklyTimeline" role="list" aria-label="Weekly attendance overview"></div>
+                            </div>
+
                             <div class="ess-card">
                                 <h3><i class="fas fa-list"></i> Attendance History (30 days)</h3>
                                 <div class="ess-table-wrap">
@@ -428,16 +441,27 @@
 
                         <!-- Leave -->
                         <section id="view-leave" class="view-section">
-                            <div class="ess-card-head-row">
-                                <h3>Leave Tracker</h3>
-                                <button type="button" class="ess-btn ess-btn-primary" id="btnOpenLeaveApply"><i class="fas fa-plus"></i> Apply Leave</button>
+                            <div class="ess-leave-hero">
+                                <div class="ess-leave-hero-main">
+                                    <h3>Leaves</h3>
+                                    <p class="ess-muted-line ess-leave-intro">Track balances, apply for leave, and view HR allotments (Eid, holidays). You are notified when leave is allotted.</p>
+                                </div>
+                                <div class="ess-leave-hero-meta">
+                                    <div class="ess-leave-year-nav" aria-label="Leave year">
+                                        <button type="button" class="ess-icon-btn" id="leaveYearPrev" title="Previous year"><i class="fas fa-chevron-left"></i></button>
+                                        <span id="leaveYearLabel">2026</span>
+                                        <button type="button" class="ess-icon-btn" id="leaveYearNext" title="Next year"><i class="fas fa-chevron-right"></i></button>
+                                    </div>
+                                    <button type="button" class="ess-btn ess-btn-outline" id="btnOpenHalfDayApply"><i class="fas fa-calendar-day"></i> Half Day</button>
+                                    <button type="button" class="ess-btn ess-btn-primary" id="btnOpenLeaveApply"><i class="fas fa-plus"></i> Apply Leave</button>
+                                </div>
                             </div>
-                            <div class="ess-leave-balances" id="leaveBalanceGrid"></div>
+                            <div class="ess-leave-balances" id="leaveBalanceGrid" aria-label="Leave balances"></div>
                             <div class="ess-card">
-                                <h3>Leave Applications</h3>
+                                <h3>My Leaves</h3>
                                 <div class="ess-table-wrap">
                                     <table class="data-table">
-                                        <thead><tr><th>Duration</th><th>Type</th><th>Dates</th><th>Approver</th><th>Status</th><th>Applied</th><th class="ess-leave-actions-col">Action</th></tr></thead>
+                                        <thead><tr><th>Duration</th><th>Type</th><th>Dates</th><th>Days</th><th>Approver</th><th>Status</th><th>Applied</th><th class="ess-leave-actions-col">Action</th></tr></thead>
                                         <tbody id="myLeavesBody"></tbody>
                                     </table>
                                 </div>
@@ -446,8 +470,11 @@
 
                         <!-- Half Day -->
                         <section id="view-halfday" class="view-section">
-                            <div class="ess-card">
+                            <div class="ess-card-head-row ess-leave-halfday-head">
                                 <h3><i class="fas fa-calendar-day"></i> Apply Half Day</h3>
+                                <button type="button" class="ess-btn ess-btn-outline ess-btn-sm" id="btnBackToLeaves"><i class="fas fa-arrow-left"></i> Back to Leaves</button>
+                            </div>
+                            <div class="ess-card">
                                 <div class="form-field hidden" id="halfLeaveEmployeeField">
                                     <label>Apply leave for employee</label>
                                     <div class="ess-person-search" data-search-type="employee-half">
@@ -479,11 +506,7 @@
                                         </div>
                                         <div class="form-field">
                                             <label>Leave Type</label>
-                                            <select name="leave_type">
-                                                <option value="casual">Casual</option>
-                                                <option value="sick">Sick</option>
-                                                <option value="annual">Annual</option>
-                                            </select>
+                                            <select name="leave_type" data-leave-select="half_day"></select>
                                         </div>
                                     </div>
                                     <input type="hidden" name="end_date" value="">
@@ -496,102 +519,116 @@
                             </div>
                         </section>
 
-                        <!-- My Leaves -->
-                        <section id="view-myleaves" class="view-section">
-                            <div class="ess-card">
-                                <h3><i class="fas fa-list-check"></i> My Leave Requests</h3>
-                                <div class="ess-table-wrap">
-                                    <table class="data-table">
-                                        <thead><tr><th>Duration</th><th>Type</th><th>Dates</th><th>Approver</th><th>Status</th><th>Applied</th><th class="ess-leave-actions-col">Action</th></tr></thead>
-                                        <tbody id="myLeavesBodyTab"></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </section>
-
                         <!-- Leave Policy -->
                         <section id="view-leave-policy" class="view-section">
-                            <div class="ess-card ess-policy-intro">
-                                <div class="ess-card-head"><h3><i class="fas fa-scale-balanced"></i> Company Leave Policy</h3></div>
-                                <p class="ess-muted-line">Official leave entitlements and how company-wide holidays (Eid, public holidays, etc.) are applied to your record.</p>
-                                <div class="ess-policy-grid" id="leavePolicyRules">
-                                    <div class="ess-policy-rule"><i class="fas fa-umbrella-beach"></i><div><strong>Annual Leave</strong><span>14 days per year</span></div></div>
-                                    <div class="ess-policy-rule"><i class="fas fa-notes-medical"></i><div><strong>Sick Leave</strong><span>10 days per year</span></div></div>
-                                    <div class="ess-policy-rule"><i class="fas fa-calendar-days"></i><div><strong>Casual Leave</strong><span>12 days per year</span></div></div>
-                                    <div class="ess-policy-rule"><i class="fas fa-mosque"></i><div><strong>Eid &amp; Public Holidays</strong><span>Allotted by HR / Super Admin</span></div></div>
-                                </div>
-                                <p class="ess-muted-line ess-policy-note"><i class="fas fa-circle-info"></i> When HR or Super Admin allots a holiday, it is recorded on your attendance automatically and you receive a notification.</p>
-                            </div>
-
-                            <div class="ess-card hidden" id="leavePolicyAllotCard">
+                            <div class="ess-card" id="leavePolicyManageCard">
                                 <div class="ess-card-head-row">
-                                    <h3><i class="fas fa-gift"></i> Allot Leave</h3>
-                                    <span class="ess-pill present">HR / Super Admin</span>
+                                    <h3><i class="fas fa-file-contract"></i> Manage Leave Policies</h3>
+                                    <span class="ess-pill present">Admin / HR</span>
                                 </div>
-                                <p class="ess-muted-line">Use for Eid vacations, public holidays, or company closures — all employees or one employee.</p>
-                                <form id="formPolicyAllot">
-                                    <div class="form-field">
-                                        <label>Allot to</label>
-                                        <div class="ess-policy-targets">
-                                            <label class="ess-radio-pill"><input type="radio" name="policy_target" value="all" checked> <span><i class="fas fa-users"></i> All employees</span></label>
-                                            <label class="ess-radio-pill"><input type="radio" name="policy_target" value="selected"> <span><i class="fas fa-user-check"></i> Selected employees</span></label>
-                                        </div>
-                                    </div>
-                                    <div class="form-field hidden" id="policyEmployeeField">
-                                        <label>Select employees</label>
-                                        <div class="ess-person-search">
-                                            <input type="text" class="ess-search-input" id="policyEmployeeSearch" placeholder="Search by name, email or BID — click a result to add…" autocomplete="off">
-                                            <div class="ess-search-results hidden" id="policyEmployeeResults"></div>
-                                        </div>
-                                        <div class="ess-policy-selected-list hidden" id="policyEmployeeSelected"></div>
-                                        <p class="ess-muted-line">Search and click each employee to add. You can add more than one.</p>
-                                    </div>
-                                    <div class="form-grid">
+                                <p class="ess-muted-line">Create entitlements and apply credits to all employees or selected individuals. Approved leave syncs to attendance automatically.</p>
+                                <form id="formLeavePolicyDef" class="ess-policy-def-form">
+                                    <input type="hidden" name="policy_id" id="policyDefId" value="">
+                                    <div class="form-grid form-grid--policy">
                                         <div class="form-field">
-                                            <label>Leave category</label>
-                                            <select name="leave_type" id="policyLeaveType">
-                                                <option value="eid">Eid Vacation</option>
-                                                <option value="public_holiday">Public Holiday</option>
-                                                <option value="company_holiday">Company Holiday</option>
-                                                <option value="annual">Annual Leave</option>
-                                                <option value="casual">Casual Leave</option>
-                                                <option value="sick">Sick Leave</option>
-                                                <option value="other">Other</option>
+                                            <label>Policy name <span class="ess-req">*</span></label>
+                                            <input type="text" name="policy_name" id="policyDefName" required placeholder="Casual Leave">
+                                        </div>
+                                        <div class="form-field">
+                                            <label>Policy code <span class="ess-req">*</span></label>
+                                            <input type="text" name="policy_code" id="policyDefCode" required placeholder="CL" maxlength="32" autocomplete="off">
+                                            <p class="ess-field-hint hidden" id="policyDefCodeHint"></p>
+                                        </div>
+                                        <div class="form-field">
+                                            <label>Leave type <span class="ess-req">*</span></label>
+                                            <select name="leave_type" id="policyDefLeaveType" required></select>
+                                        </div>
+                                        <div class="form-field">
+                                            <label>Category</label>
+                                            <select name="leave_category" id="policyDefCategory">
+                                                <option value="paid">Paid</option>
+                                                <option value="unpaid">Unpaid</option>
+                                                <option value="compensatory">Compensatory</option>
                                             </select>
                                         </div>
                                         <div class="form-field">
-                                            <label>From date</label>
-                                            <input type="date" name="start_date" id="policyStartDate" required>
+                                            <label>Unit</label>
+                                            <select name="unit" id="policyDefUnit">
+                                                <option value="days">Days</option>
+                                                <option value="hours">Hours</option>
+                                            </select>
                                         </div>
                                         <div class="form-field">
-                                            <label>To date</label>
-                                            <input type="date" name="end_date" id="policyEndDate" required>
+                                            <label>Credit value <span class="ess-req">*</span></label>
+                                            <input type="number" name="credit_value" id="policyDefCredit" min="0" required placeholder="12">
+                                        </div>
+                                        <div class="form-field">
+                                            <label>Valid from</label>
+                                            <input type="date" name="valid_from" id="policyDefValidFrom">
+                                        </div>
+                                        <div class="form-field">
+                                            <label>Expires on</label>
+                                            <input type="date" name="expires_on" id="policyDefExpiresOn">
                                         </div>
                                     </div>
-                                    <div class="form-field">
-                                        <label>Occasion / reason <span class="ess-req">*</span></label>
-                                        <input type="text" name="reason" id="policyReason" required placeholder="e.g. Eid ul Fitr, Independence Day, company closure…">
+                                    <div class="ess-policy-def-checks">
+                                        <label class="ess-check-inline"><input type="checkbox" name="reset_enabled" id="policyDefReset"> Enable yearly reset</label>
+                                        <div class="form-field ess-policy-def-reset-extra">
+                                            <label>Reset frequency</label>
+                                            <select name="reset_frequency" id="policyDefResetFreq">
+                                                <option value="yearly">Yearly</option>
+                                                <option value="monthly">Monthly</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-field ess-policy-def-reset-extra">
+                                            <label>Reset day / month</label>
+                                            <input type="text" name="reset_day_month" id="policyDefResetDay" value="31-Dec" placeholder="31-Dec">
+                                        </div>
+                                        <label class="ess-check-inline"><input type="checkbox" name="carry_forward_enabled" id="policyDefCarry"> Carry forward</label>
+                                        <div class="form-field ess-policy-def-carry-extra">
+                                            <label>Max carry forward</label>
+                                            <input type="number" name="carry_forward_value" id="policyDefCarryVal" min="0" value="0">
+                                        </div>
+                                        <label class="ess-check-inline"><input type="checkbox" name="encash_enabled" id="policyDefEncash"> Encashment</label>
+                                        <div class="form-field ess-policy-def-encash-extra">
+                                            <label>Encash limit</label>
+                                            <input type="number" name="encash_value" id="policyDefEncashVal" min="0" value="0">
+                                        </div>
                                     </div>
-                                    <button type="submit" class="ess-btn ess-btn-primary" id="btnPolicyAllot"><i class="fas fa-check"></i> Allot leave</button>
+                                    <div class="form-field ess-policy-apply-target">
+                                        <label>Apply policy credits to</label>
+                                        <div class="ess-policy-targets">
+                                            <label class="ess-radio-pill"><input type="radio" name="policy_def_target" value="none" checked> <span><i class="fas fa-ban"></i> Save only (no assignment)</span></label>
+                                            <label class="ess-radio-pill"><input type="radio" name="policy_def_target" value="all"> <span><i class="fas fa-users"></i> All active employees</span></label>
+                                            <label class="ess-radio-pill"><input type="radio" name="policy_def_target" value="selected"> <span><i class="fas fa-user-check"></i> Selected employees</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="form-field hidden" id="policyDefEmployeeField">
+                                        <label>Select employees</label>
+                                        <div class="ess-person-search">
+                                            <input type="text" class="ess-search-input" id="policyDefEmployeeSearch" placeholder="Search by name, email or BID — click to add…" autocomplete="off">
+                                            <div class="ess-search-results hidden" id="policyDefEmployeeResults"></div>
+                                        </div>
+                                        <div class="ess-policy-selected-list hidden" id="policyDefEmployeeSelected"></div>
+                                    </div>
+                                    <div class="ess-policy-def-actions">
+                                        <button type="submit" class="ess-btn ess-btn-primary" id="btnPolicyDefSave"><i class="fas fa-save"></i> Add leave policy</button>
+                                        <button type="button" class="ess-btn ess-btn-outline hidden" id="btnPolicyDefCancel">Cancel edit</button>
+                                    </div>
                                 </form>
-                            </div>
-
-                            <div class="ess-card">
-                                <div class="ess-card-head"><h3><i class="fas fa-calendar-check"></i> Company allotments &amp; holidays</h3></div>
-                                <p class="ess-muted-line" id="leavePolicyHistoryHint">Recent leave allotted by HR for this branch.</p>
-                                <div class="ess-table-wrap">
+                                <div class="ess-table-wrap ess-policy-def-table-wrap">
                                     <table class="data-table">
                                         <thead>
                                             <tr>
-                                                <th>Occasion</th>
+                                                <th>Policy</th>
+                                                <th>Code</th>
                                                 <th>Type</th>
-                                                <th>Dates</th>
-                                                <th>Employee</th>
-                                                <th>Allotted by</th>
-                                                <th>Date</th>
+                                                <th>Credit</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="leavePolicyHistoryBody">
+                                        <tbody id="leavePolicyDefinitionsBody">
                                             <tr><td colspan="6">Loading…</td></tr>
                                         </tbody>
                                     </table>
@@ -603,16 +640,15 @@
                         <section id="view-approvals" class="view-section">
                             <div class="ess-approvals-hero">
                                 <div>
-                                    <h3><i class="fas fa-clipboard-check"></i> Team Leave Approvals</h3>
-                                    <p>Review, approve, or reject leave requests assigned to you or your team.</p>
+                                    <h3><i class="fas fa-clipboard-check"></i> Leave Approvals</h3>
+                                    <p>Review employee leave requests — approve, reject, or revert approved leave back to pending.</p>
                                 </div>
-                                <button type="button" class="ess-btn ess-btn-outline" id="btnPolicyApplyLeave"><i class="fas fa-plus"></i> Apply leave</button>
                             </div>
                             <div class="ess-approval-tabs">
                                 <button type="button" class="ess-approval-tab active" data-filter="pending">Pending</button>
                                 <button type="button" class="ess-approval-tab" data-filter="approved">Approved</button>
                                 <button type="button" class="ess-approval-tab" data-filter="rejected">Rejected</button>
-                                <button type="button" class="ess-approval-tab" data-filter="all">All</button>
+                                <button type="button" class="ess-approval-tab" data-filter="all">All requests</button>
                             </div>
                             <div id="approvalsList" class="ess-approvals-list"></div>
                         </section>
@@ -769,13 +805,7 @@
                         <div class="ess-leave-modal-field ess-leave-field-type">
                             <label class="ess-leave-label" for="leaveTypeSelect">Leave type</label>
                             <div class="ess-leave-select-wrap">
-                                <select name="leave_type" id="leaveTypeSelect" class="ess-leave-select">
-                                    <option value="annual">Annual Leave</option>
-                                    <option value="sick">Sick Leave</option>
-                                    <option value="casual">Casual Leave</option>
-                                    <option value="emergency">Emergency</option>
-                                    <option value="unpaid">Unpaid</option>
-                                </select>
+                                <select name="leave_type" id="leaveTypeSelect" class="ess-leave-select" data-leave-select="apply"></select>
                                 <i class="fas fa-chevron-down ess-leave-select-chevron" aria-hidden="true"></i>
                             </div>
                         </div>
@@ -857,8 +887,9 @@
             </div>
             <div class="ess-modal-actions">
                 <button type="button" class="ess-btn ess-btn-outline" id="approvalModalCancel">Cancel</button>
+                <button type="button" class="ess-btn ess-btn-outline hidden" id="approvalModalRevert"><i class="fas fa-rotate-left"></i> Revert to pending</button>
                 <button type="button" class="ess-btn ess-btn-danger hidden" id="approvalModalReject"><i class="fas fa-times"></i> Reject</button>
-                <button type="button" class="ess-btn ess-btn-primary" id="approvalModalApprove"><i class="fas fa-check"></i> Approve</button>
+                <button type="button" class="ess-btn ess-btn-primary hidden" id="approvalModalApprove"><i class="fas fa-check"></i> Approve</button>
             </div>
         </div>
     </div>
@@ -866,7 +897,7 @@
     <script src="js/portal-access.js"></script>
     <script src="js/portal-session-guard.js"></script>
     <script src="js/portal-notify-sound.js?v=1"></script>
-    <script src="js/employee-hrms.js?v=48"></script>
+    <script src="js/employee-hrms.js?v=64"></script>
     <script src="js/portal-chat-fab.js"></script>
 </body>
 </html>

@@ -19,8 +19,8 @@
     <meta name="twitter:image" content="assets/images/balitech-favicon.png?v=5">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
-    <link rel="stylesheet" href="css/powered-by.css?v=2">
-    <link rel="stylesheet" href="css/index-login.css?v=7">
+    <link rel="stylesheet" href="css/powered-by.css?v=4">
+    <link rel="stylesheet" href="css/index-login.css?v=8">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
 </head>
 <body class="login-page">
@@ -32,11 +32,14 @@
     <div class="login-container">
         <div class="login-shell">
             <aside class="login-hero">
+                <div class="login-hero-accent" aria-hidden="true"></div>
                 <div class="login-hero-top">
-                    <img src="assets/images/balitech-logo.png?v=5" alt="Balitech Pvt. Ltd" class="balitech-logo balitech-logo--hero" width="240" height="72">
-                    <div class="hrms-badge"><i class="fas fa-building"></i> Balitech HRMS 2026</div>
+                    <div class="login-hero-brand">
+                        <img src="assets/images/balitech-logo.png?v=5" alt="Balitech Pvt. Ltd" class="balitech-logo balitech-logo--hero" width="240" height="72">
+                        <div class="hrms-badge"><i class="fas fa-building"></i> Enterprise HRMS</div>
+                    </div>
                     <h1>One platform.<br><span>Every branch.</span></h1>
-                    <p class="login-hero-desc">Unified human resources for Main, 2.0, 3.0, and Commercial — attendance, payroll, recruitment, and secure role-based portals in one workspace.</p>
+                    <p class="login-hero-desc">Secure human resources for Main, 2.0, 3.0, and Commercial — attendance, payroll, recruitment, and role-based portals in one workspace.</p>
 
                     <div class="hero-stats">
                         <div class="hero-stat"><strong>4</strong><span>Branches</span></div>
@@ -60,11 +63,11 @@
 
             <div class="login-panel">
                 <div class="panel-header">
-                    <div class="panel-header-row">
-                        <div class="panel-icon" aria-hidden="true"><i class="fas fa-right-to-bracket"></i></div>
+                    <div class="panel-icon" aria-hidden="true"><i class="fas fa-right-to-bracket"></i></div>
+                    <div class="panel-header-copy">
                         <h2>Welcome back</h2>
+                        <p>Sign in with the <strong>same branch</strong> your account was created under.</p>
                     </div>
-                    <p>Sign in using the <strong>same branch</strong> your account was created under</p>
                 </div>
 
                 <div class="branch-section">
@@ -136,23 +139,17 @@
         </div>
     </div>
 
-    <p class="login-page-footer">Need help? Contact your HR administrator or IT support.</p>
-    <div class="gc-powered-wrap gc-powered-wrap--login">
-        <div class="gc-powered-badge" role="contentinfo" aria-label="Powered by GO CONNECTIVO">
-            <span class="gc-powered-eyebrow">Powered by</span>
-            <span class="gc-powered-lockup" aria-hidden="true">
-                <svg class="gc-powered-mark" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M30 22c0 4.4-3.6 8-8 8" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>
-                    <path d="M32 22c0 5.5-4.5 10-10 10" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>
-                    <path d="M34 22c0 6.6-5.4 12-12 12" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>
-                </svg>
-                <span class="gc-powered-wordmark">
-                    <span class="gc-powered-go">GO</span>
-                    <span class="gc-powered-name">CONNECTIVO</span>
+    <footer class="login-site-footer">
+        <p class="login-page-footer">Need help? Contact your HR administrator or IT support.</p>
+        <div class="gc-powered-wrap gc-powered-wrap--login">
+            <div class="gc-powered-badge" role="contentinfo" aria-label="Powered by GO CONNECTIVO">
+                <span class="gc-powered-eyebrow">Powered by</span>
+                <span class="gc-powered-lockup" aria-hidden="true">
+                    <img src="assets/images/go-connectivo-logo.png" alt="GO CONNECTIVO" class="gc-powered-logo-img" decoding="async">
                 </span>
-            </span>
+            </div>
         </div>
-    </div>
+    </footer>
 
     <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 

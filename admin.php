@@ -350,7 +350,7 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
     <link rel="stylesheet" href="css/dropdown-fix.css">
     <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
     <link rel="stylesheet" href="css/admin-users-pro.css?v=1">
-    <link rel="stylesheet" href="css/powered-by.css?v=2">
+    <link rel="stylesheet" href="css/powered-by.css?v=4">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body {

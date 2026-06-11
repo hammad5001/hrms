@@ -93,9 +93,25 @@ body.login-page {
     min-height: 640px;
     border-radius: var(--radius-xl);
     overflow: hidden;
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow), 0 0 0 1px rgba(249, 115, 22, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+        var(--shadow),
+        0 0 0 1px rgba(249, 115, 22, 0.08),
+        0 1px 0 rgba(255, 255, 255, 0.04) inset;
     background: var(--surface-2);
+    position: relative;
+}
+
+.login-shell::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #f97316, #fb923c 35%, #6366f1 70%, #818cf8);
+    z-index: 2;
+    pointer-events: none;
 }
 
 /* Hero */
@@ -104,12 +120,30 @@ body.login-page {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    background: linear-gradient(165deg, rgba(249,115,22,0.08) 0%, rgba(99,102,241,0.06) 50%, transparent 100%);
+    background:
+        linear-gradient(165deg, rgba(249, 115, 22, 0.09) 0%, rgba(99, 102, 241, 0.05) 45%, transparent 85%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, transparent 40%);
     border-right: 1px solid var(--border);
     position: relative;
+    overflow: hidden;
 }
 
-.login-hero-top { flex: 1; }
+.login-hero-accent {
+    position: absolute;
+    top: -80px;
+    right: -60px;
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(249, 115, 22, 0.12) 0%, transparent 68%);
+    pointer-events: none;
+}
+
+.login-hero-top { flex: 1; position: relative; z-index: 1; }
+
+.login-hero-brand {
+    margin-bottom: 28px;
+}
 
 .balitech-logo {
     display: block;
@@ -118,10 +152,10 @@ body.login-page {
 }
 
 .balitech-logo--hero {
-    width: 240px;
+    width: 220px;
     max-width: 100%;
-    margin-bottom: 28px;
-    filter: drop-shadow(0 4px 16px rgba(0,0,0,0.35));
+    margin-bottom: 16px;
+    filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.4));
 }
 
 .hrms-badge {
@@ -141,11 +175,11 @@ body.login-page {
 }
 
 .login-hero h1 {
-    font-size: 34px;
+    font-size: 36px;
     font-weight: 800;
-    line-height: 1.15;
-    letter-spacing: -0.03em;
-    margin-bottom: 14px;
+    line-height: 1.12;
+    letter-spacing: -0.035em;
+    margin-bottom: 16px;
 }
 
 .login-hero h1 span {
@@ -173,9 +207,15 @@ body.login-page {
 .hero-stat {
     padding: 14px 12px;
     border-radius: var(--radius-md);
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     text-align: center;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.hero-stat:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.12);
 }
 
 .hero-stat strong {
@@ -212,15 +252,15 @@ body.login-page {
 }
 
 .feature-list li i {
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-sm);
-    background: rgba(255,255,255,0.05);
-    border: 1px solid var(--border);
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: linear-gradient(145deg, rgba(249, 115, 22, 0.14), rgba(249, 115, 22, 0.06));
+    border: 1px solid rgba(249, 115, 22, 0.22);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--primary);
+    color: #fb923c;
     flex-shrink: 0;
     font-size: 13px;
     margin-top: 1px;
@@ -248,44 +288,58 @@ body.login-page {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    background: var(--surface-glass);
-    backdrop-filter: blur(20px);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 120px),
+        var(--surface-glass);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
 }
 
 .panel-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
     margin-bottom: 28px;
 }
 
-.panel-header-row {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 8px;
+.panel-header-copy {
+    flex: 1;
+    min-width: 0;
+    padding-top: 2px;
 }
 
 .panel-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: var(--radius-md);
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: linear-gradient(145deg, #fb923c, var(--primary-dark));
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 20px;
     color: #fff;
-    box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35);
+    box-shadow: 0 10px 24px rgba(249, 115, 22, 0.38);
+    flex-shrink: 0;
 }
 
 .panel-header h2 {
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 800;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
+    margin-bottom: 6px;
+    line-height: 1.15;
 }
 
 .panel-header p {
     font-size: 13px;
     color: var(--text-muted);
-    padding-left: 62px;
+    line-height: 1.55;
+    margin: 0;
+}
+
+.panel-header p strong {
+    color: rgba(255, 255, 255, 0.88);
+    font-weight: 600;
 }
 
 /* Branch */
@@ -321,13 +375,19 @@ body.login-page {
     gap: 8px;
 }
 
+@media (min-width: 901px) {
+    .branch-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 .branch-chip {
-    padding: 11px 12px;
-    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    border-radius: 12px;
     border: 1.5px solid var(--border);
-    background: rgba(255,255,255,0.02);
+    background: rgba(255, 255, 255, 0.025);
     cursor: pointer;
-    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s, transform 0.15s;
     text-align: left;
     color: var(--text-muted);
     font-size: 12px;
@@ -345,9 +405,11 @@ body.login-page {
 
 .branch-chip.active {
     border-color: var(--chip-color, var(--primary));
-    background: color-mix(in srgb, var(--chip-color, var(--primary)) 14%, transparent);
+    background: color-mix(in srgb, var(--chip-color, var(--primary)) 16%, transparent);
     color: var(--text);
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--chip-color, var(--primary)) 25%, transparent);
+    box-shadow:
+        0 0 0 1px color-mix(in srgb, var(--chip-color, var(--primary)) 28%, transparent),
+        0 4px 14px color-mix(in srgb, var(--chip-color, var(--primary)) 18%, transparent);
 }
 
 .branch-chip .dot {
@@ -491,10 +553,15 @@ body.login-page {
 }
 
 .portal-hint-card {
-    padding: 12px;
-    border-radius: var(--radius-md);
+    padding: 13px 14px;
+    border-radius: 12px;
     border: 1px solid var(--border);
-    background: rgba(255,255,255,0.02);
+    background: rgba(255, 255, 255, 0.025);
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.portal-hint-card:hover {
+    background: rgba(255, 255, 255, 0.04);
 }
 
 .portal-hint-card.ess { border-color: rgba(99, 102, 241, 0.25); }
@@ -526,9 +593,9 @@ body.login-page {
 
 .login-btn {
     width: 100%;
-    padding: 14px 18px;
+    padding: 15px 20px;
     border: none;
-    border-radius: var(--radius-md);
+    border-radius: 12px;
     font-size: 14px;
     font-weight: 700;
     font-family: inherit;
@@ -537,6 +604,7 @@ body.login-page {
     align-items: center;
     justify-content: center;
     gap: 10px;
+    letter-spacing: 0.01em;
     transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
 }
 
@@ -545,13 +613,19 @@ body.login-page {
 .login-btn:disabled { opacity: 0.65; cursor: not-allowed; }
 
 .login-btn-ess {
-    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-    color: #fff;
-    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.35);
+    background: linear-gradient(145deg, #38bdf8, #0ea5e9);
+    color: #0c4a6e;
+    box-shadow: 0 8px 22px rgba(14, 165, 233, 0.35);
+}
+
+.login-btn-ess i {
+    opacity: 0.9;
 }
 
 .login-btn-ess:hover:not(:disabled) {
-    box-shadow: 0 12px 24px rgba(79, 70, 229, 0.45);
+    background: linear-gradient(145deg, #7dd3fc, #38bdf8);
+    color: #0c4a6e;
+    box-shadow: 0 12px 28px rgba(14, 165, 233, 0.45);
 }
 
 .login-btn-work {
@@ -649,13 +723,24 @@ body.login-page {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* Page footer */
-.login-page-footer {
+.login-site-footer {
     position: relative;
     z-index: 1;
-    margin-top: 20px;
+    width: 100%;
+    max-width: 1080px;
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.login-page-footer {
+    margin: 0;
     text-align: center;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--text-dim);
+    line-height: 1.5;
 }
 
 /* Responsive */
@@ -670,7 +755,11 @@ body.login-page {
         padding: 36px 28px;
     }
     .login-panel { padding: 32px 28px; }
-    .panel-header p { padding-left: 0; margin-top: 8px; }
+    .panel-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
     .hero-stats { grid-template-columns: repeat(3, 1fr); }
     .balitech-logo--hero { width: 200px; }
 }
@@ -860,8 +949,13 @@ body.login-page {
         font-size: 10px;
     }
 
+    .login-site-footer {
+        margin-top: 18px;
+        gap: 12px;
+    }
+
     body.login-page .gc-powered-wrap--login {
-        padding: 6px 20px 18px;
+        padding: 0;
     }
 }
 

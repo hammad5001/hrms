@@ -5,9 +5,21 @@ const HRMS = {
     attendance: [],
     leaveSummary: null,
     leaveRequests: [],
-    policyAllotments: [],
-    canAllotLeavePolicy: false,
-    selectedPolicyEmployees: [],
+    leaveBalances: [],
+    leaveBalanceYear: new Date().getFullYear(),
+    leaveTypeCatalog: {},
+    leaveApplyTypes: [],
+    leaveAllotTypes: [],
+    leaveHalfDayTypes: [],
+    canViewLeavePolicy: false,
+    canAccessPortalApprovals: false,
+    canManageLeavePolicies: false,
+    permissionsLoaded: false,
+    policyDefinitions: [],
+    usedPolicyCodes: [],
+    editingPolicyId: null,
+    selectedPolicyDefEmployees: [],
+    onLeaveMap: {},
     selectedRoute: 'team_lead',
     selectedApprover: null,
     selectedEmployee: null,
@@ -36,13 +48,64 @@ const HRMS = {
     activeNavId: 'nav-tab-activities',
 };
 
-const LEAVE_BALANCE_TYPES = [
-    { key: 'casual', label: 'Casual Leave', icon: 'fa-calendar-days', quota: 12 },
-    { key: 'sick', label: 'Sick Leave', icon: 'fa-notes-medical', quota: 10 },
-    { key: 'annual', label: 'Annual Leave', icon: 'fa-umbrella-beach', quota: 14 },
-    { key: 'emergency', label: 'On Duty', icon: 'fa-user-check', quota: 5 },
-    { key: 'unpaid', label: 'Compensatory Off', icon: 'fa-clock-rotate-left', quota: 0 },
-];
+const LEAVE_BALANCE_ACCENTS = {
+    casual: 'ess-leave-card--casual',
+    sick: 'ess-leave-card--sick',
+    annual: 'ess-leave-card--annual',
+    compensatory: 'ess-leave-card--comp',
+    on_duty: 'ess-leave-card--duty',
+    wfh: 'ess-leave-card--wfh',
+};
+
+function applyLeaveTypeCatalog(data) {
+    if (!data) return;
+    if (data.type_catalog) HRMS.leaveTypeCatalog = data.type_catalog;
+    if (data.apply_types) HRMS.leaveApplyTypes = data.apply_types;
+    if (data.allot_types) HRMS.leaveAllotTypes = data.allot_types;
+    if (data.half_day_types) HRMS.leaveHalfDayTypes = data.half_day_types;
+    renderLeaveTypeSelects();
+    populatePolicyDefLeaveTypeSelect(
+        Object.entries(HRMS.leaveTypeCatalog || {})
+            .filter(([, m]) => m.group === 'balance')
+            .map(([key, m]) => ({ key, label: m.label }))
+    );
+}
+
+function leaveTypeOptionsForContext(context) {
+    if (context === 'allot') return HRMS.leaveAllotTypes || [];
+    if (context === 'half_day') return HRMS.leaveHalfDayTypes || [];
+    return HRMS.leaveApplyTypes || [];
+}
+
+function renderLeaveTypeSelects() {
+    document.querySelectorAll('[data-leave-select]').forEach(sel => {
+        const ctx = sel.dataset.leaveSelect || 'apply';
+        const options = leaveTypeOptionsForContext(ctx);
+        const prev = sel.value;
+        if (!options.length) {
+            sel.innerHTML = '<option value="">Loading…</option>';
+            return;
+        }
+        const groups = { balance: [], holiday: [] };
+        options.forEach(o => {
+            const g = o.group === 'holiday' ? 'holiday' : 'balance';
+            groups[g].push(o);
+        });
+        let html = '';
+        if (ctx === 'allot' && groups.holiday.length) {
+            html += '<optgroup label="Company holidays">';
+            groups.holiday.forEach(o => { html += `<option value="${escHtml(o.key)}">${escHtml(o.label)}</option>`; });
+            html += '</optgroup>';
+        }
+        if (groups.balance.length) {
+            if (ctx === 'allot') html += '<optgroup label="Leave entitlements">';
+            groups.balance.forEach(o => { html += `<option value="${escHtml(o.key)}">${escHtml(o.label)}</option>`; });
+            if (ctx === 'allot') html += '</optgroup>';
+        }
+        sel.innerHTML = html;
+        if (prev && [...sel.options].some(opt => opt.value === prev)) sel.value = prev;
+    });
+}
 
 async function apiGet(url) {
     const r = await fetch(url, { credentials: 'include' });
@@ -441,7 +504,6 @@ const ESS_DEFAULT_NAV = {
     salary: 'nav-side-payroll',
     leave: 'nav-tab-leave',
     halfday: 'nav-tab-leave',
-    myleaves: 'nav-tab-myleaves',
     'leave-policy': 'nav-tab-leave-policy',
     approvals: 'nav-tab-approvals',
     reportees: 'nav-tab-reportees',
@@ -455,11 +517,10 @@ const ESS_VIEW_TITLES = {
     dashboard: ['Dashboard', 'Employee Self Service overview'],
     attendance: ['Attendance', 'Punch history and weekly summary'],
     salary: ['Payroll', 'Salary, bonus, and compensation details'],
-    leave: ['Leave Tracker', 'Balances and leave applications'],
+    leave: ['Leaves', 'Balances, applications, and request status'],
     halfday: ['Half Day Leave', 'Apply morning or afternoon half day'],
-    myleaves: ['My Leave Requests', 'Track status of your applications'],
-    'leave-policy': ['Leave Policy', 'Entitlements, holidays, and company allotments'],
-    approvals: ['Leave Approvals', 'Review and approve team requests'],
+    'leave-policy': ['Leave Policy', 'Manage entitlements and employee credits'],
+    approvals: ['Approvals', 'Approve, reject, or revert leave requests'],
     reportees: ['My Reporting', 'Your reporting line and team'],
     profile: ['My Profile', 'Your employee record and work information'],
     notifications: ['Notifications', 'Alerts from HR and managers'],
@@ -506,6 +567,18 @@ function showView(id, navId = null) {
         showComingSoon('This section', navId);
         return;
     }
+    if (id === 'leave-policy' && HRMS.permissionsLoaded && !HRMS.canViewLeavePolicy) {
+        showView('leave');
+        return;
+    }
+    if (id === 'approvals' && HRMS.permissionsLoaded && !HRMS.canAccessPortalApprovals) {
+        showView('dashboard');
+        return;
+    }
+    if (id === 'myleaves') {
+        showView('leave');
+        return;
+    }
 
     HRMS.currentView = id;
     navId = navId || ESS_DEFAULT_NAV[id] || null;
@@ -535,8 +608,8 @@ function showView(id, navId = null) {
     } else {
         document.getElementById('hierarchyCard')?.classList.add('hidden');
     }
-    if (id === 'leave') { loadMyLeaves(); renderLeaveBalances(); }
-    if (id === 'myleaves') loadMyLeaves(true);
+    if (id === 'leave') { loadLeaveBalances(); loadMyLeaves(); }
+    if (id === 'halfday') loadLeaveBalances();
     if (id === 'leave-policy') loadLeavePolicy();
     if (id === 'approvals') loadApprovals();
     if (id === 'reportees') loadReporteesView();
@@ -626,8 +699,39 @@ function dayStatusLabel(st) {
         present: 'Present',
         late: 'Late',
         weekend: 'Weekend',
+        on_leave: 'On leave',
     };
+    if (st?.status === 'on_leave' && st?.leaveType) {
+        return st.leaveType;
+    }
     return labels[st?.status] || st?.label || 'Absent';
+}
+
+function isOnLeaveDate(shiftDateStr) {
+    return HRMS.onLeaveMap?.[shiftDateStr] || null;
+}
+
+/** Worked hours for a shift (matches server ess_duty_seconds / ess_working_hours). */
+function shiftWorkedHours(shift, shiftDateStr) {
+    if (!shift?.checkIn) return 0;
+    const start = parseAttendanceTs(shift.checkIn)?.getTime();
+    if (!start) return 0;
+
+    let end;
+    if (shift.checkOut) {
+        end = parseAttendanceTs(shift.checkOut)?.getTime();
+        if (!end) return 0;
+        if (end < start) end += 86400000;
+    } else {
+        const deadline = shiftDeadlineUnix(shiftDateStr);
+        const now = Date.now();
+        const deadlineMs = deadline ? deadline * 1000 : now;
+        const isActive = shiftDateStr === activeShiftDate();
+        end = isActive && now < deadlineMs ? now : deadlineMs;
+    }
+
+    if (end < start) return 0;
+    return Math.max(0, (end - start) / 3600000);
 }
 
 function resolveShiftPunches(shiftDateStr, allTimestamps) {
@@ -696,6 +800,7 @@ function weekShiftScheduleLabel() {
 }
 
 function weekTimeRange(st, shiftDateStr) {
+    if (st.status === 'on_leave') return `Approved leave · ${st.leaveType || 'On leave'}`;
     if (st.status === 'weekend') return 'Weekly off · no shift scheduled';
     if (st.status === 'upcoming') return weekShiftScheduleLabel();
     if (st.status === 'absent') return 'No check-in recorded for this shift';
@@ -717,6 +822,19 @@ function weekTimeRange(st, shiftDateStr) {
 }
 
 function dayStatus(shiftDateStr) {
+    const leaveInfo = isOnLeaveDate(shiftDateStr);
+    if (leaveInfo) {
+        return {
+            status: 'on_leave',
+            label: leaveInfo.half_day ? 'Half leave' : 'On leave',
+            leaveType: leaveInfo.label || 'On leave',
+            hours: '—',
+            hoursShort: '—',
+            punchCount: 0,
+            checkIn: null,
+            checkOut: null,
+        };
+    }
     if (isShiftDateUpcoming(shiftDateStr)) {
         return {
             status: 'upcoming',
@@ -755,19 +873,7 @@ function dayStatus(shiftDateStr) {
         };
     }
 
-    let hrs = 0;
-    if (shift.checkIn && shift.checkOut) {
-        const start = new Date(shift.checkIn).getTime();
-        let end = new Date(shift.checkOut).getTime();
-        if (end < start) end += 86400000;
-        hrs = Math.max(0, (end - start) / 3600000);
-    } else if (shift.checkIn && shiftDateStr === activeShiftDate()) {
-        const start = new Date(shift.checkIn).getTime();
-        let end = Date.now();
-        const deadline = shiftDeadlineUnix(shiftDateStr);
-        if (deadline) end = Math.min(end, deadline * 1000);
-        if (end >= start) hrs = Math.max(0, (end - start) / 3600000);
-    }
+    const hrs = shiftWorkedHours(shift, shiftDateStr);
 
     let late = false;
     if (shift.checkIn) {
@@ -803,7 +909,11 @@ function activitiesStatusLabel(st) {
         absent: 'Absent',
         upcoming: 'Upcoming',
         weekend: 'Weekend',
+        on_leave: 'On leave',
     };
+    if (st?.status === 'on_leave') {
+        return st.leaveType || map.on_leave;
+    }
     return map[st?.status] || st?.label || '—';
 }
 
@@ -830,6 +940,67 @@ function renderActivitiesTimeline() {
     if (label && dates.length) {
         label.textContent = `${formatActivitiesDate(dates[0])} - ${formatActivitiesDate(dates[6])}`;
     }
+    el.innerHTML = dates.map(buildActivitiesDayCell).join('');
+}
+
+function shiftHoursDisplayLabel() {
+    const h = ESS_SHIFT.checkinHour;
+    const endH = ESS_SHIFT.checkoutEndHour;
+    const start = new Date(`2000-01-01T${String(ESS_SHIFT.shiftStartHour).padStart(2, '0')}:00:00`)
+        .toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' });
+    const end = new Date(`2000-01-01T${String(endH).padStart(2, '0')}:00:00`)
+        .toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' });
+    return `${start} – next day ${end}`;
+}
+
+function weekAttendanceSummary(dates) {
+    const stats = { present: 0, late: 0, absent: 0, upcoming: 0, weekend: 0, streak: 0 };
+    const dayStates = dates.map(dateStr => ({ dateStr, st: dayStatus(dateStr) }));
+    dayStates.forEach(({ st }) => {
+        if (Object.prototype.hasOwnProperty.call(stats, st.status)) {
+            stats[st.status]++;
+        }
+    });
+    for (let i = dayStates.length - 1; i >= 0; i--) {
+        const { st } = dayStates[i];
+        if (st.status === 'upcoming') continue;
+        if (st.status === 'weekend') continue;
+        if (st.status === 'present' || st.status === 'late') stats.streak++;
+        else break;
+    }
+    return stats;
+}
+
+function renderAttendanceWeeklySummary(dates) {
+    const el = document.getElementById('attWeeklySummary');
+    if (!el) return;
+    const s = weekAttendanceSummary(dates);
+    const chips = [
+        { key: 'present', label: 'Present', value: s.present, icon: 'fa-circle-check' },
+        { key: 'late', label: 'Late', value: s.late, icon: 'fa-clock' },
+        { key: 'absent', label: 'Absent', value: s.absent, icon: 'fa-circle-xmark' },
+        { key: 'streak', label: 'Day streak', value: s.streak ? `${s.streak}d` : '—', icon: 'fa-fire' },
+    ];
+    el.innerHTML = chips.map(c => `
+        <div class="ess-att-weekly-stat ess-att-weekly-stat--${c.key}">
+            <i class="fas ${c.icon}" aria-hidden="true"></i>
+            <span class="ess-att-weekly-stat-val">${escHtml(String(c.value))}</span>
+            <span class="ess-att-weekly-stat-lbl">${escHtml(c.label)}</span>
+        </div>
+    `).join('');
+}
+
+function renderAttendanceWeeklyReport() {
+    const el = document.getElementById('attendanceWeeklyTimeline');
+    if (!el) return;
+    const dates = getWeekDates(HRMS.weekOffset);
+    const rangeLabel = document.getElementById('attWeeklyRangeLabel');
+    if (rangeLabel && dates.length) {
+        rangeLabel.textContent = `${formatActivitiesDate(dates[0])} - ${formatActivitiesDate(dates[6])}`;
+    }
+    const shiftHours = document.getElementById('attWeeklyShiftHours');
+    if (shiftHours) shiftHours.textContent = '6pm to 4am';
+    renderAttendanceWeeklySummary(dates);
     el.innerHTML = dates.map(buildActivitiesDayCell).join('');
 }
 
@@ -876,6 +1047,7 @@ function renderWeekView(targetId = 'attendanceWeekList') {
     </div>`;
     const rows = dates.map(buildWeekDayRow).join('');
     if (list) list.innerHTML = header + rows;
+    renderAttendanceWeeklyReport();
     renderActivitiesTimeline();
 }
 
@@ -986,6 +1158,20 @@ function refreshTodayAttendance(data) {
         toast('Shift window ended at 11:00 AM — duty closed automatically.', 'info');
     }
     renderActivitiesTimeline();
+    renderAttendanceWeeklyReport();
+    if (HRMS.currentView === 'attendance') {
+        renderAttendance();
+        const list = document.getElementById('attendanceWeekList');
+        if (list) {
+            const dates = getWeekDates(HRMS.weekOffset);
+            const header = `<div class="ess-week-head">
+        <span>Day</span>
+        <span>Shift status &amp; punch window</span>
+        <span>Duration</span>
+    </div>`;
+            list.innerHTML = header + dates.map(buildWeekDayRow).join('');
+        }
+    }
     if (HRMS.reporting?.is_manager) {
         loadReportingHierarchy();
     }
@@ -1053,7 +1239,7 @@ function applyProfileData(data) {
         .replace(/\s*·\s*window\s+.+$/i, '')
         .trim();
     setText('dashShift', dashShiftLabel || 'Night shift (6 PM – 4 AM)');
-    setText('activitiesShiftHours', '6:00 PM – 4:00 AM');
+    setText('activitiesShiftHours', shiftHoursDisplayLabel());
 
     if (data.meta && data.meta.employee_code_set === false) {
         toast('Ask HR to link your Employee ID (BID) for attendance & salary.', 'error');
@@ -1094,28 +1280,41 @@ async function loadProfile() {
             HRMS.leaveSummary = ls.data;
             setText('statPendingLeave', String(ls.data.my_pending_leaves ?? 0), '0');
             HRMS.canSelectEmployee = !!ls.data.can_select_employee;
-            HRMS.canAllotLeavePolicy = !!ls.data.can_allot_leave_policy;
+            HRMS.canViewLeavePolicy = !!ls.data.can_view_leave_policy;
+            HRMS.canManageLeavePolicies = !!ls.data.can_manage_leave_policies;
+            HRMS.canAccessPortalApprovals = !!(ls.data.can_access_portal_approvals ?? ls.data.can_approve);
+            HRMS.onLeaveMap = ls.data.on_leave_dates || {};
+            toggleLeavePolicyNavUI();
             toggleLeaveEmployeeFields();
-            toggleLeavePolicyAllotUI();
             updateManagerApprovalUI(ls.data);
-            ['navApprovals', 'badgeApprovals', 'headerApprovals', 'tabApprovals'].forEach(id => {
+            applyLeaveTypeCatalog(ls.data);
+            HRMS.permissionsLoaded = true;
+            ['navApprovals', 'headerApprovals', 'tabApprovals'].forEach(id => {
                 const el = document.getElementById(id);
                 if (!el) return;
-                if (ls.data.can_approve) {
-                    el.classList.remove('hidden');
-                    if (id === 'badgeApprovals' && ls.data.pending_approvals > 0) {
-                        el.textContent = ls.data.pending_approvals;
-                        el.classList.remove('hidden');
-                    }
-                }
+                if (HRMS.canAccessPortalApprovals) el.classList.remove('hidden');
             });
+            const badge = document.getElementById('badgeApprovals');
+            if (badge && HRMS.canAccessPortalApprovals) {
+                const count = Number(ls.data.pending_approvals) || 0;
+                if (count > 0) {
+                    badge.textContent = String(count);
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
         }
 
         const leaves = await apiGet('api/leave_api.php?action=myRequests');
         if (leaves.success) {
             HRMS.leaveRequests = leaves.data || [];
-            renderLeaveBalances();
         }
+        if (ls?.success && ls.data?.leave_year) {
+            HRMS.leaveBalanceYear = ls.data.leave_year;
+            updateLeaveYearLabel();
+        }
+        if (HRMS.currentView === 'dashboard') renderActivitiesTimeline();
     } catch (err) {
         console.error(err);
         toast('Failed to load employee data. Refresh the page.', 'error');
@@ -1174,57 +1373,367 @@ function renderAttendance() {
     tbody.innerHTML = rows.join('');
 }
 
+function formatLeaveDays(n) {
+    const v = Number(n);
+    if (!Number.isFinite(v)) return '0';
+    return v % 1 === 0 ? String(v) : v.toFixed(1);
+}
+
+function leaveRequestDayUnits(row) {
+    if (!row) return 0;
+    if (row.duration_type === 'half_day') return 0.5;
+    if (!row.start_date) return 0;
+    const s = new Date(row.start_date + 'T12:00:00');
+    const e = new Date((row.end_date || row.start_date) + 'T12:00:00');
+    if (Number.isNaN(s.getTime()) || Number.isNaN(e.getTime())) return 0;
+    return Math.max(1, Math.round((e - s) / 86400000) + 1);
+}
+
+function validateLeaveForm(form, durationType) {
+    const fd = new FormData(form);
+    const leaveType = String(fd.get('leave_type') || '').trim();
+    const start = String(fd.get('start_date') || '').trim();
+    const end = durationType === 'half_day'
+        ? start
+        : String(fd.get('end_date') || start || '').trim();
+    const reason = String(fd.get('reason') || '').trim();
+    const slot = String(fd.get('half_day_slot') || '').trim();
+
+    if (!leaveType) return 'Please select a leave type';
+    if (!start) return 'Please select a date';
+    if (durationType === 'full_day' && !end) return 'Please select an end date';
+    if (end < start) return 'End date cannot be before start date';
+    if (!reason) return 'Please enter a reason for your leave request';
+    if (durationType === 'half_day' && !['morning', 'afternoon'].includes(slot)) {
+        return 'Please select morning or afternoon for half day';
+    }
+
+    const bal = (HRMS.leaveBalances || []).find(b => b.key === leaveType);
+    if (bal && Number(bal.quota) > 0) {
+        const startYear = parseInt(start.slice(0, 4), 10);
+        if (startYear === HRMS.leaveBalanceYear) {
+            const days = durationType === 'half_day'
+                ? 0.5
+                : leaveRequestDayUnits({ start_date: start, end_date: end });
+            const available = Number(bal.remaining ?? bal.available) || 0;
+            if (days > available) {
+                const label = leaveTypeLabel(leaveType);
+                return `Not enough ${label} balance. Available: ${formatLeaveDays(available)} day(s).`;
+            }
+        }
+    }
+    return null;
+}
+
+function updateLeaveYearLabel() {
+    const label = document.getElementById('leaveYearLabel');
+    if (label) label.textContent = String(HRMS.leaveBalanceYear);
+}
+
+async function loadLeaveBalances() {
+    updateLeaveYearLabel();
+    const res = await apiGet(`api/leave_api.php?action=leaveBalances&year=${HRMS.leaveBalanceYear}`);
+    if (!res.success) {
+        toast(res.error || res.message || 'Could not load leave balances', 'error');
+        return false;
+    }
+    HRMS.leaveBalances = res.data.balances || [];
+    applyLeaveTypeCatalog(res.data);
+    renderLeaveBalances();
+    return true;
+}
+
 function renderLeaveBalances() {
     const grid = document.getElementById('leaveBalanceGrid');
     if (!grid) return;
-    const year = new Date().getFullYear();
-    const taken = {};
-    (HRMS.leaveRequests || []).forEach(r => {
-        if (r.status !== 'approved') return;
-        if (!r.start_date || !r.start_date.startsWith(String(year))) return;
-        const k = r.leave_type || 'casual';
-        taken[k] = (taken[k] || 0) + 1;
-    });
-    grid.innerHTML = LEAVE_BALANCE_TYPES.map(t => {
-        const used = taken[t.key] || 0;
-        const avail = Math.max(0, t.quota - used);
-        return `<div class="ess-leave-card">
-            <i class="fas ${t.icon}"></i>
-            <h4>${t.label}</h4>
-            <p>Available: <strong>${avail}</strong></p>
-            <p>Taken: <strong>${used}</strong></p>
-        </div>`;
+    const items = HRMS.leaveBalances || [];
+    if (!items.length) {
+        grid.innerHTML = '<p class="ess-muted-line">Loading leave balances…</p>';
+        return;
+    }
+    grid.innerHTML = items.map(b => {
+        const used = Number(b.used ?? b.taken) || 0;
+        const pending = Number(b.pending) || 0;
+        const remaining = Number(b.remaining ?? b.available) || 0;
+        const quota = used + pending + remaining;
+        const usedPct = quota > 0 ? Math.min(100, Math.round(((used + pending) / quota) * 100)) : 0;
+        const accent = LEAVE_BALANCE_ACCENTS[b.key] || '';
+        const footParts = [];
+        if (pending > 0) {
+            footParts.push(`<span><strong>${formatLeaveDays(pending)}</strong> days pending</span>`);
+        }
+        if (used > 0) {
+            footParts.push(`<span><strong>${formatLeaveDays(used)}</strong> days used</span>`);
+        }
+        const footHtml = footParts.length
+            ? footParts.join('<span class="ess-leave-foot-sep">·</span>')
+            : '<span class="ess-muted-line">No leave taken yet</span>';
+        return `<article class="ess-leave-card ${accent}">
+            <div class="ess-leave-card-top">
+                <i class="fas ${escHtml(b.icon || 'fa-calendar')}"></i>
+                <h4>${escHtml(b.label)}</h4>
+            </div>
+            <div class="ess-leave-card-stat">
+                <span class="ess-leave-card-num">${formatLeaveDays(remaining)}</span>
+                <span class="ess-leave-card-lbl">Remaining</span>
+            </div>
+            <div class="ess-leave-usage" role="presentation"><span style="width:${usedPct}%"></span></div>
+            <div class="ess-leave-card-foot ess-leave-card-foot--simple">${footHtml}</div>
+        </article>`;
     }).join('');
 }
 
-function toggleLeavePolicyAllotUI() {
-    const card = document.getElementById('leavePolicyAllotCard');
-    if (card) card.classList.toggle('hidden', !HRMS.canAllotLeavePolicy);
+async function refreshOnLeaveMap() {
+    const year = HRMS.leaveBalanceYear || new Date().getFullYear();
+    const res = await apiGet(`api/leave_api.php?action=onLeaveDates&year=${year}`);
+    if (res.success) {
+        HRMS.onLeaveMap = res.data.dates || {};
+    }
+    if (HRMS.currentView === 'dashboard') renderActivitiesTimeline();
+    if (HRMS.currentView === 'attendance') {
+        renderAttendance();
+        renderWeekView();
+    }
 }
 
-function togglePolicyEmployeeField() {
-    const field = document.getElementById('policyEmployeeField');
-    const target = document.querySelector('input[name="policy_target"]:checked')?.value || 'all';
+function toggleLeavePolicyNavUI() {
+    const show = !!HRMS.canViewLeavePolicy;
+    ['navSideLeavePolicy', 'tabLeavePolicy'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('hidden', !show);
+    });
+}
+
+function findPolicyByCode(code, excludeId = null) {
+    const c = String(code || '').trim().toUpperCase();
+    if (!c) return null;
+    const exId = excludeId ?? HRMS.editingPolicyId;
+    return (HRMS.policyDefinitions || []).find(p =>
+        String(p.policy_code || '').toUpperCase() === c && p.id !== exId
+    ) || null;
+}
+
+function validatePolicyCodeField(showToast = false) {
+    const input = document.getElementById('policyDefCode');
+    const hint = document.getElementById('policyDefCodeHint');
+    if (!input) return null;
+    const code = input.value.trim().toUpperCase();
+    input.value = code;
+    const dup = findPolicyByCode(code);
+    if (!dup) {
+        if (hint) {
+            hint.textContent = '';
+            hint.classList.add('hidden');
+        }
+        input.classList.remove('ess-input-error');
+        return null;
+    }
+    const msg = `Code "${dup.policy_code}" is already used by "${dup.policy_name}". Change the code or click Edit on that policy.`;
+    if (hint) {
+        hint.textContent = msg;
+        hint.classList.remove('hidden');
+    }
+    input.classList.add('ess-input-error');
+    if (showToast) toast(msg, 'error');
+    return msg;
+}
+
+function populatePolicyDefLeaveTypeSelect(options) {
+    const sel = document.getElementById('policyDefLeaveType');
+    if (!sel) return;
+    const prev = sel.value;
+    const opts = options?.length ? options : Object.entries(HRMS.leaveTypeCatalog || {})
+        .filter(([, m]) => m.group === 'balance')
+        .map(([key, m]) => ({ key, label: m.label }));
+    sel.innerHTML = '<option value="">Select type</option>' + opts.map(o =>
+        `<option value="${escHtml(o.key)}">${escHtml(o.label)}</option>`
+    ).join('');
+    if (prev && [...sel.options].some(opt => opt.value === prev)) sel.value = prev;
+}
+
+function resetLeavePolicyDefForm() {
+    HRMS.editingPolicyId = null;
+    const form = document.getElementById('formLeavePolicyDef');
+    form?.reset();
+    const idEl = document.getElementById('policyDefId');
+    if (idEl) idEl.value = '';
+    document.querySelector('input[name="policy_def_target"][value="none"]')?.click();
+    HRMS.selectedPolicyDefEmployees = [];
+    renderPolicyDefEmployeeChips();
+    togglePolicyDefEmployeeField();
+    const resetDay = document.getElementById('policyDefResetDay');
+    if (resetDay) resetDay.value = '31-Dec';
+    const saveBtn = document.getElementById('btnPolicyDefSave');
+    if (saveBtn) saveBtn.innerHTML = '<i class="fas fa-save"></i> Add leave policy';
+    document.getElementById('btnPolicyDefCancel')?.classList.add('hidden');
+    validatePolicyCodeField(false);
+}
+
+function fillLeavePolicyDefForm(policy) {
+    if (!policy) return;
+    HRMS.editingPolicyId = policy.id;
+    const set = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val ?? '';
+    };
+    const setCheck = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.checked = !!val;
+    };
+    set('policyDefId', policy.id);
+    set('policyDefName', policy.policy_name);
+    set('policyDefCode', policy.policy_code);
+    set('policyDefLeaveType', policy.leave_type);
+    set('policyDefCategory', policy.leave_category || 'paid');
+    set('policyDefUnit', policy.unit || 'days');
+    set('policyDefCredit', policy.credit_value);
+    set('policyDefValidFrom', policy.valid_from || '');
+    set('policyDefExpiresOn', policy.expires_on || '');
+    setCheck('policyDefReset', policy.reset_enabled);
+    set('policyDefResetFreq', policy.reset_frequency || 'yearly');
+    set('policyDefResetDay', policy.reset_day_month || '31-Dec');
+    setCheck('policyDefCarry', policy.carry_forward_enabled);
+    set('policyDefCarryVal', policy.carry_forward_value ?? 0);
+    setCheck('policyDefEncash', policy.encash_enabled);
+    set('policyDefEncashVal', policy.encash_value ?? 0);
+    document.querySelector('input[name="policy_def_target"][value="none"]')?.click();
+    togglePolicyDefEmployeeField();
+    const saveBtn = document.getElementById('btnPolicyDefSave');
+    if (saveBtn) saveBtn.innerHTML = '<i class="fas fa-save"></i> Update leave policy';
+    document.getElementById('btnPolicyDefCancel')?.classList.remove('hidden');
+}
+
+function renderLeavePolicyDefinitions(items) {
+    const tbody = document.getElementById('leavePolicyDefinitionsBody');
+    if (!tbody) return;
+    if (!items?.length) {
+        tbody.innerHTML = '<tr><td colspan="6">No leave policies defined yet.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = items.map(p => {
+        const credit = `${p.credit_value} ${p.unit === 'hours' ? 'hrs' : 'days'}`;
+        const status = p.is_active ? '<span class="ess-pill present ess-pill-sm">Active</span>' : '<span class="ess-pill ess-pill-sm">Disabled</span>';
+        return `<tr>
+            <td>${escHtml(p.policy_name)}</td>
+            <td>${escHtml(p.policy_code)}</td>
+            <td>${escHtml(p.leave_type_label || leaveTypeLabel(p.leave_type))}</td>
+            <td>${escHtml(credit)}</td>
+            <td>${status}</td>
+            <td class="ess-policy-def-row-actions">
+                <button type="button" class="ess-btn ess-btn-outline ess-btn-sm" data-policy-edit="${p.id}">Edit</button>
+                <button type="button" class="ess-btn ess-btn-danger ess-btn-sm" data-policy-delete="${p.id}">Delete</button>
+            </td>
+        </tr>`;
+    }).join('');
+    tbody.querySelectorAll('[data-policy-edit]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = parseInt(btn.dataset.policyEdit, 10);
+            const policy = (HRMS.policyDefinitions || []).find(p => p.id === id);
+            if (policy) fillLeavePolicyDefForm(policy);
+        });
+    });
+    tbody.querySelectorAll('[data-policy-delete]').forEach(btn => {
+        btn.addEventListener('click', () => deleteLeavePolicyDefinition(parseInt(btn.dataset.policyDelete, 10)));
+    });
+}
+
+function collectLeavePolicyDefPayload() {
+    const form = document.getElementById('formLeavePolicyDef');
+    const fd = new FormData(form);
+    const payload = {
+        policy_name: (fd.get('policy_name') || '').toString().trim(),
+        policy_code: (fd.get('policy_code') || '').toString().trim().toUpperCase(),
+        leave_type: fd.get('leave_type') || '',
+        leave_category: fd.get('leave_category') || 'paid',
+        unit: fd.get('unit') || 'days',
+        credit_value: parseInt(fd.get('credit_value'), 10) || 0,
+        reset_enabled: !!document.getElementById('policyDefReset')?.checked,
+        reset_frequency: fd.get('reset_frequency') || 'yearly',
+        reset_day_month: (fd.get('reset_day_month') || '31-Dec').toString(),
+        carry_forward_enabled: !!document.getElementById('policyDefCarry')?.checked,
+        carry_forward_value: parseInt(fd.get('carry_forward_value'), 10) || 0,
+        encash_enabled: !!document.getElementById('policyDefEncash')?.checked,
+        encash_value: parseInt(fd.get('encash_value'), 10) || 0,
+        valid_from: (fd.get('valid_from') || '').toString(),
+        expires_on: (fd.get('expires_on') || '').toString(),
+    };
+    const target = document.querySelector('input[name="policy_def_target"]:checked')?.value || 'none';
+    payload.apply_to_all = target === 'all';
+    payload.user_ids = target === 'selected'
+        ? HRMS.selectedPolicyDefEmployees.map(p => p.id).filter(Boolean)
+        : [];
+    if (HRMS.editingPolicyId) payload.policy_id = HRMS.editingPolicyId;
+    return payload;
+}
+
+async function submitLeavePolicyDefinition(e) {
+    e.preventDefault();
+    if (!HRMS.canManageLeavePolicies) {
+        toast('Not authorized to manage leave policies', 'error');
+        return;
+    }
+    const payload = collectLeavePolicyDefPayload();
+    if (!payload.policy_name || !payload.policy_code || !payload.leave_type) {
+        toast('Policy name, code, and leave type are required', 'error');
+        return;
+    }
+    if (validatePolicyCodeField(true)) {
+        document.getElementById('policyDefCode')?.focus();
+        return;
+    }
+    const target = document.querySelector('input[name="policy_def_target"]:checked')?.value || 'none';
+    if (target === 'selected' && !payload.user_ids.length) {
+        toast('Add at least one employee or choose all active employees', 'error');
+        return;
+    }
+    const action = HRMS.editingPolicyId ? 'updatePolicyDefinition' : 'savePolicyDefinition';
+    const btn = document.getElementById('btnPolicyDefSave');
+    if (btn) btn.disabled = true;
+    const res = await apiPost(`api/leave_api.php?action=${action}`, payload);
+    if (btn) btn.disabled = false;
+    toast(res.error || res.data?.message || (res.success ? 'Saved' : 'Failed'), res.success ? 'success' : 'error');
+    if (res.success) {
+        resetLeavePolicyDefForm();
+        await loadLeavePolicy();
+        if (HRMS.currentView === 'leave') loadLeaveBalances();
+    }
+}
+
+async function deleteLeavePolicyDefinition(policyId) {
+    if (!HRMS.canManageLeavePolicies || !policyId) return;
+    if (!confirm('Delete this leave policy? Employee mappings for this policy will be removed.')) return;
+    const res = await apiPost('api/leave_api.php?action=deletePolicyDefinition', { policy_id: policyId });
+    toast(res.error || res.data?.message || (res.success ? 'Deleted' : 'Failed'), res.success ? 'success' : 'error');
+    if (res.success) {
+        if (HRMS.editingPolicyId === policyId) resetLeavePolicyDefForm();
+        await loadLeavePolicy();
+        if (HRMS.currentView === 'leave') loadLeaveBalances();
+    }
+}
+
+function togglePolicyDefEmployeeField() {
+    const field = document.getElementById('policyDefEmployeeField');
+    const target = document.querySelector('input[name="policy_def_target"]:checked')?.value || 'none';
     if (field) field.classList.toggle('hidden', target !== 'selected');
 }
 
-function addPolicyEmployee(person) {
+function addPolicyDefEmployee(person) {
     if (!person?.id) return;
-    const list = HRMS.selectedPolicyEmployees;
+    const list = HRMS.selectedPolicyDefEmployees;
     if (list.some(p => p.id === person.id)) return;
     list.push(person);
-    renderPolicyEmployeeChips();
+    renderPolicyDefEmployeeChips();
 }
 
-function removePolicyEmployee(id) {
-    HRMS.selectedPolicyEmployees = HRMS.selectedPolicyEmployees.filter(p => p.id !== id);
-    renderPolicyEmployeeChips();
+function removePolicyDefEmployee(id) {
+    HRMS.selectedPolicyDefEmployees = HRMS.selectedPolicyDefEmployees.filter(p => p.id !== id);
+    renderPolicyDefEmployeeChips();
 }
 
-function renderPolicyEmployeeChips() {
-    const wrap = document.getElementById('policyEmployeeSelected');
+function renderPolicyDefEmployeeChips() {
+    const wrap = document.getElementById('policyDefEmployeeSelected');
     if (!wrap) return;
-    const list = HRMS.selectedPolicyEmployees;
+    const list = HRMS.selectedPolicyDefEmployees;
     if (!list.length) {
         wrap.classList.add('hidden');
         wrap.innerHTML = '';
@@ -1239,151 +1748,53 @@ function renderPolicyEmployeeChips() {
         </span>
     `).join('');
     wrap.querySelectorAll('.ess-chip-clear').forEach(btn => {
-        btn.addEventListener('click', () => removePolicyEmployee(parseInt(btn.dataset.id, 10)));
+        btn.addEventListener('click', () => removePolicyDefEmployee(parseInt(btn.dataset.id, 10)));
     });
 }
 
-async function resolvePolicyEmployeesFromSearchInput() {
-    const input = document.getElementById('policyEmployeeSearch');
-    const q = input?.value.trim() || '';
-    if (!q || q.length < 2) return;
-    const rows = await searchLeavePeople('searchPolicyEmployees', q);
-    if (!rows.length) return;
-    const exact = rows.find(p =>
-        String(p.employee_code || '').toLowerCase() === q.toLowerCase()
-        || String(p.id) === q
-    );
-    if (exact) {
-        addPolicyEmployee(exact);
-        if (input) input.value = '';
-        return;
-    }
-    if (rows.length === 1) {
-        addPolicyEmployee(rows[0]);
-        if (input) input.value = '';
-    }
-}
-
-function initLeavePolicyForm() {
-    document.querySelectorAll('input[name="policy_target"]').forEach(r => {
-        r.addEventListener('change', togglePolicyEmployeeField);
+function initLeavePolicyDefForm() {
+    document.getElementById('formLeavePolicyDef')?.addEventListener('submit', submitLeavePolicyDefinition);
+    document.getElementById('btnPolicyDefCancel')?.addEventListener('click', resetLeavePolicyDefForm);
+    document.getElementById('policyDefCode')?.addEventListener('input', () => validatePolicyCodeField(false));
+    document.getElementById('policyDefCode')?.addEventListener('blur', () => validatePolicyCodeField(false));
+    document.querySelectorAll('input[name="policy_def_target"]').forEach(r => {
+        r.addEventListener('change', togglePolicyDefEmployeeField);
     });
     bindPersonSearch(
-        'policyEmployeeSearch', 'policyEmployeeResults', null, 'searchPolicyEmployees',
-        p => { addPolicyEmployee(p); },
+        'policyDefEmployeeSearch', 'policyDefEmployeeResults', null, 'searchPolicyEmployees',
+        p => { addPolicyDefEmployee(p); },
         null,
         { multi: true }
     );
-    document.getElementById('formPolicyAllot')?.addEventListener('submit', async e => {
-        e.preventDefault();
-        await submitPolicyAllot();
-    });
-    const start = document.getElementById('policyStartDate');
-    const end = document.getElementById('policyEndDate');
-    start?.addEventListener('change', () => {
-        if (end && !end.value) end.value = start.value;
-    });
 }
 
-async function submitPolicyAllot() {
-    if (!HRMS.canAllotLeavePolicy) {
-        toast('Only HR and Super Admin can allot leave', 'error');
-        return;
-    }
-    const fd = new FormData(document.getElementById('formPolicyAllot'));
-    const target = fd.get('policy_target') || 'all';
-    const start_date = fd.get('start_date');
-    const end_date = fd.get('end_date') || start_date;
-    const reason = (fd.get('reason') || '').toString().trim();
-    if (!start_date || !reason) {
-        toast('Start date and occasion are required', 'error');
-        return;
-    }
-    const payload = {
-        all_employees: target === 'all',
-        leave_type: fd.get('leave_type') || 'public_holiday',
-        start_date,
-        end_date,
-        reason,
-        user_ids: [],
-    };
-    if (target === 'selected') {
-        await resolvePolicyEmployeesFromSearchInput();
-        const ids = HRMS.selectedPolicyEmployees.map(p => p.id).filter(Boolean);
-        if (!ids.length) {
-            toast('Search and add at least one employee, or choose all employees', 'error');
-            return;
-        }
-        payload.user_ids = ids;
-    }
-    const btn = document.getElementById('btnPolicyAllot');
-    if (btn) btn.disabled = true;
-    const res = await apiPost('api/leave_api.php?action=allotLeave', payload);
-    if (btn) btn.disabled = false;
-    toast(res.error || res.data?.message || 'Leave allotted', res.success ? 'success' : 'error');
-    if (res.success) {
-        document.getElementById('formPolicyAllot')?.reset();
-        HRMS.selectedPolicyEmployees = [];
-        renderPolicyEmployeeChips();
-        document.querySelector('input[name="policy_target"][value="all"]')?.click();
-        togglePolicyEmployeeField();
-        await loadLeavePolicy();
-        pollNotifications();
-    }
-}
-
-function renderLeavePolicyHistory(items) {
-    const tbody = document.getElementById('leavePolicyHistoryBody');
-    if (!tbody) return;
-    if (!items?.length) {
-        tbody.innerHTML = '<tr><td colspan="6">No company allotments recorded yet.</td></tr>';
-        return;
-    }
-    const groups = [];
-    const map = new Map();
-    items.forEach(r => {
-        const key = [r.reason, r.start_date, r.end_date, r.allotted_by_name || '', (r.created_at || '').slice(0, 16)].join('\0');
-        if (!map.has(key)) {
-            const g = { ...r, count: 1 };
-            map.set(key, g);
-            groups.push(g);
-        } else {
-            map.get(key).count += 1;
+function initLeaveYearNav() {
+    document.getElementById('leaveYearPrev')?.addEventListener('click', () => {
+        HRMS.leaveBalanceYear -= 1;
+        loadLeaveBalances();
+    });
+    document.getElementById('leaveYearNext')?.addEventListener('click', () => {
+        const maxYear = new Date().getFullYear() + 1;
+        if (HRMS.leaveBalanceYear < maxYear) {
+            HRMS.leaveBalanceYear += 1;
+            loadLeaveBalances();
         }
     });
-    tbody.innerHTML = groups.map(r => {
-        const dates = r.start_date === r.end_date ? r.start_date : `${r.start_date} → ${r.end_date}`;
-        const empCell = r.count > 1
-            ? `All employees <span class="ess-pill present ess-pill-sm">${r.count}</span>`
-            : `${escHtml(r.employee_name)} <small class="ess-muted-inline">${escHtml(r.employee_code || '')}</small>`;
-        return `<tr>
-            <td>${escHtml(r.reason || '—')}</td>
-            <td>${escHtml(leaveTypeLabel(r.leave_type))}</td>
-            <td>${escHtml(dates)}</td>
-            <td>${empCell}</td>
-            <td>${escHtml(r.allotted_by_name || 'HR')}</td>
-            <td>${escHtml((r.created_at || '').slice(0, 16))}</td>
-        </tr>`;
-    }).join('');
 }
 
 async function loadLeavePolicy() {
-    toggleLeavePolicyAllotUI();
+    if (!HRMS.canViewLeavePolicy) return;
     const res = await apiGet('api/leave_api.php?action=policyList');
     if (!res.success) {
-        renderLeavePolicyHistory([]);
+        renderLeavePolicyDefinitions([]);
         return;
     }
-    HRMS.canAllotLeavePolicy = !!res.data.can_allot;
-    HRMS.policyAllotments = res.data.items || [];
-    toggleLeavePolicyAllotUI();
-    renderLeavePolicyHistory(HRMS.policyAllotments);
-    const hint = document.getElementById('leavePolicyHistoryHint');
-    if (hint) {
-        hint.textContent = HRMS.canAllotLeavePolicy
-            ? 'All leave you allot appears here. Employees are notified automatically.'
-            : 'Company-wide holidays and leave allotted by HR for your branch.';
-    }
+    HRMS.canManageLeavePolicies = !!res.data.can_manage;
+    HRMS.policyDefinitions = res.data.definitions || [];
+    HRMS.usedPolicyCodes = res.data.used_policy_codes || [];
+    populatePolicyDefLeaveTypeSelect(res.data.policy_type_options);
+    renderLeavePolicyDefinitions(HRMS.policyDefinitions);
+    validatePolicyCodeField(false);
 }
 
 function toggleLeaveEmployeeFields() {
@@ -1394,13 +1805,17 @@ function toggleLeaveEmployeeFields() {
     });
 }
 
-function openLeaveApplyModal() {
+async function openLeaveApplyModal() {
     toggleLeaveEmployeeFields();
     const modal = document.getElementById('leaveApplyModal');
     if (!modal) return;
     modal.classList.remove('hidden');
     modal.setAttribute('aria-hidden', 'false');
     document.body.classList.add('ess-modal-open');
+    const submitBtn = document.getElementById('leaveApplyModalSubmit');
+    if (submitBtn) submitBtn.disabled = true;
+    await loadLeaveBalances();
+    if (submitBtn) submitBtn.disabled = false;
     setTimeout(() => document.getElementById('leaveApproverSearch')?.focus(), 120);
 }
 
@@ -1410,6 +1825,13 @@ function closeLeaveApplyModal() {
     modal.classList.add('hidden');
     modal.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('ess-modal-open');
+    document.getElementById('formFullLeave')?.reset();
+    HRMS.selectedApprover = null;
+    HRMS.selectedEmployee = null;
+    renderSelectedPerson('leaveApproverSelected', null);
+    renderSelectedPerson('leaveEmployeeSelected', null);
+    const leaveEnd = document.getElementById('leaveEndDate');
+    if (leaveEnd) leaveEnd.removeAttribute('min');
 }
 
 function escHtml(s) {
@@ -2168,13 +2590,28 @@ function initLeaveForms() {
         () => { HRMS.halfEmployee = null; renderSelectedPerson('halfEmployeeSelected', null); }
     );
 
-    document.getElementById('btnOpenLeaveApply')?.addEventListener('click', openLeaveApplyModal);
+    document.getElementById('btnOpenLeaveApply')?.addEventListener('click', () => openLeaveApplyModal());
+    document.getElementById('btnOpenHalfDayApply')?.addEventListener('click', () => {
+        showView('halfday', 'nav-tab-leave');
+    });
+    document.getElementById('btnBackToLeaves')?.addEventListener('click', () => {
+        showView('leave', 'nav-tab-leave');
+    });
     document.getElementById('btnPolicyApplyLeave')?.addEventListener('click', () => {
         showView('leave', 'nav-tab-leave');
         openLeaveApplyModal();
     });
     document.getElementById('leaveApplyModalClose')?.addEventListener('click', closeLeaveApplyModal);
     document.getElementById('leaveApplyModalCancel')?.addEventListener('click', closeLeaveApplyModal);
+    const leaveStart = document.getElementById('leaveStartDate');
+    const leaveEnd = document.getElementById('leaveEndDate');
+    leaveStart?.addEventListener('change', () => {
+        if (!leaveEnd || !leaveStart.value) return;
+        leaveEnd.min = leaveStart.value;
+        if (leaveEnd.value && leaveEnd.value < leaveStart.value) {
+            leaveEnd.value = leaveStart.value;
+        }
+    });
     document.getElementById('leaveApplyModal')?.addEventListener('click', e => {
         if (e.target.id === 'leaveApplyModal') closeLeaveApplyModal();
     });
@@ -2201,6 +2638,14 @@ function initLeaveForms() {
 
 async function submitLeave(durationType, formId) {
     const form = document.getElementById(formId);
+    if (!form) return;
+
+    const clientError = validateLeaveForm(form, durationType);
+    if (clientError) {
+        toast(clientError, 'error');
+        return;
+    }
+
     const fd = new FormData(form);
     const start = fd.get('start_date');
     const approver = durationType === 'half_day' ? HRMS.halfApprover : HRMS.selectedApprover;
@@ -2210,6 +2655,11 @@ async function submitLeave(durationType, formId) {
         toast('Please search and select an approver (Admin, Team Lead, or HR)', 'error');
         return;
     }
+
+    const submitBtn = durationType === 'half_day'
+        ? form.querySelector('button[type="submit"]')
+        : document.getElementById('leaveApplyModalSubmit');
+    if (submitBtn) submitBtn.disabled = true;
 
     const payload = {
         leave_type: fd.get('leave_type') || 'annual',
@@ -2224,26 +2674,32 @@ async function submitLeave(durationType, formId) {
     if (employee?.id && HRMS.canSelectEmployee) {
         payload.for_user_id = employee.id;
     }
-    const res = await apiPost('api/leave_api.php?action=apply', payload);
-    if (res.success) {
-        toast('Leave request submitted successfully');
-        form.reset();
-        if (durationType === 'half_day') {
-            HRMS.halfApprover = null;
-            HRMS.halfEmployee = null;
-            renderSelectedPerson('halfApproverSelected', null);
-            renderSelectedPerson('halfEmployeeSelected', null);
+
+    try {
+        const res = await apiPost('api/leave_api.php?action=apply', payload);
+        if (res.success) {
+            toast('Leave request submitted successfully');
+            form.reset();
+            if (durationType === 'half_day') {
+                HRMS.halfApprover = null;
+                HRMS.halfEmployee = null;
+                renderSelectedPerson('halfApproverSelected', null);
+                renderSelectedPerson('halfEmployeeSelected', null);
+            } else {
+                HRMS.selectedApprover = null;
+                HRMS.selectedEmployee = null;
+                renderSelectedPerson('leaveApproverSelected', null);
+                renderSelectedPerson('leaveEmployeeSelected', null);
+                closeLeaveApplyModal();
+            }
+            await loadProfile();
+            await loadMyLeaves();
+            showView('leave');
         } else {
-            HRMS.selectedApprover = null;
-            HRMS.selectedEmployee = null;
-            renderSelectedPerson('leaveApproverSelected', null);
-            renderSelectedPerson('leaveEmployeeSelected', null);
-            closeLeaveApplyModal();
+            toast(res.error || res.message || 'Failed to submit leave request', 'error');
         }
-        await loadProfile();
-        showView('leave');
-    } else {
-        toast(res.error || 'Failed to submit', 'error');
+    } finally {
+        if (submitBtn) submitBtn.disabled = false;
     }
 }
 
@@ -2251,7 +2707,7 @@ function leaveStatusLabel(status) {
     const map = {
         pending: 'Pending',
         approved: 'Approved',
-        rejected: 'Rejected',
+        rejected: 'Leave rejected',
         cancelled: 'Withdrawn',
     };
     return map[status] || status;
@@ -2273,18 +2729,31 @@ function renderLeaveRows(data, tbodyId) {
     const tbody = document.getElementById(tbodyId);
     if (!tbody) return;
     if (!data.length) {
-        tbody.innerHTML = '<tr><td colspan="7">No leave applications found yet.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8">No leave applications found yet.</td></tr>';
         return;
     }
-    tbody.innerHTML = data.map(r => `<tr>
+    tbody.innerHTML = data.map(r => {
+        const allotted = !!r.is_policy_allotment;
+        const creditVal = parseFloat(r.policy_credit_value);
+        const isCredit = Number.isFinite(creditVal) && creditVal > 0;
+        const typeCell = allotted
+            ? `${escHtml(leaveTypeLabel(r.leave_type) || r.leave_type)} <span class="ess-pill present ess-pill-sm">${isCredit ? 'Policy credit' : 'Allotted'}</span>`
+            : escHtml(leaveTypeLabel(r.leave_type) || r.leave_type);
+        const viaCell = allotted
+            ? escHtml(r.allotted_by_name || 'HR')
+            : escHtml(r.approver_name || (r.apply_through || '').replace(/_/g, ' '));
+        const days = isCredit ? creditVal : leaveRequestDayUnits(r);
+        return `<tr class="${allotted ? 'ess-leave-row--allotted' : ''}">
         <td>${r.duration_type === 'half_day' ? 'Half (' + (r.half_day_slot || '') + ')' : 'Full'}</td>
-        <td>${escHtml(leaveTypeLabel(r.leave_type) || r.leave_type)}</td>
+        <td>${typeCell}</td>
         <td>${formatDate(r.start_date)}${r.end_date !== r.start_date ? ' – ' + formatDate(r.end_date) : ''}</td>
-        <td>${escHtml(r.approver_name || (r.apply_through || '').replace(/_/g, ' '))}</td>
+        <td>${formatLeaveDays(days)}</td>
+        <td>${viaCell}</td>
         <td><span class="status-pill ${r.status}">${leaveStatusLabel(r.status)}</span></td>
         <td>${new Date(r.created_at).toLocaleString()}</td>
         ${leaveWithdrawActionCell(r)}
-    </tr>`).join('');
+    </tr>`;
+    }).join('');
     tbody.querySelectorAll('.ess-leave-withdraw-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const id = parseInt(btn.dataset.leaveId, 10);
@@ -2359,25 +2828,25 @@ async function submitLeaveWithdraw() {
     if (res.success) {
         toast(res.error || 'Leave request withdrawn successfully');
         closeLeaveWithdrawModal();
+        await loadLeaveBalances();
         await loadMyLeaves();
         await loadProfile();
+        await refreshOnLeaveMap();
     } else {
         toast(res.error || 'Could not withdraw leave request', 'error');
     }
 }
 
-async function loadMyLeaves(tabOnly = false) {
+async function loadMyLeaves() {
     const res = await apiGet('api/leave_api.php?action=myRequests');
     if (!res.success) return;
     HRMS.leaveRequests = res.data || [];
     renderLeaveRows(res.data, 'myLeavesBody');
-    renderLeaveRows(res.data, 'myLeavesBodyTab');
-    if (!tabOnly) renderLeaveBalances();
 }
 
 function updateManagerApprovalUI(summary) {
     const pending = summary?.pending_approvals ?? 0;
-    const canApprove = !!summary?.can_approve;
+    const canApprove = !!(summary?.can_access_portal_approvals ?? summary?.can_approve);
     const panel = document.getElementById('managerPanel');
     const statWrap = document.getElementById('statTeamPendingWrap');
     if (panel) panel.classList.toggle('hidden', !canApprove);
@@ -2392,27 +2861,28 @@ function updateManagerApprovalUI(summary) {
     const dashText = document.getElementById('dashLeaveApprovalsText');
     if (dashText) {
         dashText.textContent = pending > 0
-            ? `${pending} leave request${pending === 1 ? '' : 's'} waiting for your review.`
-            : 'No pending leave requests from your team right now.';
+            ? `${pending} leave request${pending === 1 ? '' : 's'} awaiting HR review.`
+            : 'No pending leave requests right now.';
     }
 }
 
 function leaveTypeLabel(type) {
-    const map = {
-        casual: 'Casual',
-        sick: 'Sick',
-        annual: 'Annual',
-        emergency: 'On Duty',
-        unpaid: 'Comp Off',
-        public_holiday: 'Public Holiday',
-        eid: 'Eid Vacation',
-        company_holiday: 'Company Holiday',
-        other: 'Other',
-    };
-    return map[type] || (type || 'Leave').replace(/_/g, ' ');
+    if (!type) return 'Leave';
+    const key = String(type).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+    const aliases = { emergency: 'on_duty', unpaid: 'compensatory', other: 'company_holiday' };
+    const norm = aliases[key] || key;
+    if (HRMS.leaveTypeCatalog[norm]?.label) return HRMS.leaveTypeCatalog[norm].label;
+    const fromList = [...(HRMS.leaveApplyTypes || []), ...(HRMS.leaveAllotTypes || [])]
+        .find(o => o.key === norm);
+    if (fromList?.label) return fromList.label;
+    return String(type).replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
 function durationLabel(r) {
+    const credit = parseFloat(r.policy_credit_value);
+    if (Number.isFinite(credit) && credit > 0) {
+        return 'Policy credit · ' + formatLeaveDays(credit) + ' days';
+    }
     if (r.duration_type === 'half_day') {
         return 'Half day' + (r.half_day_slot ? ' (' + r.half_day_slot + ')' : '');
     }
@@ -2422,8 +2892,31 @@ function durationLabel(r) {
 function renderApprovalCard(r) {
     const name = r.employee_name || r.full_name || 'Employee';
     const isPending = r.status === 'pending';
+    const isApproved = r.status === 'approved';
+    const isAllotted = !!r.is_policy_allotment;
+    const creditVal = parseFloat(r.policy_credit_value);
+    const isCredit = Number.isFinite(creditVal) && creditVal > 0;
+    const canAct = HRMS.canAccessPortalApprovals && (isPending || isApproved);
+    const actionOptions = [];
+    if (isPending) {
+        actionOptions.push('<option value="approve">Approve</option>', '<option value="reject">Reject</option>');
+    }
+    if (isApproved) {
+        actionOptions.push('<option value="revert">Revert to pending</option>', '<option value="reject">Reject</option>');
+    }
+    const actionBlock = canAct && actionOptions.length ? `
+            <div class="ess-approval-actions ess-approval-actions--dropdown">
+                <label class="ess-approval-action-label">Action</label>
+                <div class="ess-approval-action-row">
+                    <select class="ess-approval-action-select" id="approvalActionSelect_${r.id}" aria-label="Leave action for ${escHtml(name)}">
+                        <option value="" disabled selected>Select action…</option>
+                        ${actionOptions.join('')}
+                    </select>
+                    <button type="button" class="ess-btn ess-btn-primary ess-btn-sm" onclick="HRMS.runApprovalDropdown(${r.id})"><i class="fas fa-check"></i> Apply</button>
+                </div>
+            </div>` : '';
     return `
-        <article class="ess-approval-card">
+        <article class="ess-approval-card${isAllotted ? ' ess-approval-card--allotted' : ''}">
             <div class="ess-approval-card-head">
                 <div class="ess-approval-employee">
                     <div class="ess-approval-avatar">${initials(name)}</div>
@@ -2432,22 +2925,33 @@ function renderApprovalCard(r) {
                         <small>${escHtml(r.employee_code || '—')} · ${escHtml(r.team || '—')} · ${escHtml(r.department || '—')}</small>
                     </div>
                 </div>
-                <span class="status-pill ${r.status}">${r.status}</span>
+                <div class="ess-approval-head-badges">
+                    ${isAllotted ? `<span class="ess-pill ess-pill-sm">${isCredit ? 'Policy credit' : 'HR allotted'}</span>` : ''}
+                    <span class="status-pill ${r.status}">${escHtml(leaveStatusLabel(r.status))}</span>
+                </div>
             </div>
             <div class="ess-approval-meta">
                 <div><span>Leave type</span><strong>${escHtml(leaveTypeLabel(r.leave_type))}</strong></div>
-                <div><span>Duration</span><strong>${durationLabel(r)}</strong></div>
-                <div><span>Dates</span><strong>${formatDate(r.start_date)}${r.end_date !== r.start_date ? ' – ' + formatDate(r.end_date) : ''}</strong></div>
+                <div><span>Details</span><strong>${escHtml(durationLabel(r))}</strong></div>
+                <div><span>${isCredit ? 'Effective' : 'Dates'}</span><strong>${isCredit ? formatDate(r.start_date) : formatDate(r.start_date) + (r.end_date !== r.start_date ? ' – ' + formatDate(r.end_date) : '')}</strong></div>
                 <div><span>Applied</span><strong>${r.created_at ? new Date(r.created_at).toLocaleString() : '—'}</strong></div>
             </div>
             ${r.reason ? `<div class="ess-approval-reason"><i class="fas fa-quote-left"></i> ${escHtml(r.reason)}</div>` : ''}
-            ${r.approver_name ? `<small style="color:var(--ess-muted)">Routed to: <strong>${escHtml(r.approver_name)}</strong></small>` : ''}
-            ${isPending ? `
-            <div class="ess-approval-actions">
-                <button type="button" class="ess-btn ess-btn-outline" onclick="HRMS.openApprovalModal(${r.id}, false)"><i class="fas fa-times"></i> Reject</button>
-                <button type="button" class="ess-btn ess-btn-primary" onclick="HRMS.openApprovalModal(${r.id}, true)"><i class="fas fa-check"></i> Approve</button>
-            </div>` : ''}
+            ${r.allotted_by_name ? `<small class="ess-muted-line">Allotted by: <strong>${escHtml(r.allotted_by_name)}</strong></small>` : ''}
+            ${r.approver_name && !isAllotted ? `<small style="color:var(--ess-muted)">Routed to: <strong>${escHtml(r.approver_name)}</strong></small>` : ''}
+            ${actionBlock}
         </article>`;
+}
+
+function runApprovalDropdown(id) {
+    const sel = document.getElementById(`approvalActionSelect_${id}`);
+    const action = sel?.value || '';
+    if (!action) {
+        toast('Select Approve, Reject, or Revert from the dropdown', 'error');
+        sel?.focus();
+        return;
+    }
+    openApprovalModal(id, action);
 }
 
 async function loadApprovals() {
@@ -2472,10 +2976,10 @@ async function loadApprovals() {
     wrap.innerHTML = rows.map(renderApprovalCard).join('');
 }
 
-function openApprovalModal(id, approve) {
+function openApprovalModal(id, mode) {
     const row = (HRMS._approvalRows || []).find(r => parseInt(r.id, 10) === parseInt(id, 10));
     HRMS.approvalModalRequest = row || { id };
-    HRMS.approvalModalMode = approve ? 'approve' : 'reject';
+    HRMS.approvalModalMode = mode === 'revert' ? 'revert' : (mode === 'approve' || mode === true ? 'approve' : 'reject');
     const modal = document.getElementById('approvalModal');
     const body = document.getElementById('approvalModalBody');
     const note = document.getElementById('approvalModalNote');
@@ -2483,19 +2987,28 @@ function openApprovalModal(id, approve) {
     const reqLabel = document.getElementById('approvalNoteRequired');
     const btnApprove = document.getElementById('approvalModalApprove');
     const btnReject = document.getElementById('approvalModalReject');
+    const btnRevert = document.getElementById('approvalModalRevert');
     if (!modal || !body) return;
     const name = row?.employee_name || row?.full_name || 'this employee';
-    title.textContent = approve ? 'Approve leave request' : 'Reject leave request';
+    const isApprove = HRMS.approvalModalMode === 'approve';
+    const isRevert = HRMS.approvalModalMode === 'revert';
+    title.textContent = isRevert ? 'Revert leave to pending' : (isApprove ? 'Approve leave request' : 'Reject leave request');
     body.innerHTML = row ? `
         <p><strong>${escHtml(name)}</strong> · ${escHtml(row.employee_code || '')}</p>
         <p>${durationLabel(row)} · ${formatDate(row.start_date)}${row.end_date !== row.start_date ? ' – ' + formatDate(row.end_date) : ''}</p>
+        ${isRevert ? '<p class="ess-muted-line">This removes attendance leave marks and sends the request back for review.</p>' : ''}
     ` : '<p>Confirm your decision for this leave request.</p>';
-    if (note) note.value = '';
-    if (reqLabel) reqLabel.classList.toggle('hidden', approve);
-    if (btnApprove) btnApprove.classList.toggle('hidden', !approve);
-    if (btnReject) btnReject.classList.toggle('hidden', approve);
+    if (note) {
+        note.value = '';
+        note.placeholder = isRevert ? 'Optional note for the employee…' : (isApprove ? 'Optional approval note…' : 'Rejection reason…');
+    }
+    if (reqLabel) reqLabel.classList.toggle('hidden', isApprove || isRevert);
+    if (btnApprove) btnApprove.classList.toggle('hidden', !isApprove);
+    if (btnReject) btnReject.classList.toggle('hidden', isApprove || isRevert);
+    if (btnRevert) btnRevert.classList.toggle('hidden', !isRevert);
     modal.classList.remove('hidden');
     modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('ess-modal-open');
 }
 
 function closeApprovalModal() {
@@ -2503,30 +3016,37 @@ function closeApprovalModal() {
     if (!modal) return;
     modal.classList.add('hidden');
     modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('ess-modal-open');
     HRMS.approvalModalRequest = null;
 }
 
 async function submitApprovalModal(approve) {
     const req = HRMS.approvalModalRequest;
     if (!req?.id) return;
+    const mode = HRMS.approvalModalMode || (approve ? 'approve' : 'reject');
     const noteEl = document.getElementById('approvalModalNote');
     const note = (noteEl?.value || '').trim();
-    if (!approve && !note) {
+    if (mode === 'reject' && req?.status === 'pending' && !note) {
         toast('Please provide a rejection reason', 'error');
         noteEl?.focus();
         return;
     }
-    const res = await apiPost(`api/leave_api.php?action=${approve ? 'approve' : 'reject'}`, { leave_id: req.id, note });
-    toast(res.error || (approve ? 'Leave approved' : 'Leave rejected'), res.success ? 'success' : 'error');
+    const action = mode === 'revert' ? 'revert' : mode;
+    const res = await apiPost(`api/leave_api.php?action=${action}`, { leave_id: req.id, note });
+    const msg = res.error || (mode === 'approve' ? 'Leave approved' : mode === 'revert' ? 'Leave reverted to pending' : 'Leave rejected');
+    toast(msg, res.success ? 'success' : 'error');
     if (res.success) {
         closeApprovalModal();
-        loadApprovals();
-        loadProfile();
+        await loadApprovals();
+        await loadProfile();
+        await refreshOnLeaveMap();
+        await loadLeaveBalances();
+        if (HRMS.currentView === 'leave') loadMyLeaves();
     }
 }
 
 async function approveLeave(id, approve) {
-    openApprovalModal(id, approve);
+    openApprovalModal(id, approve ? 'approve' : 'reject');
 }
 
 async function loadNotifications() {
@@ -2696,6 +3216,7 @@ function bindNavigation() {
     document.getElementById('approvalModalCancel')?.addEventListener('click', closeApprovalModal);
     document.getElementById('approvalModalApprove')?.addEventListener('click', () => submitApprovalModal(true));
     document.getElementById('approvalModalReject')?.addEventListener('click', () => submitApprovalModal(false));
+    document.getElementById('approvalModalRevert')?.addEventListener('click', () => submitApprovalModal(false));
     document.getElementById('approvalModal')?.addEventListener('click', e => {
         if (e.target.id === 'approvalModal') closeApprovalModal();
     });
@@ -2722,7 +3243,8 @@ function setupWorkPortalLink() {
 document.addEventListener('DOMContentLoaded', () => {
     bindNavigation();
     initLeaveForms();
-    initLeavePolicyForm();
+    initLeaveYearNav();
+    initLeavePolicyDefForm();
     if (location.hash === '#chat') showView('chat', 'nav-side-chat');
     else if (location.hash === '#profile') showView('profile', 'nav-tab-profile');
     else showView('dashboard', 'nav-tab-activities');
@@ -2764,5 +3286,6 @@ window.closeLeaveWithdrawModal = closeLeaveWithdrawModal;
 window.updatePortalChatBadge = updateChatBadges;
 window.HRMS.approveLeave = approveLeave;
 window.HRMS.openApprovalModal = openApprovalModal;
+window.HRMS.runApprovalDropdown = runApprovalDropdown;
 window.HRMS.closeApprovalModal = closeApprovalModal;
 window.showView = showView;

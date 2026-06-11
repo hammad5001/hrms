@@ -126,18 +126,95 @@ switch ($action) {
         break;
 
     case 'policyList':
-        $can_allot = user_can_allot_leave_policy($user);
-        $stmt = $conn->prepare("SELECT * FROM leave_requests WHERE company_branch = ? AND is_policy_allotment = 1 ORDER BY start_date DESC, created_at DESC LIMIT 120");
-        $stmt->bind_param('s', $branch);
-        $stmt->execute();
-        $rows = [];
-        $res = $stmt->get_result();
-        while ($row = $res->fetch_assoc()) {
-            $rows[] = leave_request_row_to_array($row);
+        if (!user_can_view_leave_policy($user)) {
+            leave_respond(false, null, 'Not authorized');
         }
         leave_respond(true, [
-            'can_allot' => $can_allot,
-            'items' => $rows,
+            'can_manage' => user_can_manage_leave_policies($user),
+            'definitions' => fetch_leave_policy_definitions($conn, $branch),
+            'policy_type_options' => leave_policy_type_options(),
+            'used_policy_codes' => array_map(static fn($p) => [
+                'id' => $p['id'],
+                'code' => $p['policy_code'],
+                'name' => $p['policy_name'],
+            ], fetch_leave_policy_definitions($conn, $branch)),
+        ]);
+        break;
+
+    case 'onLeaveDates':
+        $year = (int) ($_GET['year'] ?? date('Y'));
+        $map = fetch_user_on_leave_map($conn, $user_id, $branch, $year);
+        leave_respond(true, [
+            'year' => $year,
+            'dates' => $map,
+            'date_keys' => array_keys($map),
+        ]);
+        break;
+
+    case 'savePolicyDefinition':
+        if (!user_can_manage_leave_policies($user)) {
+            leave_respond(false, null, 'Not authorized to manage leave policies');
+        }
+        $result = save_leave_policy_definition($conn, $branch, $user, $input);
+        if (empty($result['success'])) {
+            leave_respond(false, null, $result['error'] ?? 'Could not save policy');
+        }
+        leave_respond(true, [
+            'id' => $result['id'],
+            'assigned' => $result['assigned'] ?? 0,
+        ], $result['message'] ?? 'Policy saved');
+        break;
+
+    case 'updatePolicyDefinition':
+        if (!user_can_manage_leave_policies($user)) {
+            leave_respond(false, null, 'Not authorized to manage leave policies');
+        }
+        $result = update_leave_policy_definition($conn, $branch, $user, $input);
+        if (empty($result['success'])) {
+            leave_respond(false, null, $result['error'] ?? 'Could not update policy');
+        }
+        leave_respond(true, [
+            'id' => $result['id'],
+            'assigned' => $result['assigned'] ?? 0,
+        ], $result['message'] ?? 'Policy updated');
+        break;
+
+    case 'deletePolicyDefinition':
+        if (!user_can_manage_leave_policies($user)) {
+            leave_respond(false, null, 'Not authorized to manage leave policies');
+        }
+        $policyId = (int) ($input['policy_id'] ?? 0);
+        $result = delete_leave_policy_definition($conn, $policyId, $branch);
+        if (empty($result['success'])) {
+            leave_respond(false, null, $result['error'] ?? 'Could not delete policy');
+        }
+        leave_respond(true, null, $result['message'] ?? 'Policy deleted');
+        break;
+
+    case 'leaveBalances':
+        $year = (int) ($_GET['year'] ?? date('Y'));
+        if ($year < 2000 || $year > 2100) {
+            $year = (int) date('Y');
+        }
+        $for_user_id = (int) ($_GET['user_id'] ?? 0);
+        $target_id = $user_id;
+        if ($for_user_id > 0 && $for_user_id !== $user_id) {
+            if (!user_can_select_employee_for_leave($user)) {
+                leave_respond(false, null, 'Not authorized');
+            }
+            $picked = fetch_user_by_id($conn, $for_user_id);
+            if (!$picked || normalize_company_branch($picked['company_branch'] ?? '') !== $branch) {
+                leave_respond(false, null, 'Employee not found');
+            }
+            $target_id = $for_user_id;
+        }
+        leave_respond(true, [
+            'year' => $year,
+            'balances' => leave_balance_for_user($conn, $target_id, $year),
+            'policy_rules' => leave_policy_rules($conn, $branch),
+            'type_catalog' => leave_type_catalog_for_api(),
+            'apply_types' => leave_type_options_for('apply'),
+            'half_day_types' => leave_type_options_for('half_day'),
         ]);
         break;
 
@@ -155,7 +232,8 @@ switch ($action) {
         $end_date = trim($input['end_date'] ?? $start_date);
         $reason = trim($input['reason'] ?? '');
 
-        $allowed_types = ['public_holiday', 'eid', 'company_holiday', 'annual', 'casual', 'sick', 'other'];
+        $leave_type = leave_normalize_type_key($leave_type);
+        $allowed_types = leave_allot_type_keys();
         if (!in_array($leave_type, $allowed_types, true)) {
             leave_respond(false, null, 'Invalid leave type');
         }
@@ -192,7 +270,7 @@ switch ($action) {
 
         $allotter_label = $user['full_name'] ?? 'HR';
         $date_label = $start_date . ($end_date !== $start_date ? " to {$end_date}" : '');
-        $type_label = ucfirst(str_replace('_', ' ', $leave_type));
+        $type_label = leave_type_label($leave_type);
         $created = 0;
         $errors = 0;
 
@@ -216,18 +294,30 @@ switch ($action) {
                 $conn,
                 $leave_id,
                 [(int)$emp['id']],
-                'Leave allotted',
-                "{$allotter_label} allotted {$type_label} leave ({$reason}). Dates: {$date_label}."
+                'Leave pending approval',
+                "{$allotter_label} submitted {$type_label} leave ({$reason}) for {$date_label}. Awaiting HR approval."
+            );
+        }
+
+        $portalApprovers = fetch_portal_approver_user_ids($conn, $branch);
+        $portalApprovers = array_values(array_diff($portalApprovers, [$user_id]));
+        if ($created > 0 && !empty($portalApprovers)) {
+            create_leave_notifications(
+                $conn,
+                $leave_id ?? 0,
+                $portalApprovers,
+                'Leave allotment pending',
+                "{$allotter_label} submitted {$type_label} leave for {$created} employee(s) ({$date_label}). Review in Approvals."
             );
         }
 
         if ($created === 0) {
-            leave_respond(false, null, 'Could not allot leave. Please try again.');
+            leave_respond(false, null, 'Could not submit leave allotment. Please try again.');
         }
 
         $msg = $all_employees
-            ? "Leave allotted to {$created} employee(s)"
-            : 'Leave allotted successfully';
+            ? "{$created} leave allotment(s) sent to Approvals for review"
+            : 'Leave allotment sent to Approvals for review';
         if ($errors > 0) {
             $msg .= " ({$errors} failed)";
         }
@@ -235,8 +325,17 @@ switch ($action) {
         break;
 
     case 'apply':
-        $leave_type = trim($input['leave_type'] ?? 'annual');
+        $leave_type = leave_normalize_type_key(trim($input['leave_type'] ?? 'annual'));
         $duration_type = $input['duration_type'] ?? 'full_day';
+        $typeKeys = array_column(
+            leave_type_options_for($duration_type === 'half_day' ? 'half_day' : 'apply'),
+            'key'
+        );
+        if (!in_array($leave_type, $typeKeys, true)) {
+            leave_respond(false, null, $duration_type === 'half_day'
+                ? 'Invalid leave type for half day'
+                : 'Invalid leave type');
+        }
         $start_date = $input['start_date'] ?? '';
         $end_date = $input['end_date'] ?? $start_date;
         $half_day_slot = $input['half_day_slot'] ?? null;
@@ -290,6 +389,29 @@ switch ($action) {
         }
         if (strtotime($end_date) < strtotime($start_date)) {
             leave_respond(false, null, 'End date cannot be before start date');
+        }
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $start_date) || strtotime($start_date) === false) {
+            leave_respond(false, null, 'Invalid start date');
+        }
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $end_date) || strtotime($end_date) === false) {
+            leave_respond(false, null, 'Invalid end date');
+        }
+
+        $overlapError = leave_validate_overlap($conn, $subject_user_id, $start_date, $end_date);
+        if ($overlapError !== null) {
+            leave_respond(false, null, $overlapError);
+        }
+
+        $balanceError = leave_validate_balance(
+            $conn,
+            $subject_user_id,
+            $leave_type,
+            $start_date,
+            $end_date,
+            $duration_type
+        );
+        if ($balanceError !== null) {
+            leave_respond(false, null, $balanceError);
         }
 
         $tl_status = 'none';
@@ -347,6 +469,7 @@ switch ($action) {
         }
         $route_label = $approver_name ?: (['team_lead' => 'Team Lead', 'floor_manager' => 'Floor Manager', 'hr' => 'HR'][$apply_through]);
         $dur = $duration_type === 'half_day' ? "Half day ($half_day_slot)" : 'Full day';
+        $date_label = $start_date . ($end_date !== $start_date ? " to {$end_date}" : '');
         $applicant_label = $subject_user['full_name'];
         if ($subject_user_id !== $user_id) {
             $applicant_label .= " (submitted by {$user['full_name']})";
@@ -358,6 +481,17 @@ switch ($action) {
             'New leave request',
             "{$applicant_label} ({$emp_code}) applied for {$dur} leave. Approver: {$route_label}. Dates: {$start_date}" . ($end_date !== $start_date ? " to {$end_date}" : '')
         );
+        $portalApprovers = fetch_portal_approver_user_ids($conn, $branch);
+        $portalApprovers = array_values(array_diff($portalApprovers, [$user_id]));
+        if (!empty($portalApprovers)) {
+            create_leave_notifications(
+                $conn,
+                $leave_id,
+                $portalApprovers,
+                'Leave pending approval',
+                "{$applicant_label} ({$emp_code}) submitted leave for {$date_label}. Review in Approvals."
+            );
+        }
 
         leave_respond(true, ['id' => $leave_id], 'Leave request submitted');
         break;
@@ -415,45 +549,20 @@ switch ($action) {
         break;
 
     case 'pendingApprovals':
-        if (!user_can_approve_leaves($user)) {
-            leave_respond(false, null, 'You are not authorized to approve leaves');
+        if (!user_can_access_portal_approvals($user)) {
+            leave_respond(false, null, 'You are not authorized to view approvals');
         }
-        $level = approver_level_for_user($user);
-        $team = $user['team'] ?? '';
-        $rows = [];
-
-        $sql = "SELECT * FROM leave_requests WHERE status = 'pending' AND company_branch = ? AND (
-            approver_user_id = ?
-            OR (";
-        $parts = [];
-        if ($level === 'team_lead' || in_array($user['portal_role'], ['admin', 'super_admin'], true)) {
-            $parts[] = "(apply_through = 'team_lead' AND tl_status = 'pending' AND (approver_user_id IS NULL OR approver_user_id = 0))";
-        }
-        if ($level === 'floor_manager' || in_array($user['portal_role'], ['admin', 'super_admin'], true)) {
-            $parts[] = "(apply_through = 'floor_manager' AND fm_status = 'pending' AND (approver_user_id IS NULL OR approver_user_id = 0))";
-        }
-        if ($level === 'hr' || in_array($user['portal_role'], ['admin', 'hr', 'super_admin'], true)) {
-            $parts[] = "(apply_through = 'hr' AND hr_status = 'pending' AND (approver_user_id IS NULL OR approver_user_id = 0))";
-        }
-        if (empty($parts)) {
-            $parts[] = '1=0';
-        }
-        $sql .= implode(' OR ', $parts) . ')) ORDER BY created_at ASC';
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param('si', $branch, $user_id);
+        $stmt = $conn->prepare("
+            SELECT * FROM leave_requests
+            WHERE status = 'pending' AND company_branch = ?
+            ORDER BY created_at ASC
+            LIMIT 200
+        ");
+        $stmt->bind_param('s', $branch);
         $stmt->execute();
+        $rows = [];
         $res = $stmt->get_result();
         while ($row = $res->fetch_assoc()) {
-            $assigned = (int)($row['approver_user_id'] ?? 0);
-            if ($assigned === $user_id) {
-                $rows[] = leave_request_row_to_array($row);
-                continue;
-            }
-            if ($team !== '' && $row['team'] !== '' && strcasecmp($row['team'], $team) !== 0) {
-                if (!in_array($user['portal_role'], ['admin', 'hr', 'super_admin'], true)) {
-                    continue;
-                }
-            }
             $rows[] = leave_request_row_to_array($row);
         }
         leave_respond(true, $rows);
@@ -461,7 +570,7 @@ switch ($action) {
 
     case 'approve':
     case 'reject':
-        if (!user_can_approve_leaves($user)) {
+        if (!user_can_access_portal_approvals($user)) {
             leave_respond(false, null, 'Not authorized');
         }
         $leave_id = (int)($input['leave_id'] ?? 0);
@@ -470,11 +579,44 @@ switch ($action) {
         if (!$request) {
             leave_respond(false, null, 'Request not found');
         }
-        if ($request['status'] !== 'pending') {
+        $approve = $action === 'approve';
+        $currentStatus = strtolower(trim((string) ($request['status'] ?? '')));
+
+        if (!$approve && $currentStatus === 'approved') {
+            remove_synced_leave_days($conn, $request);
+            $credit = (float) ($request['policy_credit_value'] ?? 0);
+            if ($credit > 0) {
+                set_leave_balance_credit(
+                    $conn,
+                    (string) $request['employee_code'],
+                    $branch,
+                    (string) $request['leave_type'],
+                    0.0
+                );
+            }
+            $rejNote = $note !== '' ? $note : 'Leave rejected by HR';
+            $upd = $conn->prepare("
+                UPDATE leave_requests SET status='rejected', hr_status='rejected', hr_user_id=?, hr_note=?, updated_at=NOW()
+                WHERE id = ? AND company_branch = ?
+            ");
+            $upd->bind_param('isis', $user_id, $rejNote, $leave_id, $branch);
+            if (!$upd->execute()) {
+                leave_respond(false, null, 'Could not reject leave');
+            }
+            create_leave_notifications(
+                $conn,
+                $leave_id,
+                [(int) $request['user_id']],
+                'Leave rejected',
+                'Your leave request #' . $leave_id . ' was rejected.' . ($note ? " Note: {$note}" : '')
+            );
+            leave_respond(true, null, 'Leave rejected');
+        }
+
+        if ($currentStatus !== 'pending') {
             leave_respond(false, null, 'Request already finalized');
         }
 
-        $approve = $action === 'approve';
         $level = approver_level_for_user($user);
         $new_status = $approve ? 'approved' : 'rejected';
         $final_status = $approve ? 'approved' : 'rejected';
@@ -523,7 +665,7 @@ switch ($action) {
             $hr_status = $new_status;
             $hr_uid = $user_id;
             $hr_note = $note;
-        } elseif (!$handled && in_array($user['portal_role'], ['admin', 'hr'], true)) {
+        } elseif (!$handled && in_array($user['portal_role'], ['admin', 'hr', 'super_admin'], true)) {
             if ($hr_status === 'pending') {
                 $hr_status = $new_status;
                 $hr_uid = $user_id;
@@ -536,7 +678,12 @@ switch ($action) {
                 $tl_status = $new_status;
                 $tl_uid = $user_id;
                 $tl_note = $note;
+            } else {
+                $hr_status = $new_status;
+                $hr_uid = $user_id;
+                $hr_note = $note;
             }
+            $handled = true;
         } elseif (!$handled) {
             leave_respond(false, null, 'This request is not awaiting your approval');
         }
@@ -547,18 +694,76 @@ switch ($action) {
 
         $request = get_leave_request($conn, $leave_id);
         if ($approve && $request) {
-            sync_leave_to_employee_leaves($conn, $request);
+            $credit = (float) ($request['policy_credit_value'] ?? 0);
+            if ($credit > 0) {
+                apply_approved_policy_credit($conn, $request);
+            } else {
+                sync_leave_to_employee_leaves($conn, $request);
+            }
         }
 
+        $rejectTitle = 'Leave rejected';
+        $rejectMsg = 'Your leave request #' . $leave_id . ' was rejected.' . ($note ? ": $note" : '');
         create_leave_notifications(
             $conn,
             $leave_id,
             [(int)$request['user_id']],
-            $approve ? 'Leave approved' : 'Leave rejected',
-            'Your leave request #' . $leave_id . ' was ' . ($approve ? 'approved' : 'rejected') . ($note ? ": $note" : '')
+            $approve ? 'Leave approved' : $rejectTitle,
+            $approve
+                ? ('Your leave request #' . $leave_id . ' was approved' . ($note ? ": $note" : ''))
+                : $rejectMsg
         );
 
         leave_respond(true, null, $approve ? 'Leave approved' : 'Leave rejected');
+        break;
+
+    case 'revert':
+        if (!user_can_access_portal_approvals($user)) {
+            leave_respond(false, null, 'Not authorized');
+        }
+        $leave_id = (int) ($input['leave_id'] ?? 0);
+        $note = trim($input['note'] ?? '');
+        $request = get_leave_request($conn, $leave_id);
+        if (!$request) {
+            leave_respond(false, null, 'Request not found');
+        }
+        if (($request['status'] ?? '') !== 'approved') {
+            leave_respond(false, null, 'Only approved leave can be reverted to pending');
+        }
+        remove_synced_leave_days($conn, $request);
+        $route = $request['apply_through'] ?? 'hr';
+        $tl_status = 'none';
+        $fm_status = 'none';
+        $hr_status = 'none';
+        if ($route === 'team_lead') {
+            $tl_status = 'pending';
+        } elseif ($route === 'floor_manager') {
+            $fm_status = 'pending';
+        } else {
+            $hr_status = 'pending';
+        }
+        $revertNote = $note !== '' ? $note : 'Reverted to pending by HR';
+        $upd = $conn->prepare("
+            UPDATE leave_requests SET
+                status = 'pending',
+                tl_status = ?, fm_status = ?, hr_status = ?,
+                tl_user_id = NULL, fm_user_id = NULL, hr_user_id = NULL,
+                tl_note = NULL, fm_note = NULL, hr_note = ?,
+                updated_at = NOW()
+            WHERE id = ? AND company_branch = ?
+        ");
+        $upd->bind_param('ssssis', $tl_status, $fm_status, $hr_status, $revertNote, $leave_id, $branch);
+        if (!$upd->execute()) {
+            leave_respond(false, null, 'Could not revert leave request');
+        }
+        create_leave_notifications(
+            $conn,
+            $leave_id,
+            [(int) $request['user_id']],
+            'Leave reverted to pending',
+            'Your leave request #' . $leave_id . ' was reverted for review.' . ($note ? " Note: {$note}" : '')
+        );
+        leave_respond(true, null, 'Leave reverted to pending');
         break;
 
     case 'notifications':
@@ -583,7 +788,7 @@ switch ($action) {
         break;
 
     case 'approvalHistory':
-        if (!user_can_approve_leaves($user)) {
+        if (!user_can_access_portal_approvals($user)) {
             leave_respond(false, null, 'Not authorized');
         }
         $status = trim($_GET['status'] ?? 'approved');
@@ -608,21 +813,33 @@ switch ($action) {
 
     case 'summary':
         $pending_approvals = 0;
-        if (user_can_approve_leaves($user)) {
-            $r = $conn->query("SELECT COUNT(*) AS c FROM leave_requests WHERE status='pending' AND company_branch='" . $conn->real_escape_string($branch) . "'");
-            $pending_approvals = (int)($r->fetch_assoc()['c'] ?? 0);
+        if (user_can_access_portal_approvals($user)) {
+            $r = $conn->prepare("SELECT COUNT(*) AS c FROM leave_requests WHERE status='pending' AND company_branch = ?");
+            $r->bind_param('s', $branch);
+            $r->execute();
+            $pending_approvals = (int) ($r->get_result()->fetch_assoc()['c'] ?? 0);
         }
         $my_pending = $conn->prepare("SELECT COUNT(*) AS c FROM leave_requests WHERE user_id = ? AND status = 'pending'");
         $my_pending->bind_param('i', $user_id);
         $my_pending->execute();
         $my_p = (int)$my_pending->get_result()->fetch_assoc()['c'];
+        $leaveYear = (int) date('Y');
         leave_respond(true, [
-            'can_approve' => user_can_approve_leaves($user),
+            'can_approve' => user_can_access_portal_approvals($user),
+            'can_access_portal_approvals' => user_can_access_portal_approvals($user),
             'can_select_employee' => user_can_select_employee_for_leave($user),
+            'can_view_leave_policy' => user_can_view_leave_policy($user),
+            'can_manage_leave_policies' => user_can_manage_leave_policies($user),
             'can_allot_leave_policy' => user_can_allot_leave_policy($user),
             'approver_level' => approver_level_for_user($user),
             'pending_approvals' => $pending_approvals,
             'my_pending_leaves' => $my_p,
+            'leave_year' => $leaveYear,
+            'on_leave_dates' => fetch_user_on_leave_map($conn, $user_id, $branch, $leaveYear),
+            'type_catalog' => leave_type_catalog_for_api(),
+            'apply_types' => leave_type_options_for('apply'),
+            'allot_types' => leave_type_options_for('allot'),
+            'half_day_types' => leave_type_options_for('half_day'),
         ]);
         break;
 
