@@ -316,6 +316,7 @@ function fetch_user_on_leave_map(mysqli $conn, int $userId, string $branch, ?int
         SELECT leave_type, duration_type, start_date, end_date
         FROM leave_requests
         WHERE user_id = ? AND company_branch = ? AND status = 'approved'
+          AND (policy_credit_value IS NULL OR policy_credit_value <= 0)
           AND start_date <= ? AND end_date >= ?
     ");
     $yearEnd = $year . '-12-31';
@@ -338,42 +339,39 @@ function fetch_user_on_leave_map(mysqli $conn, int $userId, string $branch, ?int
             $map[$d] = ['leave_type' => $type, 'label' => $label, 'half_day' => $half];
         }
     }
-    $code = trim((string) ($user['employee_code'] ?? ''));
-    if ($code !== '') {
-        $el = $conn->prepare("
-            SELECT leave_date, leave_type FROM employee_leaves
-            WHERE employee_code = ? AND company_branch = ?
-              AND leave_date BETWEEN ? AND ?
-        ");
-        $el->bind_param('ssss', $code, $branch, $yearStart, $yearEnd);
-        $el->execute();
-        $elRes = $el->get_result();
-        while ($row = $elRes->fetch_assoc()) {
-            $d = $row['leave_date'];
-            $type = leave_normalize_type_key((string) ($row['leave_type'] ?? ''));
-            if (!isset($map[$d])) {
-                $map[$d] = [
-                    'leave_type' => $type,
-                    'label' => leave_type_label($type),
-                    'half_day' => ($row['leave_type'] ?? '') === 'half_day',
-                ];
-            }
-        }
-    }
+    $stmt->close();
     ksort($map);
     return $map;
 }
 
 function remove_synced_leave_days(mysqli $conn, array $request): void {
-    $reason = 'Leave request #' . (int)$request['id'];
-    $code = $request['employee_code'] ?? '';
-    $branch = $request['company_branch'] ?? '';
-    if ($code === '' || $branch === '') {
+    $code = trim((string) ($request['employee_code'] ?? ''));
+    $branch = normalize_company_branch($request['company_branch'] ?? 'main');
+    $id = (int) ($request['id'] ?? 0);
+    $start = trim((string) ($request['start_date'] ?? ''));
+    $end = trim((string) ($request['end_date'] ?? $start));
+    if ($code === '' || $start === '') {
         return;
     }
-    $stmt = $conn->prepare("DELETE FROM employee_leaves WHERE employee_code = ? AND company_branch = ? AND reason = ?");
-    $stmt->bind_param('sss', $code, $branch, $reason);
-    $stmt->execute();
+    if ($end === '') {
+        $end = $start;
+    }
+
+    if ($id > 0) {
+        $reason = 'Leave request #' . $id;
+        $stmt = $conn->prepare('DELETE FROM employee_leaves WHERE employee_code = ? AND company_branch = ? AND reason = ?');
+        $stmt->bind_param('sss', $code, $branch, $reason);
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    $legacyReason = trim((string) ($request['reason'] ?? ''));
+    if ($legacyReason !== '') {
+        $stmt = $conn->prepare('DELETE FROM employee_leaves WHERE employee_code = ? AND company_branch = ? AND leave_date BETWEEN ? AND ? AND reason = ?');
+        $stmt->bind_param('sssss', $code, $branch, $start, $end, $legacyReason);
+        $stmt->execute();
+        $stmt->close();
+    }
 }
 
 /** @return int[] User ids to notify when a leave is withdrawn. */

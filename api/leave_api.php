@@ -693,7 +693,9 @@ switch ($action) {
         $upd->execute();
 
         $request = get_leave_request($conn, $leave_id);
-        if ($approve && $request) {
+        if (!$approve && $request) {
+            remove_synced_leave_days($conn, $request);
+        } elseif ($approve && $request) {
             $credit = (float) ($request['policy_credit_value'] ?? 0);
             if ($credit > 0) {
                 apply_approved_policy_credit($conn, $request);
