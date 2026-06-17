@@ -129,16 +129,118 @@ switch ($action) {
         if (!user_can_view_leave_policy($user)) {
             leave_respond(false, null, 'Not authorized');
         }
+        normalize_stale_pending_policy_credits($conn, $branch);
         leave_respond(true, [
             'can_manage' => user_can_manage_leave_policies($user),
-            'definitions' => fetch_leave_policy_definitions($conn, $branch),
+            'allotments' => fetch_policy_credit_allotments($conn, $branch),
             'policy_type_options' => leave_policy_type_options(),
-            'used_policy_codes' => array_map(static fn($p) => [
-                'id' => $p['id'],
-                'code' => $p['policy_code'],
-                'name' => $p['policy_name'],
-            ], fetch_leave_policy_definitions($conn, $branch)),
         ]);
+        break;
+
+    case 'allotLeavePolicy':
+        if (!user_can_manage_leave_policies($user)) {
+            leave_respond(false, null, 'Not authorized to allot leave credits');
+        }
+        $result = allot_leave_policy_from_form($conn, $branch, $user, $input);
+        if (empty($result['success'])) {
+            leave_respond(false, null, $result['error'] ?? 'Could not allot leave credits');
+        }
+        leave_respond(true, [
+            'id' => $result['id'],
+            'assigned' => $result['assigned'] ?? 0,
+        ], $result['message'] ?? 'Leave credits allotted');
+        break;
+
+    case 'allotPolicyCredit':
+        if (!user_can_manage_leave_policies($user)) {
+            leave_respond(false, null, 'Not authorized to allot policy credit');
+        }
+        $policyId = (int) ($input['policy_id'] ?? 0);
+        $applyToAll = !empty($input['apply_to_all']);
+        $userIds = $input['user_ids'] ?? [];
+        if (!is_array($userIds)) {
+            $userIds = [];
+        }
+        $userIds = array_values(array_unique(array_filter(array_map('intval', $userIds))));
+        if (!$applyToAll && empty($userIds)) {
+            leave_respond(false, null, 'Select at least one employee or choose all active employees');
+        }
+        $result = allot_leave_policy_credit($conn, $policyId, $branch, $user, $applyToAll, $userIds);
+        if (empty($result['success'])) {
+            leave_respond(false, null, $result['error'] ?? 'Could not allot policy credit');
+        }
+        leave_respond(true, ['assigned' => $result['assigned'] ?? 0], $result['message'] ?? 'Policy credit allotted');
+        break;
+
+    case 'policyCreditAction':
+        if (!user_can_manage_leave_policies($user)) {
+            leave_respond(false, null, 'Not authorized');
+        }
+        $leave_id = (int) ($input['leave_id'] ?? 0);
+        $action = strtolower(trim((string) ($input['credit_action'] ?? '')));
+        $note = trim((string) ($input['note'] ?? ''));
+        if ($leave_id <= 0 || !in_array($action, ['reject', 'revert'], true)) {
+            leave_respond(false, null, 'Invalid request');
+        }
+        $request = get_leave_request($conn, $leave_id);
+        if (!$request || normalize_company_branch($request['company_branch'] ?? '') !== $branch) {
+            leave_respond(false, null, 'Allotment not found');
+        }
+        $credit = (float) ($request['policy_credit_value'] ?? 0);
+        if ($credit <= 0) {
+            leave_respond(false, null, 'Not a policy credit allotment');
+        }
+        $status = strtolower(trim((string) ($request['status'] ?? '')));
+        if ($action === 'reject') {
+            if (!in_array($status, ['pending', 'approved'], true)) {
+                leave_respond(false, null, 'This allotment cannot be rejected');
+            }
+            if ($status === 'approved') {
+                revoke_policy_credit_balance($conn, $request);
+            }
+            $rejNote = $note !== '' ? $note : 'Policy credit rejected by HR';
+            $upd = $conn->prepare("
+                UPDATE leave_requests SET status='rejected', hr_status='rejected', hr_user_id=?, hr_note=?, updated_at=NOW()
+                WHERE id = ? AND company_branch = ?
+            ");
+            $upd->bind_param('isis', $user_id, $rejNote, $leave_id, $branch);
+            if (!$upd->execute()) {
+                leave_respond(false, null, 'Could not reject allotment');
+            }
+            create_leave_notifications(
+                $conn,
+                $leave_id,
+                [(int) $request['user_id']],
+                'Policy credit rejected',
+                'Your policy credit was rejected.' . ($note ? " Note: {$note}" : '')
+            );
+            leave_respond(true, null, 'Policy credit rejected');
+        }
+        if ($status !== 'approved') {
+            leave_respond(false, null, 'Only approved allotments can be reverted');
+        }
+        revoke_policy_credit_balance($conn, $request);
+        $revertNote = $note !== '' ? $note : 'Policy credit reverted by HR';
+        $upd = $conn->prepare("
+            UPDATE leave_requests SET
+                status = 'pending',
+                tl_status = 'none', fm_status = 'none', hr_status = 'pending',
+                hr_user_id = NULL, hr_note = ?,
+                updated_at = NOW()
+            WHERE id = ? AND company_branch = ?
+        ");
+        $upd->bind_param('sis', $revertNote, $leave_id, $branch);
+        if (!$upd->execute()) {
+            leave_respond(false, null, 'Could not revert allotment');
+        }
+        create_leave_notifications(
+            $conn,
+            $leave_id,
+            [(int) $request['user_id']],
+            'Policy credit reverted',
+            'Your policy credit was reverted for review.' . ($note ? " Note: {$note}" : '')
+        );
+        leave_respond(true, null, 'Policy credit reverted to pending');
         break;
 
     case 'onLeaveDates':
@@ -555,6 +657,7 @@ switch ($action) {
         $stmt = $conn->prepare("
             SELECT * FROM leave_requests
             WHERE status = 'pending' AND company_branch = ?
+              AND (policy_credit_value IS NULL OR policy_credit_value <= 0)
             ORDER BY created_at ASC
             LIMIT 200
         ");
@@ -732,6 +835,10 @@ switch ($action) {
         if (($request['status'] ?? '') !== 'approved') {
             leave_respond(false, null, 'Only approved leave can be reverted to pending');
         }
+        $credit = (float) ($request['policy_credit_value'] ?? 0);
+        if ($credit > 0) {
+            leave_respond(false, null, 'Policy credits are managed on the Leave Policy page');
+        }
         remove_synced_leave_days($conn, $request);
         $route = $request['apply_through'] ?? 'hr';
         $tl_status = 'none';
@@ -797,7 +904,8 @@ switch ($action) {
         if (!in_array($status, ['approved', 'rejected', 'all'], true)) {
             $status = 'approved';
         }
-        $sql = "SELECT * FROM leave_requests WHERE company_branch = ?";
+        $sql = "SELECT * FROM leave_requests WHERE company_branch = ?
+            AND (policy_credit_value IS NULL OR policy_credit_value <= 0)";
         if ($status !== 'all') {
             $sql .= " AND status = '" . $conn->real_escape_string($status) . "'";
         }
@@ -816,7 +924,8 @@ switch ($action) {
     case 'summary':
         $pending_approvals = 0;
         if (user_can_access_portal_approvals($user)) {
-            $r = $conn->prepare("SELECT COUNT(*) AS c FROM leave_requests WHERE status='pending' AND company_branch = ?");
+            $r = $conn->prepare("SELECT COUNT(*) AS c FROM leave_requests WHERE status='pending' AND company_branch = ?
+                AND (policy_credit_value IS NULL OR policy_credit_value <= 0)");
             $r->bind_param('s', $branch);
             $r->execute();
             $pending_approvals = (int) ($r->get_result()->fetch_assoc()['c'] ?? 0);

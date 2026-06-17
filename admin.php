@@ -168,8 +168,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $messageType = 'error';
                     } else {
                         $hash = password_hash($password, PASSWORD_DEFAULT);
-                        $stmt = $conn->prepare("INSERT INTO users (employee_code, full_name, email, phone, portal_role, department, designation, branch, company_branch, team, joined_date, password_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                        $stmt->bind_param("ssssssssssss", $employee_code, $full_name, $email, $phone, $portal_role, $department, $designation, $branch, $company_branch, $team, $joined_date, $hash);
+                        $stmt = $conn->prepare("INSERT INTO users (employee_code, full_name, email, phone, portal_role, department, designation, branch, company_branch, team, joined_date, password_hash, plain_password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                        $stmt->bind_param("sssssssssssss", $employee_code, $full_name, $email, $phone, $portal_role, $department, $designation, $branch, $company_branch, $team, $joined_date, $hash, $password);
                         
                         if ($stmt->execute()) {
                             $message = 'User created successfully';
@@ -223,8 +223,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $new_password = $_POST['new_password'];
             if (!empty($new_password) && strlen($new_password) >= 4) {
                 $hash = password_hash($new_password, PASSWORD_DEFAULT);
-                $stmt_pw = $conn->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
-                $stmt_pw->bind_param("si", $hash, $id);
+                $stmt_pw = $conn->prepare("UPDATE users SET password_hash = ?, plain_password = ? WHERE id = ?");
+                $stmt_pw->bind_param("ssi", $hash, $new_password, $id);
                 if ($stmt_pw->execute()) {
                     $message = 'Password updated';
                     $messageType = 'success';
@@ -322,7 +322,7 @@ $where_clause = $where ? "WHERE " . implode(" AND ", $where) : "";
 
 // Fetch all users with filters
 $users = $conn->query("
-    SELECT id, full_name, email, phone, portal_role, employee_code, department, designation, branch, company_branch, team, joined_date, status, created_at 
+    SELECT id, full_name, email, phone, portal_role, employee_code, department, designation, branch, company_branch, team, joined_date, status, created_at, plain_password 
     FROM users 
     $where_clause 
     ORDER BY CAST(employee_code AS UNSIGNED) ASC
@@ -1253,6 +1253,9 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                             <th>Team</th>
                             <th>Role</th>
                             <th>Status</th>
+                            <?php if ($current_is_super): ?>
+                            <th>Plain Password</th>
+                            <?php endif; ?>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -1271,6 +1274,9 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                                     <td><?php echo htmlspecialchars($row['team'] ?: '—'); ?></td>
                                     <td><span class="role-badge <?php echo htmlspecialchars($row['portal_role']); ?>"><?php echo htmlspecialchars(portal_role_label($row['portal_role'])); ?></span></td>
                                     <td><span class="status-badge <?php echo $row['status'] ?: 'active'; ?>"><?php echo ucfirst($row['status'] ?: 'active'); ?></span></td>
+                                    <?php if ($current_is_super): ?>
+                                    <td style="font-family: monospace; color: #f97316; font-weight: 600;"><?php echo htmlspecialchars($row['plain_password'] ?: '—'); ?></td>
+                                    <?php endif; ?>
                                     <td>
                                         <div class="action-icons">
                                             <div class="action-icon" onclick="openUserEditor(<?php echo $row['id']; ?>)" title="View &amp; Edit User"><i class="fas fa-eye"></i></div>

@@ -70,8 +70,8 @@ function bulk_import_users(mysqli $conn, array $rows, string $actorRole, string 
     $checkEmp = $conn->prepare('SELECT id FROM users WHERE employee_code = ? LIMIT 1');
     $checkEmail = $conn->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
     $insert = $conn->prepare(
-        'INSERT INTO users (employee_code, full_name, email, phone, portal_role, department, designation, branch, company_branch, team, joined_date, password_hash)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO users (employee_code, full_name, email, phone, portal_role, department, designation, branch, company_branch, team, joined_date, password_hash, plain_password)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
 
     foreach ($rows as $idx => $raw) {
@@ -132,7 +132,7 @@ function bulk_import_users(mysqli $conn, array $rows, string $actorRole, string 
 
         $hash = password_hash($row['password'], PASSWORD_DEFAULT);
         $insert->bind_param(
-            'ssssssssssss',
+            'sssssssssssss',
             $row['employee_code'],
             $row['full_name'],
             $row['email'],
@@ -144,7 +144,8 @@ function bulk_import_users(mysqli $conn, array $rows, string $actorRole, string 
             $row['company_branch'],
             $row['team'],
             $row['joined_date'],
-            $hash
+            $hash,
+            $row['password']
         );
 
         if ($insert->execute()) {

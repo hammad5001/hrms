@@ -65,6 +65,12 @@ if ($result->num_rows === 1) {
         $_SESSION['company_branch']  = $session_branch;
         $_SESSION['user_branch']     = $account_branch;
 
+        if ($password === 'Balitech@123' && $portal_role !== 'super_admin') {
+            $_SESSION['requires_password_change'] = true;
+        } else {
+            unset($_SESSION['requires_password_change']);
+        }
+
         if ($portal_role === 'super_admin') {
             $_SESSION['recruiter_type'] = 'super';
         }
@@ -84,6 +90,7 @@ if ($result->num_rows === 1) {
             'ess_redirect' => employee_self_service_url(),
             'can_access_work_portal' => user_can_access_work_portal($portal_role),
             'is_super_admin' => ($portal_role === 'super_admin'),
+            'requires_password_change' => ($password === 'Balitech@123' && $portal_role !== 'super_admin'),
             'user' => [
                 'id'              => $user['id'],
                 'full_name'       => $user['full_name'],

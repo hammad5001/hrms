@@ -11,8 +11,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
-    <link rel="stylesheet" href="css/employee-hrms.css?v=55">
+    <link rel="stylesheet" href="css/employee-hrms.css?v=63">
+    <link rel="stylesheet" href="css/employee-performance.css?v=4">
     <link rel="stylesheet" href="css/dropdown-fix.css?v=3">
+    <link rel="stylesheet" href="css/hr-productivity.css?v=2">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body class="ess-body">
     <div class="ess-animated-bg" aria-hidden="true"></div>
@@ -63,8 +66,9 @@
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-leave" data-view="leave"><i class="fas fa-calendar-minus"></i><span>Leaves</span></button>
                     <button type="button" class="ess-side-item hidden" data-nav-id="nav-side-leave-policy" data-view="leave-policy" id="navSideLeavePolicy"><i class="fas fa-scale-balanced"></i><span>Leave Policy</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-attendance" data-view="attendance"><i class="fas fa-fingerprint"></i><span>Attendance</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-performance" data-view="performance"><i class="fas fa-clipboard-list"></i><span>Daily Report</span></button>
                     <button type="button" class="ess-side-item hidden" data-nav-id="nav-side-approvals" data-view="approvals" id="navApprovals"><i class="fas fa-user-check"></i><span>Approvals</span><span class="ess-side-badge hidden" id="badgeApprovals">0</span></button>
-                    <button type="button" class="ess-side-item" data-nav-id="nav-side-timetracker" data-view="coming-soon" data-nav-label="Time Tracker"><i class="fas fa-clock"></i><span>Time Tracker</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-timelogs" data-view="timelogs"><i class="fas fa-clock"></i><span>Time Tracker</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-payroll" data-view="salary"><i class="fas fa-wallet"></i><span>Payroll</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-files" data-view="coming-soon" data-nav-label="Files"><i class="fas fa-folder-open"></i><span>Files</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-chat" data-view="chat"><i class="fas fa-comments"></i><span>Chat</span><span class="ess-side-badge hidden" id="badgeSideChat">0</span></button>
@@ -75,14 +79,14 @@
 
             <main class="ess-main">
                 <nav class="ess-tabs" id="essTabBar" aria-label="Sections">
-                    <button type="button" class="ess-tab active" data-nav-id="nav-tab-activities" data-view="dashboard">Activities</button>
-                    <button type="button" class="ess-tab" data-nav-id="nav-tab-feeds" data-view="coming-soon" data-nav-label="Feeds">Feeds</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-activities" data-view="dashboard">Activities</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-feeds" data-view="feeds">Activity Feeds</button>
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-profile" data-view="profile" id="tabProfile">Profile</button>
-                    <button type="button" class="ess-tab hidden" data-nav-id="nav-tab-approvals" data-view="approvals" id="tabApprovals">Approvals</button>
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-leave" data-view="leave">Leaves</button>
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-attendance" data-view="attendance">Attendance</button>
-                    <button type="button" class="ess-tab" data-nav-id="nav-tab-timelogs" data-view="coming-soon" data-nav-label="Time Logs">Time Logs</button>
-                    <button type="button" class="ess-tab" data-nav-id="nav-tab-timesheets" data-view="coming-soon" data-nav-label="Timesheets">Timesheets</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-performance" data-view="performance">Daily Report</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-timelogs" data-view="timelogs">Time Tracking</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-timesheets" data-view="timesheets">Timesheets</button>
                     <button type="button" class="ess-tab hidden" data-nav-id="nav-tab-leave-policy" data-view="leave-policy" id="tabLeavePolicy">Leave Policy</button>
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-reportees" data-view="reportees" id="tabReportees">Manage Reportees</button>
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-notifications" data-view="notifications">Notifications</button>
@@ -132,6 +136,178 @@
                     </aside>
 
                     <div class="ess-content-col">
+
+                        <!-- Activity Feed View -->
+                        <section id="view-feeds" class="view-section">
+                            <div class="prod-two-col-grid">
+                                <div class="prod-glass-card">
+                                    <h3 style="margin-bottom: 20px; font-size: 18px; color: var(--prod-text);"><i class="fas fa-stream" style="margin-right:8px; color: var(--prod-indigo);"></i> HR Activity Feed</h3>
+                                    <div class="prod-feed-list" id="prodFeedList">
+                                        <div class="prod-feed-empty"><i class="fas fa-stream"></i><p>Loading feed…</p></div>
+                                    </div>
+                                </div>
+                                <div class="prod-glass-card">
+                                    <h3 style="margin-bottom: 20px; font-size: 18px; color: var(--prod-text);"><i class="fas fa-trophy" style="margin-right:8px; color: var(--prod-orange);"></i> Weekly Leaderboard</h3>
+
+                                    <div id="prodLeaderboard" class="prod-leaderboard-list">
+                                        <div class="prod-feed-empty"><i class="fas fa-trophy"></i><p>Loading leaderboard…</p></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Time Logs View -->
+                        <section id="view-timelogs" class="view-section">
+                            <div class="prod-glass-card" style="margin-bottom: 24px;">
+                                <div class="prod-tracker-container">
+                                    <div class="prod-tracker-header">
+                                        <div class="prod-tracker-title-wrap">
+                                            <h3><i class="fas fa-clock" style="color: var(--prod-indigo);"></i> Live Time Tracker</h3>
+                                            <p>Clock in and out, track breaks and work sessions</p>
+                                        </div>
+                                        <span class="prod-ts-badge" id="timelogs-status-badge"></span>
+                                    </div>
+
+                                    <div class="prod-tracker-stats">
+                                        <div class="prod-tracker-card">
+                                            <span>Current Session</span>
+                                            <strong id="prodSessionTime">00:00:00</strong>
+                                        </div>
+                                        <div class="prod-tracker-card">
+                                            <span>Total Today</span>
+                                            <strong id="prodTotalTime">0.00h</strong>
+                                        </div>
+                                    </div>
+
+                                    <div class="prod-tracker-status-bar">
+                                        <div class="prod-status-dot" id="prodStatusDot"></div>
+                                        <span id="prodStatusText" style="font-size:14px;font-weight:600;color:var(--prod-text);">Not Working</span>
+                                    </div>
+
+                                    <div class="prod-tracker-actions">
+                                        <button type="button" class="prod-btn prod-btn-emerald" id="btnClockInOut" style="flex:1;">
+                                            <i class="fas fa-play"></i> Clock In
+                                        </button>
+                                        <button type="button" class="prod-btn prod-btn-primary" id="btnBreakToggle" style="flex:1;display:none;">
+                                            <i class="fas fa-coffee"></i> Break
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Integrated Productivity Analytics -->
+                            <div class="prod-analytics-header" style="margin-top: 24px;">
+                                <h2><i class="fas fa-chart-line" style="color: var(--prod-indigo);"></i> Productivity Analytics</h2>
+                                <p>Your work intelligence dashboard — charts powered by real data</p>
+                            </div>
+
+                            <!-- KPI Cards -->
+                            <div class="prod-kpi-grid" id="prodKpiGrid">
+
+                                <div class="prod-kpi-card">
+                                    <div class="prod-kpi-icon" style="background:linear-gradient(135deg,#F59E0B,#FBBF24);"><i class="fas fa-phone"></i></div>
+                                    <div class="prod-kpi-info">
+                                        <span>Calls This Month</span>
+                                        <strong id="kpiCalls">—</strong>
+                                    </div>
+                                </div>
+                                <div class="prod-kpi-card">
+                                    <div class="prod-kpi-icon" style="background:linear-gradient(135deg,#EC4899,#F472B6);"><i class="fas fa-handshake"></i></div>
+                                    <div class="prod-kpi-info">
+                                        <span>Sales Closed</span>
+                                        <strong id="kpiSales">—</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Charts Row 1 -->
+                            <div class="prod-charts-row">
+                                <div class="prod-glass-card prod-chart-card">
+                                    <h4><i class="fas fa-wave-square"></i> Daily Work Hours</h4>
+                                    <div class="prod-chart-wrap"><canvas id="chartHours"></canvas></div>
+                                </div>
+                                <div class="prod-glass-card prod-chart-card">
+                                    <h4><i class="fas fa-bolt"></i> Productivity Score Trend</h4>
+                                    <div class="prod-chart-wrap"><canvas id="chartScore"></canvas></div>
+                                </div>
+                            </div>
+
+                            <!-- Charts Row 2 -->
+                            <div class="prod-charts-row">
+                                <div class="prod-glass-card prod-chart-card">
+                                    <h4><i class="fas fa-chart-bar"></i> Calls & Sales (30 days)</h4>
+                                    <div class="prod-chart-wrap"><canvas id="chartCalls"></canvas></div>
+                                </div>
+                                <div class="prod-glass-card prod-chart-card">
+                                    <h4><i class="fas fa-file-check"></i> Timesheet Status</h4>
+                                    <div class="prod-chart-wrap" style="max-height:220px;"><canvas id="chartTs"></canvas></div>
+                                    <div id="tsStatusLegend" style="margin-top:16px;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Attendance Heatmap -->
+                            <div class="prod-glass-card" style="margin-top:20px;">
+                                <h4><i class="fas fa-calendar-alt"></i> Work Attendance Heatmap (90 days)</h4>
+                                <div id="prodHeatmap" class="prod-heatmap"></div>
+                            </div>
+
+                            <!-- Break Pattern -->
+                            <div class="prod-glass-card" style="margin-top:20px;">
+                                <h4><i class="fas fa-coffee"></i> Work Rhythm Insights</h4>
+                                <div id="prodBreakInsights" class="prod-insights-grid"></div>
+                            </div>
+                        </section>
+
+                        <!-- Timesheets View -->
+                        <section id="view-timesheets" class="view-section">
+                            <div class="prod-glass-card" style="margin-bottom: 24px;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                                    <div>
+                                        <h3 style="font-size:18px;color:var(--prod-text);"><i class="fas fa-calendar-alt" style="margin-right:8px; color: var(--prod-indigo);"></i> Weekly Timesheet</h3>
+                                        <p style="font-size:12px;color:var(--prod-text-muted);margin-top:4px;">Log your project work per day — save automatically on change</p>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <span class="prod-ts-badge" id="prodTsStatus">Draft</span>
+                                        <button class="prod-btn prod-btn-primary" id="btnSubmitTimesheet" style="width:auto;padding:10px 18px;">
+                                            <i class="fas fa-paper-plane"></i> Submit
+                                        </button>
+                                    </div>
+                                </div>
+                                <div style="overflow-x:auto;">
+                                    <table class="prod-ts-table" id="prodTsTable">
+                                        <thead>
+                                            <tr>
+                                                <th style="min-width:130px;">Project</th>
+                                                <th style="min-width:130px;">Task</th>
+                                                <th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th>
+                                                <th>Total</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="prodTsBody"></tbody>
+                                        <tfoot id="prodTsFooter"></tfoot>
+                                    </table>
+                                </div>
+                                <button class="prod-btn" id="btnAddTsRow" style="margin-top:12px;width:auto;background:transparent;border:1px dashed rgba(255,255,255,0.15);color:var(--prod-text-muted);box-shadow:none;padding:8px 16px;">
+                                    <i class="fas fa-plus"></i> Add Row
+                                </button>
+                            </div>
+
+                            <!-- Timesheet Approvals (Managers only, toggled dynamically by JS) -->
+                            <div id="prodTsApprovalsSection" class="prod-glass-card" style="display:none; margin-top:24px;">
+                                <div class="prod-analytics-header" style="margin-bottom: 15px;">
+                                    <h3 style="font-size:18px;color:var(--prod-text);margin-bottom:4px; display:flex; align-items:center; gap:8px;"><i class="fas fa-clipboard-check" style="color: var(--prod-indigo);"></i> Timesheet Approvals</h3>
+                                    <p style="font-size:12px;color:var(--prod-text-muted);">Review and approve submitted timesheets from your team</p>
+                                </div>
+                                <div id="prodTsApprovals">
+                                    <div class="prod-feed-empty"><i class="fas fa-clipboard-check"></i><p>Loading pending timesheets…</p></div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Smart Alerts Banner -->
+                        <div id="smartAlertsBanner" style="display:none;"></div>
+
                         <!-- Dashboard -->
                         <section id="view-dashboard" class="view-section active">
                             <div class="ess-welcome-banner">
@@ -141,6 +317,8 @@
                                 </div>
                                 <div class="ess-welcome-icon" id="welcomeIcon"><i class="fas fa-sun"></i></div>
                             </div>
+
+
 
                             <div class="ess-card-grid">
                                 <div class="ess-card ess-card-wide">
@@ -444,7 +622,7 @@
                             <div class="ess-leave-hero">
                                 <div class="ess-leave-hero-main">
                                     <h3>Leaves</h3>
-                                    <p class="ess-muted-line ess-leave-intro">Track balances, apply for leave, and view HR allotments (Eid, holidays). You are notified when leave is allotted.</p>
+                                    <p class="ess-muted-line ess-leave-intro">Available leave is credited by HR from Leave Policy. Taken increases when your approved leave is recorded.</p>
                                 </div>
                                 <div class="ess-leave-hero-meta">
                                     <div class="ess-leave-year-nav" aria-label="Leave year">
@@ -523,12 +701,11 @@
                         <section id="view-leave-policy" class="view-section">
                             <div class="ess-card" id="leavePolicyManageCard">
                                 <div class="ess-card-head-row">
-                                    <h3><i class="fas fa-file-contract"></i> Manage Leave Policies</h3>
+                                    <h3><i class="fas fa-coins"></i> Allot Leave Credits</h3>
                                     <span class="ess-pill present">Admin / HR</span>
                                 </div>
-                                <p class="ess-muted-line">Create entitlements and apply credits to all employees or selected individuals. Approved leave syncs to attendance automatically.</p>
+                                <p class="ess-muted-line">Allot leave credits to employees. Each submission creates rows in the allotments table below — credits apply immediately and are managed here, not in Approvals.</p>
                                 <form id="formLeavePolicyDef" class="ess-policy-def-form">
-                                    <input type="hidden" name="policy_id" id="policyDefId" value="">
                                     <div class="form-grid form-grid--policy">
                                         <div class="form-field">
                                             <label>Policy name <span class="ess-req">*</span></label>
@@ -537,7 +714,6 @@
                                         <div class="form-field">
                                             <label>Policy code <span class="ess-req">*</span></label>
                                             <input type="text" name="policy_code" id="policyDefCode" required placeholder="CL" maxlength="32" autocomplete="off">
-                                            <p class="ess-field-hint hidden" id="policyDefCodeHint"></p>
                                         </div>
                                         <div class="form-field">
                                             <label>Leave type <span class="ess-req">*</span></label>
@@ -584,23 +760,26 @@
                                             <label>Reset day / month</label>
                                             <input type="text" name="reset_day_month" id="policyDefResetDay" value="31-Dec" placeholder="31-Dec">
                                         </div>
-                                        <label class="ess-check-inline"><input type="checkbox" name="carry_forward_enabled" id="policyDefCarry"> Carry forward</label>
-                                        <div class="form-field ess-policy-def-carry-extra">
-                                            <label>Max carry forward</label>
-                                            <input type="number" name="carry_forward_value" id="policyDefCarryVal" min="0" value="0">
-                                        </div>
-                                        <label class="ess-check-inline"><input type="checkbox" name="encash_enabled" id="policyDefEncash"> Encashment</label>
-                                        <div class="form-field ess-policy-def-encash-extra">
-                                            <label>Encash limit</label>
-                                            <input type="number" name="encash_value" id="policyDefEncashVal" min="0" value="0">
-                                        </div>
                                     </div>
                                     <div class="form-field ess-policy-apply-target">
                                         <label>Apply policy credits to</label>
-                                        <div class="ess-policy-targets">
-                                            <label class="ess-radio-pill"><input type="radio" name="policy_def_target" value="none" checked> <span><i class="fas fa-ban"></i> Save only (no assignment)</span></label>
-                                            <label class="ess-radio-pill"><input type="radio" name="policy_def_target" value="all"> <span><i class="fas fa-users"></i> All active employees</span></label>
-                                            <label class="ess-radio-pill"><input type="radio" name="policy_def_target" value="selected"> <span><i class="fas fa-user-check"></i> Selected employees</span></label>
+                                        <div class="ess-policy-targets ess-policy-targets--cards">
+                                            <label class="ess-radio-card">
+                                                <input type="radio" name="policy_def_target" value="all" checked>
+                                                <span class="ess-radio-card-inner">
+                                                    <i class="fas fa-users" aria-hidden="true"></i>
+                                                    <strong>All active employees</strong>
+                                                    <small>Entire branch</small>
+                                                </span>
+                                            </label>
+                                            <label class="ess-radio-card">
+                                                <input type="radio" name="policy_def_target" value="selected">
+                                                <span class="ess-radio-card-inner">
+                                                    <i class="fas fa-user-check" aria-hidden="true"></i>
+                                                    <strong>Selected employees</strong>
+                                                    <small>Pick individuals</small>
+                                                </span>
+                                            </label>
                                         </div>
                                     </div>
                                     <div class="form-field hidden" id="policyDefEmployeeField">
@@ -612,24 +791,32 @@
                                         <div class="ess-policy-selected-list hidden" id="policyDefEmployeeSelected"></div>
                                     </div>
                                     <div class="ess-policy-def-actions">
-                                        <button type="submit" class="ess-btn ess-btn-primary" id="btnPolicyDefSave"><i class="fas fa-save"></i> Add leave policy</button>
-                                        <button type="button" class="ess-btn ess-btn-outline hidden" id="btnPolicyDefCancel">Cancel edit</button>
+                                        <button type="submit" class="ess-btn ess-btn-primary" id="btnPolicyDefSave"><i class="fas fa-user-plus"></i> Allot credits</button>
                                     </div>
                                 </form>
-                                <div class="ess-table-wrap ess-policy-def-table-wrap">
-                                    <table class="data-table">
+                                <div class="ess-table-wrap ess-policy-allot-table-wrap" id="leavePolicyAllotmentsSection">
+                                    <div class="ess-policy-allot-head">
+                                        <div>
+                                            <h4 class="ess-policy-table-title">Policy allotments</h4>
+                                            <p class="ess-muted-line ess-policy-allot-hint">Each row is one employee credit. Use Reject or Revert from the actions menu when needed.</p>
+                                        </div>
+                                        <span class="ess-pill ess-pill-sm" id="policyAllotmentCount">—</span>
+                                    </div>
+                                    <table class="data-table ess-policy-allot-table">
                                         <thead>
                                             <tr>
+                                                <th>Allotted on</th>
                                                 <th>Policy</th>
                                                 <th>Code</th>
                                                 <th>Type</th>
                                                 <th>Credit</th>
+                                                <th>Employee</th>
                                                 <th>Status</th>
-                                                <th>Actions</th>
+                                                <th class="ess-policy-actions-col">Actions</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="leavePolicyDefinitionsBody">
-                                            <tr><td colspan="6">Loading…</td></tr>
+                                        <tbody id="leavePolicyAllotmentsBody">
+                                            <tr><td colspan="8">Loading…</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -740,6 +927,165 @@
                                             <tr><td colspan="6">Loading team…</td></tr>
                                         </tbody>
                                     </table>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Performance — Daily Full Day Report -->
+                        <section id="view-performance" class="view-section ess-perf-view">
+                            <div class="ess-perf-hero ess-perf-hero-report">
+                                <div class="ess-perf-hero-pattern" aria-hidden="true"></div>
+                                <div class="ess-perf-hero-body">
+                                    <div class="ess-perf-hero-copy">
+                                        <span class="ess-perf-hero-badge"><i class="fas fa-fingerprint"></i> One report per day</span>
+                                        <h3><i class="fas fa-chart-line"></i> Daily Performance Report</h3>
+                                        <p>Submit your full day summary — calls, sales, transfers, and work done. Attendance & punctuality are verified automatically from biometric data.</p>
+                                        <p class="ess-perf-lock-note"><i class="fas fa-lock"></i> Once submitted, your report is locked and cannot be edited.</p>
+                                    </div>
+                                    <div class="ess-perf-date-pick">
+                                        <label for="perfReportDate"><i class="fas fa-calendar-day"></i> Report date</label>
+                                        <input type="date" id="perfReportDate" class="ess-perf-date-input" max="">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="perfLoading" class="ess-perf-loading hidden"><i class="fas fa-spinner fa-spin"></i> Loading daily report…</div>
+
+                            <div class="ess-perf-attendance-strip">
+                                <!-- Dummy Attendance Data -->
+                                <div class="ess-perf-att-card">
+                                    <div class="ess-perf-att-inner">
+                                        <span class="ess-perf-att-badge ess-perf-punct-good">On Time</span>
+                                        <div class="ess-perf-att-grid">
+                                            <div class="ess-perf-att-item">
+                                                <div class="ess-perf-att-icon"><i class="fas fa-sign-in-alt"></i></div>
+                                                <div><span class="lbl">Check In</span><strong>08:55 AM</strong></div>
+                                            </div>
+                                            <div class="ess-perf-att-item">
+                                                <div class="ess-perf-att-icon"><i class="fas fa-sign-out-alt"></i></div>
+                                                <div><span class="lbl">Check Out</span><strong>05:10 PM</strong></div>
+                                            </div>
+                                            <div class="ess-perf-att-item">
+                                                <div class="ess-perf-att-icon"><i class="fas fa-clock"></i></div>
+                                                <div><span class="lbl">Duty Hours</span><strong>8h 15m</strong></div>
+                                            </div>
+                                            <div class="ess-perf-att-item">
+                                                <div class="ess-perf-att-icon"><i class="fas fa-fingerprint"></i></div>
+                                                <div><span class="lbl">Biometric</span><strong>Verified</strong></div>
+                                            </div>
+                                        </div>
+                                        <p class="ess-perf-att-note"><i class="fas fa-check-circle"></i> Attendance synced directly from biometric device.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="ess-perf-main-grid">
+                                <div class="ess-perf-main-col">
+                                    <div class="ess-perf-form-card">
+                                        <div class="ess-perf-form-head">
+                                            <h3><i class="fas fa-pen-fancy"></i> Daily Progress Report</h3>
+                                            <span class="ess-perf-form-date">Today, 17 Jun 2026</span>
+                                        </div>
+                                        <p class="ess-perf-form-intro">Summarize your work for the day. This is currently showing demonstration data.</p>
+                                        <form class="ess-perf-form">
+                                            <div class="ess-perf-form-grid">
+                                                <div class="ess-perf-field">
+                                                    <label><i class="fas fa-phone-alt"></i> Outbound Calls</label>
+                                                    <input type="number" value="124" readonly>
+                                                </div>
+                                                <div class="ess-perf-field">
+                                                    <label><i class="fas fa-handshake"></i> Sales Closed</label>
+                                                    <input type="number" value="3" readonly>
+                                                </div>
+                                                <div class="ess-perf-field">
+                                                    <label><i class="fas fa-exchange-alt"></i> Live Transfers</label>
+                                                    <input type="number" value="15" readonly>
+                                                </div>
+                                                <div class="ess-perf-field">
+                                                    <label><i class="fas fa-stopwatch"></i> Wrap Time (Mins)</label>
+                                                    <input type="number" value="45" readonly>
+                                                </div>
+                                            </div>
+                                            <div class="ess-perf-field form-field" style="margin-bottom: 16px;">
+                                                <label><i class="fas fa-align-left"></i> Summary of Work</label>
+                                                <textarea readonly>Had a highly productive day targeting the new leads from yesterday. Closed 3 high-value sales and transferred several promising warm leads. Hit the daily KPI goals consistently.</textarea>
+                                            </div>
+                                            <button type="button" class="ess-perf-submit-btn" style="opacity: 1; cursor: default;"><i class="fas fa-check"></i> Report Submitted</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                <aside class="ess-perf-side-col">
+                                    <div class="ess-perf-month-card">
+                                        <h3><i class="fas fa-calendar-check"></i> June Highlights</h3>
+                                        <div class="ess-perf-month-stats">
+                                            <div class="ess-perf-month-stat highlight">
+                                                <div><span>Performance Score</span><strong>98/100</strong></div>
+                                                <i class="fas fa-star"></i>
+                                            </div>
+                                            <div class="ess-perf-month-stat">
+                                                <div><span>Total Sales</span><strong>42</strong></div>
+                                                <i class="fas fa-shopping-cart"></i>
+                                            </div>
+                                            <div class="ess-perf-month-stat">
+                                                <div><span>Avg Calls/Day</span><strong>115</strong></div>
+                                                <i class="fas fa-headset"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </aside>
+                            </div>
+
+                            <div class="ess-perf-section-head">
+                                <h4><i class="fas fa-clock-rotate-left"></i> Report archive</h4>
+                                <p>Browse past submissions and team activity for the selected period.</p>
+                            </div>
+
+                            <div class="ess-perf-toolbar">
+                                <div class="ess-perf-tabs" role="tablist">
+                                    <button type="button" class="ess-perf-tab active" data-perf-tab="history" role="tab"><i class="fas fa-user"></i> My Report History</button>
+                                    <button type="button" class="ess-perf-tab hidden" data-perf-tab="team" id="perfTabTeam" role="tab"><i class="fas fa-users"></i> Team Reports</button>
+                                </div>
+                                <button type="button" class="ess-perf-refresh-btn" id="perfBtnRefresh"><i class="fas fa-rotate"></i> Refresh</button>
+                            </div>
+
+                            <div class="ess-perf-panels">
+                                <div class="ess-perf-panel active" data-perf-panel="history">
+                                    <div class="ess-perf-history-list">
+                                        <div class="ess-perf-history-card">
+                                            <div class="ess-perf-history-head">
+                                                <div>
+                                                    <span class="ess-perf-history-date">Yesterday, 16 Jun</span>
+                                                    <span class="ess-perf-history-sub">Submitted at 05:05 PM</span>
+                                                </div>
+                                                <span class="ess-perf-punct-badge ess-perf-punct-good">On Time</span>
+                                            </div>
+                                            <div class="ess-perf-history-stats">
+                                                <div class="ess-perf-history-pill"><i class="fas fa-phone-alt"></i> 118 Calls</div>
+                                                <div class="ess-perf-history-pill"><i class="fas fa-handshake"></i> 2 Sales</div>
+                                                <div class="ess-perf-history-pill attendance"><i class="fas fa-clock"></i> 8.0h worked</div>
+                                            </div>
+                                        </div>
+                                        <div class="ess-perf-history-card">
+                                            <div class="ess-perf-history-head">
+                                                <div>
+                                                    <span class="ess-perf-history-date">Monday, 15 Jun</span>
+                                                    <span class="ess-perf-history-sub">Submitted at 05:15 PM</span>
+                                                </div>
+                                                <span class="ess-perf-punct-badge ess-perf-punct-warn">Late In</span>
+                                            </div>
+                                            <div class="ess-perf-history-stats">
+                                                <div class="ess-perf-history-pill"><i class="fas fa-phone-alt"></i> 132 Calls</div>
+                                                <div class="ess-perf-history-pill"><i class="fas fa-handshake"></i> 4 Sales</div>
+                                                <div class="ess-perf-history-pill attendance"><i class="fas fa-clock"></i> 7.5h worked</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="ess-perf-panel" data-perf-panel="team">
+                                    <div class="ess-perf-empty">
+                                        <i class="fas fa-users"></i>
+                                        <p>No team data available for demonstration.</p>
+                                    </div>
                                 </div>
                             </div>
                         </section>
@@ -897,7 +1243,24 @@
     <script src="js/portal-access.js"></script>
     <script src="js/portal-session-guard.js"></script>
     <script src="js/portal-notify-sound.js?v=1"></script>
-    <script src="js/employee-hrms.js?v=64"></script>
+    <script src="js/employee-hrms.js?v=75"></script>
+    <script src="js/employee-performance.js?v=4"></script>
     <script src="js/portal-chat-fab.js"></script>
+    <!-- Register new productivity views so showView() recognises them -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof ESS_VIEW_TITLES !== 'undefined') {
+                ESS_VIEW_TITLES['feeds']        = ['Activity Feed', 'Real-time HR event stream'];
+                ESS_VIEW_TITLES['timelogs']     = ['Time Tracker', 'Clock in, clock out and manage your work sessions'];
+                ESS_VIEW_TITLES['timesheets']   = ['Timesheets', 'Weekly project time logs — auto-saved, manager approval'];
+            }
+            if (typeof ESS_DEFAULT_NAV !== 'undefined') {
+                ESS_DEFAULT_NAV['feeds']        = 'nav-tab-feeds';
+                ESS_DEFAULT_NAV['timelogs']     = 'nav-tab-timelogs';
+                ESS_DEFAULT_NAV['timesheets']   = 'nav-tab-timesheets';
+            }
+        });
+    </script>
+    <script src="js/hr-productivity.js?v=3"></script>
 </body>
 </html>

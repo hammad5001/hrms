@@ -422,6 +422,40 @@
 
     <div class="toast-container" id="toastContainer"></div>
 
+    <div class="ess-modal-overlay hidden" id="forcePasswordModal" aria-hidden="true" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: none; align-items: center; justify-content: center; z-index: 99999; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);">
+        <div class="ess-modal" role="dialog" aria-labelledby="forcePasswordModalTitle" style="background: #111827; border-radius: 12px; padding: 24px; max-width: 400px; width: 90%; border: 2px solid #f97316; box-shadow: 0 0 40px rgba(249,115,22,0.3);">
+            <div class="ess-modal-header" style="justify-content: center; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 16px; margin-bottom: 16px;">
+                <div style="width:100%;">
+                    <i class="fas fa-lock" style="font-size: 32px; color: #f97316; margin-bottom: 12px;"></i>
+                    <h3 id="forcePasswordModalTitle" style="color: white; font-size: 20px; margin: 0;">Change Default Password</h3>
+                    <p style="color: rgba(255,255,255,0.6); font-size: 13px; margin: 8px 0 0 0;">For security, you must change your default password before accessing the portal.</p>
+                </div>
+            </div>
+            <div class="ess-modal-body">
+                <form id="forcePasswordForm" onsubmit="handleForcePasswordChange(event)">
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; color: rgba(255,255,255,0.8); font-size: 13px; margin-bottom: 6px;">Current Password</label>
+                        <input type="text" value="Balitech@123" readonly style="width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); cursor: not-allowed; box-sizing: border-box;">
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; color: rgba(255,255,255,0.8); font-size: 13px; margin-bottom: 6px;">New Password <span style="color: #ef4444;">*</span></label>
+                        <input type="password" id="forceNewPassword" required placeholder="Enter new password (min 4 chars)" style="width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white; box-sizing: border-box;">
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; color: rgba(255,255,255,0.8); font-size: 13px; margin-bottom: 6px;">Confirm New Password <span style="color: #ef4444;">*</span></label>
+                        <input type="password" id="forceConfirmPassword" required placeholder="Confirm new password" style="width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white; box-sizing: border-box;">
+                    </div>
+                    <div id="forcePasswordError" style="color: #ef4444; font-size: 13px; margin-top: 10px; display: none;"></div>
+                    <div style="margin-top: 24px;">
+                        <button type="submit" id="forcePasswordSubmitBtn" style="width: 100%; padding: 12px; background: #f97316; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="fas fa-save"></i> Save & Login Again
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="js/portal-access.js"></script>
     <script>
         // ==================== PORTAL CONFIGURATION ====================
@@ -505,7 +539,16 @@
         }
 
         // ==================== REDIRECTION FUNCTION ====================
-        function redirectToPortal(role, userData) {
+        function redirectToPortal(role, userData, requiresPasswordChange) {
+            if (requiresPasswordChange) {
+                const modal = document.getElementById('forcePasswordModal');
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    modal.style.display = 'flex';
+                }
+                return;
+            }
+
             const urlParams = new URLSearchParams(window.location.search);
             const customRedirect = urlParams.get('redirect');
             if (customRedirect && /\.html$/i.test(customRedirect)) {
@@ -533,6 +576,8 @@
             localStorage.setItem('userEmployeeCode', userData.employee_code || '');
             localStorage.setItem('userDepartment', userData.department || '');
             localStorage.setItem('userDesignation', userData.designation || '');
+            
+            localStorage.removeItem('requires_password_change');
             
             // Show success message
             showToast(`Welcome ${userData.full_name}! Redirecting to ${portal.name} Portal...`, 'success');
@@ -582,7 +627,7 @@
             .then(data => {
                 if (data.success && data.user) {
                     const role = data.user.portal_role;
-                    redirectToPortal(role, data.user);
+                    redirectToPortal(role, data.user, data.requires_password_change);
                 } else {
                     showError(data.message || 'Invalid email or password');
                     resetButton();
@@ -604,6 +649,16 @@
                 if (!data.success || !d.authenticated || !d.portal_role) {
                     return;
                 }
+                
+                if (d.requires_password_change) {
+                    const modal = document.getElementById('forcePasswordModal');
+                    if (modal) {
+                        modal.classList.remove('hidden');
+                        modal.style.display = 'flex';
+                    }
+                    return;
+                }
+
                 const portal = PORTAL_MAPPING[d.portal_role];
                 const currentPage = window.location.pathname.split('/').pop();
                 if (portal && portal.url !== currentPage) {
@@ -631,6 +686,61 @@
         if (urlParams.get('logout') === 'true') {
             clearSession();
             showToast('You have been logged out successfully', 'info');
+        }
+        if (urlParams.get('msg') === 'PasswordChanged') {
+            clearSession();
+            showToast('Password updated successfully! Please log in with your new password.', 'success');
+        }
+
+        async function handleForcePasswordChange(e) {
+            e.preventDefault();
+            const newPass = document.getElementById('forceNewPassword').value;
+            const confirmPass = document.getElementById('forceConfirmPassword').value;
+            const errorDiv = document.getElementById('forcePasswordError');
+            const btn = document.getElementById('forcePasswordSubmitBtn');
+
+            errorDiv.style.display = 'none';
+
+            if (newPass.length < 4) {
+                errorDiv.textContent = 'Password must be at least 4 characters long.';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (newPass !== confirmPass) {
+                errorDiv.textContent = 'Passwords do not match.';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+            try {
+                const formData = new FormData();
+                formData.append('new_password', newPass);
+
+                const response = await fetch('api/change_default_password.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    window.location.href = 'logout.php?redirect=user-login.html?msg=PasswordChanged';
+                } else {
+                    errorDiv.textContent = data.message || 'An error occurred. Please try again.';
+                    errorDiv.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-save"></i> Save & Login Again';
+                }
+            } catch (err) {
+                errorDiv.textContent = 'Network error. Please check your connection.';
+                errorDiv.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save"></i> Save & Login Again';
+            }
         }
 
         // ==================== INITIALIZATION ====================

@@ -81,9 +81,6 @@ function leave_policy_rules_from_db(mysqli $conn, string $branch): array {
         $detail = ($p['unit'] === 'hours')
             ? $p['credit_value'] . ' hours per year'
             : $p['credit_value'] . ' days per calendar year';
-        if ($p['carry_forward_enabled']) {
-            $detail .= ' · carry forward ' . $p['carry_forward_value'];
-        }
         $rules[] = [
             'key' => 'policy_' . $p['id'],
             'title' => $p['policy_name'],
@@ -148,7 +145,7 @@ function leave_policy_parse_input(array $input): array {
         return ['error' => 'Select a valid leave entitlement type (Casual, Sick, Annual, etc.).'];
     }
     $policyName = trim((string) ($input['policy_name'] ?? ''));
-    $policyCode = strtoupper(trim((string) ($input['policy_code'] ?? '')));
+    $policyCode = trim((string) ($input['policy_code'] ?? ''));
     $creditValue = (int) ($input['credit_value'] ?? 0);
     if ($policyName === '' || $policyCode === '' || $creditValue < 0) {
         return ['error' => 'Policy name, code, and credit value are required.'];
@@ -163,15 +160,196 @@ function leave_policy_parse_input(array $input): array {
         'reset_enabled' => !empty($input['reset_enabled']) ? 1 : 0,
         'reset_frequency' => trim((string) ($input['reset_frequency'] ?? 'yearly')) ?: 'yearly',
         'reset_day_month' => trim((string) ($input['reset_day_month'] ?? '31-Dec')) ?: '31-Dec',
-        'carry_forward_enabled' => !empty($input['carry_forward_enabled']) ? 1 : 0,
-        'carry_forward_value' => (int) ($input['carry_forward_value'] ?? 0),
-        'encash_enabled' => !empty($input['encash_enabled']) ? 1 : 0,
-        'encash_value' => (int) ($input['encash_value'] ?? 0),
+        'carry_forward_enabled' => 0,
+        'carry_forward_value' => 0,
+        'encash_enabled' => 0,
+        'encash_value' => 0,
         'valid_from' => trim((string) ($input['valid_from'] ?? '')) ?: null,
         'expires_on' => trim((string) ($input['expires_on'] ?? '')) ?: null,
         'apply_to_all' => !empty($input['apply_to_all']),
         'user_ids' => array_values(array_unique(array_filter(array_map('intval', (array) ($input['user_ids'] ?? []))))),
     ];
+}
+
+function leave_policy_require_assignment(array $parsed): ?string {
+    if (empty($parsed['apply_to_all']) && empty($parsed['user_ids'])) {
+        return 'Choose all active employees or select specific employees to allot credits.';
+    }
+    return null;
+}
+
+function create_leave_policy_record_for_allotment(mysqli $conn, string $branch, array $user, array $parsed): array {
+    $createdBy = trim((string) ($user['full_name'] ?? $user['email'] ?? 'HR'));
+    $stmt = $conn->prepare('
+        INSERT INTO leave_policies (
+            company_branch, policy_name, policy_code, leave_type, leave_category, unit, credit_value,
+            reset_enabled, reset_frequency, reset_day_month,
+            carry_forward_enabled, carry_forward_value, encash_enabled, encash_value,
+            valid_from, expires_on, is_active, created_by
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
+    ');
+    if (!$stmt) {
+        return ['success' => false, 'error' => leave_policy_db_error($conn, null, 'save')];
+    }
+    $stmt->bind_param(
+        'ssssssiissiiiisss',
+        $branch,
+        $parsed['policy_name'],
+        $parsed['policy_code'],
+        $parsed['leave_type'],
+        $parsed['leave_category'],
+        $parsed['unit'],
+        $parsed['credit_value'],
+        $parsed['reset_enabled'],
+        $parsed['reset_frequency'],
+        $parsed['reset_day_month'],
+        $parsed['carry_forward_enabled'],
+        $parsed['carry_forward_value'],
+        $parsed['encash_enabled'],
+        $parsed['encash_value'],
+        $parsed['valid_from'],
+        $parsed['expires_on'],
+        $createdBy
+    );
+    if (!$stmt->execute()) {
+        return ['success' => false, 'error' => leave_policy_db_error($conn, $stmt, 'save')];
+    }
+    return ['success' => true, 'id' => (int) $conn->insert_id];
+}
+
+/** Allot leave credits from the policy form — creates a policy record and allotment rows. */
+function allot_leave_policy_from_form(mysqli $conn, string $branch, array $user, array $input): array {
+    $parsed = leave_policy_parse_input($input);
+    if (!empty($parsed['error'])) {
+        return ['success' => false, 'error' => $parsed['error']];
+    }
+    $assignError = leave_policy_require_assignment($parsed);
+    if ($assignError) {
+        return ['success' => false, 'error' => $assignError];
+    }
+    $created = create_leave_policy_record_for_allotment($conn, $branch, $user, $parsed);
+    if (empty($created['success'])) {
+        return $created;
+    }
+    $policyId = (int) $created['id'];
+    $assigned = assign_policy_to_employees(
+        $conn,
+        $policyId,
+        $branch,
+        $parsed['leave_type'],
+        (float) $parsed['credit_value'],
+        $parsed['apply_to_all'],
+        $parsed['user_ids'],
+        $user,
+        $parsed['policy_name']
+    );
+    if ($assigned <= 0) {
+        return [
+            'success' => false,
+            'error' => 'No employees were allotted. They may already have an active credit for this policy, or no active employees matched your selection.',
+        ];
+    }
+    $unitLabel = ($parsed['unit'] === 'hours') ? 'hour(s)' : 'day(s)';
+    $message = sprintf(
+        '%d employee(s) allotted %d %s under %s (%s). Credits appear below and apply immediately.',
+        $assigned,
+        $parsed['credit_value'],
+        $unitLabel,
+        $parsed['policy_name'],
+        $parsed['policy_code']
+    );
+    return [
+        'success' => true,
+        'id' => $policyId,
+        'assigned' => $assigned,
+        'message' => $message,
+    ];
+}
+
+/** Auto-approve legacy pending policy credits and apply balance. */
+function normalize_stale_pending_policy_credits(mysqli $conn, string $branch): void {
+    $stmt = $conn->prepare("
+        SELECT * FROM leave_requests
+        WHERE company_branch = ?
+          AND status = 'pending'
+          AND policy_credit_value IS NOT NULL
+          AND policy_credit_value > 0
+        LIMIT 100
+    ");
+    $stmt->bind_param('s', $branch);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    while ($row = $res->fetch_assoc()) {
+        $id = (int) $row['id'];
+        $upd = $conn->prepare("
+            UPDATE leave_requests SET status = 'approved', hr_status = 'approved', updated_at = NOW()
+            WHERE id = ? AND company_branch = ? AND status = 'pending'
+        ");
+        $upd->bind_param('is', $id, $branch);
+        $upd->execute();
+        $req = get_leave_request($conn, $id);
+        if ($req && ($req['status'] ?? '') === 'approved') {
+            apply_approved_policy_credit($conn, $req);
+        }
+    }
+    $stmt->close();
+}
+
+/** @return array<int, array> Policy credit allotments for leave policy screen. */
+function fetch_policy_credit_allotments(mysqli $conn, string $branch): array {
+    $stmt = $conn->prepare("
+        SELECT lr.*, lp.policy_name, lp.policy_code
+        FROM leave_requests lr
+        LEFT JOIN leave_policies lp ON lp.id = lr.policy_id AND lp.company_branch = lr.company_branch
+        WHERE lr.company_branch = ?
+          AND lr.policy_credit_value IS NOT NULL
+          AND lr.policy_credit_value > 0
+        ORDER BY lr.created_at DESC
+        LIMIT 300
+    ");
+    $stmt->bind_param('s', $branch);
+    $stmt->execute();
+    $rows = [];
+    $res = $stmt->get_result();
+    while ($row = $res->fetch_assoc()) {
+        $policyName = trim((string) ($row['policy_name'] ?? ''));
+        if ($policyName === '') {
+            $policyName = 'Policy #' . (int) ($row['policy_id'] ?? 0);
+        }
+        $typeKey = leave_normalize_type_key((string) ($row['leave_type'] ?? ''));
+        $credit = (float) ($row['policy_credit_value'] ?? 0);
+        $unit = 'days';
+        $rows[] = [
+            'id' => (int) $row['id'],
+            'policy_id' => (int) ($row['policy_id'] ?? 0),
+            'policy_name' => $policyName,
+            'policy_code' => $row['policy_code'] ?? '—',
+            'leave_type' => $typeKey,
+            'leave_type_label' => leave_type_label($typeKey),
+            'credit_value' => $credit,
+            'credit_label' => rtrim(rtrim(number_format($credit, 1), '0'), '.') . ' ' . $unit,
+            'employee_name' => $row['employee_name'] ?? '',
+            'employee_code' => $row['employee_code'] ?? '',
+            'status' => $row['status'] ?? 'pending',
+            'created_at' => $row['created_at'] ?? null,
+        ];
+    }
+    $stmt->close();
+    return $rows;
+}
+
+function revoke_policy_credit_balance(mysqli $conn, array $request): void {
+    $credit = (float) ($request['policy_credit_value'] ?? 0);
+    if ($credit <= 0) {
+        return;
+    }
+    $code = trim((string) ($request['employee_code'] ?? ''));
+    $branch = normalize_company_branch($request['company_branch'] ?? 'main');
+    $leaveType = leave_normalize_type_key((string) ($request['leave_type'] ?? ''));
+    if ($code === '') {
+        return;
+    }
+    set_leave_balance_credit($conn, $code, $branch, $leaveType, 0.0);
 }
 
 function ensure_leave_balance_row(mysqli $conn, string $employeeCode, string $branch): void {
@@ -279,6 +457,20 @@ function assign_policy_to_employees(
             continue;
         }
 
+        $dup = $conn->prepare("
+            SELECT id FROM leave_requests
+            WHERE user_id = ? AND policy_id = ? AND company_branch = ?
+              AND policy_credit_value > 0
+              AND status IN ('pending', 'approved')
+            LIMIT 1
+        ");
+        $empUserId = (int) $emp['id'];
+        $dup->bind_param('iis', $empUserId, $policyId, $branch);
+        $dup->execute();
+        if ($dup->get_result()->fetch_assoc()) {
+            continue;
+        }
+
         $reason = 'Policy credit: ' . $policyName . ' (' . $credit . ' days)';
         $leaveId = create_policy_credit_request(
             $conn,
@@ -293,30 +485,56 @@ function assign_policy_to_employees(
         );
         if ($leaveId > 0) {
             $assigned++;
+            $req = get_leave_request($conn, $leaveId);
+            if ($req) {
+                apply_approved_policy_credit($conn, $req);
+            }
             create_leave_notifications(
                 $conn,
                 $leaveId,
                 [(int) $emp['id']],
-                'Leave pending approval',
-                $reason . ' — awaiting HR approval in Approvals.'
-            );
-        }
-    }
-    if ($assigned > 0) {
-        $approverIds = fetch_portal_approver_user_ids($conn, $branch);
-        $allotterId = (int) ($allotter['id'] ?? 0);
-        $approverIds = array_values(array_filter($approverIds, fn($id) => $id !== $allotterId));
-        if (!empty($approverIds)) {
-            create_leave_notifications(
-                $conn,
-                $leaveId ?? 0,
-                $approverIds,
-                'Policy credit pending',
-                "{$assigned} employee(s) have policy credit ({$credit} days) awaiting approval."
+                'Leave credit allotted',
+                $reason . ' — credited to your leave balance.'
             );
         }
     }
     return $assigned;
+}
+
+function allot_leave_policy_credit(
+    mysqli $conn,
+    int $policyId,
+    string $branch,
+    array $allotter,
+    bool $applyToAll,
+    array $userIds
+): array {
+    $policy = fetch_leave_policy_definition($conn, $policyId, $branch);
+    if (!$policy) {
+        return ['success' => false, 'error' => 'Policy not found.'];
+    }
+    if (!$policy['is_active']) {
+        return ['success' => false, 'error' => 'This policy is disabled.'];
+    }
+    $assigned = assign_policy_to_employees(
+        $conn,
+        $policyId,
+        $branch,
+        $policy['leave_type'],
+        (float) $policy['credit_value'],
+        $applyToAll,
+        $userIds,
+        $allotter,
+        $policy['policy_name']
+    );
+    if ($assigned <= 0) {
+        return ['success' => false, 'error' => 'No employees were allotted. Check your selection.'];
+    }
+    return [
+        'success' => true,
+        'assigned' => $assigned,
+        'message' => "{$assigned} employee(s) allotted {$policy['credit_value']} day(s) — credit applied immediately.",
+    ];
 }
 
 function create_policy_credit_request(
@@ -342,7 +560,7 @@ function create_policy_credit_request(
         status, tl_status, fm_status, hr_status,
         is_policy_allotment, allotted_by_user_id, allotted_by_name,
         policy_credit_value, policy_id
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'full_day', ?, ?, NULL, ?, 'hr', ?, ?, 'pending', 'none', 'none', 'pending', 1, ?, ?, ?, ?)");
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'full_day', ?, ?, NULL, ?, 'hr', ?, ?, 'approved', 'none', 'none', 'approved', 1, ?, ?, ?, ?)");
     $stmt->bind_param(
         'isssssssssisisdi',
         $empId,
@@ -428,24 +646,31 @@ function save_leave_policy_definition(mysqli $conn, string $branch, array $user,
     }
     $policyId = (int) $conn->insert_id;
     $shouldApply = $parsed['apply_to_all'] || !empty($parsed['user_ids']);
-    $assigned = assign_policy_to_employees(
-        $conn,
-        $policyId,
-        $branch,
-        $parsed['leave_type'],
-        (float) $parsed['credit_value'],
-        $parsed['apply_to_all'],
-        $parsed['user_ids'],
-        $user,
-        $parsed['policy_name']
-    );
+    $assigned = 0;
+    if ($shouldApply) {
+        $assigned = assign_policy_to_employees(
+            $conn,
+            $policyId,
+            $branch,
+            $parsed['leave_type'],
+            (float) $parsed['credit_value'],
+            $parsed['apply_to_all'],
+            $parsed['user_ids'],
+            $user,
+            $parsed['policy_name']
+        );
+    }
+    $message = 'Policy saved successfully.';
+    if ($shouldApply) {
+        $message = $assigned > 0
+            ? "Policy saved. {$assigned} employee(s) credited immediately."
+            : 'Policy saved. No new employees were credited (may already have this policy).';
+    }
     return [
         'success' => true,
         'id' => $policyId,
         'assigned' => $assigned,
-        'message' => $shouldApply
-            ? "Policy saved. {$assigned} credit request(s) sent to Approvals for review."
-            : 'Policy saved successfully.',
+        'message' => $message,
     ];
 }
 
@@ -477,9 +702,9 @@ function update_leave_policy_definition(mysqli $conn, string $branch, array $use
     if (!$stmt) {
         return ['success' => false, 'error' => leave_policy_db_error($conn, null, 'update')];
     }
-    $stmt->bind_param(
-        'sssssiissiiiissis',
-        $parsed['policy_name'],
+        $stmt->bind_param(
+            'ssssiissiiiissis',
+            $parsed['policy_name'],
         $parsed['policy_code'],
         $parsed['leave_type'],
         $parsed['leave_category'],
@@ -501,24 +726,31 @@ function update_leave_policy_definition(mysqli $conn, string $branch, array $use
         return ['success' => false, 'error' => leave_policy_db_error($conn, $stmt, 'update')];
     }
     $shouldApply = $parsed['apply_to_all'] || !empty($parsed['user_ids']);
-    $assigned = assign_policy_to_employees(
-        $conn,
-        $policyId,
-        $branch,
-        $parsed['leave_type'],
-        (float) $parsed['credit_value'],
-        $parsed['apply_to_all'],
-        $parsed['user_ids'],
-        $user,
-        $parsed['policy_name']
-    );
+    $assigned = 0;
+    if ($shouldApply) {
+        $assigned = assign_policy_to_employees(
+            $conn,
+            $policyId,
+            $branch,
+            $parsed['leave_type'],
+            (float) $parsed['credit_value'],
+            $parsed['apply_to_all'],
+            $parsed['user_ids'],
+            $user,
+            $parsed['policy_name']
+        );
+    }
+    $message = 'Policy updated successfully.';
+    if ($shouldApply) {
+        $message = $assigned > 0
+            ? "Policy updated. {$assigned} employee(s) credited immediately."
+            : 'Policy updated. No new employees were credited (may already have this policy).';
+    }
     return [
         'success' => true,
         'id' => $policyId,
         'assigned' => $assigned,
-        'message' => $shouldApply
-            ? "Policy updated. {$assigned} credit request(s) sent to Approvals for review."
-            : 'Policy updated successfully.',
+        'message' => $message,
     ];
 }
 

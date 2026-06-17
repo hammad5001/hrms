@@ -1,0 +1,7 @@
+# Chat uploads up to 200 MB (Apache + mod_php)
+<IfModule mod_php.c>
+    php_value upload_max_filesize 200M
+    php_value post_max_size 210M
+    php_value max_execution_time 600
+    php_value memory_limit 256M
+</IfModule>

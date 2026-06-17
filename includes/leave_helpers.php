@@ -702,7 +702,9 @@ function leave_type_counts_toward_quota(string $leaveType): bool {
 }
 
 /**
- * @return array<string, array{key:string,label:string,quota:float,taken:float,pending:float,available:float,icon:string}>
+ * Leave balances: allotted (HR policy credits), taken (approved leave), available (allotted − taken − pending).
+ *
+ * @return array<int, array{key:string,label:string,allotted:float,taken:float,pending:float,available:float,quota:float,icon:string}>
  */
 function leave_balance_for_user(mysqli $conn, int $userId, ?int $year = null, ?string $branch = null): array {
     $year = $year ?? (int) date('Y');
@@ -711,16 +713,15 @@ function leave_balance_for_user(mysqli $conn, int $userId, ?int $year = null, ?s
         $branch = normalize_company_branch($u['company_branch'] ?? 'main');
     }
     $balances = [];
-    $dbQuotas = leave_balance_quotas_for_user($conn, $userId, $branch);
     foreach (leave_standard_quotas() as $key => $meta) {
-        $quota = isset($dbQuotas[$key]) ? (float) $dbQuotas[$key] : (float) $meta['quota'];
         $balances[$key] = [
             'key' => $key,
             'label' => $meta['label'],
-            'quota' => $quota,
+            'allotted' => 0.0,
             'taken' => 0.0,
             'pending' => 0.0,
-            'available' => $quota,
+            'available' => 0.0,
+            'quota' => 0.0,
             'icon' => $meta['icon'],
         ];
     }
@@ -728,49 +729,57 @@ function leave_balance_for_user(mysqli $conn, int $userId, ?int $year = null, ?s
     $stmt = $conn->prepare("
         SELECT leave_type, duration_type, start_date, end_date, status, is_policy_allotment, policy_credit_value
         FROM leave_requests
-        WHERE user_id = ? AND YEAR(start_date) = ?
+        WHERE user_id = ? AND company_branch = ? AND YEAR(start_date) = ?
     ");
     if (!$stmt) {
-        return array_values($balances);
+        return [];
     }
-    $stmt->bind_param('ii', $userId, $year);
+    $stmt->bind_param('isi', $userId, $branch, $year);
     $stmt->execute();
     $res = $stmt->get_result();
-    $today = date('Y-m-d');
     while ($row = $res->fetch_assoc()) {
         $type = leave_normalize_type_key((string) ($row['leave_type'] ?? ''));
         if (!leave_type_counts_toward_quota($type) || !isset($balances[$type])) {
             continue;
         }
         $creditVal = isset($row['policy_credit_value']) ? (float) $row['policy_credit_value'] : 0.0;
+        $status = strtolower(trim((string) ($row['status'] ?? '')));
         if ($creditVal > 0) {
+            if ($status === 'approved') {
+                $balances[$type]['allotted'] += $creditVal;
+            }
             continue;
         }
-        $status = strtolower(trim((string) ($row['status'] ?? '')));
         if ($status !== 'approved' && $status !== 'pending') {
             continue;
         }
         $days = leave_request_day_units($row);
-        $endDate = trim((string) ($row['end_date'] ?? ''));
-        $leaveDone = $endDate !== '' && $endDate < $today;
-
         if ($status === 'pending') {
             $balances[$type]['pending'] += $days;
-        } elseif ($leaveDone) {
-            $balances[$type]['taken'] += $days;
         } else {
-            $balances[$type]['pending'] += $days;
+            $balances[$type]['taken'] += $days;
         }
     }
     $stmt->close();
 
+    $out = [];
     foreach ($balances as $key => $b) {
-        $balances[$key]['available'] = max(0.0, $b['quota'] - $b['taken'] - $b['pending']);
-        $balances[$key]['used'] = $b['taken'];
-        $balances[$key]['remaining'] = $balances[$key]['available'];
+        $allotted = (float) $b['allotted'];
+        $available = max(0.0, $allotted - $b['taken'] - $b['pending']);
+        $out[] = [
+            'key' => $key,
+            'label' => $b['label'],
+            'taken' => (float) $b['taken'],
+            'pending' => (float) $b['pending'],
+            'available' => $available,
+            'quota' => $allotted,
+            'used' => (float) $b['taken'],
+            'remaining' => $available,
+            'icon' => $b['icon'],
+        ];
     }
 
-    return array_values($balances);
+    return $out;
 }
 
 function leave_validate_balance(
@@ -798,8 +807,12 @@ function leave_validate_balance(
                 break;
             }
         }
-        if ($matched === null || $matched['quota'] <= 0) {
-            continue;
+        if ($matched === null) {
+            $label = leave_type_label($leaveType);
+            return "No {$label} leave has been allotted yet. Contact HR.";
+        }
+        if (($matched['quota'] ?? 0) <= 0) {
+            return "No {$matched['label']} leave has been allotted yet. Contact HR.";
         }
         if ($requestedDays > $matched['available']) {
             $label = $matched['label'];

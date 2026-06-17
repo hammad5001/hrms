@@ -15,9 +15,7 @@ const HRMS = {
     canAccessPortalApprovals: false,
     canManageLeavePolicies: false,
     permissionsLoaded: false,
-    policyDefinitions: [],
-    usedPolicyCodes: [],
-    editingPolicyId: null,
+    policyAllotments: [],
     selectedPolicyDefEmployees: [],
     onLeaveMap: {},
     selectedRoute: 'team_lead',
@@ -501,6 +499,7 @@ function ensureChatFrameLoaded() {
 const ESS_DEFAULT_NAV = {
     dashboard: 'nav-tab-activities',
     attendance: 'nav-tab-attendance',
+    performance: 'nav-tab-performance',
     salary: 'nav-side-payroll',
     leave: 'nav-tab-leave',
     halfday: 'nav-tab-leave',
@@ -516,6 +515,7 @@ const ESS_DEFAULT_NAV = {
 const ESS_VIEW_TITLES = {
     dashboard: ['Dashboard', 'Employee Self Service overview'],
     attendance: ['Attendance', 'Punch history and weekly summary'],
+    performance: ['Daily Report', 'Submit your full day performance — calls, sales, transfers & attendance'],
     salary: ['Payroll', 'Salary, bonus, and compensation details'],
     leave: ['Leaves', 'Balances, applications, and request status'],
     halfday: ['Half Day Leave', 'Apply morning or afternoon half day'],
@@ -623,6 +623,7 @@ function showView(id, navId = null) {
     }
     if (id === 'notifications') loadNotifications();
     if (id === 'attendance') { renderAttendance(); renderWeekView(); }
+    if (id === 'performance' && typeof loadPerformanceView === 'function') loadPerformanceView();
     if (id === 'salary') renderSalary();
 }
 
@@ -1408,14 +1409,18 @@ function validateLeaveForm(form, durationType) {
         return 'Please select morning or afternoon for half day';
     }
 
+    const meta = HRMS.leaveTypeCatalog[leaveType];
     const bal = (HRMS.leaveBalances || []).find(b => b.key === leaveType);
-    if (bal && Number(bal.quota) > 0) {
+    if (meta?.group === 'balance') {
+        if (!bal || Number(bal.quota) <= 0) {
+            return `No ${leaveTypeLabel(leaveType)} leave has been allotted yet. Contact HR.`;
+        }
         const startYear = parseInt(start.slice(0, 4), 10);
         if (startYear === HRMS.leaveBalanceYear) {
             const days = durationType === 'half_day'
                 ? 0.5
                 : leaveRequestDayUnits({ start_date: start, end_date: end });
-            const available = Number(bal.remaining ?? bal.available) || 0;
+            const available = Number(bal.available ?? bal.remaining) || 0;
             if (days > available) {
                 const label = leaveTypeLabel(leaveType);
                 return `Not enough ${label} balance. Available: ${formatLeaveDays(available)} day(s).`;
@@ -1452,21 +1457,14 @@ function renderLeaveBalances() {
         return;
     }
     grid.innerHTML = items.map(b => {
-        const used = Number(b.used ?? b.taken) || 0;
+        const available = Number(b.available ?? b.remaining) || 0;
+        const taken = Number(b.taken ?? b.used) || 0;
         const pending = Number(b.pending) || 0;
-        const remaining = Number(b.remaining ?? b.available) || 0;
-        const quota = used + pending + remaining;
-        const usedPct = quota > 0 ? Math.min(100, Math.round(((used + pending) / quota) * 100)) : 0;
+        const pool = available + taken + pending;
+        const usedPct = pool > 0 ? Math.min(100, Math.round((taken / pool) * 100)) : 0;
         const accent = LEAVE_BALANCE_ACCENTS[b.key] || '';
-        const footParts = [];
-        if (pending > 0) {
-            footParts.push(`<span><strong>${formatLeaveDays(pending)}</strong> days pending</span>`);
-        }
-        if (used > 0) {
-            footParts.push(`<span><strong>${formatLeaveDays(used)}</strong> days used</span>`);
-        }
-        const footHtml = footParts.length
-            ? footParts.join('<span class="ess-leave-foot-sep">·</span>')
+        const footHtml = taken > 0
+            ? `<span><strong>${formatLeaveDays(taken)}</strong> day${taken === 1 ? '' : 's'} taken</span>`
             : '<span class="ess-muted-line">No leave taken yet</span>';
         return `<article class="ess-leave-card ${accent}">
             <div class="ess-leave-card-top">
@@ -1474,10 +1472,10 @@ function renderLeaveBalances() {
                 <h4>${escHtml(b.label)}</h4>
             </div>
             <div class="ess-leave-card-stat">
-                <span class="ess-leave-card-num">${formatLeaveDays(remaining)}</span>
-                <span class="ess-leave-card-lbl">Remaining</span>
+                <span class="ess-leave-card-num">${formatLeaveDays(available)}</span>
+                <span class="ess-leave-card-lbl">Available</span>
             </div>
-            <div class="ess-leave-usage" role="presentation"><span style="width:${usedPct}%"></span></div>
+            <div class="ess-leave-usage" role="presentation" aria-hidden="true"><span style="width:${usedPct}%"></span></div>
             <div class="ess-leave-card-foot ess-leave-card-foot--simple">${footHtml}</div>
         </article>`;
     }).join('');
@@ -1504,40 +1502,6 @@ function toggleLeavePolicyNavUI() {
     });
 }
 
-function findPolicyByCode(code, excludeId = null) {
-    const c = String(code || '').trim().toUpperCase();
-    if (!c) return null;
-    const exId = excludeId ?? HRMS.editingPolicyId;
-    return (HRMS.policyDefinitions || []).find(p =>
-        String(p.policy_code || '').toUpperCase() === c && p.id !== exId
-    ) || null;
-}
-
-function validatePolicyCodeField(showToast = false) {
-    const input = document.getElementById('policyDefCode');
-    const hint = document.getElementById('policyDefCodeHint');
-    if (!input) return null;
-    const code = input.value.trim().toUpperCase();
-    input.value = code;
-    const dup = findPolicyByCode(code);
-    if (!dup) {
-        if (hint) {
-            hint.textContent = '';
-            hint.classList.add('hidden');
-        }
-        input.classList.remove('ess-input-error');
-        return null;
-    }
-    const msg = `Code "${dup.policy_code}" is already used by "${dup.policy_name}". Change the code or click Edit on that policy.`;
-    if (hint) {
-        hint.textContent = msg;
-        hint.classList.remove('hidden');
-    }
-    input.classList.add('ess-input-error');
-    if (showToast) toast(msg, 'error');
-    return msg;
-}
-
 function populatePolicyDefLeaveTypeSelect(options) {
     const sel = document.getElementById('policyDefLeaveType');
     if (!sel) return;
@@ -1552,160 +1516,102 @@ function populatePolicyDefLeaveTypeSelect(options) {
 }
 
 function resetLeavePolicyDefForm() {
-    HRMS.editingPolicyId = null;
+    HRMS.selectedPolicyDefEmployees = [];
     const form = document.getElementById('formLeavePolicyDef');
     form?.reset();
-    const idEl = document.getElementById('policyDefId');
-    if (idEl) idEl.value = '';
-    document.querySelector('input[name="policy_def_target"][value="none"]')?.click();
-    HRMS.selectedPolicyDefEmployees = [];
-    renderPolicyDefEmployeeChips();
-    togglePolicyDefEmployeeField();
     const resetDay = document.getElementById('policyDefResetDay');
     if (resetDay) resetDay.value = '31-Dec';
-    const saveBtn = document.getElementById('btnPolicyDefSave');
-    if (saveBtn) saveBtn.innerHTML = '<i class="fas fa-save"></i> Add leave policy';
-    document.getElementById('btnPolicyDefCancel')?.classList.add('hidden');
-    validatePolicyCodeField(false);
-}
-
-function fillLeavePolicyDefForm(policy) {
-    if (!policy) return;
-    HRMS.editingPolicyId = policy.id;
-    const set = (id, val) => {
-        const el = document.getElementById(id);
-        if (el) el.value = val ?? '';
-    };
-    const setCheck = (id, val) => {
-        const el = document.getElementById(id);
-        if (el) el.checked = !!val;
-    };
-    set('policyDefId', policy.id);
-    set('policyDefName', policy.policy_name);
-    set('policyDefCode', policy.policy_code);
-    set('policyDefLeaveType', policy.leave_type);
-    set('policyDefCategory', policy.leave_category || 'paid');
-    set('policyDefUnit', policy.unit || 'days');
-    set('policyDefCredit', policy.credit_value);
-    set('policyDefValidFrom', policy.valid_from || '');
-    set('policyDefExpiresOn', policy.expires_on || '');
-    setCheck('policyDefReset', policy.reset_enabled);
-    set('policyDefResetFreq', policy.reset_frequency || 'yearly');
-    set('policyDefResetDay', policy.reset_day_month || '31-Dec');
-    setCheck('policyDefCarry', policy.carry_forward_enabled);
-    set('policyDefCarryVal', policy.carry_forward_value ?? 0);
-    setCheck('policyDefEncash', policy.encash_enabled);
-    set('policyDefEncashVal', policy.encash_value ?? 0);
-    document.querySelector('input[name="policy_def_target"][value="none"]')?.click();
+    document.querySelector('input[name="policy_def_target"][value="all"]')?.click();
     togglePolicyDefEmployeeField();
-    const saveBtn = document.getElementById('btnPolicyDefSave');
-    if (saveBtn) saveBtn.innerHTML = '<i class="fas fa-save"></i> Update leave policy';
-    document.getElementById('btnPolicyDefCancel')?.classList.remove('hidden');
+    renderPolicyDefEmployeeChips();
+    const search = document.getElementById('policyDefEmployeeSearch');
+    if (search) search.value = '';
 }
 
-function renderLeavePolicyDefinitions(items) {
-    const tbody = document.getElementById('leavePolicyDefinitionsBody');
+function scrollToPolicyAllotments(highlight = false) {
+    const section = document.getElementById('leavePolicyAllotmentsSection');
+    if (!section) return;
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (highlight) {
+        section.classList.add('ess-policy-allot-highlight');
+        setTimeout(() => section.classList.remove('ess-policy-allot-highlight'), 2200);
+    }
+}
+
+function policyAllotmentStatusLabel(status) {
+    const map = {
+        pending: 'Pending',
+        approved: 'Approved',
+        rejected: 'Leave rejected',
+        cancelled: 'Cancelled',
+    };
+    return map[status] || status;
+}
+
+function policyAllotmentActionOptions(row) {
+    const status = row.status;
+    const opts = ['<option value="">Choose action…</option>'];
+    if (status === 'pending' || status === 'approved') {
+        opts.push('<option value="reject">Reject</option>');
+    }
+    if (status === 'approved') {
+        opts.push('<option value="revert">Revert</option>');
+    }
+    return opts.join('');
+}
+
+function renderPolicyAllotments(items) {
+    const tbody = document.getElementById('leavePolicyAllotmentsBody');
+    const countEl = document.getElementById('policyAllotmentCount');
+    if (countEl) {
+        countEl.textContent = items?.length ? `${items.length} record${items.length === 1 ? '' : 's'}` : 'No records';
+    }
     if (!tbody) return;
     if (!items?.length) {
-        tbody.innerHTML = '<tr><td colspan="6">No leave policies defined yet.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8">No allotments yet. Fill the form above and click <strong>Allot credits</strong> to credit employees.</td></tr>';
         return;
     }
-    tbody.innerHTML = items.map(p => {
-        const credit = `${p.credit_value} ${p.unit === 'hours' ? 'hrs' : 'days'}`;
-        const status = p.is_active ? '<span class="ess-pill present ess-pill-sm">Active</span>' : '<span class="ess-pill ess-pill-sm">Disabled</span>';
+    tbody.innerHTML = items.map(a => {
+        const canAct = HRMS.canManageLeavePolicies && (a.status === 'pending' || a.status === 'approved');
+        const empLabel = [a.employee_name, a.employee_code ? `BID ${a.employee_code}` : ''].filter(Boolean).join(' · ');
+        const allottedOn = a.created_at ? formatDateTime(a.created_at) : '—';
+        const actionCell = canAct
+            ? `<select class="ess-approval-action-select ess-policy-allot-action-select" id="policyAllotAction_${a.id}" data-policy-credit-id="${a.id}" aria-label="Action for ${escHtml(a.employee_name || 'employee')}">
+                    ${policyAllotmentActionOptions(a)}
+               </select>`
+            : '<span class="ess-muted-line">—</span>';
         return `<tr>
-            <td>${escHtml(p.policy_name)}</td>
-            <td>${escHtml(p.policy_code)}</td>
-            <td>${escHtml(p.leave_type_label || leaveTypeLabel(p.leave_type))}</td>
-            <td>${escHtml(credit)}</td>
-            <td>${status}</td>
-            <td class="ess-policy-def-row-actions">
-                <button type="button" class="ess-btn ess-btn-outline ess-btn-sm" data-policy-edit="${p.id}">Edit</button>
-                <button type="button" class="ess-btn ess-btn-danger ess-btn-sm" data-policy-delete="${p.id}">Delete</button>
-            </td>
+            <td class="ess-policy-allot-date">${escHtml(allottedOn)}</td>
+            <td>${escHtml(a.policy_name)}</td>
+            <td><span class="ess-policy-code-tag">${escHtml(a.policy_code)}</span></td>
+            <td>${escHtml(a.leave_type_label || leaveTypeLabel(a.leave_type))}</td>
+            <td>${escHtml(a.credit_label || formatLeaveDays(a.credit_value) + ' days')}</td>
+            <td>${escHtml(empLabel || '—')}</td>
+            <td><span class="status-pill ${escHtml(a.status)}">${escHtml(policyAllotmentStatusLabel(a.status))}</span></td>
+            <td class="ess-policy-actions-col">${actionCell}</td>
         </tr>`;
     }).join('');
-    tbody.querySelectorAll('[data-policy-edit]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const id = parseInt(btn.dataset.policyEdit, 10);
-            const policy = (HRMS.policyDefinitions || []).find(p => p.id === id);
-            if (policy) fillLeavePolicyDefForm(policy);
+    tbody.querySelectorAll('.ess-policy-allot-action-select').forEach(sel => {
+        sel.addEventListener('change', () => {
+            const id = parseInt(sel.dataset.policyCreditId, 10);
+            const action = sel.value;
+            if (!action) return;
+            runPolicyCreditAction(id, action).finally(() => { sel.value = ''; });
         });
     });
-    tbody.querySelectorAll('[data-policy-delete]').forEach(btn => {
-        btn.addEventListener('click', () => deleteLeavePolicyDefinition(parseInt(btn.dataset.policyDelete, 10)));
+}
+
+async function runPolicyCreditAction(leaveId, action) {
+    if (!action) return;
+    if (action === 'reject' && !confirm('Reject this policy credit for the employee?')) return;
+    if (action === 'revert' && !confirm('Revert this credit? Balance will be removed and status set to pending.')) return;
+    const res = await apiPost('api/leave_api.php?action=policyCreditAction', {
+        leave_id: leaveId,
+        credit_action: action,
+        note: '',
     });
-}
-
-function collectLeavePolicyDefPayload() {
-    const form = document.getElementById('formLeavePolicyDef');
-    const fd = new FormData(form);
-    const payload = {
-        policy_name: (fd.get('policy_name') || '').toString().trim(),
-        policy_code: (fd.get('policy_code') || '').toString().trim().toUpperCase(),
-        leave_type: fd.get('leave_type') || '',
-        leave_category: fd.get('leave_category') || 'paid',
-        unit: fd.get('unit') || 'days',
-        credit_value: parseInt(fd.get('credit_value'), 10) || 0,
-        reset_enabled: !!document.getElementById('policyDefReset')?.checked,
-        reset_frequency: fd.get('reset_frequency') || 'yearly',
-        reset_day_month: (fd.get('reset_day_month') || '31-Dec').toString(),
-        carry_forward_enabled: !!document.getElementById('policyDefCarry')?.checked,
-        carry_forward_value: parseInt(fd.get('carry_forward_value'), 10) || 0,
-        encash_enabled: !!document.getElementById('policyDefEncash')?.checked,
-        encash_value: parseInt(fd.get('encash_value'), 10) || 0,
-        valid_from: (fd.get('valid_from') || '').toString(),
-        expires_on: (fd.get('expires_on') || '').toString(),
-    };
-    const target = document.querySelector('input[name="policy_def_target"]:checked')?.value || 'none';
-    payload.apply_to_all = target === 'all';
-    payload.user_ids = target === 'selected'
-        ? HRMS.selectedPolicyDefEmployees.map(p => p.id).filter(Boolean)
-        : [];
-    if (HRMS.editingPolicyId) payload.policy_id = HRMS.editingPolicyId;
-    return payload;
-}
-
-async function submitLeavePolicyDefinition(e) {
-    e.preventDefault();
-    if (!HRMS.canManageLeavePolicies) {
-        toast('Not authorized to manage leave policies', 'error');
-        return;
-    }
-    const payload = collectLeavePolicyDefPayload();
-    if (!payload.policy_name || !payload.policy_code || !payload.leave_type) {
-        toast('Policy name, code, and leave type are required', 'error');
-        return;
-    }
-    if (validatePolicyCodeField(true)) {
-        document.getElementById('policyDefCode')?.focus();
-        return;
-    }
-    const target = document.querySelector('input[name="policy_def_target"]:checked')?.value || 'none';
-    if (target === 'selected' && !payload.user_ids.length) {
-        toast('Add at least one employee or choose all active employees', 'error');
-        return;
-    }
-    const action = HRMS.editingPolicyId ? 'updatePolicyDefinition' : 'savePolicyDefinition';
-    const btn = document.getElementById('btnPolicyDefSave');
-    if (btn) btn.disabled = true;
-    const res = await apiPost(`api/leave_api.php?action=${action}`, payload);
-    if (btn) btn.disabled = false;
-    toast(res.error || res.data?.message || (res.success ? 'Saved' : 'Failed'), res.success ? 'success' : 'error');
+    toast(res.error || (res.success ? 'Updated' : 'Failed'), res.success ? 'success' : 'error');
     if (res.success) {
-        resetLeavePolicyDefForm();
-        await loadLeavePolicy();
-        if (HRMS.currentView === 'leave') loadLeaveBalances();
-    }
-}
-
-async function deleteLeavePolicyDefinition(policyId) {
-    if (!HRMS.canManageLeavePolicies || !policyId) return;
-    if (!confirm('Delete this leave policy? Employee mappings for this policy will be removed.')) return;
-    const res = await apiPost('api/leave_api.php?action=deletePolicyDefinition', { policy_id: policyId });
-    toast(res.error || res.data?.message || (res.success ? 'Deleted' : 'Failed'), res.success ? 'success' : 'error');
-    if (res.success) {
-        if (HRMS.editingPolicyId === policyId) resetLeavePolicyDefForm();
         await loadLeavePolicy();
         if (HRMS.currentView === 'leave') loadLeaveBalances();
     }
@@ -1713,7 +1619,7 @@ async function deleteLeavePolicyDefinition(policyId) {
 
 function togglePolicyDefEmployeeField() {
     const field = document.getElementById('policyDefEmployeeField');
-    const target = document.querySelector('input[name="policy_def_target"]:checked')?.value || 'none';
+    const target = document.querySelector('input[name="policy_def_target"]:checked')?.value || 'all';
     if (field) field.classList.toggle('hidden', target !== 'selected');
 }
 
@@ -1744,7 +1650,7 @@ function renderPolicyDefEmployeeChips() {
         <span class="ess-person-chip ess-policy-chip">
             <i class="fas fa-user"></i>
             <span><strong>${escHtml(p.full_name)}</strong><small>${escHtml([p.employee_code, p.team].filter(Boolean).join(' · '))}</small></span>
-            <button type="button" class="ess-chip-clear" data-id="${p.id}" title="Remove" aria-label="Remove ${escHtml(p.full_name)}"><i class="fas fa-times"></i></button>
+            <button type="button" class="ess-chip-clear" data-id="${p.id}" title="Remove"><i class="fas fa-times"></i></button>
         </span>
     `).join('');
     wrap.querySelectorAll('.ess-chip-clear').forEach(btn => {
@@ -1752,11 +1658,62 @@ function renderPolicyDefEmployeeChips() {
     });
 }
 
+function collectLeavePolicyDefPayload() {
+    const form = document.getElementById('formLeavePolicyDef');
+    const fd = new FormData(form);
+    const target = document.querySelector('input[name="policy_def_target"]:checked')?.value || 'all';
+    const applyToAll = target === 'all';
+    const userIds = HRMS.selectedPolicyDefEmployees.map(p => p.id).filter(Boolean);
+    const payload = {
+        policy_name: (fd.get('policy_name') || '').toString().trim(),
+        policy_code: (fd.get('policy_code') || '').toString().trim(),
+        leave_type: fd.get('leave_type') || '',
+        leave_category: fd.get('leave_category') || 'paid',
+        unit: fd.get('unit') || 'days',
+        credit_value: parseInt(fd.get('credit_value'), 10) || 0,
+        reset_enabled: !!document.getElementById('policyDefReset')?.checked,
+        reset_frequency: fd.get('reset_frequency') || 'yearly',
+        reset_day_month: (fd.get('reset_day_month') || '31-Dec').toString(),
+        valid_from: (fd.get('valid_from') || '').toString(),
+        expires_on: (fd.get('expires_on') || '').toString(),
+        apply_to_all: applyToAll,
+        user_ids: applyToAll ? [] : userIds,
+    };
+    return payload;
+}
+
+async function submitLeavePolicyAllotment(e) {
+    e.preventDefault();
+    if (!HRMS.canManageLeavePolicies) {
+        toast('Not authorized to allot leave credits', 'error');
+        return;
+    }
+    const payload = collectLeavePolicyDefPayload();
+    if (!payload.policy_name || !payload.policy_code || !payload.leave_type) {
+        toast('Policy name, code, and leave type are required', 'error');
+        return;
+    }
+    const target = document.querySelector('input[name="policy_def_target"]:checked')?.value || 'all';
+    if (target === 'selected' && !payload.user_ids.length) {
+        toast('Search and add at least one employee', 'error');
+        document.getElementById('policyDefEmployeeSearch')?.focus();
+        return;
+    }
+    const btn = document.getElementById('btnPolicyDefSave');
+    if (btn) btn.disabled = true;
+    const res = await apiPost('api/leave_api.php?action=allotLeavePolicy', payload);
+    if (btn) btn.disabled = false;
+    toast(res.error || res.data?.message || res.message || (res.success ? 'Allotted' : 'Failed'), res.success ? 'success' : 'error');
+    if (res.success) {
+        resetLeavePolicyDefForm();
+        await loadLeavePolicy();
+        scrollToPolicyAllotments(true);
+        if (HRMS.currentView === 'leave') loadLeaveBalances();
+    }
+}
+
 function initLeavePolicyDefForm() {
-    document.getElementById('formLeavePolicyDef')?.addEventListener('submit', submitLeavePolicyDefinition);
-    document.getElementById('btnPolicyDefCancel')?.addEventListener('click', resetLeavePolicyDefForm);
-    document.getElementById('policyDefCode')?.addEventListener('input', () => validatePolicyCodeField(false));
-    document.getElementById('policyDefCode')?.addEventListener('blur', () => validatePolicyCodeField(false));
+    document.getElementById('formLeavePolicyDef')?.addEventListener('submit', submitLeavePolicyAllotment);
     document.querySelectorAll('input[name="policy_def_target"]').forEach(r => {
         r.addEventListener('change', togglePolicyDefEmployeeField);
     });
@@ -1786,15 +1743,13 @@ async function loadLeavePolicy() {
     if (!HRMS.canViewLeavePolicy) return;
     const res = await apiGet('api/leave_api.php?action=policyList');
     if (!res.success) {
-        renderLeavePolicyDefinitions([]);
+        renderPolicyAllotments([]);
         return;
     }
     HRMS.canManageLeavePolicies = !!res.data.can_manage;
-    HRMS.policyDefinitions = res.data.definitions || [];
-    HRMS.usedPolicyCodes = res.data.used_policy_codes || [];
+    HRMS.policyAllotments = res.data.allotments || [];
     populatePolicyDefLeaveTypeSelect(res.data.policy_type_options);
-    renderLeavePolicyDefinitions(HRMS.policyDefinitions);
-    validatePolicyCodeField(false);
+    renderPolicyAllotments(HRMS.policyAllotments);
 }
 
 function toggleLeaveEmployeeFields() {

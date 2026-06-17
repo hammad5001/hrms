@@ -1,5 +1,5 @@
 /**
- * Reception desk voice announcements (female English, 3×).
+ * Reception desk voice announcements (female English, 2×).
  * HR portal queues via API only — no speech on HR PC.
  */
 (function (global) {
@@ -90,7 +90,7 @@
     }
 
     async function playAnnouncement(name, room, repeatCount) {
-        const total = Math.max(1, Math.min(3, repeatCount || 3));
+        const total = Math.max(1, Math.min(2, repeatCount || 2));
         const safeName = (name || 'Candidate').trim();
         const safeRoom = (room || 'HR').trim();
 
@@ -128,15 +128,15 @@
     }
 
     function enqueueAnnouncement(name, room, repeatCount) {
-        playQueue.push({ name, room, repeatCount: repeatCount || 3 });
+        playQueue.push({ name, room, repeatCount: repeatCount || 2 });
         drainQueue();
     }
 
     /** Local announce button on reception portal */
     function announceCandidate(name, room) {
-        enqueueAnnouncement(name, room || 'Interview', 3);
+        enqueueAnnouncement(name, room || 'Interview', 2);
         if (typeof global.showToast === 'function') {
-            global.showToast(`Announcing ${name} (3 times)`, 'info');
+            global.showToast(`Announcing ${name} (2 times)`, 'info');
         }
     }
 
@@ -171,7 +171,7 @@
                 const p = row.payload || {};
                 const name = p.name || 'Candidate';
                 const room = p.room || 'HR';
-                const repeatCount = p.repeat_count || 3;
+                const repeatCount = p.repeat_count || 2;
 
                 await playAnnouncement(name, room, repeatCount);
 

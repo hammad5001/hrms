@@ -249,6 +249,11 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.user) {
+                    if (data.requires_password_change) {
+                        window.location.href = 'user-login.html';
+                        return;
+                    }
+                    
                     const role = data.user.portal_role;
                     const name = data.user.full_name;
 

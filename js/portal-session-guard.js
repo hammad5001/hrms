@@ -102,6 +102,11 @@
             const d = data.data;
             const role = d.portal_role || '';
 
+            if (d.requires_password_change) {
+                window.location.replace(apiPrefix + 'user-login.html');
+                return;
+            }
+
             const isTeamManager = window.isTeamManagerRole && window.isTeamManagerRole(role);
             const mayViewAsAdmin = (d.is_super || d.is_admin || isTeamManager) && (
                 !portalKey

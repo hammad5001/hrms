@@ -153,3 +153,15 @@ select.form-control option,
 .ess-approval-action-select option[value=""] {
     color: #94a3b8 !important;
 }
+.ess-policy-allot-action-select {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    background-color: #161b2e !important;
+    color: #e2e8f0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color-scheme: dark !important;
+}
+.ess-policy-allot-action-select option {
+    background-color: #161b2e !important;
+    color: #ffffff !important;
+}

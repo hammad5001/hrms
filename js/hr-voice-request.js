@@ -18,7 +18,7 @@
                     payload: {
                         name,
                         room: r,
-                        repeat_count: 3,
+                        repeat_count: 2,
                         voice_pref: 'female_en',
                         timestamp: Date.now()
                     }

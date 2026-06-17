@@ -84,7 +84,7 @@ switch ($action) {
         if ($type === 'voice_call') {
             $payload['name'] = trim((string)($payload['name'] ?? 'Candidate'));
             $payload['room'] = trim((string)($payload['room'] ?? 'HR'));
-            $payload['repeat_count'] = max(1, min(3, (int)($payload['repeat_count'] ?? 3)));
+            $payload['repeat_count'] = max(1, min(2, (int)($payload['repeat_count'] ?? 2)));
             $payload['voice_pref'] = trim((string)($payload['voice_pref'] ?? 'female_en'));
             $payload['requested_by'] = getCurrentUserName();
             $payload['count'] = 1;

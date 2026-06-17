@@ -171,13 +171,20 @@ function memberColor(id) {
 }
 
 function isImageFile(file) {
-    return file && (file.type.startsWith('image/') || /\.(jpe?g|png|gif|webp|bmp)$/i.test(file.name || ''));
+    return file && (
+        file.type.startsWith('image/')
+        || /\.(jpe?g|png|gif|webp|bmp|svg|tiff?|heic|heif|ico|avif)$/i.test(file.name || '')
+    );
 }
 
 function fileIconClass(name, mime) {
     const n = (name || '').toLowerCase();
-    if (mime?.includes('pdf') || n.endsWith('.pdf')) return 'fa-file-pdf';
-    if (n.endsWith('.doc') || n.endsWith('.docx')) return 'fa-file-word';
+    const m = (mime || '').toLowerCase();
+    if (m.includes('pdf') || n.endsWith('.pdf')) return 'fa-file-pdf';
+    if (/\.(xlsx?|xlsm|xlsb|csv|tsv|ods)$/.test(n) || m.includes('spreadsheet') || m.includes('excel') || m.includes('csv')) return 'fa-file-excel';
+    if (/\.(docx?|dotx?|odt|rtf)$/.test(n) || m.includes('word')) return 'fa-file-word';
+    if (/\.(pptx?|ppsx?|odp)$/.test(n) || m.includes('powerpoint') || m.includes('presentation')) return 'fa-file-powerpoint';
+    if (/\.(zip|rar|7z|tar|gz)$/.test(n) || m.includes('zip') || m.includes('compressed')) return 'fa-file-archive';
     return 'fa-file-lines';
 }
 
@@ -1775,8 +1782,24 @@ function uploadFileXHR(file) {
             }
         };
         xhr.onload = () => {
-            try { resolve(JSON.parse(xhr.responseText)); }
-            catch { reject(new Error('Invalid server response')); }
+            const text = (xhr.responseText || '').trim();
+            if (!text) {
+                if (xhr.status === 413) {
+                    reject(new Error('File too large for server (increase PHP post_max_size / upload_max_filesize)'));
+                    return;
+                }
+                reject(new Error('Empty server response — file may exceed server upload limit'));
+                return;
+            }
+            try {
+                resolve(JSON.parse(text));
+            } catch {
+                if (xhr.status >= 400) {
+                    reject(new Error(`Upload failed (HTTP ${xhr.status})`));
+                    return;
+                }
+                reject(new Error('Invalid server response'));
+            }
         };
         xhr.onerror = () => reject(new Error('Network error'));
         xhr.send(fd);
@@ -1787,7 +1810,7 @@ async function uploadFile(file) {
     if (!file || Chat.uploading) return;
     const cid = parseInt(Chat.activeId, 10);
     if (!cid) { toast('Open a chat first'); return; }
-    if (file.size > 10 * 1024 * 1024) { toast('File too large (max 10 MB)'); return; }
+    if (file.size > 200 * 1024 * 1024) { toast('File too large (max 200 MB)'); return; }
 
     hideAttachMenu();
     Chat.uploading = true;

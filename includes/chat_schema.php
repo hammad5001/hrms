@@ -136,55 +136,161 @@ function chat_public_file_url(string $storedName): string {
     return chat_upload_url_prefix() . $storedName;
 }
 
+/** Extensions that must never be uploaded through chat. */
+function chat_blocked_upload_extensions(): array {
+    return [
+        'php', 'phtml', 'phar', 'php3', 'php4', 'php5', 'php7', 'php8',
+        'exe', 'msi', 'bat', 'cmd', 'com', 'scr', 'vbs', 'js', 'jse',
+        'sh', 'bash', 'ps1', 'html', 'htm', 'xhtml', 'svgz',
+    ];
+}
+
+/** @return string[] */
+function chat_allowed_image_extensions(): array {
+    return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'tif', 'tiff', 'heic', 'heif', 'ico', 'avif'];
+}
+
+/** @return string[] */
+function chat_allowed_document_extensions(): array {
+    return [
+        'pdf', 'doc', 'docx', 'dot', 'dotx', 'rtf', 'txt', 'md', 'log',
+        'xls', 'xlsx', 'xlsm', 'xlsb', 'csv', 'tsv', 'ods',
+        'ppt', 'pptx', 'pps', 'ppsx', 'odp',
+        'odt', 'odg', 'odf',
+        'zip', 'rar', '7z', 'tar', 'gz',
+        'json', 'xml', 'yml', 'yaml',
+    ];
+}
+
+function chat_normalize_upload_extension(string $ext): string {
+    $ext = strtolower(trim($ext));
+    return $ext === 'jpeg' ? 'jpg' : $ext;
+}
+
+function chat_mime_for_extension(string $ext): string {
+    $ext = chat_normalize_upload_extension($ext);
+    static $map = [
+        'jpg' => 'image/jpeg', 'png' => 'image/png', 'gif' => 'image/gif', 'webp' => 'image/webp',
+        'bmp' => 'image/bmp', 'svg' => 'image/svg+xml', 'tif' => 'image/tiff', 'tiff' => 'image/tiff',
+        'heic' => 'image/heic', 'heif' => 'image/heif', 'ico' => 'image/x-icon', 'avif' => 'image/avif',
+        'pdf' => 'application/pdf',
+        'doc' => 'application/msword',
+        'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'dot' => 'application/msword', 'dotx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.template',
+        'rtf' => 'application/rtf', 'txt' => 'text/plain', 'md' => 'text/markdown', 'log' => 'text/plain',
+        'xls' => 'application/vnd.ms-excel',
+        'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'xlsm' => 'application/vnd.ms-excel.sheet.macroEnabled.12',
+        'xlsb' => 'application/vnd.ms-excel.sheet.binary.macroEnabled.12',
+        'csv' => 'text/csv', 'tsv' => 'text/tab-separated-values', 'ods' => 'application/vnd.oasis.opendocument.spreadsheet',
+        'ppt' => 'application/vnd.ms-powerpoint',
+        'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'pps' => 'application/vnd.ms-powerpoint', 'ppsx' => 'application/vnd.openxmlformats-officedocument.presentationml.slideshow',
+        'odt' => 'application/vnd.oasis.opendocument.text', 'odp' => 'application/vnd.oasis.opendocument.presentation',
+        'odg' => 'application/vnd.oasis.opendocument.graphics', 'odf' => 'application/vnd.oasis.opendocument.formula',
+        'zip' => 'application/zip', 'rar' => 'application/vnd.rar', '7z' => 'application/x-7z-compressed',
+        'tar' => 'application/x-tar', 'gz' => 'application/gzip',
+        'json' => 'application/json', 'xml' => 'application/xml',
+        'yml' => 'text/yaml', 'yaml' => 'text/yaml',
+    ];
+    return $map[$ext] ?? 'application/octet-stream';
+}
+
+function chat_extension_from_image_mime(string $mime): string {
+    return match (true) {
+        str_contains($mime, 'png') => 'png',
+        str_contains($mime, 'gif') => 'gif',
+        str_contains($mime, 'webp') => 'webp',
+        str_contains($mime, 'bmp') => 'bmp',
+        str_contains($mime, 'svg') => 'svg',
+        str_contains($mime, 'tiff') => 'tiff',
+        str_contains($mime, 'heic') => 'heic',
+        str_contains($mime, 'heif') => 'heif',
+        str_contains($mime, 'avif') => 'avif',
+        str_contains($mime, 'icon') => 'ico',
+        default => 'jpg',
+    };
+}
+
+function chat_is_allowed_upload_extension(string $ext): bool {
+    $ext = chat_normalize_upload_extension($ext);
+    if ($ext === '' || in_array($ext, chat_blocked_upload_extensions(), true)) {
+        return false;
+    }
+    return in_array($ext, chat_allowed_image_extensions(), true)
+        || in_array($ext, chat_allowed_document_extensions(), true);
+}
+
+function chat_resolve_upload_type_from_mime(string $mime, string $fallbackExt = ''): ?array {
+    $mime = strtolower(trim($mime));
+    if ($mime === '' || $mime === 'application/octet-stream') {
+        return null;
+    }
+    if (str_starts_with($mime, 'image/')) {
+        $ext = chat_extension_from_image_mime($mime);
+        if ($fallbackExt !== '' && chat_is_allowed_upload_extension($fallbackExt)) {
+            $ext = chat_normalize_upload_extension($fallbackExt);
+        }
+        return ['mime' => $mime, 'ext' => $ext];
+    }
+    if (str_starts_with($mime, 'text/') || str_starts_with($mime, 'application/')) {
+        $ext = $fallbackExt !== '' ? chat_normalize_upload_extension($fallbackExt) : '';
+        if ($ext === '' || !chat_is_allowed_upload_extension($ext)) {
+            $ext = match (true) {
+                str_contains($mime, 'pdf') => 'pdf',
+                str_contains($mime, 'word') => 'docx',
+                str_contains($mime, 'excel') || str_contains($mime, 'spreadsheet') => 'xlsx',
+                str_contains($mime, 'csv') => 'csv',
+                str_contains($mime, 'powerpoint') || str_contains($mime, 'presentation') => 'pptx',
+                str_contains($mime, 'json') => 'json',
+                str_contains($mime, 'xml') => 'xml',
+                str_contains($mime, 'zip') || str_contains($mime, 'x-zip') => 'zip',
+                str_contains($mime, 'rar') => 'rar',
+                str_contains($mime, '7z') => '7z',
+                str_contains($mime, 'gzip') || $mime === 'application/x-gzip' => 'gz',
+                str_contains($mime, 'x-tar') || $mime === 'application/x-tar' => 'tar',
+                str_starts_with($mime, 'text/') => 'txt',
+                default => '',
+            };
+        }
+        if ($ext === '' || !chat_is_allowed_upload_extension($ext)) {
+            return null;
+        }
+        return ['mime' => $mime, 'ext' => $ext];
+    }
+    return null;
+}
+
 /** @return array{ext: string, mime: string}|null */
 function chat_resolve_upload_type(string $tmpPath, string $clientMime, string $originalName): ?array {
-    $map = [
-        'image/jpeg' => 'jpg',
-        'image/jpg' => 'jpg',
-        'image/pjpeg' => 'jpg',
-        'image/png' => 'png',
-        'image/x-png' => 'png',
-        'image/gif' => 'gif',
-        'image/webp' => 'webp',
-        'image/bmp' => 'bmp',
-        'application/pdf' => 'pdf',
-        'application/msword' => 'doc',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
-        'application/octet-stream' => null,
-    ];
-
-    $mime = strtolower(trim($clientMime));
-    if (isset($map[$mime]) && $map[$mime] !== null) {
-        return ['mime' => $mime, 'ext' => $map[$mime]];
+    $ext = chat_normalize_upload_extension(pathinfo($originalName, PATHINFO_EXTENSION));
+    if ($ext !== '' && in_array($ext, chat_blocked_upload_extensions(), true)) {
+        return null;
     }
 
+    $trustedExts = ['xlsx', 'xlsm', 'xlsb', 'docx', 'dotx', 'pptx', 'ppsx', 'odt', 'ods', 'odp', 'zip', 'rar', '7z', 'tar', 'gz'];
+    if ($ext !== '' && in_array($ext, $trustedExts, true)) {
+        return ['mime' => chat_mime_for_extension($ext), 'ext' => $ext];
+    }
+
+    $detected = '';
     if (is_readable($tmpPath) && function_exists('finfo_open')) {
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $detected = strtolower((string)finfo_file($finfo, $tmpPath));
+        $detected = strtolower((string) finfo_file($finfo, $tmpPath));
         finfo_close($finfo);
-        if (isset($map[$detected]) && $map[$detected] !== null) {
-            return ['mime' => $detected, 'ext' => $map[$detected]];
-        }
-        if (str_starts_with($detected, 'image/')) {
-            $ext = match ($detected) {
-                'image/jpeg', 'image/jpg', 'image/pjpeg' => 'jpg',
-                'image/png', 'image/x-png' => 'png',
-                'image/gif' => 'gif',
-                'image/webp' => 'webp',
-                default => 'jpg',
-            };
-            return ['mime' => $detected, 'ext' => $ext];
+        $fromDetected = chat_resolve_upload_type_from_mime($detected, $ext);
+        if ($fromDetected) {
+            return $fromDetected;
         }
     }
 
-    $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
-    $extToMime = [
-        'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png',
-        'gif' => 'image/gif', 'webp' => 'image/webp', 'bmp' => 'image/bmp',
-        'pdf' => 'application/pdf', 'doc' => 'application/msword', 'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    ];
-    if (isset($extToMime[$ext])) {
-        return ['mime' => $extToMime[$ext], 'ext' => $ext === 'jpeg' ? 'jpg' : $ext];
+    $fromClient = chat_resolve_upload_type_from_mime(strtolower(trim($clientMime)), $ext);
+    if ($fromClient) {
+        return $fromClient;
+    }
+
+    if ($ext !== '' && chat_is_allowed_upload_extension($ext)) {
+        return ['mime' => chat_mime_for_extension($ext), 'ext' => $ext];
     }
 
     return null;

@@ -41,4 +41,5 @@ respond(true, [
     'user_id' => $user_id,
     'full_name' => $_SESSION['full_name'] ?? '',
     'company_branch' => get_active_company_branch(),
+    'requires_password_change' => !empty($_SESSION['requires_password_change']),
 ]);

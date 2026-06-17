@@ -236,8 +236,8 @@
                         <div class="composer">
                             <button type="button" class="btn-icon" id="btnAttach" title="Attach"><i class="fas fa-plus"></i></button>
                             <button type="button" class="btn-icon" id="btnEmoji" title="Insert emoji"><i class="far fa-face-smile"></i></button>
-                            <input type="file" id="photoInput" hidden accept="image/jpeg,image/png,image/gif,image/webp,image/bmp" multiple>
-                            <input type="file" id="fileInput" hidden accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                            <input type="file" id="photoInput" hidden accept="image/*" multiple>
+                            <input type="file" id="fileInput" hidden accept=".pdf,.doc,.docx,.xls,.xlsx,.xlsm,.csv,.txt,.rtf,.ppt,.pptx,.odt,.ods,.zip,.rar,.7z,.tar,.gz,application/pdf,application/zip,application/x-zip-compressed,application/vnd.rar,application/x-7z-compressed,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv">
                             <textarea id="msgInput" rows="1" placeholder="Type a message…"></textarea>
                             <button type="button" class="btn-send" id="btnSend" title="Send message"><i class="fas fa-paper-plane"></i></button>
                         </div>
@@ -424,6 +424,6 @@
     <div class="chat-toast" id="chatToast" role="status" aria-live="polite"></div>
     <script src="js/portal-access.js"></script>
     <script src="js/portal-notify-sound.js?v=1"></script>
-    <script src="js/chat-app.js?v=31"></script>
+    <script src="js/chat-app.js?v=34"></script>
 </body>
 </html>

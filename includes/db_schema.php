@@ -2,6 +2,8 @@
 /**
  * Ensures all application tables exist (payroll, leaves, notifications).
  */
+require_once __DIR__ . '/performance_schema.php';
+
 function ensure_app_schema(mysqli $conn): void {
     static $done = false;
     if ($done) {
@@ -194,7 +196,7 @@ function ensure_app_schema(mysqli $conn): void {
             `created_by` VARCHAR(150) DEFAULT NULL,
             `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
             `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            UNIQUE KEY `uk_lp_branch_code` (`company_branch`, `policy_code`),
+            INDEX `idx_lp_branch_code` (`company_branch`, `policy_code`),
             INDEX `idx_lp_branch_active` (`company_branch`, `is_active`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
 
@@ -250,8 +252,15 @@ function ensure_app_schema(mysqli $conn): void {
     ensure_payroll_meta_columns($conn);
     ensure_interview_columns($conn);
     ensure_notification_columns($conn);
+    ensure_leave_policy_flexible_codes($conn);
     ensure_leave_request_columns($conn);
+    if (function_exists('ensure_performance_schema')) {
+        ensure_performance_schema($conn);
+    }
+
     ensure_leads_pipeline_indexes($conn);
+    ensure_productivity_schema($conn);
+    ensure_advanced_schema($conn);
 }
 
 function ensure_leave_request_columns(mysqli $conn): void {
@@ -377,6 +386,35 @@ function ensure_interview_columns(mysqli $conn): void {
     }
 }
 
+/** Allow duplicate policy codes per branch — each allotment submission is independent. */
+function ensure_leave_policy_flexible_codes(mysqli $conn): void {
+    static $migrated = false;
+    if ($migrated) {
+        return;
+    }
+    $migrated = true;
+    $chk = $conn->query("
+        SELECT 1 FROM information_schema.STATISTICS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'leave_policies'
+          AND INDEX_NAME = 'uk_lp_branch_code'
+        LIMIT 1
+    ");
+    if ($chk && $chk->fetch_row()) {
+        @$conn->query('ALTER TABLE `leave_policies` DROP INDEX `uk_lp_branch_code`');
+    }
+    $idx = $conn->query("
+        SELECT 1 FROM information_schema.STATISTICS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'leave_policies'
+          AND INDEX_NAME = 'idx_lp_branch_code'
+        LIMIT 1
+    ");
+    if ($idx && !$idx->fetch_row()) {
+        @$conn->query('ALTER TABLE `leave_policies` ADD INDEX `idx_lp_branch_code` (`company_branch`, `policy_code`)');
+    }
+}
+
 function ensure_notification_columns(mysqli $conn): void {
     static $migrated = false;
     if ($migrated) {
@@ -400,3 +438,143 @@ function ensure_notification_columns(mysqli $conn): void {
         }
     }
 }
+
+/** Ensure tables for Enterprise Productivity OS (Time tracking, timesheets, feed) exist */
+function ensure_productivity_schema(mysqli $conn): void {
+    static $done = false;
+    if ($done) return;
+    $done = true;
+
+    $queries = [
+        "CREATE TABLE IF NOT EXISTS `time_logs` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `employee_id` INT NOT NULL,
+            `clock_in` DATETIME NOT NULL,
+            `clock_out` DATETIME DEFAULT NULL,
+            `break_time_minutes` INT DEFAULT 0,
+            `total_hours` DECIMAL(5,2) DEFAULT 0,
+            `overtime_hours` DECIMAL(5,2) DEFAULT 0,
+            `status` ENUM('active', 'on_break', 'completed') DEFAULT 'active',
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX `idx_emp_date` (`employee_id`, `clock_in`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+        "CREATE TABLE IF NOT EXISTS `time_breaks` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `log_id` INT NOT NULL,
+            `break_start` DATETIME NOT NULL,
+            `break_end` DATETIME DEFAULT NULL,
+            `duration_minutes` INT DEFAULT 0,
+            INDEX `idx_break_log` (`log_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+        "CREATE TABLE IF NOT EXISTS `timesheets` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `employee_id` INT NOT NULL,
+            `week_start` DATE NOT NULL,
+            `week_end` DATE NOT NULL,
+            `status` ENUM('draft', 'submitted', 'approved', 'rejected') DEFAULT 'draft',
+            `total_hours` DECIMAL(5,2) DEFAULT 0,
+            `approver_id` INT DEFAULT NULL,
+            `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY `uq_emp_week` (`employee_id`, `week_start`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+        "CREATE TABLE IF NOT EXISTS `timesheet_entries` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `timesheet_id` INT NOT NULL,
+            `project` VARCHAR(150) NOT NULL,
+            `task` VARCHAR(255) DEFAULT NULL,
+            `log_date` DATE NOT NULL,
+            `hours` DECIMAL(5,2) NOT NULL,
+            `billable` TINYINT(1) DEFAULT 1,
+            INDEX `idx_timesheet_entry` (`timesheet_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+        "CREATE TABLE IF NOT EXISTS `activity_feed` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `employee_id` INT NOT NULL,
+            `event_type` VARCHAR(50) NOT NULL,
+            `title` VARCHAR(255) NOT NULL,
+            `description` TEXT,
+            `meta_data` JSON DEFAULT NULL,
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX `idx_feed_created` (`created_at`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+    ];
+
+    foreach ($queries as $sql) {
+        @$conn->query($sql);
+    }
+}
+
+/** Advanced feature tables: productivity scores, smart alerts, timesheet unique key fix */
+function ensure_advanced_schema(mysqli $conn): void {
+    static $done = false;
+    if ($done) return;
+    $done = true;
+
+    $queries = [
+        // Daily composite productivity score per employee
+        "CREATE TABLE IF NOT EXISTS `productivity_scores` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `employee_id` INT NOT NULL,
+            `score_date` DATE NOT NULL,
+            `score` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+            `attendance_score` TINYINT UNSIGNED DEFAULT 0,
+            `report_score` TINYINT UNSIGNED DEFAULT 0,
+            `timesheet_score` TINYINT UNSIGNED DEFAULT 0,
+            `activity_score` TINYINT UNSIGNED DEFAULT 0,
+            `overtime_score` TINYINT UNSIGNED DEFAULT 0,
+            `company_branch` VARCHAR(32) NOT NULL DEFAULT 'main',
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY `uq_ps_emp_date` (`employee_id`, `score_date`),
+            INDEX `idx_ps_date` (`score_date`),
+            INDEX `idx_ps_branch_date` (`company_branch`, `score_date`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+        // Smart in-app notifications / alerts
+        "CREATE TABLE IF NOT EXISTS `smart_alerts` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `employee_id` INT NOT NULL,
+            `alert_type` VARCHAR(50) NOT NULL,
+            `title` VARCHAR(255) NOT NULL,
+            `message` TEXT,
+            `is_read` TINYINT(1) DEFAULT 0,
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX `idx_sa_emp_read` (`employee_id`, `is_read`),
+            INDEX `idx_sa_created` (`created_at`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+        // Add unique key on timesheet_entries so ON DUPLICATE KEY UPDATE works
+        "CREATE TABLE IF NOT EXISTS `timesheet_entries` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `timesheet_id` INT NOT NULL,
+            `project` VARCHAR(150) NOT NULL,
+            `task` VARCHAR(255) DEFAULT NULL,
+            `log_date` DATE NOT NULL,
+            `hours` DECIMAL(5,2) NOT NULL,
+            `billable` TINYINT(1) DEFAULT 1,
+            UNIQUE KEY `uq_te_ts_proj_date` (`timesheet_id`, `project`, `log_date`),
+            INDEX `idx_timesheet_entry` (`timesheet_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+    ];
+
+    foreach ($queries as $sql) {
+        @$conn->query($sql);
+    }
+
+    // Add unique key to existing timesheet_entries if missing
+    $chk = $conn->query("
+        SELECT 1 FROM information_schema.STATISTICS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'timesheet_entries'
+          AND INDEX_NAME = 'uq_te_ts_proj_date'
+        LIMIT 1
+    ");
+    if ($chk && !$chk->fetch_row()) {
+        @$conn->query("ALTER TABLE `timesheet_entries` ADD UNIQUE KEY `uq_te_ts_proj_date` (`timesheet_id`, `project`, `log_date`)");
+    }
+}
+

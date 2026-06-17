@@ -3,8 +3,18 @@
 require_once __DIR__ . '/chat_schema.php';
 
 function chat_json(bool $ok, $data = null, ?string $error = null): void {
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode(['success' => $ok, 'data' => $data, 'error' => $error]);
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    if (!headers_sent()) {
+        header('Content-Type: application/json; charset=utf-8');
+    }
+    $flags = JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE;
+    $json = json_encode(['success' => $ok, 'data' => $data, 'error' => $error], $flags);
+    if ($json === false) {
+        $json = json_encode(['success' => false, 'data' => null, 'error' => 'Could not encode server response'], $flags);
+    }
+    echo $json;
     exit;
 }
 
@@ -152,9 +162,9 @@ function chat_process_upload(mysqli $conn, int $me_id): void {
         chat_json(false, null, chat_upload_error_message((int)$file['error']));
     }
 
-    $maxSize = 10 * 1024 * 1024;
+    $maxSize = 200 * 1024 * 1024;
     if ((int)$file['size'] > $maxSize) {
-        chat_json(false, null, 'File too large (max 10MB)');
+        chat_json(false, null, 'File too large (max 200 MB)');
     }
 
     $resolved = chat_resolve_upload_type(
@@ -163,7 +173,7 @@ function chat_process_upload(mysqli $conn, int $me_id): void {
         $file['name'] ?? 'file'
     );
     if (!$resolved) {
-        chat_json(false, null, 'File type not allowed. Use JPG, PNG, GIF, WEBP, PDF, or DOC.');
+        chat_json(false, null, 'File type not allowed. Use images or documents (PDF, Word, Excel, CSV, PowerPoint, etc.).');
     }
 
     $uploadDir = chat_upload_dir();
@@ -192,7 +202,7 @@ function chat_process_upload(mysqli $conn, int $me_id): void {
     }
 
     $msg_type = str_starts_with($mime, 'image/') ? 'image' : 'file';
-    $body = $msg_type === 'image' ? '' : ('📎 ' . $safeName);
+    $body = $msg_type === 'image' ? '' : $safeName;
     $fileSize = (int)$file['size'];
 
     $stmt = $conn->prepare("
@@ -210,7 +220,11 @@ function chat_process_upload(mysqli $conn, int $me_id): void {
     chat_touch_conversation($conn, $cid);
     chat_mark_conversation_read($conn, $cid, $me_id);
 
-    chat_ws_push_new_message($conn, $mid);
+    try {
+        chat_ws_push_new_message($conn, $mid);
+    } catch (Throwable $e) {
+        // Upload succeeded; realtime notify is optional.
+    }
 
     $broadcast = chat_fetch_message_broadcast($conn, $mid);
     chat_json(true, [
