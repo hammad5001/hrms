@@ -245,6 +245,7 @@ wss.on('connection', (ws) => {
     ws.authed = false;
 
     ws.on('message', async (raw) => {
+        ws.isAlive = true;
         if (raw.length > MAX_PAYLOAD) return;
         if (!wsRateOk(ws)) {
             sendJson(ws, { type: 'error', error: 'Rate limit exceeded' });

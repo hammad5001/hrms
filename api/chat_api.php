@@ -647,7 +647,6 @@ switch ($action) {
         $countStmt->execute();
         $remaining = (int)($countStmt->get_result()->fetch_assoc()['c'] ?? 0);
         if ($remaining === 0) {
-            $conn->prepare("DELETE FROM chat_message_receipts WHERE message_id IN (SELECT id FROM chat_messages WHERE conversation_id = ?)")->bind_param('i', $cid);
             // Use subquery-safe approach
             $conn->query("DELETE r FROM chat_message_receipts r INNER JOIN chat_messages m ON m.id = r.message_id WHERE m.conversation_id = $cid");
             $conn->query("DELETE FROM chat_messages WHERE conversation_id = $cid");
