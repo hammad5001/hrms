@@ -39,8 +39,9 @@ function getShiftWindows($date) {
     ];
 }
 
-function isLate($punch_time, $shift_date) {
-    $shift_start = strtotime($shift_date . ' ' . SHIFT_START);
+function isLate($punch_time, $shift_date, $team = '') {
+    $start_time = preg_match('/\bFE\b/i', $team) ? '19:00:00' : SHIFT_START;
+    $shift_start = strtotime($shift_date . ' ' . $start_time);
     $punch = strtotime($punch_time);
     $minutes_late = ($punch - $shift_start) / 60;
     
@@ -206,7 +207,7 @@ function getAccurateEmployeeAttendance($conn, $user_id, $date, $employee_info) {
     
     if ($checkin) {
         $in_time_display = date('h:i A', strtotime($checkin));
-        list($is_late, $minutes) = isLate($checkin, $date);
+        list($is_late, $minutes) = isLate($checkin, $date, $employee_info['team'] ?? '');
         if ($is_late) {
             $status = 'Late';
             $late_minutes = $minutes;

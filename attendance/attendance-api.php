@@ -216,8 +216,9 @@ function calculateWorkingHours($check_in, $check_out) {
     return round($hours, 2);
 }
 
-function isLate($punch_time, $shift_date) {
-    $shift_start = strtotime($shift_date . ' ' . SHIFT_START);
+function isLate($punch_time, $shift_date, $team = '') {
+    $start_time = preg_match('/\bFE\b/i', $team) ? '19:00:00' : SHIFT_START;
+    $shift_start = strtotime($shift_date . ' ' . $start_time);
     $punch = strtotime($punch_time);
     $minutes_late = ($punch - $shift_start) / 60;
     
@@ -357,7 +358,7 @@ switch ($action) {
                     $team_stats[$team]['present']++;
                 }
                 
-                list($is_late, $minutes) = isLate($first_in, $selected_date);
+                list($is_late, $minutes) = isLate($first_in, $selected_date, $team);
                 if ($is_late) {
                     $status = 'late';
                     $stats['late']++;
@@ -488,7 +489,7 @@ switch ($action) {
                 $first_in = $row['timestamp'];
                 
                 $summary['present']++;
-                list($is_late, $minutes) = isLate($first_in, $current);
+                list($is_late, $minutes) = isLate($first_in, $current, $csv_emp['team'] ?? $employee['team'] ?? '');
                 if ($is_late) {
                     $status = 'late';
                     $summary['late']++;
@@ -594,7 +595,7 @@ switch ($action) {
                 $punch_data = $punch->fetch_assoc();
                 $in_time = date('h:i A', strtotime($punch_data['timestamp']));
                 
-                list($is_late, $minutes) = isLate($punch_data['timestamp'], $selected_date);
+                list($is_late, $minutes) = isLate($punch_data['timestamp'], $selected_date, $csv_emp['team'] ?? $emp['team'] ?? '');
                 if ($is_late) {
                     $status = 'late';
                     $stats['late']++;
@@ -686,7 +687,7 @@ switch ($action) {
                     
                     if ($first_punch && $first_punch->num_rows > 0) {
                         $punch = $first_punch->fetch_assoc();
-                        list($is_late,) = isLate($punch['timestamp'], $current);
+                        list($is_late,) = isLate($punch['timestamp'], $current, $csv_emp['team'] ?? $emp['team'] ?? '');
                         if ($is_late) {
                             $late_days++;
                         }

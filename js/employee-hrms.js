@@ -492,7 +492,7 @@ function greetingForNow() {
 function ensureChatFrameLoaded() {
     const frame = document.getElementById('essChatFrame');
     if (!frame || frame.dataset.loaded === '1') return;
-    frame.src = 'chat-portal.html?embed=1';
+    frame.src = 'chat-portal.html?embed=1&v=' + Date.now();
     frame.dataset.loaded = '1';
 }
 
@@ -2291,7 +2291,7 @@ function renderReporteesTable(rows) {
     const tbody = document.getElementById('reporteesTableBody');
     if (!tbody) return;
     if (!rows?.length) {
-        tbody.innerHTML = '<tr><td colspan="6">No reportees yet. Use <strong>Add Reportee</strong> above to build your team.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7">No reportees yet. Use <strong>Add Reportee</strong> above to build your team.</td></tr>';
         renderReporteeAttendanceDetail(null);
         return;
     }
@@ -2310,6 +2310,11 @@ function renderReporteesTable(rows) {
             <td>${att.check_in ? formatTime(att.check_in) : '—'}</td>
             <td>${att.check_out ? formatTime(att.check_out) : (att.on_duty ? 'On duty' : '—')}</td>
             <td><span class="ess-pill ${st}">${escHtml(dayStatusLabel({ status: st, label: att.label }))}</span></td>
+            <td onclick="event.stopPropagation()">
+                <button type="button" class="ess-btn ess-btn-outline ess-btn-sm ess-reportee-remove-btn" data-remove-id="${escHtml(String(r.user_id))}" title="Remove reportee" style="padding: 2px 8px;">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
         </tr>`;
     }).join('');
 
@@ -2322,8 +2327,27 @@ function renderReporteesTable(rows) {
         row.addEventListener('click', pick);
         row.addEventListener('keydown', e => {
             if (e.key === 'Enter' || e.key === ' ') {
+                if (e.target.closest('.ess-reportee-remove-btn')) return;
                 e.preventDefault();
                 pick();
+            }
+        });
+    });
+
+    tbody.querySelectorAll('.ess-reportee-remove-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (!confirm('Are you sure you want to remove this reportee?')) return;
+            const employeeUserId = btn.dataset.removeId;
+            btn.disabled = true;
+            const res = await apiPost('api/reportees_api.php?action=removeReportee', { employee_user_id: employeeUserId });
+            if (res.success) {
+                toast(res.data?.message || 'Reportee removed.');
+                renderReportingHierarchy(res.data?.hierarchy);
+                await loadReporteesView();
+            } else {
+                toast(res.error || 'Could not remove reportee', 'error');
+                btn.disabled = false;
             }
         });
     });
@@ -2344,10 +2368,10 @@ async function loadReporteesView() {
     }
 
     const tbody = document.getElementById('reporteesTableBody');
-    if (tbody) tbody.innerHTML = '<tr><td colspan="6">Loading team…</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7">Loading team…</td></tr>';
     const res = await apiGet('api/reportees_api.php?action=reportees');
     if (!res.success) {
-        if (tbody) tbody.innerHTML = `<tr><td colspan="6">${escHtml(res.error || 'Could not load reportees')}</td></tr>`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="7">${escHtml(res.error || 'Could not load reportees')}</td></tr>`;
         return;
     }
     HRMS.reporteesList = res.data || [];

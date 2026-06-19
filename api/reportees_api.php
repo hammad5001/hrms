@@ -56,6 +56,23 @@ switch ($action) {
         ]);
         break;
 
+    case 'removeReportee':
+        if (!user_can_manage_reportees($user)) {
+            reportees_respond(false, null, 'Not authorized');
+        }
+        $employee_id = (int)($input['employee_user_id'] ?? 0);
+        if ($employee_id <= 0) {
+            reportees_respond(false, null, 'Please select an employee');
+        }
+        $stmt = $conn->prepare('DELETE FROM employee_reporting WHERE manager_user_id = ? AND employee_user_id = ? AND company_branch = ?');
+        $stmt->bind_param('iis', $user_id, $employee_id, $branch);
+        $stmt->execute();
+        reportees_respond(true, [
+            'message' => 'Reportee removed successfully.',
+            'hierarchy' => fetch_reporting_hierarchy($conn, $user, $branch),
+        ]);
+        break;
+
     case 'searchManagers':
         if (!user_can_assign_own_manager($user)) {
             reportees_respond(false, null, 'Manager self-assignment is disabled. Your reporting line is assigned by your manager or HR.');

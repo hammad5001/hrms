@@ -148,7 +148,7 @@ function fetch_manager_reportees(mysqli $conn, int $manager_user_id, string $bra
     $rows = [];
     while ($row = $res->fetch_assoc()) {
         $empCode = $row['employee_code'] ?: '';
-        $status = reportee_attendance_status($conn, $empCode, $branch);
+        $status = reportee_attendance_status($conn, $empCode, $branch, $row['emp_team'] ?? '');
         $rows[] = [
             'user_id' => (int)$row['employee_user_id'],
             'employee_code' => $empCode,
@@ -163,7 +163,7 @@ function fetch_manager_reportees(mysqli $conn, int $manager_user_id, string $bra
     return $rows;
 }
 
-function reportee_attendance_status(mysqli $conn, string $empCode, string $branch): array {
+function reportee_attendance_status(mysqli $conn, string $empCode, string $branch, string $team = ''): array {
     if ($empCode === '') {
         return [
             'status' => 'absent',
@@ -178,7 +178,7 @@ function reportee_attendance_status(mysqli $conn, string $empCode, string $branc
     }
 
     $activeDate = ess_active_shift_date();
-    $bundle = fetch_attendance_bundle($conn, $empCode, $activeDate, $branch);
+    $bundle = fetch_attendance_bundle($conn, $empCode, $activeDate, $branch, $team);
 
     $checkIn = $bundle['check_in'] ?? null;
     $checkOut = $bundle['check_out'] ?? null;
@@ -194,7 +194,8 @@ function reportee_attendance_status(mysqli $conn, string $empCode, string $branc
         $todayStatus = ess_attendance_status_for_shift(
             $todayShift['check_in'],
             $todayShift['check_out'],
-            $activeDate
+            $activeDate,
+            $team
         );
         $checkIn = $todayShift['check_in'];
         $checkOut = $todayShift['check_out'];
@@ -449,12 +450,23 @@ function fetch_reportee_shift_history(mysqli $conn, string $empCode, string $bra
     }
 
     $history = [];
+    $team = '';
+    $stmtTeam = $conn->prepare("SELECT team FROM users WHERE employee_code = ? LIMIT 1");
+    if ($stmtTeam) {
+        $stmtTeam->bind_param('s', $empCode);
+        $stmtTeam->execute();
+        $teamRow = $stmtTeam->get_result()->fetch_assoc();
+        if ($teamRow) {
+            $team = (string)($teamRow['team'] ?? '');
+        }
+    }
+
     $cursor = strtotime(ess_active_shift_date());
 
     for ($i = 0; $i < $days; $i++) {
         $shiftDate = date('Y-m-d', $cursor);
         $shift = ess_resolve_shift_punches($allTimestamps, $shiftDate);
-        $status = ess_attendance_status_for_shift($shift['check_in'], $shift['check_out'], $shiftDate);
+        $status = ess_attendance_status_for_shift($shift['check_in'], $shift['check_out'], $shiftDate, $team);
         $onDuty = !empty($status['on_duty']);
         $checkIn = $shift['check_in'];
         $checkOut = $onDuty ? null : $shift['check_out'];

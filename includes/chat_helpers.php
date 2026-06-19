@@ -726,12 +726,42 @@ function chat_receipt_status(mysqli $conn, int $message_id): string {
 }
 
 function chat_attach_message_meta(mysqli $conn, array &$messages, int $me_id): void {
+    if (empty($messages)) return;
+    $msgIds = [];
     foreach ($messages as &$m) {
         if ((int)$m['sender_id'] === $me_id) {
             $m['status'] = chat_receipt_status($conn, (int)$m['id']);
         }
+        $m['reactions'] = [];
+        $msgIds[] = (int)$m['id'];
     }
     unset($m);
+
+    if (!empty($msgIds)) {
+        $ph = implode(',', $msgIds);
+        $res = $conn->query("
+            SELECT r.message_id, r.user_id, r.reaction, u.full_name 
+            FROM chat_message_reactions r
+            LEFT JOIN users u ON u.id = r.user_id
+            WHERE r.message_id IN ($ph)
+        ");
+        if ($res) {
+            $reactionsByMsg = [];
+            while ($row = $res->fetch_assoc()) {
+                $reactionsByMsg[$row['message_id']][] = [
+                    'user_id' => (int)$row['user_id'],
+                    'reaction' => $row['reaction'],
+                    'full_name' => $row['full_name'] ?? 'User'
+                ];
+            }
+            foreach ($messages as &$m) {
+                if (isset($reactionsByMsg[$m['id']])) {
+                    $m['reactions'] = $reactionsByMsg[$m['id']];
+                }
+            }
+            unset($m);
+        }
+    }
 }
 
 function chat_touch_user_active(mysqli $conn, int $user_id): void {
@@ -880,6 +910,24 @@ function chat_fetch_message_broadcast(mysqli $conn, int $message_id): ?array {
     $row['sender_id'] = (int)$row['sender_id'];
     $row['is_edited'] = (int)($row['is_edited'] ?? 0);
     $row['is_deleted'] = (int)($row['is_deleted'] ?? 0);
+
+    $row['reactions'] = [];
+    $res = $conn->query("
+        SELECT r.user_id, r.reaction, u.full_name 
+        FROM chat_message_reactions r
+        LEFT JOIN users u ON u.id = r.user_id
+        WHERE r.message_id = " . $row['id'] . "
+    ");
+    if ($res) {
+        while ($rx = $res->fetch_assoc()) {
+            $row['reactions'][] = [
+                'user_id' => (int)$rx['user_id'],
+                'reaction' => $rx['reaction'],
+                'full_name' => $rx['full_name'] ?? 'User'
+            ];
+        }
+    }
+    
     return $row;
 }
 

@@ -44,7 +44,7 @@ try {
         enrich_user_from_sheet($conn, $user, $emp_code);
     }
 
-    $attendance = fetch_attendance_bundle($conn, $emp_code, $today, $branch);
+    $attendance = fetch_attendance_bundle($conn, $emp_code, $today, $branch, $user['team'] ?? '');
     $attendance_raw = $attendance['attendance_raw'];
     $check_in = $attendance['check_in'];
     $check_out = $attendance['check_out'];
@@ -94,6 +94,12 @@ try {
     $user['avatar_url'] = chat_public_avatar_url($user['chat_avatar'] ?? '');
     $profile_details = fetch_employee_profile_details($conn, (int) $user['id']);
 
+    $teamForShift = $user['team'] ?? '';
+    $lateAfter = preg_match('/\bFE\b/i', $teamForShift) ? '19:00' : '18:00';
+    $shiftLabel = preg_match('/\bFE\b/i', $teamForShift)
+        ? 'Night shift (7 PM – 4 AM) · window 4 PM – next day 11 AM'
+        : 'Night shift (6 PM – 4 AM) · window 4 PM – next day 11 AM';
+
     echo json_encode([
         'success' => true,
         'server_now' => $server_now,
@@ -127,11 +133,11 @@ try {
         ],
         'shift' => [
             'type' => 'night',
-            'label' => 'Night shift (6 PM – 4 AM) · window 4 PM – next day 11 AM',
+            'label' => $shiftLabel,
             'checkin_from' => '16:00',
-            'shift_start' => '18:00',
+            'shift_start' => $lateAfter,
             'checkout_until' => '11:00',
-            'late_after' => '18:00',
+            'late_after' => $lateAfter,
             'grace_minutes' => 15,
         ],
         'payroll' => $payroll,

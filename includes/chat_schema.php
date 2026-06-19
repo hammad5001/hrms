@@ -97,6 +97,17 @@ function ensure_chat_schema(mysqli $conn): void {
         INDEX `idx_user` (`user_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
+    @$conn->query("CREATE TABLE IF NOT EXISTS `chat_message_reactions` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `message_id` INT NOT NULL,
+        `user_id` INT NOT NULL,
+        `reaction` VARCHAR(32) NOT NULL,
+        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY `uq_msg_user_reaction` (`message_id`, `user_id`, `reaction`),
+        INDEX `idx_msg` (`message_id`),
+        INDEX `idx_user` (`user_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
     $uploadDir = dirname(__DIR__) . '/uploads/chat';
     if (!is_dir($uploadDir)) {
         @mkdir($uploadDir, 0755, true);

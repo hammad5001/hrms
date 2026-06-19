@@ -108,12 +108,16 @@ function ess_resolve_shift_punches(array $timestamps, string $shiftDate): array
     ];
 }
 
-function ess_is_late_checkin(?string $checkIn, string $shiftDate): bool
+function ess_is_late_checkin(?string $checkIn, string $shiftDate, string $team = ''): bool
 {
     if (!$checkIn) {
         return false;
     }
-    $lateAfter = strtotime($shiftDate . ' ' . ESS_SHIFT_LATE_TIME);
+    $lateTime = ESS_SHIFT_LATE_TIME;
+    if (preg_match('/\bFE\b/i', $team)) {
+        $lateTime = '19:00:00';
+    }
+    $lateAfter = strtotime($shiftDate . ' ' . $lateTime);
     return strtotime($checkIn) > $lateAfter;
 }
 
@@ -138,7 +142,7 @@ function ess_is_shift_upcoming(string $shiftDate, ?int $timestamp = null): bool
 /**
  * Present / Absent / Late / Upcoming for one shift date — based only on fetched punches that day.
  */
-function ess_attendance_status_for_shift(?string $checkIn, ?string $checkOut, string $shiftDate): array
+function ess_attendance_status_for_shift(?string $checkIn, ?string $checkOut, string $shiftDate, string $team = ''): array
 {
     if (!$checkIn && ess_is_shift_upcoming($shiftDate)) {
         return [
@@ -162,7 +166,7 @@ function ess_attendance_status_for_shift(?string $checkIn, ?string $checkOut, st
         ];
     }
 
-    $isLate = ess_is_late_checkin($checkIn, $shiftDate);
+    $isLate = ess_is_late_checkin($checkIn, $shiftDate, $team);
     $onDuty = !$checkOut;
 
     return [
@@ -176,11 +180,11 @@ function ess_attendance_status_for_shift(?string $checkIn, ?string $checkOut, st
 }
 
 /** Active shift status from raw punch list (today's shift date only). */
-function ess_attendance_status_from_timestamps(array $timestamps, ?string $shiftDate = null): array
+function ess_attendance_status_from_timestamps(array $timestamps, ?string $shiftDate = null, string $team = ''): array
 {
     $shiftDate = $shiftDate ?? ess_active_shift_date();
     $shift = ess_resolve_shift_punches($timestamps, $shiftDate);
-    return ess_attendance_status_for_shift($shift['check_in'], $shift['check_out'], $shiftDate);
+    return ess_attendance_status_for_shift($shift['check_in'], $shift['check_out'], $shiftDate, $team);
 }
 
 /**

@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script>if (/(?:\?|&)embed=1(?:&|$)/.test(location.search)) document.documentElement.classList.add('chat-embed-mode');</script>
-    <link rel="stylesheet" href="css/chat.css?v=29">
+    <link rel="stylesheet" href="css/chat.css?v=30">
     <link rel="stylesheet" href="css/chat-pro.css?v=29">
     <link rel="stylesheet" href="css/chat-embed.css?v=8">
 </head>
@@ -153,6 +153,7 @@
                     </div>
                     <div class="chat-header-actions">
                         <span class="chat-ws-status" id="chatWsStatus" title="Real-time connection" aria-label="Disconnected"></span>
+                        <button type="button" class="header-action-btn" id="btnGroupInfoToggle" title="Group info" style="display:none;"><i class="fas fa-info-circle"></i></button>
                         <button type="button" class="header-action-btn" id="btnSearchInChat" title="Search in conversation"><i class="fas fa-search"></i></button>
                         <div class="dropdown-wrap" id="chatMenuWrap">
                             <button type="button" class="header-action-btn" id="btnChatMenu" title="Conversation options"><i class="fas fa-ellipsis-v"></i></button>
@@ -243,6 +244,49 @@
                         </div>
                     </div>
                 </footer>
+                
+                <!-- Group Info Right Sidebar -->
+                <div class="chat-right-sidebar" id="groupInfoSidebar">
+                    <div class="sidebar-header">
+                        <button type="button" class="btn-icon" id="btnCloseGroupInfo" aria-label="Close info"><i class="fas fa-times"></i></button>
+                        <h3>Group Info</h3>
+                    </div>
+                    <div class="sidebar-body">
+                        <div class="sidebar-group-profile">
+                            <div class="avatar sidebar-avatar" id="sidebarGroupAvatar"></div>
+                            <h2 id="sidebarGroupTitle">Group</h2>
+                            <p class="sub" id="sidebarGroupSub">Participants</p>
+                        </div>
+                        
+                        <div class="group-sidebar-actions">
+                            <button type="button" class="sidebar-action-btn" id="btnSidebarAddPeople" style="display:none;">
+                                <div class="icon-wrap"><i class="fas fa-user-plus"></i></div>
+                                <span>Add participants</span>
+                            </button>
+                        </div>
+
+                        <div class="sidebar-add-section hidden" id="sidebarAddSection">
+                            <div class="group-search-wrap" style="position: relative; padding: 0 16px;">
+                                <i class="fas fa-search"></i>
+                                <input type="text" class="inp group-search-inp" id="sidebarAddSearch" placeholder="Search name, email...">
+                                <div class="chat-search-results hidden" id="sidebarAddResults" style="left: 16px; right: 16px; top: calc(100% + 4px); margin: 0;"></div>
+                            </div>
+                        </div>
+
+                        <div class="sidebar-members-section">
+                            <div class="section-title">Members</div>
+                            <div class="members-list" id="sidebarMembersList"></div>
+                        </div>
+
+                        <div class="group-sidebar-actions" style="border-top: 8px solid var(--c-bg, #f8fafc);">
+                            <button type="button" class="sidebar-action-btn text-danger" id="btnSidebarLeave">
+                                <div class="icon-wrap danger-bg"><i class="fas fa-sign-out-alt"></i></div>
+                                <span>Leave group</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </main>
     </div>
@@ -424,6 +468,6 @@
     <div class="chat-toast" id="chatToast" role="status" aria-live="polite"></div>
     <script src="js/portal-access.js"></script>
     <script src="js/portal-notify-sound.js?v=1"></script>
-    <script src="js/chat-app.js?v=34"></script>
+    <script src="js/chat-app.js?v=36"></script>
 </body>
 </html>

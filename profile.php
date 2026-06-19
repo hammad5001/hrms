@@ -27,8 +27,9 @@ function calculateWorkingHours($check_in, $check_out) {
 }
 
 // Function to check if employee is late (matches attendance-api.php isLate function)
-function isLate($punch_time, $shift_date) {
-    $shift_start = strtotime($shift_date . ' 18:00:00'); // 6:00 PM
+function isLate($punch_time, $shift_date, $team = '') {
+    $start_time = preg_match('/\bFE\b/i', $team) ? '19:00:00' : '18:00:00';
+    $shift_start = strtotime($shift_date . ' ' . $start_time);
     $punch = strtotime($punch_time);
     $minutes_late = ($punch - $shift_start) / 60;
     
@@ -95,7 +96,7 @@ if ($employee_code) {
         $out_time_display = $check_out ? date('h:i A', strtotime($check_out)) : '---';
         
         // Determine status using isLate function
-        list($is_late_status, $late_minutes) = isLate($check_in, $shift_date);
+        list($is_late_status, $late_minutes) = isLate($check_in, $shift_date, $user['team'] ?? '');
         $status = $is_late_status ? 'late' : 'present';
         
         // Calculate working hours

@@ -285,7 +285,7 @@ function enrich_user_from_sheet(mysqli $conn, array &$user, string $empCode): vo
     }
 }
 
-function fetch_attendance_bundle(mysqli $conn, string $empCode, string $today, ?string $branch = null): array {
+function fetch_attendance_bundle(mysqli $conn, string $empCode, string $today, ?string $branch = null, string $team = ''): array {
     $attendance_raw = [];
     $check_in = null;
     $check_out = null;
@@ -296,6 +296,18 @@ function fetch_attendance_bundle(mysqli $conn, string $empCode, string $today, ?
         'late_days' => 0,
         'total_punches' => 0,
     ];
+
+    if ($team === '') {
+        $stmtTeam = $conn->prepare("SELECT team FROM users WHERE employee_code = ? LIMIT 1");
+        if ($stmtTeam) {
+            $stmtTeam->bind_param('s', $empCode);
+            $stmtTeam->execute();
+            $teamRow = $stmtTeam->get_result()->fetch_assoc();
+            if ($teamRow) {
+                $team = (string)($teamRow['team'] ?? '');
+            }
+        }
+    }
 
     $codes = employee_code_variants($empCode);
     if (empty($codes)) {
@@ -360,7 +372,7 @@ function fetch_attendance_bundle(mysqli $conn, string $empCode, string $today, ?
         $auto_closed = true;
     }
 
-    $shiftStatus = ess_attendance_status_for_shift($check_in, $check_out, $shift_date);
+    $shiftStatus = ess_attendance_status_for_shift($check_in, $check_out, $shift_date, $team);
     $on_duty = $shiftStatus['on_duty'];
     $attendance_status = $shiftStatus['status'];
     $attendance_label = $shiftStatus['label'];
@@ -388,7 +400,7 @@ function fetch_attendance_bundle(mysqli $conn, string $empCode, string $today, ?
         $dayShift = ess_resolve_shift_punches($allTimestamps, $d);
         if ($dayShift['check_in'] || $dayShift['check_out']) {
             $attendance_summary['present_days']++;
-            if (ess_is_late_checkin($dayShift['check_in'], $d)) {
+            if (ess_is_late_checkin($dayShift['check_in'], $d, $team)) {
                 $attendance_summary['late_days']++;
             }
         }

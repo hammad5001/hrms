@@ -85,7 +85,19 @@ function perf_shift_attendance_detail(mysqli $conn, string $empCode, string $shi
     $shift = ess_resolve_shift_punches($timestamps, $shiftDate);
     $checkIn = $shift['check_in'] ?? null;
     $checkOut = $shift['check_out'] ?? null;
-    $status = ess_attendance_status_for_shift($checkIn, $checkOut, $shiftDate);
+    
+    $team = '';
+    $stmtTeam = $conn->prepare("SELECT team FROM users WHERE employee_code = ? LIMIT 1");
+    if ($stmtTeam) {
+        $stmtTeam->bind_param('s', $empCode);
+        $stmtTeam->execute();
+        $teamRow = $stmtTeam->get_result()->fetch_assoc();
+        if ($teamRow) {
+            $team = (string)($teamRow['team'] ?? '');
+        }
+    }
+    
+    $status = ess_attendance_status_for_shift($checkIn, $checkOut, $shiftDate, $team);
 
     $dutySeconds = ess_duty_seconds($checkIn, $checkOut, $conn, $shiftDate);
     $workingHours = ess_working_hours($checkIn, $checkOut, $conn, $shiftDate);

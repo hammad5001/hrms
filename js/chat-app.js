@@ -938,6 +938,28 @@ function renderMessages(scrollMode) {
             ? `<button class="msg-action-btn" data-msg-id="${m.id}" title="More options"><i class="fas fa-chevron-down"></i></button>`
             : '';
 
+        const emojis = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+        let reactionToolbar = '';
+        if (canAct) {
+            const btns = emojis.map(em => `<button class="msg-reaction-btn" data-msg-id="${m.id}" data-reaction="${em}" title="${em}">${em}</button>`).join('');
+            reactionToolbar = `<div class="msg-reaction-bar">${btns}</div>`;
+        }
+
+        let reactionsHtml = '';
+        if (m.reactions && m.reactions.length > 0) {
+            const counts = {};
+            const reactedByMe = new Set();
+            m.reactions.forEach(r => {
+                counts[r.reaction] = (counts[r.reaction] || 0) + 1;
+                if (r.user_id == Chat.me.id) reactedByMe.add(r.reaction);
+            });
+            const badges = Object.keys(counts).map(reaction => {
+                const isMe = reactedByMe.has(reaction) ? ' reacted-by-me' : '';
+                return `<div class="msg-reaction-badge${isMe}" data-msg-id="${m.id}" data-reaction="${reaction}">${reaction} ${counts[reaction]}</div>`;
+            }).join('');
+            reactionsHtml = `<div class="msg-reactions-container">${badges}</div>`;
+        }
+
         const searchHit = searchQ.length >= 2 && !isDeleted && (m.body || '').toLowerCase().includes(searchQ.toLowerCase());
         const blink = Chat.blinkMsgIds.has(m.id) ? ' msg-unread-blink' : '';
         const uploading = String(m.id || '').startsWith('tmp-upload') ? ' msg-uploading' : '';
@@ -946,9 +968,11 @@ function renderMessages(scrollMode) {
             : '';
         html += `
         <div class="chat-msg ${mine ? 'mine' : 'theirs'}${isImage ? ' has-media' : ''}${searchHit ? ' search-hit' : ''}${blink}${uploading}" data-msg-id="${m.id || ''}" data-is-mine="${mine ? '1' : '0'}">
+            ${canAct ? reactionToolbar : ''}
             ${senderRow}
             <div class="${bubbleClass}">${inner}${mine ? meta : ''}</div>
             ${!mine ? meta : ''}
+            ${reactionsHtml}
             ${chevron}
         </div>`;
     });
@@ -987,6 +1011,27 @@ function renderMessages(scrollMode) {
             showMessageContextMenu(e, msgId, isMine);
         });
     });
+
+    area.querySelectorAll('.msg-reaction-btn, .msg-reaction-badge').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const msgId = parseInt(btn.dataset.msgId, 10);
+            const reaction = btn.dataset.reaction;
+            toggleReaction(msgId, reaction);
+        });
+    });
+}
+
+async function toggleReaction(msgId, reaction) {
+    if (!Chat.activeId) return;
+    const res = await chatApi('toggleReaction', { method: 'POST', body: { message_id: msgId, reaction: reaction } });
+    if (res.success) {
+        const msg = Chat.messages.find(m => m.id == msgId);
+        if (msg) {
+            msg.reactions = res.data.reactions || [];
+            renderMessages('preserve');
+        }
+    }
 }
 
 /* ─── Context Menu ──────────────────────────────────────── */
@@ -1477,6 +1522,15 @@ function handleChatWsEvent(ev) {
         return;
     }
 
+    if (ev.type === 'reaction.toggled') {
+        const msg = Chat.messages.find(m => parseInt(m.id, 10) === parseInt(ev.message_id, 10));
+        if (msg) {
+            msg.reactions = ev.reactions || [];
+            renderMessages(Chat.scroll.pinnedToBottom ? 'bottom' : 'preserve');
+        }
+        return;
+    }
+
     if (ev.type === 'chat.cleared') {
         Chat.messages = [];
         renderMessages('bottom');
@@ -1517,6 +1571,7 @@ async function openConversation(id) {
     Chat.messages  = res.data.messages;
     Chat.hasMoreHistory = !!res.data.has_more;
     updateLoadOlderBar();
+    Chat.activeConversation = res.data.conversation;
     Chat.convType = res.data.conversation.type;
     Chat.presence = res.data.presence;
     Chat.lastRead = res.data.last_read;
@@ -1537,12 +1592,15 @@ async function openConversation(id) {
     document.getElementById('headerTitle').textContent = title;
     const headerAv = document.getElementById('headerAvatar');
     const conv = convMeta;
+    Chat.activeParticipants = res.data.participants || [];
     if (Chat.convType === 'group') {
+        document.getElementById('btnGroupInfoToggle').style.display = 'flex';
         setAvatarElement(headerAv, { name: title, id: conv?.id, group: true, groupIcon: true, color: conv?.avatar_color });
-        const pc = res.data.participants?.length;
+        const pc = Chat.activeParticipants.length;
         document.getElementById('headerSub').textContent = pc ? `${pc} participants` : 'Group chat';
     } else {
-        const peer = res.data.participants?.find(p => p.id !== Chat.me?.id);
+        document.getElementById('btnGroupInfoToggle').style.display = 'none';
+        const peer = Chat.activeParticipants.find(p => p.id !== Chat.me?.id);
         setAvatarElement(headerAv, {
             url: peer?.avatar_url || conv?.avatar_url,
             name: title,
@@ -2622,4 +2680,217 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
+    initGroupSidebar();
+
 });
+
+/* ── Group Sidebar Logic ── */
+let openMemberActionId = null;
+
+function renderGroupSidebarMembers() {
+    const list = document.getElementById('sidebarMembersList');
+    if (!list || !Chat.activeParticipants) return;
+    
+    document.getElementById('sidebarGroupSub').textContent = `${Chat.activeParticipants.length} participants`;
+    
+    const isAdmin = Chat.activeConversation && Chat.activeConversation.created_by && Chat.me.id == Chat.activeConversation.created_by;
+    document.getElementById('btnSidebarAddPeople').style.display = isAdmin ? 'flex' : 'none';
+    
+    list.innerHTML = Chat.activeParticipants.map(u => {
+        const isMe = u.id == Chat.me.id;
+        let removeBtn = '';
+        if (isAdmin && !isMe) {
+            removeBtn = `<div class="member-action-menu hidden" id="memberAction_${u.id}">
+                            <button type="button" class="member-action-item danger" onclick="removeGroupMember(${u.id})">Remove from group</button>
+                         </div>`;
+        }
+        
+        let statusHtml = '';
+        const online = Chat.presence && Chat.presence[u.id] && Chat.presence[u.id].status === 'online';
+        if (online) {
+            statusHtml = `<span class="presence-dot online"></span>`;
+        } else {
+            statusHtml = `<span class="presence-dot offline"></span>`;
+        }
+        
+        const displayLabel = isMe ? `${escapeHtml(u.full_name)} (You)` : escapeHtml(u.full_name);
+        
+        const clickHandler = (isAdmin && !isMe) ? `onclick="toggleMemberAction(event, ${u.id})"` : '';
+        const cursor = (isAdmin && !isMe) ? 'pointer' : 'default';
+        const clickableClass = (isAdmin && !isMe) ? 'clickable' : '';
+        
+        return `<div class="sidebar-member-item ${clickableClass}" style="cursor: ${cursor}; position: relative;" ${clickHandler}>
+            <div class="header-avatar-wrap">
+                ${avatarHtml({ url: u.avatar_url, name: u.full_name, id: u.id, color: u.avatar_color })}
+                ${statusHtml}
+            </div>
+            <div class="sidebar-member-info">
+                <div class="sidebar-member-name">${displayLabel}</div>
+                <div class="sidebar-member-role">${escapeHtml(u.designation || '')}</div>
+            </div>
+            ${removeBtn}
+        </div>`;
+    }).join('');
+}
+
+window.toggleMemberAction = function(e, id) {
+    e.stopPropagation();
+    document.querySelectorAll('.member-action-menu').forEach(el => el.classList.add('hidden'));
+    if (openMemberActionId === id) {
+        openMemberActionId = null;
+        return;
+    }
+    openMemberActionId = id;
+    document.getElementById(`memberAction_${id}`)?.classList.remove('hidden');
+};
+
+document.addEventListener('click', () => {
+    document.querySelectorAll('.member-action-menu').forEach(el => el.classList.add('hidden'));
+    openMemberActionId = null;
+});
+
+function openGroupSidebar() {
+    if (Chat.convType !== 'group') return;
+    const title = Chat.activeConversation?.display_title || Chat.activeConversation?.title || 'Group';
+    document.getElementById('sidebarGroupTitle').textContent = title;
+    
+    setAvatarElement(document.getElementById('sidebarGroupAvatar'), { 
+        name: title, 
+        id: Chat.activeConversation?.id, 
+        group: true, 
+        groupIcon: true, 
+        color: Chat.activeConversation?.avatar_color 
+    });
+    
+    renderGroupSidebarMembers();
+    document.getElementById('groupInfoSidebar').classList.add('open');
+}
+
+function closeGroupSidebar() {
+    document.getElementById('groupInfoSidebar')?.classList.remove('open');
+    document.getElementById('sidebarAddSection')?.classList.add('hidden');
+}
+
+let sidebarSearchTimer = null;
+function initGroupSidebar() {
+    document.getElementById('btnCloseGroupInfo')?.addEventListener('click', closeGroupSidebar);
+    
+    document.getElementById('headerInfo')?.addEventListener('click', e => {
+        if (Chat.convType === 'group') {
+            e.stopPropagation();
+            openGroupSidebar();
+        }
+    });
+
+    document.getElementById('btnGroupInfoToggle')?.addEventListener('click', e => {
+        e.stopPropagation();
+        openGroupSidebar();
+    });
+
+    document.getElementById('btnSidebarAddPeople')?.addEventListener('click', () => {
+        document.getElementById('sidebarAddSection').classList.toggle('hidden');
+        document.getElementById('sidebarAddSearch')?.focus();
+    });
+
+    document.getElementById('btnSidebarLeave')?.addEventListener('click', async () => {
+        if (!confirm('Are you sure you want to leave this group?')) return;
+        await removeGroupMember(Chat.me.id);
+        closeGroupSidebar();
+    });
+    
+    document.getElementById('sidebarAddSearch')?.addEventListener('input', e => {
+        clearTimeout(sidebarSearchTimer);
+        const q = e.target.value.trim();
+        sidebarSearchTimer = setTimeout(() => {
+            if (!q) {
+                document.getElementById('sidebarAddResults').classList.add('hidden');
+                return;
+            }
+            searchUsers(q, 'sidebarAddResults', async (id, user) => {
+                if (Chat.activeParticipants.some(p => p.id === id)) {
+                    toast('Already in group');
+                    return;
+                }
+                document.getElementById('sidebarAddSearch').value = '';
+                document.getElementById('sidebarAddResults').classList.add('hidden');
+                await addGroupMember(id);
+                setTimeout(renderGroupSidebarMembers, 300);
+            });
+        }, 300);
+    });
+}
+
+async function addGroupMember(userId) {
+    if (!Chat.activeId) return;
+    const res = await chatApi('addGroupMember', { method: 'POST', body: { conversation_id: Chat.activeId, user_id: userId } });
+    if (!res.success) {
+        toast(res.error || 'Failed to add member');
+        return;
+    }
+    toast('Member added successfully');
+    await openConversation(Chat.activeId);
+}
+
+async function removeGroupMember(userId) {
+    if (!Chat.activeId) return;
+    const isMe = userId == Chat.me.id;
+    if (!isMe && !confirm('Remove this member from the group?')) return;
+    
+    const res = await chatApi('removeGroupMember', { method: 'POST', body: { conversation_id: Chat.activeId, user_id: userId } });
+    if (!res.success) {
+        toast(res.error || 'Failed to remove member');
+        return;
+    }
+    toast(isMe ? 'You left the group' : 'Member removed');
+    
+    if (isMe) {
+        Chat.activeId = null;
+        document.getElementById('chatActive').classList.add('hidden');
+        document.getElementById('chatEmpty').classList.remove('hidden');
+        document.getElementById('groupInfoSidebar')?.classList.remove('open');
+        loadConversations();
+    } else {
+        await openConversation(Chat.activeId);
+    }
+}
+
+async function searchUsers(q, containerId, onSelect) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    if (!q || q.length < 2) {
+        container.innerHTML = '';
+        container.classList.add('hidden');
+        return;
+    }
+    
+    const res = await chatApi('searchUsers', { params: { q: q } });
+    if (!res.success || !res.data || res.data.length === 0) {
+        container.innerHTML = '<div class="chat-search-item" style="pointer-events:none;color:var(--text-sub);">No results found</div>';
+        container.classList.remove('hidden');
+        return;
+    }
+    
+    container.innerHTML = '';
+    res.data.forEach(u => {
+        const item = document.createElement('div');
+        item.className = 'chat-search-item sidebar-member-item';
+        item.style.cursor = 'pointer';
+        item.style.padding = '8px 16px';
+        item.style.borderBottom = '1px solid var(--c-border-hard, #e2e8f0)';
+        
+        item.innerHTML = `
+            <div class="header-avatar-wrap" style="width:32px;height:32px;font-size:14px;flex-shrink:0;">
+                <div class="avatar" style="background:${u.avatar_color || '#3b82f6'}">${u.full_name.charAt(0).toUpperCase()}</div>
+            </div>
+            <div class="sidebar-member-info">
+                <div class="sidebar-member-name">${escapeHtml(u.full_name)}</div>
+                <div class="sidebar-member-role">${escapeHtml(u.email || u.bid || '')}</div>
+            </div>
+        `;
+        item.addEventListener('click', () => onSelect(u.id, u));
+        container.appendChild(item);
+    });
+    container.classList.remove('hidden');
+}
+

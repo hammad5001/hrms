@@ -144,7 +144,7 @@ switch ($action) {
 
     case 'listConversations':
         $stmt = $conn->prepare("
-            SELECT c.id, c.type, c.title, c.avatar_color, c.updated_at, p.participant_status AS my_status
+            SELECT c.id, c.type, c.title, c.avatar_color, c.created_by, c.updated_at, p.participant_status AS my_status
             FROM chat_conversations c
             INNER JOIN chat_participants p ON p.conversation_id = c.id AND p.user_id = ?
             WHERE p.participant_status != 'declined'
@@ -298,7 +298,7 @@ switch ($action) {
             $participants[] = chat_format_user($p);
         }
 
-        $convStmt = $conn->prepare('SELECT id, type, title, avatar_color FROM chat_conversations WHERE id = ?');
+        $convStmt = $conn->prepare('SELECT id, type, title, avatar_color, created_by FROM chat_conversations WHERE id = ?');
         $convStmt->bind_param('i', $cid);
         $convStmt->execute();
         $conv = $convStmt->get_result()->fetch_assoc();
@@ -422,6 +422,12 @@ switch ($action) {
         break;
 
     case 'createGroup':
+        $role = $me['portal_role'] ?? '';
+        $designation = strtolower($me['designation'] ?? '');
+        $canCreateGroup = in_array($role, ['admin', 'super_admin', 'management']) || str_contains($designation, 'lead');
+        if (!$canCreateGroup) {
+            chat_json(false, null, 'Only administrators or team leads can create groups');
+        }
         $title = trim($input['title'] ?? '');
         $member_ids = $input['member_ids'] ?? [];
         if (!is_array($member_ids)) {
@@ -462,6 +468,95 @@ switch ($action) {
         chat_ws_notify_inbox($conn, $cid);
 
         chat_json(true, ['conversation_id' => $cid]);
+        break;
+
+    case 'addGroupMember':
+        $cid = (int)($input['conversation_id'] ?? 0);
+        $userId = (int)($input['user_id'] ?? 0);
+        if (!$cid || !$userId) {
+            chat_json(false, null, 'Invalid request');
+        }
+        $chk = $conn->prepare("SELECT type, created_by FROM chat_conversations WHERE id = ?");
+        $chk->bind_param('i', $cid);
+        $chk->execute();
+        $conv = $chk->get_result()->fetch_assoc();
+        if (!$conv || $conv['type'] !== 'group' || (int)$conv['created_by'] !== $me_id) {
+            chat_json(false, null, 'Only the group creator can add members');
+        }
+        $uChk = $conn->prepare("SELECT full_name FROM users WHERE id = ?");
+        $uChk->bind_param('i', $userId);
+        $uChk->execute();
+        $newUser = $uChk->get_result()->fetch_assoc();
+        if (!$newUser) {
+            chat_json(false, null, 'User not found');
+        }
+        $pChk = $conn->prepare("SELECT id FROM chat_participants WHERE conversation_id = ? AND user_id = ?");
+        $pChk->bind_param('ii', $cid, $userId);
+        $pChk->execute();
+        if ($pChk->get_result()->fetch_assoc()) {
+            chat_json(false, null, 'User is already in the group');
+        }
+        $ins = $conn->prepare("INSERT INTO chat_participants (conversation_id, user_id) VALUES (?, ?)");
+        $ins->bind_param('ii', $cid, $userId);
+        $ins->execute();
+        
+        $sysMsg = $me['full_name'] . ' added ' . $newUser['full_name'] . ' to the group.';
+        $msgIns = $conn->prepare("INSERT INTO chat_messages (conversation_id, sender_id, body, msg_type) VALUES (?, ?, ?, 'text')");
+        $msgIns->bind_param('iis', $cid, $me_id, $sysMsg);
+        $msgIns->execute();
+        $sysMsgId = (int)$conn->insert_id;
+        
+        chat_create_message_receipts($conn, $sysMsgId, $cid, $me_id);
+        chat_touch_conversation($conn, $cid);
+        chat_ws_push_new_message($conn, $sysMsgId);
+        chat_ws_notify_conversation($conn, $cid, 'group.members_changed', ['action' => 'added', 'user_id' => $userId]);
+        
+        chat_json(true, ['ok' => true]);
+        break;
+
+    case 'removeGroupMember':
+        $cid = (int)($input['conversation_id'] ?? 0);
+        $userId = (int)($input['user_id'] ?? 0);
+        if (!$cid || !$userId) {
+            chat_json(false, null, 'Invalid request');
+        }
+        $chk = $conn->prepare("SELECT type, created_by FROM chat_conversations WHERE id = ?");
+        $chk->bind_param('i', $cid);
+        $chk->execute();
+        $conv = $chk->get_result()->fetch_assoc();
+        if (!$conv || $conv['type'] !== 'group') {
+            chat_json(false, null, 'Not a group chat');
+        }
+        if ((int)$conv['created_by'] !== $me_id && $userId !== $me_id) {
+            chat_json(false, null, 'Only the group creator can remove members');
+        }
+        if ((int)$conv['created_by'] === $userId) {
+            chat_json(false, null, 'Group creator cannot be removed');
+        }
+        
+        $uChk = $conn->prepare("SELECT full_name FROM users WHERE id = ?");
+        $uChk->bind_param('i', $userId);
+        $uChk->execute();
+        $removedUser = $uChk->get_result()->fetch_assoc();
+        
+        $del = $conn->prepare("DELETE FROM chat_participants WHERE conversation_id = ? AND user_id = ?");
+        $del->bind_param('ii', $cid, $userId);
+        $del->execute();
+        
+        if ($removedUser) {
+            $sysMsg = $userId === $me_id ? $me['full_name'] . ' left the group.' : $me['full_name'] . ' removed ' . $removedUser['full_name'] . ' from the group.';
+            $msgIns = $conn->prepare("INSERT INTO chat_messages (conversation_id, sender_id, body, msg_type) VALUES (?, ?, ?, 'text')");
+            $msgIns->bind_param('iis', $cid, $me_id, $sysMsg);
+            $msgIns->execute();
+            $sysMsgId = (int)$conn->insert_id;
+            chat_create_message_receipts($conn, $sysMsgId, $cid, $me_id);
+            chat_touch_conversation($conn, $cid);
+            chat_ws_push_new_message($conn, $sysMsgId);
+        }
+        
+        chat_ws_notify_conversation($conn, $cid, 'group.members_changed', ['action' => 'removed', 'user_id' => $userId]);
+        
+        chat_json(true, ['ok' => true]);
         break;
 
     case 'upload':
@@ -653,6 +748,51 @@ switch ($action) {
             $conn->query("DELETE FROM chat_conversations WHERE id = $cid");
         }
         chat_json(true, ['ok' => true]);
+        break;
+
+    case 'toggleReaction':
+        $message_id = (int)($input['message_id'] ?? 0);
+        $reaction = trim((string)($input['reaction'] ?? ''));
+        if (!$message_id || $reaction === '') {
+            chat_json(false, null, 'Invalid request');
+        }
+        
+        $chk = $conn->prepare("
+            SELECT m.conversation_id 
+            FROM chat_messages m
+            INNER JOIN chat_participants p ON p.conversation_id = m.conversation_id AND p.user_id = ?
+            WHERE m.id = ?
+        ");
+        $chk->bind_param('ii', $me_id, $message_id);
+        $chk->execute();
+        $conv_row = $chk->get_result()->fetch_assoc();
+        if (!$conv_row) {
+            chat_json(false, null, 'Message not found or access denied');
+        }
+        $cid = (int)$conv_row['conversation_id'];
+        
+        $checkReaction = $conn->prepare("SELECT id FROM chat_message_reactions WHERE message_id = ? AND user_id = ? AND reaction = ?");
+        $checkReaction->bind_param('iis', $message_id, $me_id, $reaction);
+        $checkReaction->execute();
+        $existing = $checkReaction->get_result()->fetch_assoc();
+        
+        if ($existing) {
+            $del = $conn->prepare("DELETE FROM chat_message_reactions WHERE id = ?");
+            $del->bind_param('i', $existing['id']);
+            $del->execute();
+        } else {
+            $ins = $conn->prepare("INSERT IGNORE INTO chat_message_reactions (message_id, user_id, reaction) VALUES (?, ?, ?)");
+            $ins->bind_param('iis', $message_id, $me_id, $reaction);
+            $ins->execute();
+        }
+        
+        $msg = chat_fetch_message_broadcast($conn, $message_id);
+        chat_ws_notify_conversation($conn, $cid, 'reaction.toggled', [
+            'message_id' => $message_id,
+            'reactions' => $msg['reactions'] ?? []
+        ]);
+        
+        chat_json(true, ['reactions' => $msg['reactions'] ?? []]);
         break;
 
     default:
