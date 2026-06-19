@@ -424,7 +424,7 @@ switch ($action) {
     case 'createGroup':
         $role = $me['portal_role'] ?? '';
         $designation = strtolower($me['designation'] ?? '');
-        $canCreateGroup = in_array($role, ['admin', 'super_admin', 'management']) || str_contains($designation, 'lead');
+        $canCreateGroup = in_array($role, ['admin', 'super_admin', 'management', 'team_lead', 'team lead']) || str_contains($designation, 'lead') || str_contains(strtolower($role), 'lead');
         if (!$canCreateGroup) {
             chat_json(false, null, 'Only administrators or team leads can create groups');
         }
