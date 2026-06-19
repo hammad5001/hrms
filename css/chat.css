@@ -2964,7 +2964,70 @@ body.chat-modal-open .chat-modal-overlay.open {
 
 .msg-reaction-badge:hover {
     transform: scale(1.05);
-}@media (max-width: 768px) {
+}/* ── Mentions ── */
+.mention-menu {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    width: 250px;
+    max-height: 200px;
+    overflow-y: auto;
+    background: var(--c-white, #ffffff);
+    border: 1px solid var(--c-border-hard, #e2e8f0);
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+    border-radius: var(--r-md);
+    margin-bottom: 8px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+}
+.mention-menu.hidden {
+    display: none;
+}
+.mention-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    font-size: 14px;
+    color: var(--c-text-1, #333333);
+}
+.mention-menu-item:hover,
+.mention-menu-item.active {
+    background: var(--c-bg, #f8fafc);
+}
+.mention-menu-item .header-avatar-wrap {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+    flex-shrink: 0;
+}
+.mention-menu-item .mention-name {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+}
+.chat-mention-tag {
+    color: #1d4ed8;
+    background: #eff6ff;
+    padding: 0 4px;
+    border-radius: 4px;
+    font-weight: 500;
+    display: inline-block;
+}
+.chat-mention-tag.my-mention {
+    color: #b91c1c;
+    background: #fef2f2;
+}
+
+@media (max-width: 768px) {
     .chat-nav-sidebar { display: none; }
     .chat-sidebar {
         width: 100%;

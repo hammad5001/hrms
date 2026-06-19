@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script>if (/(?:\?|&)embed=1(?:&|$)/.test(location.search)) document.documentElement.classList.add('chat-embed-mode');</script>
-    <link rel="stylesheet" href="css/chat.css?v=30">
+    <link rel="stylesheet" href="css/chat.css?v=31">
     <link rel="stylesheet" href="css/chat-pro.css?v=29">
     <link rel="stylesheet" href="css/chat-embed.css?v=8">
 </head>
@@ -224,6 +224,7 @@
                     </div>
                     <div class="chat-emoji-panel" id="emojiPanel"></div>
                     <div class="composer-wrap">
+                        <div class="mention-menu hidden" id="mentionMenu"></div>
                         <div class="attach-menu hidden" id="attachMenu">
                             <button type="button" class="attach-menu-item" id="btnPickPhoto">
                                 <span class="attach-menu-icon photo"><i class="fas fa-image"></i></span>
@@ -468,6 +469,6 @@
     <div class="chat-toast" id="chatToast" role="status" aria-live="polite"></div>
     <script src="js/portal-access.js"></script>
     <script src="js/portal-notify-sound.js?v=1"></script>
-    <script src="js/chat-app.js?v=36"></script>
+    <script src="js/chat-app.js?v=40"></script>
 </body>
 </html>
