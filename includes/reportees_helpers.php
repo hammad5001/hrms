@@ -30,16 +30,18 @@ function search_employees_for_reporting(mysqli $conn, string $q, string $branch,
     }
 
     $like = '%' . $conn->real_escape_string($q) . '%';
-    $sql = "SELECT id, full_name, email, portal_role, designation, team, department, employee_code
-            FROM users
-            WHERE status = 'active'
-            AND company_branch = ?
-            AND id != ?
-            AND (full_name LIKE ? OR email LIKE ? OR employee_code LIKE ? OR designation LIKE ?)
-            ORDER BY full_name ASC
+    $sql = "SELECT u.id, u.full_name, u.email, u.portal_role, u.designation, u.team, u.department, u.employee_code,
+                   er.manager_name AS current_manager_name, er.manager_user_id AS current_manager_id
+            FROM users u
+            LEFT JOIN employee_reporting er ON er.employee_user_id = u.id AND er.company_branch = ?
+            WHERE u.status = 'active'
+            AND u.company_branch = ?
+            AND u.id != ?
+            AND (u.full_name LIKE ? OR u.email LIKE ? OR u.employee_code LIKE ? OR u.designation LIKE ?)
+            ORDER BY u.full_name ASC
             LIMIT 20";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param('sissss', $branch, $manager_user_id, $like, $like, $like, $like);
+    $stmt->bind_param('ssissss', $branch, $branch, $manager_user_id, $like, $like, $like, $like);
     $stmt->execute();
     $rows = [];
     $res = $stmt->get_result();
@@ -60,6 +62,8 @@ function format_reportee_search_row(array $row): array {
         'department' => $row['department'],
         'employee_code' => $row['employee_code'],
         'role_label' => ucwords(str_replace('_', ' ', $row['portal_role'] ?? '')),
+        'current_manager_name' => $row['current_manager_name'] ?? null,
+        'current_manager_id' => $row['current_manager_id'] ? (int)$row['current_manager_id'] : null,
     ];
 }
 
@@ -245,6 +249,14 @@ function assign_manager_reportee(
     }
     if (normalize_company_branch($employee['company_branch'] ?? '') !== $branch) {
         return ['ok' => false, 'error' => 'Employee is not in your branch'];
+    }
+
+    $chk = $conn->prepare("SELECT manager_user_id, manager_name FROM employee_reporting WHERE employee_user_id = ? AND company_branch = ? LIMIT 1");
+    $chk->bind_param('is', $employee_id, $branch);
+    $chk->execute();
+    $existing = $chk->get_result()->fetch_assoc();
+    if ($existing && (int)$existing['manager_user_id'] !== $manager_id) {
+        return ['ok' => false, 'error' => 'This employee is already reporting to ' . ($existing['manager_name'] ?: 'another manager')];
     }
 
     $emp_code = trim((string)($employee['employee_code'] ?? ''));

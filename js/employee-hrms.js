@@ -2423,6 +2423,7 @@ function bindPersonSearchField({
             btn.addEventListener('mousedown', (e) => e.preventDefault());
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
+                if (btn.disabled || btn.hasAttribute('disabled')) return;
                 const person = rows.find(r => String(r.id) === btn.dataset.id);
                 pickPerson(person);
             });
@@ -2445,11 +2446,16 @@ function bindPersonSearchField({
             if (!rows.length) {
                 results.innerHTML = '<div class="ess-search-empty">No match found</div>';
             } else {
-                results.innerHTML = rows.map(p => `
-                    <button type="button" class="ess-search-item" data-id="${escHtml(String(p.id))}">
+                results.innerHTML = rows.map(p => {
+                    const hasOtherMgr = p.current_manager_name && String(p.current_manager_id) !== String(HRMS.user?.id || '');
+                    const mgrBadge = hasOtherMgr ? `<span style="color:var(--ess-warning, #d32f2f);font-weight:600;display:block;margin-top:4px;font-size:11px;"><i class="fas fa-exclamation-triangle"></i> Already reporting to ${escHtml(p.current_manager_name)}</span>` : '';
+                    return `
+                    <button type="button" class="ess-search-item" data-id="${escHtml(String(p.id))}" ${hasOtherMgr ? 'disabled style="opacity:0.6;cursor:not-allowed;"' : ''}>
                         <strong>${escHtml(p.full_name)}</strong>
-                        <small>${escHtml([p.employee_code ? 'ID ' + p.employee_code : '', p.role_label, p.team || p.designation].filter(Boolean).join(' · '))}</small>
-                    </button>`).join('');
+                        <small style="display:block;margin-top:2px">${escHtml([p.employee_code ? 'ID ' + p.employee_code : '', p.role_label, p.team || p.designation].filter(Boolean).join(' · '))}</small>
+                        ${mgrBadge}
+                    </button>`;
+                }).join('');
             }
             results.classList.remove('hidden');
             bindResultButtons(rows);
@@ -2462,11 +2468,13 @@ function bindPersonSearchField({
         if (!lastRows.length) return;
         const q = input.value.trim().toLowerCase();
         const exact = lastRows.find(p =>
-            String(p.employee_code || '').toLowerCase() === q
+            !(p.current_manager_name && String(p.current_manager_id) !== String(HRMS.user?.id || '')) &&
+            (String(p.employee_code || '').toLowerCase() === q
             || String(p.id) === q
-            || String(p.full_name || '').toLowerCase() === q
+            || String(p.full_name || '').toLowerCase() === q)
         );
-        pickPerson(exact || (lastRows.length === 1 ? lastRows[0] : null));
+        const validRows = lastRows.filter(p => !(p.current_manager_name && String(p.current_manager_id) !== String(HRMS.user?.id || '')));
+        pickPerson(exact || (validRows.length === 1 ? validRows[0] : null));
     });
 
     input.addEventListener('blur', () => setTimeout(hideResults, 220));
