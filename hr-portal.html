@@ -156,17 +156,19 @@
             position: fixed;
             left: 0;
             top: 0;
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
             transition: all 0.3s;
-            box-shadow: var(--shadow-xl);
-            z-index: 100;
+            z-index: 1000;
             border-right: 1px solid var(--border-primary);
         }
 
         .sidebar-header {
-            padding: 30px 20px;
+            padding: 25px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
             border-bottom: 1px solid var(--border-primary);
-            text-align: center;
             position: relative;
             overflow: hidden;
         }
@@ -213,6 +215,8 @@
 
         .sidebar-menu {
             padding: 20px 10px;
+            flex: 1;
+            overflow-y: auto;
         }
 
         .menu-item {
@@ -263,11 +267,10 @@
         }
 
         .sidebar-footer {
-            position: absolute;
-            bottom: 0;
             width: 100%;
             padding: 20px;
             border-top: 1px solid var(--border-primary);
+            flex-shrink: 0;
         }
 
         .user-info {
@@ -1200,6 +1203,10 @@
             <div class="menu-item" onclick="window.location.href='training-portal.html'">
                 <i class="fas fa-graduation-cap"></i>
                 <span>Training Portal</span>
+            </div>
+            <div class="menu-item" onclick="window.location.href='attendance/attendance-dashboard.html'">
+                <i class="fas fa-clock"></i>
+                <span>Attendance Portal</span>
             </div>
         </div>
 

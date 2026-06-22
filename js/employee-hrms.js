@@ -3276,3 +3276,91 @@ window.HRMS.openApprovalModal = openApprovalModal;
 window.HRMS.runApprovalDropdown = runApprovalDropdown;
 window.HRMS.closeApprovalModal = closeApprovalModal;
 window.showView = showView;
+
+// --- Active Members Module ---
+(function() {
+    let activeMembersInterval = null;
+
+    document.addEventListener('DOMContentLoaded', checkActiveMembersView);
+    window.addEventListener('hashchange', checkActiveMembersView);
+    
+    document.body.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-view]');
+        if (btn) {
+            if (btn.getAttribute('data-view') === 'active-members') {
+                setTimeout(loadActiveMembers, 100);
+                if (!activeMembersInterval) {
+                    activeMembersInterval = setInterval(loadActiveMembers, 60000);
+                }
+            } else {
+                if (activeMembersInterval) {
+                    clearInterval(activeMembersInterval);
+                    activeMembersInterval = null;
+                }
+            }
+        }
+    });
+
+    function checkActiveMembersView() {
+        if (document.getElementById('view-active-members')?.classList.contains('active') || location.hash.includes('active-members')) {
+            loadActiveMembers();
+            if (!activeMembersInterval) {
+                activeMembersInterval = setInterval(loadActiveMembers, 60000);
+            }
+        }
+    }
+
+    async function loadActiveMembers() {
+        try {
+            const res = await fetch('api/get_active_users.php');
+            const data = await res.json();
+            if (data.success) {
+                const countEl = document.getElementById('activeMembersCount');
+                const offCountEl = document.getElementById('offlineMembersCount');
+                if (countEl) countEl.innerText = data.data.activeCount;
+                if (offCountEl) offCountEl.innerText = data.data.offlineCount;
+                
+                const tbody = document.getElementById('activeMembersTableBody');
+                if (!tbody) return;
+                
+                if (data.data.users.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #64748b;">No users found.</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = data.data.users.map(u => {
+                    const statusBadge = u.is_online 
+                        ? '<span class="ess-pill present" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #10b981;"><i class="fas fa-circle" style="font-size: 8px; margin-right: 4px;"></i>Online</span>'
+                        : '<span class="ess-pill absent" style="background: rgba(148,163,184,0.15); border: 1px solid rgba(148,163,184,0.3); color: #94a3b8;"><i class="fas fa-circle" style="font-size: 8px; margin-right: 4px;"></i>Offline</span>';
+                        
+                    return '<tr>' +
+                        '<td><strong>' + escapeHtml(u.name) + '</strong></td>' +
+                        '<td><span style="font-size: 12px; background: rgba(99,102,241,0.1); color: #818cf8; padding: 4px 8px; border-radius: 4px;">' + escapeHtml(u.role) + '</span></td>' +
+                        '<td>' + escapeHtml(u.branch || '—') + '</td>' +
+                        '<td>' + statusBadge + '</td>' +
+                        '<td style="font-family: monospace; color: #94a3b8;">' + escapeHtml(u.ip || '—') + '</td>' +
+                    '</tr>';
+                }).join('');
+            }
+        } catch (err) {
+            console.error('Error loading active members:', err);
+        }
+    }
+
+    function escapeHtml(s) {
+        return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+})();
+
+
+    // Super Admin check for Active Members UI
+    const roleCheckInterval = setInterval(() => {
+        if (window.HRMS && window.HRMS.user && window.HRMS.user.portal_role) {
+            clearInterval(roleCheckInterval);
+            if (window.HRMS.user.portal_role === 'super_admin') {
+                const navBtn = document.getElementById('navSideActiveMembers');
+                if (navBtn) navBtn.classList.remove('hidden');
+            }
+        }
+    }, 500);
+

@@ -912,10 +912,11 @@ function renderMessages(scrollMode) {
             inner = `<div class="chat-media"><img class="chat-img" src="${escapeHtml(fileUrl)}" alt="Photo" loading="lazy" data-full="${escapeHtml(fileUrl)}"></div>${cap}`;
         } else if (isFile) {
             const fic = fileIconClass(m.file_name, '');
-            const size = m.file_size ? ` · ${formatFileSize(m.file_size)}` : '';
+            const size = m.file_size ? ` &bull; ${formatFileSize(m.file_size)}` : '';
+            const cap = m.body && m.body !== m.file_name ? `<div class="chat-caption" style="margin-top:6px;">${linkify(m.body)}</div>` : '';
             inner = `<a class="file-link" href="${escapeHtml(fileUrl)}" target="_blank" rel="noopener" download>
                 <span class="file-link-icon"><i class="fas ${fic}"></i></span>
-                <span class="file-link-meta"><span class="file-link-name">${escapeHtml(m.file_name || 'Document')}</span><span class="file-link-sub">Tap to download${escapeHtml(size)}</span></span></a>`;
+                <span class="file-link-meta"><span class="file-link-name">${escapeHtml(m.file_name || 'Document')}</span><span class="file-link-sub">Tap to download${escapeHtml(size)}</span></span></a>${cap}`;
         } else {
             inner = linkify(m.body || '');
             inner = parseMentions(inner);
@@ -950,13 +951,37 @@ function renderMessages(scrollMode) {
         if (m.reactions && m.reactions.length > 0) {
             const counts = {};
             const reactedByMe = new Set();
+            const reactionUsers = {};
+            
             m.reactions.forEach(r => {
                 counts[r.reaction] = (counts[r.reaction] || 0) + 1;
-                if (r.user_id == Chat.me.id) reactedByMe.add(r.reaction);
+                reactionUsers[r.reaction] = reactionUsers[r.reaction] || [];
+                
+                if (r.user_id == Chat.me.id) {
+                    reactedByMe.add(r.reaction);
+                    reactionUsers[r.reaction].unshift('You');
+                } else {
+                    const name = r.full_name ? r.full_name.split(' ')[0] : 'Someone';
+                    reactionUsers[r.reaction].push(name);
+                }
             });
+            
             const badges = Object.keys(counts).map(reaction => {
                 const isMe = reactedByMe.has(reaction) ? ' reacted-by-me' : '';
-                return `<div class="msg-reaction-badge${isMe}" data-msg-id="${m.id}" data-reaction="${reaction}">${reaction} ${counts[reaction]}</div>`;
+                
+                // Limit to 4 names, then say "and X more"
+                let users = reactionUsers[reaction];
+                let tooltipText = '';
+                if (users.length > 4) {
+                    tooltipText = users.slice(0, 3).join(', ') + ` and ${users.length - 3} more`;
+                } else {
+                    tooltipText = users.join(', ');
+                }
+                
+                // Escape quotes just in case
+                tooltipText = tooltipText.replace(/"/g, '&quot;');
+                
+                return `<div class="msg-reaction-badge${isMe}" data-msg-id="${m.id}" data-reaction="${reaction}" data-users="${tooltipText}">${reaction} ${counts[reaction]}</div>`;
             }).join('');
             reactionsHtml = `<div class="msg-reactions-container">${badges}</div>`;
         }
@@ -1824,11 +1849,12 @@ function hideUploadPreview() {
     document.getElementById('uploadProgressBar').style.width = '0%';
 }
 
-function uploadFileXHR(file) {
+function uploadFileXHR(file, caption = '') {
     return new Promise((resolve, reject) => {
         const cid = parseInt(Chat.activeId, 10);
         const fd = new FormData();
         fd.append('file', file, file.name || 'upload');
+        if (caption) fd.append('body', caption);
         const xhr = new XMLHttpRequest();
         xhr.open('POST', 'api/chat_upload.php?conversation_id=' + encodeURIComponent(String(cid)));
         xhr.withCredentials = true;
@@ -1865,7 +1891,7 @@ function uploadFileXHR(file) {
     });
 }
 
-async function uploadFile(file) {
+async function uploadFile(file, caption = '') {
     if (!file || Chat.uploading) return;
     const cid = parseInt(Chat.activeId, 10);
     if (!cid) { toast('Open a chat first'); return; }
@@ -1879,14 +1905,14 @@ async function uploadFile(file) {
     if (isImageFile(file)) {
         const url = URL.createObjectURL(file);
         Chat.messages.push({
-            id: tempId, body: '', msg_type: 'image', is_mine: true, status: 'pending',
+            id: tempId, body: caption, msg_type: 'image', is_mine: true, status: 'pending',
             file_url: url, created_at: new Date().toISOString(), sender_name: Chat.me?.full_name
         });
         renderMessages('bottom');
     }
 
     try {
-        const res = await uploadFileXHR(file);
+        const res = await uploadFileXHR(file, caption);
         Chat.messages = Chat.messages.filter(m => m.id !== tempId);
         if (!res.success) {
             renderMessages(renderScrollMode());
@@ -1909,10 +1935,75 @@ async function uploadFile(file) {
     }
 }
 
+let pendingUploadFile = null;
+
+function queueFileForUpload(file) {
+    if (!file || Chat.uploading) return;
+    const cid = parseInt(Chat.activeId, 10);
+    if (!cid) { toast('Open a chat first'); return; }
+    if (file.size > 200 * 1024 * 1024) { toast('File too large (max 200 MB)'); return; }
+    
+    pendingUploadFile = file;
+    const modal = document.getElementById('chatUploadPreviewModal');
+    const imgWrap = document.getElementById('uploadPreviewImageWrapper');
+    const img = document.getElementById('uploadPreviewImage');
+    const fileWrap = document.getElementById('uploadPreviewFileWrapper');
+    const fileName = document.getElementById('uploadPreviewFileName');
+    const fileSize = document.getElementById('uploadPreviewFileSize');
+    const input = document.getElementById('uploadCaptionInput');
+    
+    if (isImageFile(file)) {
+        img.src = URL.createObjectURL(file);
+        imgWrap.classList.remove('hidden');
+        fileWrap.classList.add('hidden');
+    } else {
+        fileName.textContent = file.name || 'Document';
+        fileSize.textContent = formatFileSize(file.size);
+        imgWrap.classList.add('hidden');
+        fileWrap.classList.remove('hidden');
+    }
+    
+    input.value = '';
+    modal.classList.remove('hidden');
+    modal.classList.add('open');
+    setTimeout(() => input.focus(), 50);
+}
+
+function initUploadPreviewModal() {
+    const modal = document.getElementById('chatUploadPreviewModal');
+    if (!modal) return;
+    
+    const closeIt = () => {
+        modal.classList.remove('open');
+        modal.classList.add('hidden');
+        pendingUploadFile = null;
+    };
+    
+    document.getElementById('closeUploadPreviewModal')?.addEventListener('click', closeIt);
+    document.getElementById('btnCancelUploadModal')?.addEventListener('click', closeIt);
+    
+    const confirmBtn = document.getElementById('btnConfirmUploadModal');
+    const input = document.getElementById('uploadCaptionInput');
+    
+    const doUpload = () => {
+        if (!pendingUploadFile) return;
+        uploadFile(pendingUploadFile, input.value.trim());
+        closeIt();
+    };
+    
+    confirmBtn?.addEventListener('click', doUpload);
+    input?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            doUpload();
+        }
+    });
+}
+
 async function handleFilePick(fileList) {
     const files = [...fileList].filter(Boolean);
-    for (const file of files) {
-        await uploadFile(file);
+    if (files.length > 0) {
+        queueFileForUpload(files[0]);
     }
 }
 
@@ -1955,7 +2046,7 @@ function initPasteUpload() {
         for (const item of items) {
             if (item.type.startsWith('image/')) {
                 const file = item.getAsFile();
-                if (file) { e.preventDefault(); uploadFile(file); break; }
+                if (file) { e.preventDefault(); queueFileForUpload(file); break; }
             }
         }
     });
@@ -2354,6 +2445,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initEmojiPanel();
     initGroupModal();
     initProfileModal();
+    initUploadPreviewModal();
     initDragDropUpload();
     initPasteUpload();
     initScrollGuard();
@@ -2423,7 +2515,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.target.value = '';
     });
     document.getElementById('fileInput').addEventListener('change', e => {
-        if (e.target.files[0]) uploadFile(e.target.files[0]);
+        if (e.target.files[0]) queueFileForUpload(e.target.files[0]);
         e.target.value = '';
     });
 

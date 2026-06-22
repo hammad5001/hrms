@@ -72,6 +72,7 @@
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-payroll" data-view="salary"><i class="fas fa-wallet"></i><span>Payroll</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-files" data-view="coming-soon" data-nav-label="Files"><i class="fas fa-folder-open"></i><span>Files</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-chat" data-view="chat"><i class="fas fa-comments"></i><span>Chat</span><span class="ess-side-badge hidden" id="badgeSideChat">0</span></button>
+                    <button type="button" class="ess-side-item hidden" data-nav-id="nav-side-active-members" data-view="active-members" id="navSideActiveMembers"><i class="fas fa-users-viewfinder"></i><span>Active Members</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-more" data-view="notifications"><i class="fas fa-ellipsis"></i><span>More</span></button>
                 </nav>
                 <a href="logout.php" class="ess-logout"><i class="fas fa-right-from-bracket"></i> Sign out</a>
@@ -379,6 +380,44 @@
                                 <button type="button" class="ess-btn ess-btn-primary" id="btnComingSoonBack">
                                     <i class="fas fa-house"></i> Back to dashboard
                                 </button>
+                            </div>
+                        </section>
+
+                        <!-- Active Members View -->
+                        <section id="view-active-members" class="view-section">
+                            <div class="ess-card">
+                                <div class="ess-card-head" style="align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; margin-bottom: 15px;">
+                                    <div style="display: flex; flex-direction: column;">
+                                        <h3 style="font-size: 18px; color: #f8fafc;"><i class="fas fa-users-viewfinder" style="color: #6366f1; margin-right: 8px;"></i> Live Network Status</h3>
+                                        <p style="font-size: 13px; color: #94a3b8; margin-top: 4px;">Monitor currently connected employees and their network IP</p>
+                                    </div>
+                                    <div style="display: flex; gap: 12px;">
+                                        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 8px 16px; border-radius: 8px; display: flex; flex-direction: column; align-items: center;">
+                                            <span style="font-size: 11px; color: #10b981; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Online</span>
+                                            <strong id="activeMembersCount" style="font-size: 18px; color: #10b981; margin-top: 2px;">0</strong>
+                                        </div>
+                                        <div style="background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.2); padding: 8px 16px; border-radius: 8px; display: flex; flex-direction: column; align-items: center;">
+                                            <span style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Offline</span>
+                                            <strong id="offlineMembersCount" style="font-size: 18px; color: #94a3b8; margin-top: 2px;">0</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="ess-table-wrap">
+                                    <table class="data-table" style="width: 100%;">
+                                        <thead>
+                                            <tr>
+                                                <th>Employee Name</th>
+                                                <th>Portal Role</th>
+                                                <th>Branch</th>
+                                                <th>Presence</th>
+                                                <th>IP Address</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="activeMembersTableBody">
+                                            <tr><td colspan="5" style="text-align: center; padding: 30px; color: #64748b;"><i class="fas fa-spinner fa-spin"></i> Loading live user statuses...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </section>
 

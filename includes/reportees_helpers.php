@@ -30,6 +30,26 @@ function search_employees_for_reporting(mysqli $conn, string $q, string $branch,
     }
 
     $like = '%' . $conn->real_escape_string($q) . '%';
+    $mgrStmt = $conn->prepare("SELECT portal_role, department FROM users WHERE id = ?");
+    $mgrStmt->bind_param("i", $manager_user_id);
+    $mgrStmt->execute();
+    $mgrRow = $mgrStmt->get_result()->fetch_assoc();
+    $mgrRole = $mgrRow['portal_role'] ?? '';
+    $mgrDept = $mgrRow['department'] ?? '';
+
+    $deptFilterSql = "";
+    $types = 'ssi';
+    $params = [$branch, $branch, $manager_user_id];
+
+    if (in_array($mgrRole, ['team_lead', 'user', 'agent'])) {
+        $deptFilterSql = " AND u.department = ? ";
+        $types .= 's';
+        $params[] = $mgrDept;
+    }
+
+    $types .= 'ssss';
+    $params = array_merge($params, [$like, $like, $like, $like]);
+
     $sql = "SELECT u.id, u.full_name, u.email, u.portal_role, u.designation, u.team, u.department, u.employee_code,
                    er.manager_name AS current_manager_name, er.manager_user_id AS current_manager_id
             FROM users u
@@ -37,11 +57,12 @@ function search_employees_for_reporting(mysqli $conn, string $q, string $branch,
             WHERE u.status = 'active'
             AND u.company_branch = ?
             AND u.id != ?
+            $deptFilterSql
             AND (u.full_name LIKE ? OR u.email LIKE ? OR u.employee_code LIKE ? OR u.designation LIKE ?)
             ORDER BY u.full_name ASC
             LIMIT 20";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param('ssissss', $branch, $branch, $manager_user_id, $like, $like, $like, $like);
+    $stmt->bind_param($types, ...$params);
     $stmt->execute();
     $rows = [];
     $res = $stmt->get_result();

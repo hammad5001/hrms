@@ -10,6 +10,14 @@
         return;
     }
 
+    // --- Heartbeat Ping to maintain Online Status ---
+    const apiPrefix = window.balitechApiPrefix ? window.balitechApiPrefix() : (path.includes('/attendance/') ? '../' : '');
+    setInterval(() => {
+        if (!document.hidden) {
+            fetch(apiPrefix + 'api/ping.php').catch(() => { });
+        }
+    }, 60000);
+
     /** @type {Record<string, string>} file fragment -> portal key */
     const PORTAL_KEYS = {
         'hr-portal.html': 'hr',

@@ -202,7 +202,13 @@ function chat_process_upload(mysqli $conn, int $me_id): void {
     }
 
     $msg_type = str_starts_with($mime, 'image/') ? 'image' : 'file';
-    $body = $msg_type === 'image' ? '' : $safeName;
+    
+    // Accept caption/body from POST if provided, otherwise fallback to defaults
+    $body = trim((string)($_POST['body'] ?? ''));
+    if ($body === '') {
+        $body = $msg_type === 'image' ? '' : $safeName;
+    }
+    
     $fileSize = (int)$file['size'];
 
     $stmt = $conn->prepare("
@@ -362,11 +368,24 @@ function chat_search_users(mysqli $conn, int $me_id, string $q, int $limit = 25)
         $params[] = $variant;
     }
 
+    $mgrStmt = $conn->prepare("SELECT portal_role, department FROM users WHERE id = ?");
+    $mgrStmt->bind_param("i", $me_id);
+    $mgrStmt->execute();
+    $mgrRow = $mgrStmt->get_result()->fetch_assoc();
+    $meRole = $mgrRow['portal_role'] ?? '';
+    $meDept = $mgrRow['department'] ?? '';
+
+    $deptFilterSql = "";
+    if (in_array($meRole, ['user', 'agent'])) {
+        $deptFilterSql = " AND u.department = '" . $conn->real_escape_string($meDept) . "' ";
+    }
+
     $sql = "
         SELECT u.id, u.full_name, u.email, u.employee_code, u.department, u.designation,
                u.portal_role, u.chat_avatar
         FROM users u
         WHERE u.status = 'active' AND u.id != ?
+        $deptFilterSql
         AND (" . implode(' OR ', $matchParts) . ")
         ORDER BY u.full_name ASC
         LIMIT ?
@@ -421,10 +440,24 @@ function chat_search_users(mysqli $conn, int $me_id, string $q, int $limit = 25)
 /** Minimal search used when the main query cannot run on a given server schema. */
 function chat_search_users_fallback(mysqli $conn, int $me_id, array $parsed, int $limit = 25): array {
     $needle = '%' . strtolower($parsed['raw']) . '%';
+    
+    $mgrStmt = $conn->prepare("SELECT portal_role, department FROM users WHERE id = ?");
+    $mgrStmt->bind_param("i", $me_id);
+    $mgrStmt->execute();
+    $mgrRow = $mgrStmt->get_result()->fetch_assoc();
+    $meRole = $mgrRow['portal_role'] ?? '';
+    $meDept = $mgrRow['department'] ?? '';
+
+    $deptFilterSql = "";
+    if (in_array($meRole, ['user', 'agent'])) {
+        $deptFilterSql = " AND department = '" . $conn->real_escape_string($meDept) . "' ";
+    }
+
     $sql = "
         SELECT id, full_name, email, employee_code, department, designation, portal_role, chat_avatar
         FROM users
         WHERE status = 'active' AND id != ?
+        $deptFilterSql
         AND (
             LOWER(full_name) LIKE ? OR LOWER(email) LIKE ?
             OR LOWER(IFNULL(employee_code, '')) LIKE ?

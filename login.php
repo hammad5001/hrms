@@ -75,6 +75,16 @@ if ($result->num_rows === 1) {
             $_SESSION['recruiter_type'] = 'super';
         }
 
+        // Update last_seen timestamp and IP
+        $ip = $_SERVER['HTTP_CLIENT_IP'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
+        if (strpos($ip, ',') !== false) {
+            $ip = explode(',', $ip)[0];
+        }
+        $ip = substr(trim($ip), 0, 45);
+        $update_ls = $conn->prepare("UPDATE users SET last_seen = NOW(), ip_address = ? WHERE id = ?");
+        $update_ls->bind_param("si", $ip, $user['id']);
+        $update_ls->execute();
+
         $work_redirect = work_portal_url_for_role($portal_role);
         $redirect = $work_redirect ?? employee_self_service_url();
 
@@ -145,6 +155,14 @@ if (isset($hardcoded[$email]) && $password === $hardcoded[$email]['password']) {
     $db_user = $lookup->get_result()->fetch_assoc();
     if ($db_user) {
         $db_uid = (int)$db_user['id'];
+        $ip = $_SERVER['HTTP_CLIENT_IP'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
+        if (strpos($ip, ',') !== false) {
+            $ip = explode(',', $ip)[0];
+        }
+        $ip = substr(trim($ip), 0, 45);
+        $update_ls = $conn->prepare("UPDATE users SET last_seen = NOW(), ip_address = ? WHERE id = ?");
+        $update_ls->bind_param("si", $ip, $db_uid);
+        $update_ls->execute();
     }
 
     $_SESSION['user_id']        = $db_uid;

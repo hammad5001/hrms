@@ -104,7 +104,7 @@ window.portalRoleMayAccessPage = function (userRole, portalKey) {
         management: ['management'],
         training: ['training'],
         analytics: ['analytics'],
-        attendance: ['attendance'],
+        attendance: ['attendance', 'hr'],
         admin: ['admin'],
     };
     if (portalKey === 'employee') {

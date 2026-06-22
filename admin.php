@@ -322,7 +322,7 @@ $where_clause = $where ? "WHERE " . implode(" AND ", $where) : "";
 
 // Fetch all users with filters
 $users = $conn->query("
-    SELECT id, full_name, email, phone, portal_role, employee_code, department, designation, branch, company_branch, team, joined_date, status, created_at, plain_password 
+    SELECT id, full_name, email, phone, portal_role, employee_code, department, designation, branch, company_branch, team, joined_date, status, created_at, plain_password, last_seen, ip_address
     FROM users 
     $where_clause 
     ORDER BY CAST(employee_code AS UNSIGNED) ASC
@@ -1252,6 +1252,8 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                             <th>Office</th>
                             <th>Team</th>
                             <th>Role</th>
+                            <th>Presence</th>
+                            <th>IP Address</th>
                             <th>Status</th>
                             <?php if ($current_is_super): ?>
                             <th>Plain Password</th>
@@ -1273,6 +1275,25 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                                     <td><?php echo htmlspecialchars($row['branch'] ?: '—'); ?></td>
                                     <td><?php echo htmlspecialchars($row['team'] ?: '—'); ?></td>
                                     <td><span class="role-badge <?php echo htmlspecialchars($row['portal_role']); ?>"><?php echo htmlspecialchars(portal_role_label($row['portal_role'])); ?></span></td>
+                                    <?php 
+                                        $is_online = false;
+                                        if (!empty($row['last_seen'])) {
+                                            $last_seen_time = strtotime($row['last_seen']);
+                                            if ((time() - $last_seen_time) <= 120) {
+                                                $is_online = true;
+                                            }
+                                        }
+                                    ?>
+                                    <td>
+                                        <?php if ($is_online): ?>
+                                            <span class="status-badge active" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3);"><i class="fas fa-circle" style="font-size: 8px; margin-right: 4px; color: #10b981;"></i>Online</span>
+                                        <?php else: ?>
+                                            <span class="status-badge inactive" style="background: rgba(156,163,175,0.15); border: 1px solid rgba(156,163,175,0.3); color: #9ca3af;"><i class="fas fa-circle" style="font-size: 8px; margin-right: 4px; color: #9ca3af;"></i>Offline</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    
+                                    <td style="font-family: monospace; color: #9ca3af;"><?php echo htmlspecialchars($row['ip_address'] ?: '-'); ?></td>
+                                    
                                     <td><span class="status-badge <?php echo $row['status'] ?: 'active'; ?>"><?php echo ucfirst($row['status'] ?: 'active'); ?></span></td>
                                     <?php if ($current_is_super): ?>
                                     <td style="font-family: monospace; color: #f97316; font-weight: 600;"><?php echo htmlspecialchars($row['plain_password'] ?: '—'); ?></td>
@@ -2125,6 +2146,13 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
             });
         })();
         <?php endif; ?>
+
+        // --- Heartbeat Ping for admin.php ---
+        setInterval(() => {
+            if (!document.hidden) {
+                fetch('api/ping.php').catch(() => {});
+            }
+        }, 60000);
     </script>
     <?php if ($current_is_super): ?>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
