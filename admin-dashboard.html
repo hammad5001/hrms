@@ -1163,6 +1163,7 @@
                     <a href="javascript:void(0)" class="nav-item feature-attendance-nav" id="attendanceNavItem" onclick="openPortalWithSession('attendance/attendance-dashboard.html')"><i class="fas fa-clock"></i><span>Attendance</span><span class="nav-badge">Live</span></a>
                     <a href="employee-portal.html" class="nav-item feature-team-manager-only" id="teamEssNavItem" style="display:none"><i class="fas fa-id-badge"></i><span>Employee Portal</span></a>
                     <a href="finance-attendance.php" class="nav-item feature-admin-full"><i class="fas fa-chart-line"></i><span>Finance</span></a>
+                    <a href="salary-broadcast.php" class="nav-item super-admin-only feature-admin-full" id="salaryBroadcastNavItem" style="display:none"><i class="fas fa-paper-plane"></i><span>Salary Broadcast</span></a>
                     <a href="javascript:void(0)" class="nav-item super-admin-only feature-admin-full" id="recruiterNavItem" style="display:none" onclick="openPortalWithSession('recruiter-portal.html')"><i class="fas fa-user-tie"></i><span>Recruitment</span></a>
                     <a href="javascript:void(0)" class="nav-item feature-admin-full" onclick="openPortalWithSession('hr-portal.html')"><i class="fas fa-users-cog"></i><span>HR Portal</span></a>
                     <a href="javascript:void(0)" class="nav-item feature-admin-full" onclick="openPortalWithSession('Management-Portal.html')"><i class="fas fa-chart-line"></i><span>Management Portal</span></a>
@@ -1395,12 +1396,8 @@
                 return;
             }
 
-            showToast(`Opening ${getPortalName(portalUrl)} in new tab…`, 'success');
-            const win = window.open(portalUrl, '_blank');
-            if (!win) {
-                showToast('Popup blocked — allow popups, or opening in this tab…', 'warning');
-                setTimeout(() => { window.location.href = portalUrl; }, 400);
-            }
+            showToast(`Opening ${getPortalName(portalUrl)}...`, 'success');
+            window.location.href = portalUrl;
         }
 
         // Get portal display name
@@ -1670,9 +1667,11 @@
             // Super Admin only: recruiter + employee self-service portals
             const recruiterCard = document.getElementById('recruiterPortalCard');
             const recruiterNav = document.getElementById('recruiterNavItem');
+            const salaryBroadcastNav = document.getElementById('salaryBroadcastNavItem');
             const employeeCard = document.getElementById('employeePortalCard');
             if (recruiterCard) recruiterCard.style.display = isSuperAdmin ? 'block' : 'none';
             if (recruiterNav) recruiterNav.style.display = isSuperAdmin ? 'flex' : 'none';
+            if (salaryBroadcastNav) salaryBroadcastNav.style.display = isSuperAdmin ? 'flex' : 'none';
             if (employeeCard) employeeCard.style.display = isSuperAdmin ? 'block' : 'none';
 
             // Style sidebar avatar for super admin

@@ -407,8 +407,9 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
         
         /* Header */
         .header {
-            background: rgba(10,12,21,0.6);
-            backdrop-filter: blur(20px);
+            background: rgba(15, 17, 26, 0.7);
+            backdrop-filter: blur(24px) saturate(150%);
+            -webkit-backdrop-filter: blur(24px) saturate(150%);
             border-radius: 28px;
             padding: 20px 32px;
             margin-bottom: 28px;
@@ -417,17 +418,40 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
             align-items: center;
             flex-wrap: wrap;
             gap: 20px;
-            border: 1px solid rgba(255,255,255,0.08);
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(249,115,22,0.5), transparent);
         }
         .logo h1 {
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 800;
-            background: linear-gradient(135deg, #fff, #f97316);
+            background: linear-gradient(135deg, #ffffff 0%, #f97316 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        .logo span { color: #f97316; }
+        .logo h1::before {
+            content: '\f4fc'; /* User shield icon */
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            font-size: 28px;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px rgba(249,115,22,0.4));
+        }
+        .logo span { color: #f97316; font-weight: 400; opacity: 0.8; }
         .user-info { display: flex; align-items: center; gap: 20px; }
         .btn {
             padding: 10px 20px;
@@ -463,39 +487,69 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
             margin-bottom: 28px;
         }
         .stat-card {
-            background: rgba(255,255,255,0.03);
+            background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
             backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-radius: 24px;
-            padding: 24px;
-            border: 1px solid rgba(255,255,255,0.05);
-            transition: all 0.3s;
+            padding: 26px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
         }
-        .stat-card:hover { transform: translateY(-5px); border-color: rgba(249,115,22,0.4); }
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.4s;
+            pointer-events: none;
+        }
+        .stat-card:hover { 
+            transform: translateY(-8px); 
+            border-color: rgba(249,115,22,0.5); 
+            box-shadow: 0 20px 40px -10px rgba(249,115,22,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+        .stat-card:hover::after { opacity: 1; }
         .stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         .stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 16px;
+            width: 54px;
+            height: 54px;
+            border-radius: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 26px;
             color: white;
+            box-shadow: 0 10px 20px -5px rgba(0,0,0,0.4);
+            position: relative;
         }
-        .stat-icon.total { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
-        .stat-icon.active { background: linear-gradient(135deg, #10b981, #047857); }
-        .stat-icon.admin { background: linear-gradient(135deg, #f97316, #ea580c); }
+        .stat-icon::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: inherit;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
+        }
+        .stat-icon.total { background: linear-gradient(135deg, #8b5cf6, #5b21b6); box-shadow: 0 10px 20px -5px rgba(139,92,246,0.5); }
+        .stat-icon.active { background: linear-gradient(135deg, #10b981, #047857); box-shadow: 0 10px 20px -5px rgba(16,185,129,0.5); }
+        .stat-icon.admin { background: linear-gradient(135deg, #f97316, #c2410c); box-shadow: 0 10px 20px -5px rgba(249,115,22,0.5); }
         .stat-value { font-size: 32px; font-weight: 800; color: white; margin-bottom: 4px; }
         .stat-label { color: rgba(255,255,255,0.6); font-size: 13px; }
         
         /* Create User Card */
         .create-card {
-            background: rgba(255,255,255,0.03);
-            backdrop-filter: blur(20px);
+            background: linear-gradient(180deg, rgba(30, 32, 45, 0.7) 0%, rgba(20, 22, 35, 0.7) 100%);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
             border-radius: 28px;
-            padding: 28px;
+            padding: 32px;
             margin-bottom: 28px;
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+            position: relative;
         }
         .create-header {
             display: flex;
@@ -674,12 +728,14 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
         
         /* Table */
         .table-container {
-            background: rgba(255,255,255,0.03);
-            backdrop-filter: blur(20px);
+            background: linear-gradient(180deg, rgba(30, 32, 45, 0.7) 0%, rgba(20, 22, 35, 0.7) 100%);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
             border-radius: 28px;
-            padding: 24px;
-            overflow-x: auto;
-            border: 1px solid rgba(255,255,255,0.05);
+            padding: 32px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+            margin-top: 24px;
         }
         .table-header {
             display: flex;
@@ -1064,7 +1120,7 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
     <div class="container">
         <div class="header">
             <div class="logo">
-                <h1>BALI<span>TECH</span> · User Management</h1>
+                <h1>BALITECH</h1>
                 <p class="page-subtitle">Accounts, portal roles, and sheet sync</p>
             </div>
             <div class="user-info">
@@ -1534,7 +1590,7 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ portal_url: portalUrl })
                         }).finally(() => {
-                            window.open(portalUrl, '_blank');
+                            window.location.href = portalUrl;
                         });
 
                         showNotification(`Opening ${role.toUpperCase()} Portal for ${data.user.full_name}`, 'success');

@@ -370,6 +370,44 @@
                             </div>
                         </section>
 
+                        <!-- My Payslips View -->
+                        <section id="view-salary" class="view-section">
+                            <div class="prod-analytics-header" style="margin-bottom: 24px;">
+                                <h2><i class="fas fa-wallet" style="color: var(--prod-orange);"></i> My Payslips</h2>
+                                <p>View and download your monthly salary slips</p>
+                            </div>
+
+                            <div class="prod-glass-card" style="margin-bottom: 24px;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                                    <h3 style="font-size:18px;color:var(--prod-text);"><i class="fas fa-history" style="margin-right:8px; color: var(--prod-indigo);"></i> Payslip History</h3>
+                                </div>
+                                <div style="overflow-x:auto;">
+                                    <table class="prod-ts-table" id="payslipTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Month & Year</th>
+                                                <th>Gross Salary</th>
+                                                <th>Net Payable</th>
+                                                <th>Status</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="payslipBody">
+                                            <tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-muted);">Loading your payslips...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Modal for Payslip View -->
+                            <div id="payslipModal" class="ess-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+                                <div class="ess-modal-content" style="background:#fff; border-radius:16px; width:90%; max-width:600px; max-height:90vh; overflow-y:auto; padding:30px; position:relative;">
+                                    <button onclick="document.getElementById('payslipModal').style.display='none'" style="position:absolute; top:20px; right:20px; background:none; border:none; font-size:24px; cursor:pointer;"><i class="fas fa-times"></i></button>
+                                    <div id="payslipModalBody"></div>
+                                </div>
+                            </div>
+                        </section>
+
                         <!-- Coming soon placeholder -->
                         <section id="view-coming-soon" class="view-section">
                             <div class="ess-coming-soon ess-card">
@@ -1293,6 +1331,7 @@
                 ESS_VIEW_TITLES['feeds']        = ['Activity Feed', 'Real-time HR event stream'];
                 ESS_VIEW_TITLES['timelogs']     = ['Time Tracker', 'Clock in, clock out and manage your work sessions'];
                 ESS_VIEW_TITLES['timesheets']   = ['Timesheets', 'Weekly project time logs — auto-saved, manager approval'];
+                ESS_VIEW_TITLES['salary']       = ['My Payslips', 'View and download your monthly salary slips'];
             }
             if (typeof ESS_DEFAULT_NAV !== 'undefined') {
                 ESS_DEFAULT_NAV['feeds']        = 'nav-tab-feeds';
@@ -1302,5 +1341,6 @@
         });
     </script>
     <script src="js/hr-productivity.js?v=3"></script>
+    <script src="js/employee-salary.js"></script>
 </body>
 </html>

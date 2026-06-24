@@ -425,6 +425,9 @@ switch ($action) {
         $role = $me['portal_role'] ?? '';
         $designation = strtolower($me['designation'] ?? '');
         $canCreateGroup = in_array($role, ['admin', 'super_admin', 'management', 'team_lead', 'team lead']) || str_contains($designation, 'lead') || str_contains(strtolower($role), 'lead');
+        if ($role === 'user' || $role === 'agent') {
+            $canCreateGroup = false;
+        }
         if (!$canCreateGroup) {
             chat_json(false, null, 'Only administrators or team leads can create groups');
         }
@@ -793,6 +796,33 @@ switch ($action) {
         ]);
         
         chat_json(true, ['reactions' => $msg['reactions'] ?? []]);
+        break;
+
+    case 'getMedia':
+        $cid = (int)($_GET['conversation_id'] ?? $input['conversation_id'] ?? 0);
+        if (!$cid || !chat_validate_conversation_access($conn, $cid, $me_id)) {
+            chat_json(false, null, 'Conversation not found');
+        }
+        $stmt = $conn->prepare("
+            SELECT m.id, m.conversation_id, m.sender_id, m.body, m.msg_type,
+                   m.file_name, m.file_path, m.file_size, m.created_at,
+                   u.full_name AS sender_name
+            FROM chat_messages m
+            INNER JOIN users u ON u.id = m.sender_id
+            WHERE m.conversation_id = ? AND m.is_deleted = 0 AND m.msg_type IN ('image', 'file')
+            ORDER BY m.created_at DESC
+        ");
+        $stmt->bind_param('i', $cid);
+        $stmt->execute();
+        $media = [];
+        $res = $stmt->get_result();
+        while ($row = $res->fetch_assoc()) {
+            if (!empty($row['file_path'])) {
+                $row['file_url'] = chat_public_file_url($row['file_path']);
+            }
+            $media[] = $row;
+        }
+        chat_json(true, ['items' => $media]);
         break;
 
     default:

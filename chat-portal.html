@@ -171,6 +171,12 @@
                     </div>
                 </header>
 
+                <div class="chat-tabs" id="chatTabs">
+                    <button type="button" class="chat-tab active" data-tab="chat">Chat</button>
+                    <button type="button" class="chat-tab" data-tab="files">Files</button>
+                    <button type="button" class="chat-tab" data-tab="photos">Photos</button>
+                </div>
+
                 <div class="chat-request-banner hidden" id="chatRequestBanner">
                     <div class="chat-request-banner-inner">
                         <div class="chat-request-banner-icon"><i class="fas fa-user-clock"></i></div>
@@ -204,6 +210,13 @@
                     <div class="chat-typing-indicator" id="typingIndicator">
                         <div class="typing-pill"><span></span><span></span><span></span></div>
                     </div>
+                </div>
+
+                <div class="chat-media-wrap hidden" id="filesWrap">
+                    <div class="chat-media-list" id="filesList"></div>
+                </div>
+                <div class="chat-media-wrap hidden" id="photosWrap">
+                    <div class="chat-media-grid" id="photosGrid"></div>
                 </div>
 
                 <footer class="chat-footer">

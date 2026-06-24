@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Salary Slip</title>
+<style>
+    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; color: #333; }
+    .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .header { background: #f97316; color: #ffffff; padding: 30px 40px; text-align: center; }
+    .header h1 { margin: 0; font-size: 24px; letter-spacing: 1px; }
+    .header p { margin: 5px 0 0; opacity: 0.9; font-size: 14px; }
+    .content { padding: 40px; }
+    .greeting { font-size: 18px; margin-bottom: 25px; color: #111827; font-weight: 600; }
+    .summary-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 30px; text-align: center; }
+    .net-label { font-size: 14px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+    .net-amount { font-size: 32px; color: #059669; font-weight: bold; margin: 0; }
+    .table-title { font-size: 14px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; border-bottom: 2px solid #f97316; padding-bottom: 5px; display: inline-block;}
+    table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+    th { color: #64748b; font-weight: normal; }
+    td { color: #111827; font-weight: 500; }
+    .footer { background: #1e293b; color: #94a3b8; padding: 20px; text-align: center; font-size: 12px; }
+    .btn { display: inline-block; padding: 12px 25px; background: #f97316; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px; }
+</style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Balitech Salary Slip</h1>
+            <p>For the month of {{MONTH}} {{YEAR}}</p>
+        </div>
+        <div class="content">
+            <div class="greeting">Hello {{EMPLOYEE_NAME}},</div>
+            <p>Your salary slip for <strong>{{MONTH}} {{YEAR}}</strong> has been generated successfully. Below is the summary of your payout.</p>
+
+            <div class="summary-card">
+                <div class="net-label">Net Payable Amount</div>
+                <div class="net-amount">{{NET_PAYABLE}}</div>
+            </div>
+
+            <div class="table-title">Earnings & Deductions</div>
+            <table>
+                <tbody>
+                    {{SALARY_TABLE_ROWS}}
+                </tbody>
+            </table>
+
+            <p style="text-align: center; margin-top: 40px; color: #64748b; font-size: 14px;">
+                You can also view your detailed payslip history in your Employee Portal.
+            </p>
+            <div style="text-align: center;">
+                <a href="{{PORTAL_URL}}" class="btn">Login to Portal</a>
+            </div>
+        </div>
+        <div class="footer">
+            &copy; {{YEAR}} Balitech. All rights reserved.<br>
+            If you have any questions regarding your salary, please contact HR.
+        </div>
+    </div>
+</body>
+</html>

@@ -48,26 +48,8 @@
     const apiPrefix = window.balitechApiPrefix ? window.balitechApiPrefix() : (path.includes('/attendance/') ? '../' : '');
 
     function showAdminViewBanner(name, role) {
-        if (document.getElementById('adminPortalBanner')) return;
-        const adminHome = apiPrefix + 'admin-dashboard.html';
-        const isSuperAdmin = (role === 'super_admin');
-        const bar = document.createElement('div');
-        bar.id = 'adminPortalBanner';
-        const bgColor = isSuperAdmin
-            ? 'linear-gradient(90deg,#ca8a04,#facc15)'
-            : 'linear-gradient(90deg,#f97316,#ea580c)';
-        const textColor = isSuperAdmin ? '#000' : '#fff';
-        const roleLabel = isSuperAdmin ? '⚡ Super Admin view' : '🛡 Admin view';
-        bar.style.cssText = `position:fixed;top:0;left:0;right:0;z-index:99999;background:${bgColor};color:${textColor};padding:10px 16px;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 12px rgba(0,0,0,.3)`;
-        bar.innerHTML = `
-            <span><i class="fas fa-shield-alt"></i> ${roleLabel} — ${name || 'Administrator'}</span>
-            <button type="button" id="adminPortalBannerBack" style="background:rgba(0,0,0,.15);border:none;color:${textColor};padding:6px 14px;border-radius:8px;cursor:pointer;font-weight:600">← Back to Admin</button>
-        `;
-        document.body.prepend(bar);
-        document.getElementById('adminPortalBannerBack')?.addEventListener('click', () => {
-            window.location.href = adminHome;
-        });
-        document.body.style.paddingTop = '44px';
+        // Feature disabled: The user prefers using the native browser back button,
+        // which now works because admin-dashboard.html opens portals in the same tab.
     }
 
     function redirectToRolePortal(role) {

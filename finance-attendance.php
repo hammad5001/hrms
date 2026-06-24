@@ -336,6 +336,7 @@
                 <div class="finance-badge"><i class="fas fa-coins"></i><span>Payroll Intelligence Hub</span></div>
             </div>
             <div class="nav-bar">
+                <a href="javascript:history.back()" class="nav-btn" title="Back" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; padding: 0; background: rgba(255,255,255,0.1);"><i class="fas fa-arrow-left"></i></a>
                 <a href="admin-dashboard.html" class="nav-btn"><i class="fas fa-chart-pie"></i> Dashboard</a>
                 <a href="profile.php" class="nav-btn"><i class="fas fa-user"></i> Profile</a>
                 <a href="chat-portal.html" class="nav-btn"><i class="fas fa-comments"></i> Chat</a>

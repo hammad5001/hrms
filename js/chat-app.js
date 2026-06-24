@@ -2417,6 +2417,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!meRes.success) { window.location.href = 'index.html'; return; }
     Chat.me = meRes.data;
 
+    if (Chat.me.portal_role === 'user' || Chat.me.portal_role === 'agent') {
+        const newGroupBtn = document.getElementById('navBtnNewGroup');
+        if (newGroupBtn) {
+            newGroupBtn.style.display = 'none';
+        }
+    }
+
     updateNavProfileAvatar();
 
     const back = document.getElementById('chatBackLink');
@@ -3143,5 +3150,103 @@ async function searchUsers(q, containerId, onSelect) {
         container.appendChild(item);
     });
     container.classList.remove('hidden');
+}
+
+/* --- Media Tabs Implementation --- */
+document.addEventListener('click', async (e) => {
+    // Handle tab switching
+    const tab = e.target.closest('.chat-tab');
+    if (tab) {
+        document.querySelectorAll('.chat-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const tabName = tab.dataset.tab;
+        
+        const mWrap = document.getElementById('messagesWrap');
+        const fWrap = document.getElementById('filesWrap');
+        const pWrap = document.getElementById('photosWrap');
+        
+        if (mWrap) mWrap.classList.add('hidden');
+        if (fWrap) fWrap.classList.add('hidden');
+        if (pWrap) pWrap.classList.add('hidden');
+        
+        const footer = document.querySelector('.chat-footer');
+        
+        if (tabName === 'chat') {
+            if (mWrap) mWrap.classList.remove('hidden');
+            if (footer) footer.style.display = '';
+            const area = document.getElementById('msgArea');
+            if (area) {
+                area.scrollTop = area.scrollHeight;
+            }
+        } else if (tabName === 'files') {
+            if (fWrap) fWrap.classList.remove('hidden');
+            if (footer) footer.style.display = 'none';
+            await loadMediaFiles('files');
+        } else if (tabName === 'photos') {
+            if (pWrap) pWrap.classList.remove('hidden');
+            if (footer) footer.style.display = 'none';
+            await loadMediaFiles('photos');
+        }
+        return;
+    }
+
+    // Reset tabs when clicking a conversation in the sidebar
+    const convItem = e.target.closest('.chat-conv-item');
+    if (convItem) {
+        document.querySelectorAll('.chat-tab').forEach(t => t.classList.remove('active'));
+        const chatTab = document.querySelector('.chat-tab[data-tab="chat"]');
+        if (chatTab) chatTab.classList.add('active');
+        
+        const mWrap = document.getElementById('messagesWrap');
+        const fWrap = document.getElementById('filesWrap');
+        const pWrap = document.getElementById('photosWrap');
+        
+        if (mWrap) mWrap.classList.remove('hidden');
+        if (fWrap) fWrap.classList.add('hidden');
+        if (pWrap) pWrap.classList.add('hidden');
+        
+        const footer = document.querySelector('.chat-footer');
+        if (footer) footer.style.display = '';
+    }
+});
+
+async function loadMediaFiles(type) {
+    if (!Chat.activeId) return;
+    const res = await chatApi('getMedia', { params: { conversation_id: Chat.activeId } });
+    if (!res.success) return;
+    
+    const media = res.data.items || [];
+    
+    if (type === 'photos') {
+        const photos = media.filter(m => m.msg_type === 'image');
+        const grid = document.getElementById('photosGrid');
+        if (!grid) return;
+        if (photos.length === 0) {
+            grid.innerHTML = '<div style="color:var(--c-text-4); grid-column: 1/-1;">No photos shared in this chat.</div>';
+        } else {
+            grid.innerHTML = photos.map(p => `
+                <img src="${escapeHtml(p.file_url)}" title="Shared by ${escapeHtml(p.sender_name)} on ${formatFullTime(p.created_at)}" onclick="openLightbox('${escapeHtml(p.file_url)}')">
+            `).join('');
+        }
+    } else if (type === 'files') {
+        const files = media.filter(m => m.msg_type === 'file');
+        const list = document.getElementById('filesList');
+        if (!list) return;
+        if (files.length === 0) {
+            list.innerHTML = '<div style="color:var(--c-text-4);">No files shared in this chat.</div>';
+        } else {
+            list.innerHTML = files.map(f => {
+                const fName = escapeHtml(f.file_name || 'Document');
+                return `
+                <a href="${escapeHtml(f.file_url)}" target="_blank" class="chat-file-item">
+                    <i class="fas ${fileIconClass(f.file_name, '')} file-icon"></i>
+                    <div class="file-info">
+                        <div class="file-name" title="${fName}">${fName}</div>
+                        <div class="file-meta">${formatFileSize(f.file_size)} • Shared by ${escapeHtml(f.sender_name)}</div>
+                    </div>
+                </a>
+            `}).join('');
+        }
+    }
 }
 

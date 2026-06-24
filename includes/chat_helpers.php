@@ -378,6 +378,8 @@ function chat_search_users(mysqli $conn, int $me_id, string $q, int $limit = 25)
     $deptFilterSql = "";
     if (in_array($meRole, ['user', 'agent'])) {
         $deptFilterSql = " AND u.department = '" . $conn->real_escape_string($meDept) . "' ";
+        // Restrict user/agent from searching other users/agents
+        $deptFilterSql .= " AND u.portal_role NOT IN ('user', 'agent') ";
     }
 
     $sql = "
@@ -451,6 +453,8 @@ function chat_search_users_fallback(mysqli $conn, int $me_id, array $parsed, int
     $deptFilterSql = "";
     if (in_array($meRole, ['user', 'agent'])) {
         $deptFilterSql = " AND department = '" . $conn->real_escape_string($meDept) . "' ";
+        // Restrict user/agent from searching other users/agents
+        $deptFilterSql .= " AND portal_role NOT IN ('user', 'agent') ";
     }
 
     $sql = "
@@ -1030,6 +1034,23 @@ function chat_assert_can_send(mysqli $conn, int $conversation_id, int $sender_id
     if (chat_is_blocked($conn, $sender_id, $peer_id)) {
         return 'You cannot message this user';
     }
+
+    // Restrict employee-to-employee direct messaging
+    $roleStmt = $conn->prepare("SELECT portal_role FROM users WHERE id IN (?, ?)");
+    $roleStmt->bind_param("ii", $sender_id, $peer_id);
+    $roleStmt->execute();
+    $roleRes = $roleStmt->get_result();
+    $roles = [];
+    while ($row = $roleRes->fetch_assoc()) {
+        $roles[] = $row['portal_role'];
+    }
+    if (count($roles) === 2) {
+        $restrictedRoles = ['user', 'agent'];
+        if (in_array($roles[0], $restrictedRoles) && in_array($roles[1], $restrictedRoles)) {
+            return 'You cannot message this employee directly';
+        }
+    }
+
     $my_status = chat_get_participant_status($conn, $conversation_id, $sender_id);
     $peer_status = chat_get_participant_status($conn, $conversation_id, $peer_id);
     if ($my_status === 'declined') {

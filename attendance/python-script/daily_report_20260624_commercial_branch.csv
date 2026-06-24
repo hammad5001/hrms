@@ -1,0 +1,155 @@
+user_id,name,device_name,device_ip,check_in,check_out,hours,status,has_check_out
+1,Ia,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+2,Sn,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+3,Hk,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+4,Mk,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5,Mi,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+101,T,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+4041,Bakhtawar.Mehmood,Commercial Branch,125.209.68.118,20:33,---,0.00,Late (153min),No
+5001,Owais,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5002,Abdulhadi,Commercial Branch,125.209.68.118,21:00,---,0.00,Late (180min),No
+5003,Hamza,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5004,Faizan,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5005,Haris,Commercial Branch,125.209.68.118,18:28,---,0.00,Late (28min),No
+5006,Ali,Commercial Branch,125.209.68.118,20:43,---,0.00,Late (163min),No
+5007,Noroz,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5008,Hizbullah,Commercial Branch,125.209.68.118,18:53,---,0.00,Late (53min),No
+5009,Hasnain,Commercial Branch,125.209.68.118,18:55,---,0.00,Late (55min),No
+5010,Furqan,Commercial Branch,125.209.68.118,17:36,17:36,0.00,Present,Yes
+5011,Basit,Commercial Branch,125.209.68.118,18:56,---,0.00,Late (56min),No
+5012,Romis,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5013,David,Commercial Branch,125.209.68.118,18:48,---,0.00,Late (48min),No
+5014,Moaznaeem,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5015,Muneeb,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5016,Khalil,Commercial Branch,125.209.68.118,18:50,---,0.00,Late (50min),No
+5017,Ahsan,Commercial Branch,125.209.68.118,18:57,---,0.00,Late (57min),No
+5018,Fardad,Commercial Branch,125.209.68.118,17:49,---,0.00,Present,No
+5019,Sikandar,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5020,Aqeel,Commercial Branch,125.209.68.118,17:18,---,0.00,Present,No
+5021,Shumaz,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5022,Huzaifa,Commercial Branch,125.209.68.118,17:38,---,0.00,Present,No
+5023,Moiz,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5024,Arzo,Commercial Branch,125.209.68.118,16:26,---,0.00,Present,No
+5025,Asima,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5026,Shamsulhaq,Commercial Branch,125.209.68.118,20:47,---,0.00,Late (167min),No
+5027,Faisal,Commercial Branch,125.209.68.118,17:39,---,0.00,Present,No
+5028,Muhammadali,Commercial Branch,125.209.68.118,18:11,---,0.00,Late (11min),No
+5029,Abubaker,Commercial Branch,125.209.68.118,17:32,---,0.00,Present,No
+5030,Zeshan,Commercial Branch,125.209.68.118,17:58,---,0.00,Present,No
+5031,Tayelamjad,Commercial Branch,125.209.68.118,18:49,---,0.00,Late (49min),No
+5032,Haseebhaider,Commercial Branch,125.209.68.118,17:28,---,0.00,Present,No
+5033,Maneeque,Commercial Branch,125.209.68.118,17:25,---,0.00,Present,No
+5034,Awaisatti,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5035,Alishaali,Commercial Branch,125.209.68.118,17:27,---,0.00,Present,No
+5036,Javeriali,Commercial Branch,125.209.68.118,17:27,---,0.00,Present,No
+5037,Farhanmalik,Commercial Branch,125.209.68.118,17:39,---,0.00,Present,No
+5038,Hashim,Commercial Branch,125.209.68.118,17:28,---,0.00,Present,No
+5039,Raheel,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5040,Mkamal,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5041,Rajaobaidullah,Commercial Branch,125.209.68.118,18:58,---,0.00,Late (58min),No
+5042,Azharhussain,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5043,Samiullaha,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5044,Salman,Commercial Branch,125.209.68.118,17:31,---,0.00,Present,No
+5045,mohsin,Commercial Branch,125.209.68.118,17:27,---,0.00,Present,No
+5046,Kanwal,Commercial Branch,125.209.68.118,18:25,---,0.00,Late (25min),No
+5047,Chaudarymuhammadshehryar,Commercial Branch,125.209.68.118,17:18,---,0.00,Present,No
+5048,Daud,Commercial Branch,125.209.68.118,17:58,---,0.00,Present,No
+5049,Umershehzad,Commercial Branch,125.209.68.118,17:31,---,0.00,Present,No
+5050,Altafhussain,Commercial Branch,125.209.68.118,17:49,---,0.00,Present,No
+5051,Sadamshah,Commercial Branch,125.209.68.118,17:40,---,0.00,Present,No
+5052,Hammad,Commercial Branch,125.209.68.118,17:49,---,0.00,Present,No
+5053,Mshabbir,Commercial Branch,125.209.68.118,17:58,---,0.00,Present,No
+5054,Uzair,Commercial Branch,125.209.68.118,17:29,---,0.00,Present,No
+5055,Tahir,Commercial Branch,125.209.68.118,17:44,---,0.00,Present,No
+5056,Mehmood,Commercial Branch,125.209.68.118,18:24,---,0.00,Late (24min),No
+5057,Hashmi,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5058,Mhammad,Commercial Branch,125.209.68.118,17:33,---,0.00,Present,No
+5059,Malikarslan,Commercial Branch,125.209.68.118,17:47,---,0.00,Present,No
+5060,Salmanwaheed,Commercial Branch,125.209.68.118,17:28,---,0.00,Present,No
+5061,Malikhassan,Commercial Branch,125.209.68.118,16:44,---,0.00,Present,No
+5062,Muskanarif,Commercial Branch,125.209.68.118,17:21,---,0.00,Present,No
+5063,Abdulwahid,Commercial Branch,125.209.68.118,17:36,---,0.00,Present,No
+5064,Asadbilal,Commercial Branch,125.209.68.118,17:30,---,0.00,Present,No
+5065,Nomanashraf,Commercial Branch,125.209.68.118,18:57,---,0.00,Late (57min),No
+5066,Mabdullah,Commercial Branch,125.209.68.118,17:56,---,0.00,Present,No
+5067,Awaisurrehman,Commercial Branch,125.209.68.118,17:22,---,0.00,Present,No
+5068,Arbaz,Commercial Branch,125.209.68.118,18:06,---,0.00,Present,No
+5069,Ahsanhassan,Commercial Branch,125.209.68.118,18:44,---,0.00,Late (44min),No
+5070,Syedramish,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5071,Misbah,Commercial Branch,125.209.68.118,17:28,---,0.00,Present,No
+5072,Asad,Commercial Branch,125.209.68.118,17:34,---,0.00,Present,No
+5073,Rafia,Commercial Branch,125.209.68.118,17:47,---,0.00,Present,No
+5074,Shazil,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5075,Shehryar,Commercial Branch,125.209.68.118,17:11,20:24,3.22,Present,Yes
+5076,Hammadakhtar,Commercial Branch,125.209.68.118,18:45,---,0.00,Late (45min),No
+5077,Aliyan,Commercial Branch,125.209.68.118,17:11,---,0.00,Present,No
+5078,MehrabAli,Commercial Branch,125.209.68.118,17:28,---,0.00,Present,No
+5079,Vaiz,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5080,Hammad.Haroon,Commercial Branch,125.209.68.118,18:34,---,0.00,Late (34min),No
+5081,Asad.Ali,Commercial Branch,125.209.68.118,19:00,---,0.00,Late (60min),No
+5082,Gohar.Anil,Commercial Branch,125.209.68.118,17:24,---,0.00,Present,No
+5083,Surriya.Rehman,Commercial Branch,125.209.68.118,17:50,---,0.00,Present,No
+5084,Adan,Commercial Branch,125.209.68.118,17:20,---,0.00,Present,No
+5085,Abdul.Wasi,Commercial Branch,125.209.68.118,17:31,---,0.00,Present,No
+5086,Aftab.Ahmad,Commercial Branch,125.209.68.118,17:46,---,0.00,Present,No
+5087,Syeda.Hijab,Commercial Branch,125.209.68.118,17:42,---,0.00,Present,No
+5088,CMBilal,Commercial Branch,125.209.68.118,18:55,---,0.00,Late (55min),No
+5089,M.Khizar,Commercial Branch,125.209.68.118,17:30,---,0.00,Present,No
+5090,Talha.Chauhan,Commercial Branch,125.209.68.118,17:28,---,0.00,Present,No
+5091,Saira.Zafar,Commercial Branch,125.209.68.118,17:35,---,0.00,Present,No
+5092,Araiz,Commercial Branch,125.209.68.118,17:21,---,0.00,Present,No
+5093,Syed.Bilal.Ahmad,Commercial Branch,125.209.68.118,17:18,---,0.00,Present,No
+5094,Zeeshan.jan,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5095,Sikandar.Ali,Commercial Branch,125.209.68.118,17:49,17:49,0.00,Present,Yes
+5096,Amir,Commercial Branch,125.209.68.118,17:27,---,0.00,Present,No
+5097,M.Siddique,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+5098,Hussna,Commercial Branch,125.209.68.118,17:42,---,0.00,Present,No
+5099,Ameer.Hamza,Commercial Branch,125.209.68.118,17:32,---,0.00,Present,No
+6000,Shaven.Gill,Commercial Branch,125.209.68.118,17:20,---,0.00,Present,No
+6001,Misbah.Mehrban,Commercial Branch,125.209.68.118,17:25,---,0.00,Present,No
+6002,Amir.nazeer,Commercial Branch,125.209.68.118,18:27,---,0.00,Late (27min),No
+6003,Ejaz,Commercial Branch,125.209.68.118,17:19,---,0.00,Present,No
+6004,Ahmed.Ali,Commercial Branch,125.209.68.118,17:54,---,0.00,Present,No
+6005,Zunair,Commercial Branch,125.209.68.118,17:47,---,0.00,Present,No
+6006,Kiran,Commercial Branch,125.209.68.118,16:26,---,0.00,Present,No
+6007,Zeeshan.Abbasi,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+6008,Fahad.Mughal,Commercial Branch,125.209.68.118,17:55,---,0.00,Present,No
+6009,Abdul.Moeez,Commercial Branch,125.209.68.118,17:54,---,0.00,Present,No
+6010,Hanook,Commercial Branch,125.209.68.118,18:09,---,0.00,Present,No
+6011,Noor,Commercial Branch,125.209.68.118,17:49,---,0.00,Present,No
+6012,Maryam,Commercial Branch,125.209.68.118,17:42,---,0.00,Present,No
+6013,Sana.Naz,Commercial Branch,125.209.68.118,17:41,---,0.00,Present,No
+6014,Mahaz.Ali,Commercial Branch,125.209.68.118,17:52,---,0.00,Present,No
+6015,Abdul.Wahab,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+6016,Rayyan,Commercial Branch,125.209.68.118,18:44,---,0.00,Late (44min),No
+6017,Mudassar.Khan,Commercial Branch,125.209.68.118,18:48,---,0.00,Late (48min),No
+6018,Hannah,Commercial Branch,125.209.68.118,18:17,---,0.00,Late (17min),No
+6019,Adeel.Afzal,Commercial Branch,125.209.68.118,19:06,---,0.00,Late (66min),No
+6020,Ali.Shah,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+6021,Bilal.Hanif,Commercial Branch,125.209.68.118,17:43,---,0.00,Present,No
+6022,Hasnain,Commercial Branch,125.209.68.118,17:12,---,0.00,Present,No
+6023,Kabeer,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+6024,Sarmad,Commercial Branch,125.209.68.118,17:18,---,0.00,Present,No
+6025,M.Asad,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+6026,Mueed,Commercial Branch,125.209.68.118,17:41,---,0.00,Present,No
+6027,Atif,Commercial Branch,125.209.68.118,17:39,---,0.00,Present,No
+6028,Raja.Haider,Commercial Branch,125.209.68.118,17:50,---,0.00,Present,No
+6029,Mohid.Hadi,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+6030,Mazhar,Commercial Branch,125.209.68.118,17:44,---,0.00,Present,No
+6031,Naila.Raja,Commercial Branch,125.209.68.118,17:54,---,0.00,Present,No
+6032,Rimsha,Commercial Branch,125.209.68.118,17:54,---,0.00,Present,No
+6033,Farhana,Commercial Branch,125.209.68.118,17:53,---,0.00,Present,No
+6034,Rubab,Commercial Branch,125.209.68.118,17:49,---,0.00,Present,No
+6035,Momina,Commercial Branch,125.209.68.118,17:29,---,0.00,Present,No
+6036,Nayab.Naveed,Commercial Branch,125.209.68.118,18:51,---,0.00,Late (51min),No
+6037,Jibran.Khan,Commercial Branch,125.209.68.118,18:47,---,0.00,Late (47min),No
+6038,Naseer.Hussain,Commercial Branch,125.209.68.118,---,---,0.00,Absent,No
+6039,Malik.Shujah,Commercial Branch,125.209.68.118,17:50,---,0.00,Present,No
+6040,Tahir.younas,Commercial Branch,125.209.68.118,17:32,---,0.00,Present,No
+6042,M.Abdullah,Commercial Branch,125.209.68.118,17:40,---,0.00,Present,No
+6043,Mohsin.Zahid,Commercial Branch,125.209.68.118,18:54,---,0.00,Late (54min),No
+6044,Areez,Commercial Branch,125.209.68.118,17:41,17:42,0.00,Present,Yes
+6045,Syed.Shabab,Commercial Branch,125.209.68.118,17:59,---,0.00,Present,No
+6046,Ali.Imran,Commercial Branch,125.209.68.118,18:12,---,0.00,Late (12min),No
+6047,Ammar.Hassan,Commercial Branch,125.209.68.118,20:26,---,0.00,Late (146min),No
+6048,Rana.Shoaib,Commercial Branch,125.209.68.118,20:46,---,0.00,Late (166min),No
