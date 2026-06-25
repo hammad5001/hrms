@@ -1936,6 +1936,7 @@ async function uploadFile(file, caption = '') {
 }
 
 let pendingUploadFile = null;
+let cropperInstance = null;
 
 function queueFileForUpload(file) {
     if (!file || Chat.uploading) return;
@@ -1951,16 +1952,28 @@ function queueFileForUpload(file) {
     const fileName = document.getElementById('uploadPreviewFileName');
     const fileSize = document.getElementById('uploadPreviewFileSize');
     const input = document.getElementById('uploadCaptionInput');
+    const cropBtn = document.getElementById('btnCropUploadModal');
+    
+    if (cropperInstance) {
+        cropperInstance.destroy();
+        cropperInstance = null;
+    }
+    if (cropBtn) {
+        cropBtn.innerHTML = '<i class="fas fa-crop"></i> Crop';
+        cropBtn.dataset.mode = 'crop';
+    }
     
     if (isImageFile(file)) {
         img.src = URL.createObjectURL(file);
         imgWrap.classList.remove('hidden');
         fileWrap.classList.add('hidden');
+        if (cropBtn) cropBtn.classList.remove('hidden');
     } else {
         fileName.textContent = file.name || 'Document';
         fileSize.textContent = formatFileSize(file.size);
         imgWrap.classList.add('hidden');
         fileWrap.classList.remove('hidden');
+        if (cropBtn) cropBtn.classList.add('hidden');
     }
     
     input.value = '';
@@ -1974,6 +1987,10 @@ function initUploadPreviewModal() {
     if (!modal) return;
     
     const closeIt = () => {
+        if (cropperInstance) {
+            cropperInstance.destroy();
+            cropperInstance = null;
+        }
         modal.classList.remove('open');
         modal.classList.add('hidden');
         pendingUploadFile = null;
@@ -1983,12 +2000,48 @@ function initUploadPreviewModal() {
     document.getElementById('btnCancelUploadModal')?.addEventListener('click', closeIt);
     
     const confirmBtn = document.getElementById('btnConfirmUploadModal');
+    const cropBtn = document.getElementById('btnCropUploadModal');
     const input = document.getElementById('uploadCaptionInput');
+    
+    cropBtn?.addEventListener('click', () => {
+        const img = document.getElementById('uploadPreviewImage');
+        if (cropBtn.dataset.mode === 'crop') {
+            if (cropperInstance) cropperInstance.destroy();
+            cropperInstance = new Cropper(img, {
+                viewMode: 2,
+                background: false,
+                autoCropArea: 1
+            });
+            cropBtn.innerHTML = '<i class="fas fa-check"></i> Apply';
+            cropBtn.dataset.mode = 'apply';
+        } else {
+            if (!cropperInstance) return;
+            cropperInstance.getCroppedCanvas().toBlob(blob => {
+                if (!blob) return;
+                blob.name = pendingUploadFile.name || 'cropped.jpg';
+                pendingUploadFile = blob;
+                cropperInstance.destroy();
+                cropperInstance = null;
+                img.src = URL.createObjectURL(blob);
+                cropBtn.innerHTML = '<i class="fas fa-crop"></i> Crop';
+                cropBtn.dataset.mode = 'crop';
+            }, pendingUploadFile.type || 'image/jpeg', 0.9);
+        }
+    });
     
     const doUpload = () => {
         if (!pendingUploadFile) return;
-        uploadFile(pendingUploadFile, input.value.trim());
-        closeIt();
+        if (cropperInstance) {
+            cropperInstance.getCroppedCanvas().toBlob(blob => {
+                if (!blob) return;
+                blob.name = pendingUploadFile.name || 'cropped.jpg';
+                uploadFile(blob, input.value.trim());
+                closeIt();
+            }, pendingUploadFile.type || 'image/jpeg', 0.9);
+        } else {
+            uploadFile(pendingUploadFile, input.value.trim());
+            closeIt();
+        }
     };
     
     confirmBtn?.addEventListener('click', doUpload);
@@ -2965,11 +3018,13 @@ let mentionState = {
     query: '',
     startIndex: -1,
     users: [],
-    selectedIndex: 0
+    selectedIndex: 0,
+    activeInput: null
 };
 
 function closeMentionMenu() {
     mentionState.active = false;
+    mentionState.activeInput = null;
     document.getElementById('mentionMenu')?.classList.add('hidden');
 }
 
@@ -3008,12 +3063,8 @@ function renderMentionMenu() {
     });
 }
 
-function checkMentionTrigger() {
-    if (Chat.convType !== 'group') {
-        closeMentionMenu();
-        return;
-    }
-    const input = document.getElementById('msgInput');
+function checkMentionTrigger(inputElement) {
+    const input = inputElement && inputElement.target ? inputElement.target : (inputElement || document.getElementById('msgInput'));
     const val = input.value;
     const cursorPos = input.selectionStart;
     
@@ -3025,8 +3076,9 @@ function checkMentionTrigger() {
         mentionState.active = true;
         mentionState.query = query;
         mentionState.startIndex = cursorPos - match[1].length - 1;
+        mentionState.activeInput = input;
         
-        let possibleUsers = Chat.activeParticipants.filter(p => p.id !== Chat.me?.id && p.full_name.toLowerCase().includes(query)).slice(0, 10);
+        let possibleUsers = Chat.activeParticipants ? Chat.activeParticipants.filter(p => p.id !== Chat.me?.id && p.full_name.toLowerCase().includes(query)).slice(0, 10) : [];
         
         if ('everyone'.includes(query)) {
             possibleUsers.unshift({
@@ -3039,6 +3091,20 @@ function checkMentionTrigger() {
         mentionState.users = possibleUsers;
         mentionState.selectedIndex = 0;
         renderMentionMenu();
+        
+        // Position mention menu above the active input's container
+        const menu = document.getElementById('mentionMenu');
+        if (menu && input.id === 'uploadCaptionInput') {
+            menu.style.bottom = 'auto';
+            menu.style.top = '100%';
+            input.parentElement.style.position = 'relative';
+            input.parentElement.appendChild(menu);
+        } else if (menu) {
+            menu.style.bottom = '100%';
+            menu.style.top = 'auto';
+            const composerWrap = document.querySelector('.composer-wrap');
+            if (composerWrap) composerWrap.appendChild(menu);
+        }
     } else {
         closeMentionMenu();
     }
@@ -3076,7 +3142,7 @@ function selectMention(index) {
     const user = mentionState.users[index];
     if (!user) return;
     
-    const input = document.getElementById('msgInput');
+    const input = mentionState.activeInput || document.getElementById('msgInput');
     const val = input.value;
     const before = val.substring(0, mentionState.startIndex);
     const after = val.substring(input.selectionStart);
@@ -3088,9 +3154,35 @@ function selectMention(index) {
     
     closeMentionMenu();
     
-    input.style.height = 'auto';
-    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+    if (input.id === 'msgInput') {
+        input.style.height = 'auto';
+        input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+    }
 }
+
+// Bind Mention Event Listeners
+document.addEventListener('DOMContentLoaded', () => {
+    const msgInput = document.getElementById('msgInput');
+    const uploadInput = document.getElementById('uploadCaptionInput');
+    
+    [msgInput, uploadInput].forEach(inp => {
+        if (!inp) return;
+        inp.addEventListener('input', checkMentionTrigger);
+        inp.addEventListener('keydown', e => {
+            if (handleMentionKeydown(e)) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        });
+        inp.addEventListener('blur', () => {
+            setTimeout(() => {
+                if (!document.activeElement.closest('.mention-menu')) {
+                    closeMentionMenu();
+                }
+            }, 200);
+        });
+    });
+});
 
 function parseMentions(html) {
     if (Chat.convType !== 'group' || !Chat.activeParticipants || !html.includes('@')) return html;
