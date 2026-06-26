@@ -65,6 +65,7 @@ function ensure_chat_schema(mysqli $conn): void {
 
     @$conn->query("ALTER TABLE `chat_participants` ADD COLUMN `last_active_at` DATETIME DEFAULT NULL");
     @$conn->query("ALTER TABLE `chat_participants` ADD COLUMN `typing_until` DATETIME DEFAULT NULL");
+    @$conn->query("ALTER TABLE `chat_participants` ADD COLUMN `is_admin` TINYINT(1) NOT NULL DEFAULT 0");
     @$conn->query("ALTER TABLE `chat_messages` ADD COLUMN `is_edited` TINYINT(1) NOT NULL DEFAULT 0");
     @$conn->query("ALTER TABLE `chat_messages` ADD COLUMN `is_deleted` TINYINT(1) NOT NULL DEFAULT 0");
     @$conn->query("ALTER TABLE `chat_messages` ADD COLUMN `edited_at` DATETIME DEFAULT NULL");

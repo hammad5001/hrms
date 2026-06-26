@@ -2852,16 +2852,33 @@ function renderGroupSidebarMembers() {
     
     document.getElementById('sidebarGroupSub').textContent = `${Chat.activeParticipants.length} participants`;
     
-    const isAdmin = Chat.activeConversation && Chat.activeConversation.created_by && Chat.me.id == Chat.activeConversation.created_by;
-    document.getElementById('btnSidebarAddPeople').style.display = isAdmin ? 'flex' : 'none';
+    const isCreator = Chat.activeConversation && Chat.activeConversation.created_by && Chat.me.id == Chat.activeConversation.created_by;
+    const isMyAdmin = isCreator || (Chat.activeParticipants.find(p => p.id == Chat.me.id)?.is_admin);
+    
+    document.getElementById('btnSidebarAddPeople').style.display = isMyAdmin ? 'flex' : 'none';
     
     list.innerHTML = Chat.activeParticipants.map(u => {
         const isMe = u.id == Chat.me.id;
+        const uIsCreator = Chat.activeConversation && Chat.activeConversation.created_by == u.id;
+        const uIsAdmin = uIsCreator || u.is_admin;
+        
         let removeBtn = '';
-        if (isAdmin && !isMe) {
-            removeBtn = `<div class="member-action-menu hidden" id="memberAction_${u.id}">
-                            <button type="button" class="member-action-item danger" onclick="removeGroupMember(${u.id})">Remove from group</button>
-                         </div>`;
+        if (isMyAdmin && !isMe) {
+            let adminActions = '';
+            if (uIsCreator) {
+                // Cannot remove or demote creator
+            } else if (u.is_admin) {
+                adminActions = `<button type="button" class="member-action-item" onclick="demoteGroupAdmin(${u.id})">Dismiss as Admin</button>`;
+                adminActions += `<button type="button" class="member-action-item danger" onclick="removeGroupMember(${u.id})">Remove from group</button>`;
+            } else {
+                adminActions = `<button type="button" class="member-action-item" onclick="promoteGroupAdmin(${u.id})">Make Admin</button>`;
+                adminActions += `<button type="button" class="member-action-item danger" onclick="removeGroupMember(${u.id})">Remove from group</button>`;
+            }
+            if (adminActions !== '') {
+                removeBtn = `<div class="member-action-menu hidden" id="memberAction_${u.id}">
+                                ${adminActions}
+                             </div>`;
+            }
         }
         
         let statusHtml = '';
@@ -2874,9 +2891,14 @@ function renderGroupSidebarMembers() {
         
         const displayLabel = isMe ? `${escapeHtml(u.full_name)} (You)` : escapeHtml(u.full_name);
         
-        const clickHandler = (isAdmin && !isMe) ? `onclick="toggleMemberAction(event, ${u.id})"` : '';
-        const cursor = (isAdmin && !isMe) ? 'pointer' : 'default';
-        const clickableClass = (isAdmin && !isMe) ? 'clickable' : '';
+        let roleBadge = '';
+        if (uIsAdmin) {
+            roleBadge = `<span style="font-size: 10px; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; margin-left: 6px; color: #475569;">Admin</span>`;
+        }
+        
+        const clickHandler = (removeBtn !== '') ? `onclick="toggleMemberAction(event, ${u.id})"` : '';
+        const cursor = (removeBtn !== '') ? 'pointer' : 'default';
+        const clickableClass = (removeBtn !== '') ? 'clickable' : '';
         
         return `<div class="sidebar-member-item ${clickableClass}" style="cursor: ${cursor}; position: relative;" ${clickHandler}>
             <div class="header-avatar-wrap">
@@ -2884,7 +2906,7 @@ function renderGroupSidebarMembers() {
                 ${statusHtml}
             </div>
             <div class="sidebar-member-info">
-                <div class="sidebar-member-name">${displayLabel}</div>
+                <div class="sidebar-member-name">${displayLabel}${roleBadge}</div>
                 <div class="sidebar-member-role">${escapeHtml(u.designation || '')}</div>
             </div>
             ${removeBtn}
@@ -3010,6 +3032,30 @@ async function removeGroupMember(userId) {
     } else {
         await openConversation(Chat.activeId);
     }
+}
+
+async function promoteGroupAdmin(userId) {
+    if (!Chat.activeId) return;
+    if (!confirm('Make this user an admin?')) return;
+    const res = await chatApi('promoteAdmin', { method: 'POST', body: { conversation_id: Chat.activeId, user_id: userId } });
+    if (!res.success) {
+        toast(res.error || 'Failed to promote member');
+        return;
+    }
+    toast('Member promoted to admin');
+    await openConversation(Chat.activeId);
+}
+
+async function demoteGroupAdmin(userId) {
+    if (!Chat.activeId) return;
+    if (!confirm('Dismiss this user as admin?')) return;
+    const res = await chatApi('demoteAdmin', { method: 'POST', body: { conversation_id: Chat.activeId, user_id: userId } });
+    if (!res.success) {
+        toast(res.error || 'Failed to demote admin');
+        return;
+    }
+    toast('Admin dismissed');
+    await openConversation(Chat.activeId);
 }
 
 /* ── Mentions ── */

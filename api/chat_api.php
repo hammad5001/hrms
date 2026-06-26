@@ -285,7 +285,7 @@ switch ($action) {
 
         $parts = $conn->prepare("
             SELECT u.id, u.full_name, u.email, u.employee_code, u.department, u.designation,
-                   u.portal_role, u.chat_avatar
+                   u.portal_role, u.chat_avatar, p.is_admin
             FROM chat_participants p
             INNER JOIN users u ON u.id = p.user_id
             WHERE p.conversation_id = ?
@@ -295,7 +295,9 @@ switch ($action) {
         $participants = [];
         $pr = $parts->get_result();
         while ($p = $pr->fetch_assoc()) {
-            $participants[] = chat_format_user($p);
+            $formatted = chat_format_user($p);
+            $formatted['is_admin'] = (bool)($p['is_admin'] ?? 0);
+            $participants[] = $formatted;
         }
 
         $convStmt = $conn->prepare('SELECT id, type, title, avatar_color, created_by FROM chat_conversations WHERE id = ?');
@@ -479,12 +481,17 @@ switch ($action) {
         if (!$cid || !$userId) {
             chat_json(false, null, 'Invalid request');
         }
-        $chk = $conn->prepare("SELECT type, created_by FROM chat_conversations WHERE id = ?");
-        $chk->bind_param('i', $cid);
+        $chk = $conn->prepare("
+            SELECT c.type, c.created_by, p.is_admin 
+            FROM chat_conversations c 
+            LEFT JOIN chat_participants p ON p.conversation_id = c.id AND p.user_id = ? 
+            WHERE c.id = ?
+        ");
+        $chk->bind_param('ii', $me_id, $cid);
         $chk->execute();
         $conv = $chk->get_result()->fetch_assoc();
-        if (!$conv || $conv['type'] !== 'group' || (int)$conv['created_by'] !== $me_id) {
-            chat_json(false, null, 'Only the group creator can add members');
+        if (!$conv || $conv['type'] !== 'group' || ((int)$conv['created_by'] !== $me_id && !(int)$conv['is_admin'])) {
+            chat_json(false, null, 'Only the group creator or admins can add members');
         }
         $uChk = $conn->prepare("SELECT full_name FROM users WHERE id = ?");
         $uChk->bind_param('i', $userId);
@@ -523,15 +530,23 @@ switch ($action) {
         if (!$cid || !$userId) {
             chat_json(false, null, 'Invalid request');
         }
-        $chk = $conn->prepare("SELECT type, created_by FROM chat_conversations WHERE id = ?");
-        $chk->bind_param('i', $cid);
+        $chk = $conn->prepare("
+            SELECT c.type, c.created_by, p.is_admin 
+            FROM chat_conversations c 
+            LEFT JOIN chat_participants p ON p.conversation_id = c.id AND p.user_id = ? 
+            WHERE c.id = ?
+        ");
+        $chk->bind_param('ii', $me_id, $cid);
         $chk->execute();
         $conv = $chk->get_result()->fetch_assoc();
         if (!$conv || $conv['type'] !== 'group') {
             chat_json(false, null, 'Not a group chat');
         }
-        if ((int)$conv['created_by'] !== $me_id && $userId !== $me_id) {
-            chat_json(false, null, 'Only the group creator can remove members');
+        $isCreator = ((int)$conv['created_by'] === $me_id);
+        $isAdmin = ((int)$conv['is_admin'] === 1);
+        
+        if (!$isCreator && !$isAdmin && $userId !== $me_id) {
+            chat_json(false, null, 'Only admins or the creator can remove members');
         }
         if ((int)$conv['created_by'] === $userId) {
             chat_json(false, null, 'Group creator cannot be removed');
@@ -559,6 +574,49 @@ switch ($action) {
         
         chat_ws_notify_conversation($conn, $cid, 'group.members_changed', ['action' => 'removed', 'user_id' => $userId]);
         
+        chat_json(true, ['ok' => true]);
+        break;
+
+    case 'promoteAdmin':
+        $cid = (int)($input['conversation_id'] ?? 0);
+        $userId = (int)($input['user_id'] ?? 0);
+        if (!$cid || !$userId) {
+            chat_json(false, null, 'Invalid request');
+        }
+        $chk = $conn->prepare("SELECT c.type, c.created_by, p.is_admin FROM chat_conversations c LEFT JOIN chat_participants p ON p.conversation_id = c.id AND p.user_id = ? WHERE c.id = ?");
+        $chk->bind_param('ii', $me_id, $cid);
+        $chk->execute();
+        $conv = $chk->get_result()->fetch_assoc();
+        if (!$conv || $conv['type'] !== 'group' || ((int)$conv['created_by'] !== $me_id && !(int)$conv['is_admin'])) {
+            chat_json(false, null, 'Only admins or the creator can promote members');
+        }
+        $upd = $conn->prepare("UPDATE chat_participants SET is_admin = 1 WHERE conversation_id = ? AND user_id = ?");
+        $upd->bind_param('ii', $cid, $userId);
+        $upd->execute();
+        chat_ws_notify_conversation($conn, $cid, 'group.admin_changed', ['action' => 'promoted', 'user_id' => $userId]);
+        chat_json(true, ['ok' => true]);
+        break;
+
+    case 'demoteAdmin':
+        $cid = (int)($input['conversation_id'] ?? 0);
+        $userId = (int)($input['user_id'] ?? 0);
+        if (!$cid || !$userId) {
+            chat_json(false, null, 'Invalid request');
+        }
+        $chk = $conn->prepare("SELECT c.type, c.created_by, p.is_admin FROM chat_conversations c LEFT JOIN chat_participants p ON p.conversation_id = c.id AND p.user_id = ? WHERE c.id = ?");
+        $chk->bind_param('ii', $me_id, $cid);
+        $chk->execute();
+        $conv = $chk->get_result()->fetch_assoc();
+        if (!$conv || $conv['type'] !== 'group' || ((int)$conv['created_by'] !== $me_id && !(int)$conv['is_admin'])) {
+            chat_json(false, null, 'Only admins or the creator can demote members');
+        }
+        if ((int)$conv['created_by'] === $userId) {
+            chat_json(false, null, 'Group creator cannot be demoted');
+        }
+        $upd = $conn->prepare("UPDATE chat_participants SET is_admin = 0 WHERE conversation_id = ? AND user_id = ?");
+        $upd->bind_param('ii', $cid, $userId);
+        $upd->execute();
+        chat_ws_notify_conversation($conn, $cid, 'group.admin_changed', ['action' => 'demoted', 'user_id' => $userId]);
         chat_json(true, ['ok' => true]);
         break;
 
