@@ -1484,28 +1484,51 @@
             document.body.insertAdjacentHTML('beforeend', modalHtml);
         }
 
-        function saveRemark(candidateId) {
-            const remark = document.getElementById('newRemark')?.value?.trim();
-            if (!remark) {
-                showToast('Please enter a remark', 'warning');
-                return;
-            }
-            addRemark(candidateId, remark, 'HR Manager');
-            showToast('✅ Remark added successfully', 'success');
-            closeModal();
-            renderDashboard();
+        function showSelectWithRemarksModal(candidateId) {
+            const candidate = candidates.find(c => c.id == candidateId);
+            if (!candidate) return;
+
+            const modalHtml = `
+                <div class="modal-overlay" id="selectRemarksModal">
+                    <div class="modal">
+                        <div class="modal-header">
+                            <i class="fas fa-check-circle" style="color: var(--secondary); font-size: 24px;"></i>
+                            <h3>Select Candidate - ${candidate.fullName}</h3>
+                            <button class="modal-close" onclick="document.getElementById('selectRemarksModal').remove()">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <p style="color: var(--text-muted); margin-bottom: 12px;">Please add your interview remarks before confirming selection.</p>
+                            <textarea id="selectRemarkText" placeholder="Enter interview remarks here..." style="min-height: 100px;"></textarea>
+                        </div>
+                        <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button class="modal-btn modal-btn-cancel" onclick="document.getElementById('selectRemarksModal').remove()">Cancel</button>
+                            <button class="modal-btn" style="background: var(--secondary); color:#fff;" onclick="confirmSelectCandidate(${candidateId})">
+                                <i class="fas fa-check"></i> Confirm &amp; Select
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
         }
 
-        // ==================== HR ACTIONS ====================
-        async function selectCandidate(id) {
+        async function confirmSelectCandidate(id) {
             const candidate = candidates.find(c => c.id == id);
             if (!candidate) return;
-            
-            if (!candidate.remarks || candidate.remarks.length === 0) {
-                showToast('⚠️ Please add interview remarks first using the Remarks button', 'warning');
+
+            const remarkText = document.getElementById('selectRemarkText')?.value?.trim();
+            if (!remarkText) {
+                showToast('⚠️ Please enter interview remarks before selecting', 'warning');
                 return;
             }
-            
+
+            // Save the remark
+            addRemark(id, remarkText, 'HR Manager');
+
+            // Close modal
+            document.getElementById('selectRemarksModal')?.remove();
+
+            // Now mark as selected
             candidate.status = 'selected';
             candidate.hrStatus = 'outcome';
             candidate.hrDate = new Date().toISOString();
@@ -1519,7 +1542,7 @@
                     id: candidate.id,
                     new_stage: 'selected',
                     action: 'hr_select',
-                    remark: 'SELECTED in HR interview — eligible for training',
+                    remark: remarkText,
                     user_role: 'HR Manager'
                 })
             });
@@ -1535,6 +1558,24 @@
             });
             showToast(`✅ ${candidate.fullName} selected — Training portal will pick up for training.`, 'success');
             renderDashboard();
+        }
+
+        function saveRemark(candidateId) {
+            const remark = document.getElementById('newRemark')?.value?.trim();
+            if (!remark) {
+                showToast('Please enter a remark', 'warning');
+                return;
+            }
+            addRemark(candidateId, remark, 'HR Manager');
+            showToast('✅ Remark added successfully', 'success');
+            closeModal();
+            renderDashboard();
+        }
+
+        // ==================== HR ACTIONS ====================
+        async function selectCandidate(id) {
+            // Open remarks-first modal so HR must add remarks before confirming selection
+            showSelectWithRemarksModal(id);
         }
 
         async function markPendingOutcome(id) {
@@ -1910,6 +1951,8 @@
         window.closeModal = closeModal;
         window.selectReason = selectReason;
         window.confirmReject = confirmReject;
+        window.showSelectWithRemarksModal = showSelectWithRemarksModal;
+        window.confirmSelectCandidate = confirmSelectCandidate;
     </script>
     <script src="js/portal-chat-fab.js"></script>
 </body>
