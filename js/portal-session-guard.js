@@ -136,7 +136,7 @@
 
         const page = window.location.pathname.split('/').pop() || '';
         const isWfh = localStorage.getItem('companyBranch') === 'workfromhome';
-        const loginPage = isWfh ? '/interview-forms/workfromhome/index.html' : (apiPrefix + 'index.html');
+        const loginPage = isWfh ? '/workfromhome/index.html' : (apiPrefix + 'index.html');
         window.location.replace(loginPage + '?redirect=' + encodeURIComponent(page));
     }
 

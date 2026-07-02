@@ -43,12 +43,13 @@ class DailyAttendanceTracker:
         print("🔌 Initializing Attendance Tracker - Separate Device Mode...")
 
         self.db_config = {
-    'host': 'localhost',
-    'user': 'hrms_sync',
-    'password': 'Hrms@123',
-    'database': 'balitech',
-    'charset': 'utf8mb4'
-}
+            'host': 'localhost',
+            'user': 'balitech_user',
+            'password': '12344321',
+            'database': 'balitech',
+            'charset': 'utf8mb4'
+        }
+
     # ============================================================
     # DEVICE HELPERS
     # ============================================================

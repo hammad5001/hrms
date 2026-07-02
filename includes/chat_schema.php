@@ -63,22 +63,22 @@ function ensure_chat_schema(mysqli $conn): void {
         @$conn->query($sql);
     }
 
-    @$conn->query("ALTER TABLE `chat_participants` ADD COLUMN `last_active_at` DATETIME DEFAULT NULL");
-    @$conn->query("ALTER TABLE `chat_participants` ADD COLUMN `typing_until` DATETIME DEFAULT NULL");
-    @$conn->query("ALTER TABLE `chat_participants` ADD COLUMN `is_admin` TINYINT(1) NOT NULL DEFAULT 0");
-    @$conn->query("ALTER TABLE `chat_messages` ADD COLUMN `is_edited` TINYINT(1) NOT NULL DEFAULT 0");
-    @$conn->query("ALTER TABLE `chat_messages` ADD COLUMN `is_deleted` TINYINT(1) NOT NULL DEFAULT 0");
-    @$conn->query("ALTER TABLE `chat_messages` ADD COLUMN `edited_at` DATETIME DEFAULT NULL");
+    @$conn->query("ALTER TABLE `chat_participants` ADD COLUMN IF NOT EXISTS `last_active_at` DATETIME DEFAULT NULL");
+    @$conn->query("ALTER TABLE `chat_participants` ADD COLUMN IF NOT EXISTS `typing_until` DATETIME DEFAULT NULL");
+    @$conn->query("ALTER TABLE `chat_participants` ADD COLUMN IF NOT EXISTS `is_admin` TINYINT(1) NOT NULL DEFAULT 0");
+    @$conn->query("ALTER TABLE `chat_messages` ADD COLUMN IF NOT EXISTS `is_edited` TINYINT(1) NOT NULL DEFAULT 0");
+    @$conn->query("ALTER TABLE `chat_messages` ADD COLUMN IF NOT EXISTS `is_deleted` TINYINT(1) NOT NULL DEFAULT 0");
+    @$conn->query("ALTER TABLE `chat_messages` ADD COLUMN IF NOT EXISTS `edited_at` DATETIME DEFAULT NULL");
 
-    @$conn->query("ALTER TABLE `chat_messages` ADD INDEX `idx_conv_id` (`conversation_id`, `id`)");
-    @$conn->query("ALTER TABLE `chat_messages` ADD INDEX `idx_conv_deleted` (`conversation_id`, `is_deleted`, `id`)");
-    @$conn->query("ALTER TABLE `chat_participants` ADD INDEX `idx_user_conv` (`user_id`, `conversation_id`)");
-    @$conn->query("ALTER TABLE `chat_message_receipts` ADD INDEX `idx_msg_read` (`message_id`, `read_at`)");
-    @$conn->query("ALTER TABLE `users` ADD COLUMN `chat_avatar` VARCHAR(255) DEFAULT NULL");
-    @$conn->query("ALTER TABLE `users` ADD COLUMN `team` VARCHAR(80) DEFAULT NULL");
-    @$conn->query("ALTER TABLE `users` ADD COLUMN `branch` VARCHAR(80) DEFAULT NULL");
-    @$conn->query("ALTER TABLE `users` ADD COLUMN `joined_date` DATE DEFAULT NULL");
-    @$conn->query("ALTER TABLE `chat_participants` ADD COLUMN `participant_status` ENUM('active','pending','declined') NOT NULL DEFAULT 'active'");
+    @$conn->query("ALTER TABLE `chat_messages` ADD INDEX IF NOT EXISTS `idx_conv_id` (`conversation_id`, `id`)");
+    @$conn->query("ALTER TABLE `chat_messages` ADD INDEX IF NOT EXISTS `idx_conv_deleted` (`conversation_id`, `is_deleted`, `id`)");
+    @$conn->query("ALTER TABLE `chat_participants` ADD INDEX IF NOT EXISTS `idx_user_conv` (`user_id`, `conversation_id`)");
+    @$conn->query("ALTER TABLE `chat_message_receipts` ADD INDEX IF NOT EXISTS `idx_msg_read` (`message_id`, `read_at`)");
+    @$conn->query("ALTER TABLE `users` ADD COLUMN IF NOT EXISTS `chat_avatar` VARCHAR(255) DEFAULT NULL");
+    @$conn->query("ALTER TABLE `users` ADD COLUMN IF NOT EXISTS `team` VARCHAR(80) DEFAULT NULL");
+    @$conn->query("ALTER TABLE `users` ADD COLUMN IF NOT EXISTS `branch` VARCHAR(80) DEFAULT NULL");
+    @$conn->query("ALTER TABLE `users` ADD COLUMN IF NOT EXISTS `joined_date` DATE DEFAULT NULL");
+    @$conn->query("ALTER TABLE `chat_participants` ADD COLUMN IF NOT EXISTS `participant_status` ENUM('active','pending','declined') NOT NULL DEFAULT 'active'");
 
     @$conn->query("CREATE TABLE IF NOT EXISTS `chat_blocks` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,

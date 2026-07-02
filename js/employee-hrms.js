@@ -464,7 +464,7 @@ function renderProfilePage(data) {
     const qrContainer = document.getElementById('profileQrCode');
     if (qrContainer && u.employee_code && typeof QRCode !== 'undefined') {
         qrContainer.innerHTML = '';
-        const qrUrl = window.location.origin + '/interview-forms/verify.php?code=' + encodeURIComponent(u.employee_code);
+        const qrUrl = window.location.origin + '/verify.php?code=' + encodeURIComponent(u.employee_code);
         
         new QRCode(qrContainer, {
             text: qrUrl,
