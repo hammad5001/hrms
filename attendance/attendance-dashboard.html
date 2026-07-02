@@ -1671,6 +1671,11 @@
         function showToast(msg, type = 'success') { const c = document.getElementById('toastContainer'); const t = document.createElement('div'); t.className = 'toast show'; t.style.borderLeftColor = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#f59e0b'; t.innerHTML = `<div><i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}" style="color:${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#f59e0b'}"></i></div><div><strong>${type === 'success' ? 'Success' : type === 'error' ? 'Error' : 'Info'}</strong><div style="font-size:12px;">${msg}</div></div>`; c.appendChild(t); setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3000); }
         window.onclick = function(e) { if (e.target.classList.contains('modal')) e.target.classList.remove('active'); }
         async function loadWFHLocations() {
+            const branch = localStorage.getItem('companyBranch') || 'main';
+            if (branch !== 'workfromhome') {
+                document.getElementById('wfhMapSection').style.display = 'none';
+                return;
+            }
             try {
                 const response = await fetch('api/get_wfh_locations.php');
                 const data = await response.json();
