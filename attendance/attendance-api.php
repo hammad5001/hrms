@@ -537,21 +537,20 @@ switch ($action) {
         while ($current <= $end_date) {
             $windows = getShiftWindows($current);
             
-            // IMPORTANT FIX: Get check-ins for THIS date (2PM to midnight)
-            $checkin_result = $conn->query("
+            // Get all punches for this shift date window (2PM to next day 12PM)
+            $punches_result = $conn->query("
                 SELECT timestamp FROM " . TABLE_ATTENDANCE . " 
                 WHERE user_id = '$emp_code' 
-                AND timestamp BETWEEN '{$windows['checkin_start']}' AND '{$windows['checkin_end']}'
-                ORDER BY timestamp LIMIT 1
+                AND timestamp BETWEEN '{$windows['checkin_start']}' AND '{$windows['checkout_end']}'
+                ORDER BY timestamp ASC
             ");
             
-            // IMPORTANT FIX: Get check-outs for THIS date's shift (from next day midnight to noon)
-            $checkout_result = $conn->query("
-                SELECT timestamp FROM " . TABLE_ATTENDANCE . " 
-                WHERE user_id = '$emp_code' 
-                AND timestamp BETWEEN '{$windows['checkout_start']}' AND '{$windows['checkout_end']}'
-                ORDER BY timestamp DESC LIMIT 1
-            ");
+            $punches = [];
+            if ($punches_result && $punches_result->num_rows > 0) {
+                while ($p = $punches_result->fetch_assoc()) {
+                    $punches[] = $p['timestamp'];
+                }
+            }
 
             $first_in = null;
             $last_out = null;
@@ -560,11 +559,10 @@ switch ($action) {
             $working_hours = 0;
             $has_check_out = false;
 
-            if ($checkin_result && $checkin_result->num_rows > 0) {
-                $row = $checkin_result->fetch_assoc();
-                $first_in = $row['timestamp'];
-                
+            if (count($punches) > 0) {
+                $first_in = $punches[0];
                 $summary['present']++;
+                
                 list($is_late, $minutes) = isLate($first_in, $current, $csv_emp['team'] ?? $employee['team'] ?? '');
                 if ($is_late) {
                     $status = 'late';
@@ -573,12 +571,11 @@ switch ($action) {
                 } else {
                     $status = 'present';
                 }
-            }
 
-            if ($checkout_result && $checkout_result->num_rows > 0) {
-                $row = $checkout_result->fetch_assoc();
-                $last_out = $row['timestamp'];
-                $has_check_out = true;
+                if (count($punches) >= 2) {
+                    $last_out = $punches[count($punches) - 1];
+                    $has_check_out = true;
+                }
             }
 
             if ($first_in && $last_out) {
