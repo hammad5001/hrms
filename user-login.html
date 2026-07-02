@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balitech · Portal Access</title>
+    <title>Balitech - Portal Access</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
@@ -474,7 +474,8 @@
             'floor_manager': { url: 'employee-portal.html', name: 'Floor Manager', icon: 'fa-users' },
             'data_entry': { url: 'reception-portal.html', name: 'Data Entry', icon: 'fa-keyboard' },
             'dialer': { url: 'employee-portal.html', name: 'Dialer', icon: 'fa-phone' },
-            'developer': { url: 'employee-portal.html', name: 'Developer', icon: 'fa-code' }
+            'developer': { url: 'employee-portal.html', name: 'Developer', icon: 'fa-code' },
+            'finance': { url: 'admin-dashboard.html', name: 'Finance', icon: 'fa-file-invoice-dollar' }
         };
 
         // ==================== UTILITY FUNCTIONS ====================
@@ -662,11 +663,11 @@
                 const portal = PORTAL_MAPPING[d.portal_role];
                 const currentPage = window.location.pathname.split('/').pop();
                 if (portal && portal.url !== currentPage) {
-                    showToast(`Welcome back! Opening ${portal.name}…`, 'info');
+                    showToast(`Welcome back! Opening ${portal.name}...`, 'info');
                     setTimeout(() => { window.location.href = portal.url; }, 600);
                 }
             } catch (e) {
-                /* ignore — user will log in manually */
+                /* ignore - user will log in manually */
             }
         }
 

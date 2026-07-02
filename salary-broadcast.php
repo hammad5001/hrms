@@ -1,6 +1,6 @@
 <?php
 session_start();
-if (!isset($_SESSION['user_id']) || $_SESSION['portal_role'] !== 'super_admin') {
+if (!isset($_SESSION['user_id']) || ($_SESSION['portal_role'] !== 'super_admin' && $_SESSION['portal_role'] !== 'finance')) {
     header('Location: index.html');
     exit;
 }
@@ -458,8 +458,14 @@ if (!isset($_SESSION['user_id']) || $_SESSION['portal_role'] !== 'super_admin') 
                 // Read rows, skipping headers as needed, but let's assume row 1 is header
                 const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
                 
-                // Filter out empty rows
-                parsedData = rawData.filter(row => row['Employee Name'] || row['Biometric ID'] || row['Sr. No']);
+                // Filter out empty rows flexibly (accommodate 'B ID', trailing spaces, etc.)
+                parsedData = rawData.filter(row => {
+                    return Object.keys(row).some(k => {
+                        const kl = k.trim().toLowerCase();
+                        const val = String(row[k]).trim();
+                        return (kl.includes('name') || kl.includes('id') || kl.includes('sr')) && val !== "";
+                    });
+                });
                 
                 renderPreview(parsedData);
             };

@@ -30,7 +30,7 @@
                 data = JSON.parse(text);
             } catch (parseErr) {
                 console.error('Voice API non-JSON response:', text.slice(0, 300));
-                return { ok: false, error: 'Server error — log in again or contact admin' };
+                return { ok: false, error: 'Server error - log in again or contact admin' };
             }
             if (!data.success) {
                 console.error('Voice queue failed:', data.error);
@@ -39,7 +39,7 @@
             return { ok: true, id: data.data?.id };
         } catch (e) {
             console.error('Voice queue network error:', e);
-            return { ok: false, error: 'Network error — is Apache/MySQL running?' };
+            return { ok: false, error: 'Network error - is Apache/MySQL running?' };
         }
     }
 

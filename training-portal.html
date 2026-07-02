@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balitech · Training Portal</title>
+    <title>Balitech - Training Portal</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
@@ -930,7 +930,7 @@
             <div class="top-header">
                 <div class="page-title">
                     <h1><i class="fas fa-chalkboard-teacher"></i> Training Portal</h1>
-                    <p><i class="fas fa-circle" style="color:var(--secondary);font-size:8px;"></i> Live · New hire training management & progress tracking</p>
+                    <p><i class="fas fa-circle" style="color:var(--secondary);font-size:8px;"></i> Live - New hire training management & progress tracking</p>
                 </div>
                 <div class="header-actions">
                     <div style="display:flex;align-items:center;gap:8px;padding:8px 16px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:40px;font-size:12px;color:var(--secondary);font-weight:600;">
@@ -1160,7 +1160,7 @@
 
                 let actions = '';
                 if (status === 'pending') {
-                    actions = `<button class="btn btn-start" onclick="startTraining(${c.id})"><i class="fas fa-play"></i> Appeared — Start Training</button>
+                    actions = `<button class="btn btn-start" onclick="startTraining(${c.id})"><i class="fas fa-play"></i> Appeared - Start Training</button>
                                <button class="btn btn-warning" onclick="markTrainingNoShow(${c.id})"><i class="fas fa-user-slash"></i> Not Appeared</button>
                                <button class="btn btn-secondary" onclick="showDetails(${c.id})"><i class="fas fa-eye"></i> Details</button>`;
                 } else if (status === 'in-progress') {
@@ -1244,7 +1244,7 @@
             if (['selected', 'pending', 'hr_passed', 'gm_passed'].includes(c.status)) {
                 await trainingStageUpdate(c, 'hired', 'training_eligible', 'Selected for training after interview');
             }
-            await trainingStageUpdate(c, 'training', 'training_start', 'Appeared at training — session started');
+            await trainingStageUpdate(c, 'training', 'training_start', 'Appeared at training - session started');
             
             showToast(`🚀 Training started for ${c.fullName}`, 'success');
             logActivity(`Started training: ${c.fullName}`, 'primary');

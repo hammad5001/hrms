@@ -50,37 +50,43 @@ function send_salary_slip_email($to_email, $employee_name, $month, $year, $salar
 
     $subject = "Your Salary Slip for $month $year";
     
-    // Require PHPMailer classes manually since we aren't using Composer
-    require_once __DIR__ . '/PHPMailer/PHPMailer-6.9.1/src/Exception.php';
-    require_once __DIR__ . '/PHPMailer/PHPMailer-6.9.1/src/PHPMailer.php';
-    require_once __DIR__ . '/PHPMailer/PHPMailer-6.9.1/src/SMTP.php';
+    // Check if PHPMailer is available, otherwise use native mail()
+    $phpmailer_exception = __DIR__ . '/PHPMailer/PHPMailer-6.9.1/src/Exception.php';
+    if (file_exists($phpmailer_exception)) {
+        require_once $phpmailer_exception;
+        require_once __DIR__ . '/PHPMailer/PHPMailer-6.9.1/src/PHPMailer.php';
+        require_once __DIR__ . '/PHPMailer/PHPMailer-6.9.1/src/SMTP.php';
 
-    $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+        $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
 
-    try {
-        // --- SMTP CONFIGURATION ---
-        $mail->isSMTP();
-        
-        // Replace these with your actual physical server or email provider's SMTP details
-        $mail->Host       = 'smtp.yourdomain.com';      // Set the SMTP server to send through
-        $mail->SMTPAuth   = true;                       // Enable SMTP authentication
-        $mail->Username   = 'hr@yourdomain.com';        // SMTP username
-        $mail->Password   = 'your_email_password';      // SMTP password
-        $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS; // Enable TLS encryption (or ENCRYPTION_SMTPS for SSL)
-        $mail->Port       = 587;                        // TCP port to connect to (465 for SSL)
+        try {
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.yourdomain.com'; // TODO: Update to real SMTP
+            $mail->SMTPAuth   = true;
+            $mail->Username   = 'hr@yourdomain.com';
+            $mail->Password   = 'your_email_password';
+            $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = 587;
 
-        // --- SENDER & RECIPIENT ---
-        $mail->setFrom('hr@yourdomain.com', 'Balitech HR');
-        $mail->addAddress($to_email, $employee_name);
+            $mail->setFrom('hr@yourdomain.com', 'Balitech HR');
+            $mail->addAddress($to_email, $employee_name);
+            
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body    = $html;
+            
+            return $mail->send();
+        } catch (Exception $e) {
+            error_log("Message could not be sent via PHPMailer. Mailer Error: {$mail->ErrorInfo}");
+            return false;
+        }
+    } else {
+        // Fallback to native PHP mail() if PHPMailer is not installed
+        $headers = "MIME-Version: 1.0\r\n";
+        $headers .= "Content-type:text/html;charset=UTF-8\r\n";
+        $headers .= "From: Balitech HR <hr@yourdomain.com>\r\n";
         
-        $mail->isHTML(true);
-        $mail->Subject = $subject;
-        $mail->Body    = $html;
-        
-        return $mail->send();
-    } catch (Exception $e) {
-        error_log("Message could not be sent. Mailer Error: {$mail->ErrorInfo}");
-        return false;
+        return mail($to_email, $subject, $html, $headers);
     }
 }
 ?>

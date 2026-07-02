@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `email` VARCHAR(150) NOT NULL UNIQUE,
     `username` VARCHAR(80) UNIQUE,
     `password_hash` VARCHAR(255) NOT NULL,
-    `portal_role` ENUM('admin','hr','recruiter','management','training','agent','receptionist','user','analytics','attendance') NOT NULL DEFAULT 'user',
+    `portal_role` ENUM('admin','hr','recruiter','management','training','agent','receptionist','user','analytics','attendance','qa') NOT NULL DEFAULT 'user',
     `employee_code` VARCHAR(20),
     `phone` VARCHAR(20),
     `department` VARCHAR(80),

@@ -7,6 +7,7 @@ define('COMPANY_BRANCHES', [
     'v2'         => ['label' => '2.0 Branch',        'short' => '2.0',        'color' => '#3b82f6'],
     'v3'         => ['label' => '3.0 Branch',        'short' => '3.0',        'color' => '#8b5cf6'],
     'commercial' => ['label' => 'Commercial Branch', 'short' => 'Commercial', 'color' => '#10b981'],
+    'workfromhome' => ['label' => 'Work From Home',  'short' => 'WFH',        'color' => '#ea580c'],
 ]);
 
 function company_branch_keys(): array {
@@ -34,6 +35,7 @@ function normalize_company_branch(?string $input): string {
         '2.0' => 'v2', '2' => 'v2', 'v2' => 'v2', 'branch 2.0' => 'v2',
         '3.0' => 'v3', '3' => 'v3', 'v3' => 'v3', 'branch 3.0' => 'v3',
         'commercial' => 'commercial', 'commercial branch' => 'commercial',
+        'workfromhome' => 'workfromhome', 'wfh' => 'workfromhome',
     ];
     return $map[$input] ?? (is_valid_company_branch($input) ? $input : 'main');
 }
@@ -67,13 +69,25 @@ function get_active_company_branch(): string {
     return is_valid_company_branch($b) ? $b : 'main';
 }
 
-/** Only Super Admin may sign in from any company branch. */
+/** Only Super Admin may sign in from any company branch. WFH branch users are isolated to WFH portal. */
 function user_can_access_branch(?string $user_branch, string $selected_branch, ?string $portal_role = null): bool {
-    if ($portal_role === 'super_admin') {
+    if ($portal_role === 'super_admin' || $portal_role === 'finance') {
         return true;
     }
     $user_branch = normalize_company_branch($user_branch ?: 'main');
-    return $user_branch === normalize_company_branch($selected_branch);
+    $selected_branch = normalize_company_branch($selected_branch);
+    
+    // If selected branch is workfromhome, the user's account must also be workfromhome
+    if ($selected_branch === 'workfromhome') {
+        return $user_branch === 'workfromhome';
+    }
+    
+    // WFH account is not allowed to access standard branches
+    if ($user_branch === 'workfromhome') {
+        return $selected_branch === 'workfromhome';
+    }
+    
+    return $user_branch === $selected_branch;
 }
 
 /** User-facing message when login branch does not match the account. */

@@ -61,6 +61,7 @@ if ($result->num_rows === 1) {
         $_SESSION['full_name']       = $user['full_name'];
         $_SESSION['portal_role']     = $portal_role;
         $_SESSION['email']           = $user['email'];
+        $_SESSION['employee_code']   = $user['employee_code'] ?? '';
         $_SESSION['recruiter_type']  = $user['recruiter_type'] ?? 'regular';
         $_SESSION['company_branch']  = $session_branch;
         $_SESSION['user_branch']     = $account_branch;
@@ -169,6 +170,7 @@ if (isset($hardcoded[$email]) && $password === $hardcoded[$email]['password']) {
     $_SESSION['full_name']      = $db_user['full_name'] ?? $hardcoded[$email]['name'];
     $_SESSION['portal_role']    = $hardcoded[$email]['role'];
     $_SESSION['email']          = $email;
+    $_SESSION['employee_code']  = $db_user['employee_code'] ?? '';
     $_SESSION['recruiter_type'] = 'regular';
     $_SESSION['company_branch'] = $branch_input;
     $_SESSION['user_branch']    = $hardcoded[$email]['branch'];

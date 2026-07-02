@@ -1,5 +1,5 @@
 /**
- * Floating Chat button — Employee Self Service portal only (opens in-page chat view).
+ * Floating Chat button - Employee Self Service portal only (opens in-page chat view).
  */
 (function () {
     if (document.getElementById('portalChatFab')) return;

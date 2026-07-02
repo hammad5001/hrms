@@ -13,7 +13,7 @@ $input = json_decode(file_get_contents('php://input'), true) ?: [];
 $portal_url = trim((string)($input['portal_url'] ?? ''));
 
 $role = $_SESSION['portal_role'] ?? '';
-$is_admin = ($role === 'admin' || $role === 'super_admin');
+$is_admin = ($role === 'admin' || $role === 'super_admin' || $role === 'finance');
 $is_super = ($role === 'super_admin');
 
 if (!$is_admin) {

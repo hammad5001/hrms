@@ -81,7 +81,7 @@ function renderLeaveTypeSelects() {
         const options = leaveTypeOptionsForContext(ctx);
         const prev = sel.value;
         if (!options.length) {
-            sel.innerHTML = '<option value="">Loading…</option>';
+            sel.innerHTML = '<option value="">Loading...</option>';
             return;
         }
         const groups = { balance: [], holiday: [] };
@@ -127,7 +127,7 @@ async function apiPost(url, body) {
     catch { return { success: false, error: 'Server returned invalid response' }; }
 }
 
-function setText(id, value, fallback = '—') {
+function setText(id, value, fallback = '-') {
     const el = document.getElementById(id);
     if (!el) return;
     el.textContent = (value != null && String(value).trim() !== '') ? value : fallback;
@@ -142,19 +142,19 @@ function toast(msg, type = 'success') {
 }
 
 function formatMoney(n) {
-    if (n == null || n === '') return '—';
+    if (n == null || n === '') return '-';
     return 'Rs ' + Number(n).toLocaleString('en-PK', { maximumFractionDigits: 0 });
 }
 
 function formatDate(d) {
-    if (!d) return '—';
+    if (!d) return '-';
     return new Date(d + 'T00:00:00').toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function formatTime(ts) {
-    if (!ts) return '—';
+    if (!ts) return '-';
     const d = parseAttendanceTs(ts);
-    if (!d) return '—';
+    if (!d) return '-';
     return d.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' });
 }
 
@@ -239,8 +239,8 @@ function formatTimerDisplay(totalSecs) {
 }
 
 /**
- * Duty timer: first punch-in time (from machine fetch) → server now while on duty,
- * or → check-out punch when shift ended. Example: in 6:27 PM, now 6:40 PM = 13 min.
+ * Duty timer: first punch-in time (from machine fetch) -> server now while on duty,
+ * or -> check-out punch when shift ended. Example: in 6:27 PM, now 6:40 PM = 13 min.
  */
 function dutyElapsedSeconds(duty) {
     duty = duty || HRMS.todayDuty;
@@ -337,12 +337,12 @@ function portalRoleLabel(role) {
 
 function splitFullName(name) {
     const parts = (name || '').trim().split(/\s+/).filter(Boolean);
-    if (!parts.length) return { first: '—', last: '—' };
-    return { first: parts[0], last: parts.slice(1).join(' ') || '—' };
+    if (!parts.length) return { first: '-', last: '-' };
+    return { first: parts[0], last: parts.slice(1).join(' ') || '-' };
 }
 
 function formatJoinedDate(d) {
-    if (!d) return '—';
+    if (!d) return '-';
     const dt = new Date(d + (String(d).includes('T') ? '' : 'T12:00:00'));
     if (Number.isNaN(dt.getTime())) return d;
     return dt.toLocaleDateString('en-PK', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -351,8 +351,8 @@ function formatJoinedDate(d) {
 function setProfileInput(id, value, fallback = '') {
     const el = document.getElementById(id);
     if (!el) return;
-    if (fallback === '—' && (value == null || String(value).trim() === '')) {
-        el.value = '—';
+    if (fallback === '-' && (value == null || String(value).trim() === '')) {
+        el.value = '-';
         return;
     }
     el.value = (value != null && String(value).trim() !== '') ? value : fallback;
@@ -371,7 +371,7 @@ function setProfileSelect(id, value) {
 }
 
 function formatDateTime(ts) {
-    if (!ts) return '—';
+    if (!ts) return '-';
     const d = new Date(String(ts).replace(' ', 'T'));
     if (Number.isNaN(d.getTime())) return ts;
     return d.toLocaleString('en-PK', {
@@ -402,11 +402,11 @@ function renderProfilePage(data) {
     const names = splitFullName(u.full_name);
     const manager = HRMS.reporting?.reporting_to;
     const managerLabel = manager
-        ? [manager.full_name, manager.employee_code ? `(ID ${manager.employee_code})` : '', manager.role_label].filter(Boolean).join(' · ')
-        : 'Not assigned — contact your team lead or HR';
+        ? [manager.full_name, manager.employee_code ? `(ID ${manager.employee_code})` : '', manager.role_label].filter(Boolean).join('  ·  ')
+        : 'Not assigned - contact your team lead or HR';
 
     setText('profilePageName', u.full_name || 'Employee');
-    setText('profilePageRole', [portalRoleLabel(pr), u.designation].filter(Boolean).join(' · '));
+    setText('profilePageRole', [portalRoleLabel(pr), u.designation].filter(Boolean).join('  ·  '));
     setText('profilePageBid', u.employee_code || 'No ID');
     const statusEl = document.getElementById('profilePageStatus');
     if (statusEl) {
@@ -426,8 +426,8 @@ function renderProfilePage(data) {
     setProfileInput('pfDesignation', u.designation);
     setProfileInput('pfEmpStatus', (u.status || 'active') === 'active' ? 'Active' : 'Inactive');
     setProfileInput('pfJoined', formatJoinedDate(u.joined_date));
-    setProfileInput('pfBidSource', data.meta?.resolution_label || '—', '—');
-    setProfileInput('pfManager', managerLabel, '—');
+    setProfileInput('pfBidSource', data.meta?.resolution_label || '-', '-');
+    setProfileInput('pfManager', managerLabel, '-');
 
     const linkNote = document.getElementById('pfManagerLinkNote');
     const goBtn = document.getElementById('btnGoManageReportees');
@@ -448,16 +448,59 @@ function renderProfilePage(data) {
     setProfileInput('pfPersonalEmail', pd.personal_email || '');
     setProfileTextarea('pfPresentAddr', pd.present_address || '');
     setProfileTextarea('pfPermanentAddr', pd.permanent_address || '');
-    setProfileInput('pfAddedBy', pd.added_by_name || u.full_name || '—', '—');
-    setProfileInput('pfModifiedBy', pd.modified_by_name || '—', '—');
-    setProfileInput('pfAddedTime', formatDateTime(pd.created_at), '—');
-    setProfileInput('pfModifiedTime', formatDateTime(pd.updated_at), '—');
+    setProfileInput('pfAddedBy', pd.added_by_name || u.full_name || '-', '-');
+    setProfileInput('pfModifiedBy', pd.modified_by_name || '-', '-');
+    setProfileInput('pfAddedTime', formatDateTime(pd.created_at), '-');
+    setProfileInput('pfModifiedTime', formatDateTime(pd.updated_at), '-');
 
     const note = document.getElementById('pfManagerLinkNote');
     if (note) note.classList.remove('hidden');
 
     const avUrl = avatarUrlFromUser(u);
+    
     applyAvatarToEl(document.getElementById('profilePageAvatar'), avUrl, u.full_name);
+
+    // Generate Verification QR Code
+    const qrContainer = document.getElementById('profileQrCode');
+    if (qrContainer && u.employee_code && typeof QRCode !== 'undefined') {
+        qrContainer.innerHTML = '';
+        const qrUrl = window.location.origin + '/interview-forms/verify.php?code=' + encodeURIComponent(u.employee_code);
+        
+        new QRCode(qrContainer, {
+            text: qrUrl,
+            width: 180,
+            height: 180,
+            colorDark : "#0f172a",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+        
+        const dlBtn = document.getElementById('btnDownloadQr');
+        if (dlBtn) {
+            dlBtn.onclick = function() {
+                const canvas = qrContainer.querySelector('canvas');
+                const img = qrContainer.querySelector('img');
+                let src = '';
+                if (canvas) {
+                    src = canvas.toDataURL("image/png");
+                } else if (img) {
+                    src = img.src;
+                }
+                
+                if (src) {
+                    const a = document.createElement('a');
+                    a.href = src;
+                    a.download = 'Balitech_QR_' + u.employee_code + '.png';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                } else {
+                    alert('QR Code not ready yet.');
+                }
+            };
+        }
+    }
+    
 }
 
 async function saveProfile() {
@@ -472,7 +515,7 @@ async function saveProfile() {
     }
     HRMS.profileDetails = res.profile || HRMS.profileDetails;
     if (HRMS.user && res.phone != null) HRMS.user.phone = res.phone;
-    setText('profPhone', res.phone || payload.personal_mobile || '—');
+    setText('profPhone', res.phone || payload.personal_mobile || '-');
     renderProfilePage({
         user: HRMS.user,
         meta: HRMS.profileMeta,
@@ -492,7 +535,8 @@ function greetingForNow() {
 function ensureChatFrameLoaded() {
     const frame = document.getElementById('essChatFrame');
     if (!frame || frame.dataset.loaded === '1') return;
-    frame.src = 'chat-portal.html?embed=1&v=' + Date.now();
+    const isWfh = (window.location.pathname || '').toLowerCase().includes('/workfromhome/');
+    frame.src = (isWfh ? '../' : '') + 'chat-portal.html?embed=1&v=' + Date.now();
     frame.dataset.loaded = '1';
 }
 
@@ -500,6 +544,7 @@ const ESS_DEFAULT_NAV = {
     dashboard: 'nav-tab-activities',
     attendance: 'nav-tab-attendance',
     performance: 'nav-tab-performance',
+    'performance-analytics': 'nav-tab-performance-analytics',
     salary: 'nav-side-payroll',
     leave: 'nav-tab-leave',
     halfday: 'nav-tab-leave',
@@ -515,7 +560,8 @@ const ESS_DEFAULT_NAV = {
 const ESS_VIEW_TITLES = {
     dashboard: ['Dashboard', 'Employee Self Service overview'],
     attendance: ['Attendance', 'Punch history and weekly summary'],
-    performance: ['Daily Report', 'Submit your full day performance — calls, sales, transfers & attendance'],
+    performance: ['Daily Report', 'Submit your daily transfers'],
+    'performance-analytics': ['My Performance Analytics', 'Track your QA-verified sales metrics and history'],
     salary: ['Payroll', 'Salary, bonus, and compensation details'],
     leave: ['Leaves', 'Balances, applications, and request status'],
     halfday: ['Half Day Leave', 'Apply morning or afternoon half day'],
@@ -524,7 +570,7 @@ const ESS_VIEW_TITLES = {
     reportees: ['My Reporting', 'Your reporting line and team'],
     profile: ['My Profile', 'Your employee record and work information'],
     notifications: ['Notifications', 'Alerts from HR and managers'],
-    chat: ['Workspace Chat', 'Messages with your team — secure internal chat'],
+    chat: ['Workspace Chat', 'Messages with your team - secure internal chat'],
     'coming-soon': ['Coming soon', 'This module is under development'],
 };
 
@@ -627,7 +673,7 @@ function showView(id, navId = null) {
     if (id === 'salary') renderSalary();
 }
 
-/** Night shift: 4 PM shift date → 11 AM next day (duty 6 PM – 4 AM). */
+/** Night shift: 4 PM shift date -> 11 AM next day (duty 6 PM - 4 AM). */
 const ESS_SHIFT = {
     checkinHour: 16,
     shiftStartHour: 18,
@@ -797,12 +843,12 @@ function weekShiftScheduleLabel() {
     const endH = ESS_SHIFT.checkoutEndHour;
     const start = new Date(`2000-01-01T${String(h).padStart(2, '0')}:00:00`).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' });
     const end = new Date(`2000-01-01T${String(endH).padStart(2, '0')}:00:00`).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' });
-    return `Night shift · ${start} – next day ${end}`;
+    return `Night shift  ·  ${start} - next day ${end}`;
 }
 
 function weekTimeRange(st, shiftDateStr) {
-    if (st.status === 'on_leave') return `Approved leave · ${st.leaveType || 'On leave'}`;
-    if (st.status === 'weekend') return 'Weekly off · no shift scheduled';
+    if (st.status === 'on_leave') return `Approved leave  ·  ${st.leaveType || 'On leave'}`;
+    if (st.status === 'weekend') return 'Weekly off  ·  no shift scheduled';
     if (st.status === 'upcoming') return weekShiftScheduleLabel();
     if (st.status === 'absent') return 'No check-in recorded for this shift';
     if (st.checkIn) {
@@ -813,13 +859,13 @@ function weekTimeRange(st, shiftDateStr) {
         } else if (shiftDateStr) {
             const deadline = shiftDeadlineUnix(shiftDateStr);
             const pastClose = deadline && Date.now() >= deadline * 1000;
-            outT = pastClose ? '—' : 'Still on duty';
+            outT = pastClose ? '-' : 'Still on duty';
         } else {
             outT = 'Still on duty';
         }
-        return `${inT}  →  ${outT}`;
+        return `${inT}  ->  ${outT}`;
     }
-    return '—';
+    return '-';
 }
 
 function dayStatus(shiftDateStr) {
@@ -829,8 +875,8 @@ function dayStatus(shiftDateStr) {
             status: 'on_leave',
             label: leaveInfo.half_day ? 'Half leave' : 'On leave',
             leaveType: leaveInfo.label || 'On leave',
-            hours: '—',
-            hoursShort: '—',
+            hours: '-',
+            hoursShort: '-',
             punchCount: 0,
             checkIn: null,
             checkOut: null,
@@ -856,8 +902,8 @@ function dayStatus(shiftDateStr) {
             return {
                 status: 'weekend',
                 label: 'Weekend',
-                hours: '—',
-                hoursShort: '—',
+                hours: '-',
+                hoursShort: '-',
                 punchCount: 0,
                 checkIn: null,
                 checkOut: null,
@@ -896,7 +942,7 @@ function dayStatus(shiftDateStr) {
 }
 
 function formatActivitiesDate(d) {
-    if (!d) return '—';
+    if (!d) return '-';
     const dt = new Date(d + 'T12:00:00');
     const day = String(dt.getDate()).padStart(2, '0');
     const mon = dt.toLocaleDateString('en-GB', { month: 'short' });
@@ -915,7 +961,7 @@ function activitiesStatusLabel(st) {
     if (st?.status === 'on_leave') {
         return st.leaveType || map.on_leave;
     }
-    return map[st?.status] || st?.label || '—';
+    return map[st?.status] || st?.label || '-';
 }
 
 function buildActivitiesDayCell(dateStr) {
@@ -951,7 +997,7 @@ function shiftHoursDisplayLabel() {
         .toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' });
     const end = new Date(`2000-01-01T${String(endH).padStart(2, '0')}:00:00`)
         .toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' });
-    return `${start} – next day ${end}`;
+    return `${start} - next day ${end}`;
 }
 
 function weekAttendanceSummary(dates) {
@@ -980,7 +1026,7 @@ function renderAttendanceWeeklySummary(dates) {
         { key: 'present', label: 'Present', value: s.present, icon: 'fa-circle-check' },
         { key: 'late', label: 'Late', value: s.late, icon: 'fa-clock' },
         { key: 'absent', label: 'Absent', value: s.absent, icon: 'fa-circle-xmark' },
-        { key: 'streak', label: 'Day streak', value: s.streak ? `${s.streak}d` : '—', icon: 'fa-fire' },
+        { key: 'streak', label: 'Day streak', value: s.streak ? `${s.streak}d` : '-', icon: 'fa-fire' },
     ];
     el.innerHTML = chips.map(c => `
         <div class="ess-att-weekly-stat ess-att-weekly-stat--${c.key}">
@@ -1012,7 +1058,7 @@ function buildWeekDayRow(dateStr) {
     const st = dayStatus(dateStr);
     const isToday = dateStr === activeShiftDate();
     const timeRange = weekTimeRange(st, dateStr);
-    const hoursMain = st.hoursShort === '—' ? '—' : st.hoursShort;
+    const hoursMain = st.hoursShort === '-' ? '-' : st.hoursShort;
     const hoursSub = st.status === 'weekend' ? 'Off day' : 'Hrs worked';
 
     return `<article class="ess-week-day ess-week-day--${st.status}${isToday ? ' ess-week-day--today' : ''}">
@@ -1039,7 +1085,7 @@ function renderWeekView(targetId = 'attendanceWeekList') {
     const label = document.getElementById('attWeekLabel');
     const dates = getWeekDates(HRMS.weekOffset);
     if (label && dates.length) {
-        label.textContent = formatDate(dates[0]) + ' – ' + formatDate(dates[6]);
+        label.textContent = formatDate(dates[0]) + ' - ' + formatDate(dates[6]);
     }
     const header = `<div class="ess-week-head">
         <span>Day</span>
@@ -1139,8 +1185,8 @@ function applyTodayStatus(today) {
         dashStatus.className = 'ess-pill ' + st.status;
     }
 
-    setText('dashCheckIn', formatTime(today.check_in), '—');
-    setText('dashCheckOut', today.auto_closed ? '—' : formatTime(today.check_out), '—');
+    setText('dashCheckIn', formatTime(today.check_in), '-');
+    setText('dashCheckOut', today.auto_closed ? '-' : formatTime(today.check_out), '-');
     setText('dashPunchCount', String(today.punch_count ?? 0), '0');
     setTodayDuty(today);
     setText('dashTotalHours', resolveTodayHours(today).toFixed(2) + ' Hrs');
@@ -1156,7 +1202,7 @@ function refreshTodayAttendance(data) {
     applyTodayStatus(data.today || {});
     const today = data.today || {};
     if (today.auto_closed && wasOnDuty) {
-        toast('Shift window ended at 11:00 AM — duty closed automatically.', 'info');
+        toast('Shift window ended at 11:00 AM - duty closed automatically.', 'info');
     }
     renderActivitiesTimeline();
     renderAttendanceWeeklyReport();
@@ -1215,7 +1261,7 @@ function applyProfileData(data) {
     setText('profBranch', u.branch || data.company_branch_label);
     setText('profPhone', u.phone);
     setText('profRole', portalRoleLabel(pr));
-    setText('profBidSource', data.meta?.resolution_label || '—');
+    setText('profBidSource', data.meta?.resolution_label || '-');
 
     renderProfilePage(data);
 
@@ -1236,10 +1282,10 @@ function applyProfileData(data) {
 
     const today = data.today || {};
     applyTodayStatus(today);
-    const dashShiftLabel = ((data.shift && data.shift.label) || 'Night shift (6 PM – 4 AM)')
-        .replace(/\s*·\s*window\s+.+$/i, '')
+    const dashShiftLabel = ((data.shift && data.shift.label) || 'Night shift (6 PM - 4 AM)')
+        .replace(/\s* · \s*window\s+.+$/i, '')
         .trim();
-    setText('dashShift', dashShiftLabel || 'Night shift (6 PM – 4 AM)');
+    setText('dashShift', dashShiftLabel || 'Night shift (6 PM - 4 AM)');
     setText('activitiesShiftHours', shiftHoursDisplayLabel());
 
     if (data.meta && data.meta.employee_code_set === false) {
@@ -1330,8 +1376,8 @@ function renderSalary() {
     setText('salTada', formatMoney(p.tada));
     setText('salAdvance', formatMoney(p.advance_per_month));
     setText('salLeaves', String(p.leaves_this_month ?? 0));
-    setText('salBank', [p.bank_name, p.account_no].filter(Boolean).join(' · ') || '—');
-    setText('salMonth', p.month || '—');
+    setText('salBank', [p.bank_name, p.account_no].filter(Boolean).join('  ·  ') || '-');
+    setText('salMonth', p.month || '-');
 }
 
 function getShiftDatesFromAttendance(days = 30) {
@@ -1361,11 +1407,11 @@ function renderAttendance() {
 
     const rows = shiftDates.map(sd => {
         const st = dayStatus(sd);
-        const hours = st.hoursShort && st.hoursShort !== '—' ? `${st.hoursShort} Hrs` : (st.hours || '00:00 Hrs').replace(' worked', '');
+        const hours = st.hoursShort && st.hoursShort !== '-' ? `${st.hoursShort} Hrs` : (st.hours || '00:00 Hrs').replace(' worked', '');
         return `<tr>
             <td>${escHtml(formatDate(sd))}</td>
-            <td>${st.checkIn ? formatTime(st.checkIn) : '—'}</td>
-            <td>${st.checkOut ? formatTime(st.checkOut) : '—'}</td>
+            <td>${st.checkIn ? formatTime(st.checkIn) : '-'}</td>
+            <td>${st.checkOut ? formatTime(st.checkOut) : '-'}</td>
             <td>${escHtml(hours)}</td>
             <td><span class="ess-pill ${st.status}">${escHtml(dayStatusLabel(st))}</span></td>
         </tr>`;
@@ -1453,7 +1499,7 @@ function renderLeaveBalances() {
     if (!grid) return;
     const items = HRMS.leaveBalances || [];
     if (!items.length) {
-        grid.innerHTML = '<p class="ess-muted-line">Loading leave balances…</p>';
+        grid.innerHTML = '<p class="ess-muted-line">Loading leave balances...</p>';
         return;
     }
     grid.innerHTML = items.map(b => {
@@ -1550,7 +1596,7 @@ function policyAllotmentStatusLabel(status) {
 
 function policyAllotmentActionOptions(row) {
     const status = row.status;
-    const opts = ['<option value="">Choose action…</option>'];
+    const opts = ['<option value="">Choose action...</option>'];
     if (status === 'pending' || status === 'approved') {
         opts.push('<option value="reject">Reject</option>');
     }
@@ -1573,20 +1619,20 @@ function renderPolicyAllotments(items) {
     }
     tbody.innerHTML = items.map(a => {
         const canAct = HRMS.canManageLeavePolicies && (a.status === 'pending' || a.status === 'approved');
-        const empLabel = [a.employee_name, a.employee_code ? `BID ${a.employee_code}` : ''].filter(Boolean).join(' · ');
-        const allottedOn = a.created_at ? formatDateTime(a.created_at) : '—';
+        const empLabel = [a.employee_name, a.employee_code ? `BID ${a.employee_code}` : ''].filter(Boolean).join('  ·  ');
+        const allottedOn = a.created_at ? formatDateTime(a.created_at) : '-';
         const actionCell = canAct
             ? `<select class="ess-approval-action-select ess-policy-allot-action-select" id="policyAllotAction_${a.id}" data-policy-credit-id="${a.id}" aria-label="Action for ${escHtml(a.employee_name || 'employee')}">
                     ${policyAllotmentActionOptions(a)}
                </select>`
-            : '<span class="ess-muted-line">—</span>';
+            : '<span class="ess-muted-line">-</span>';
         return `<tr>
             <td class="ess-policy-allot-date">${escHtml(allottedOn)}</td>
             <td>${escHtml(a.policy_name)}</td>
             <td><span class="ess-policy-code-tag">${escHtml(a.policy_code)}</span></td>
             <td>${escHtml(a.leave_type_label || leaveTypeLabel(a.leave_type))}</td>
             <td>${escHtml(a.credit_label || formatLeaveDays(a.credit_value) + ' days')}</td>
-            <td>${escHtml(empLabel || '—')}</td>
+            <td>${escHtml(empLabel || '-')}</td>
             <td><span class="status-pill ${escHtml(a.status)}">${escHtml(policyAllotmentStatusLabel(a.status))}</span></td>
             <td class="ess-policy-actions-col">${actionCell}</td>
         </tr>`;
@@ -1649,7 +1695,7 @@ function renderPolicyDefEmployeeChips() {
     wrap.innerHTML = list.map(p => `
         <span class="ess-person-chip ess-policy-chip">
             <i class="fas fa-user"></i>
-            <span><strong>${escHtml(p.full_name)}</strong><small>${escHtml([p.employee_code, p.team].filter(Boolean).join(' · '))}</small></span>
+            <span><strong>${escHtml(p.full_name)}</strong><small>${escHtml([p.employee_code, p.team].filter(Boolean).join('  ·  '))}</small></span>
             <button type="button" class="ess-chip-clear" data-id="${p.id}" title="Remove"><i class="fas fa-times"></i></button>
         </span>
     `).join('');
@@ -1801,7 +1847,7 @@ function renderSelectedPerson(chipId, person, onClear) {
         chip.innerHTML = '';
         return;
     }
-    const meta = [person.role_label || person.portal_role, person.designation, person.team].filter(Boolean).join(' · ');
+    const meta = [person.role_label || person.portal_role, person.designation, person.team].filter(Boolean).join('  ·  ');
     chip.classList.remove('hidden');
     chip.innerHTML = `
         <span class="ess-person-chip">
@@ -1854,7 +1900,7 @@ function bindPersonSearch(inputId, resultsId, chipId, action, onSelect, onClear,
                 results.innerHTML = rows.map(p => `
                     <button type="button" class="ess-search-item" data-id="${p.id}">
                         <strong>${escHtml(p.full_name)}</strong>
-                        <small>${escHtml([p.role_label || p.portal_role, p.designation, p.employee_code ? 'ID ' + p.employee_code : ''].filter(Boolean).join(' · '))}</small>
+                        <small>${escHtml([p.role_label || p.portal_role, p.designation, p.employee_code ? 'ID ' + p.employee_code : ''].filter(Boolean).join('  ·  '))}</small>
                     </button>`).join('');
             }
             results.classList.remove('hidden');
@@ -1885,7 +1931,7 @@ function bindPersonSearch(inputId, resultsId, chipId, action, onSelect, onClear,
 function renderManagerCard(manager) {
     if (!manager) return '';
     const code = manager.employee_code ? `<span class="ess-id-badge">${escHtml(manager.employee_code)}</span>` : '';
-    const meta = [manager.role_label, manager.designation, manager.team].filter(Boolean).join(' · ');
+    const meta = [manager.role_label, manager.designation, manager.team].filter(Boolean).join('  ·  ');
     return `<div class="ess-hierarchy-person">
         ${code}
         <strong>${escHtml(manager.full_name || 'Manager')}</strong>
@@ -1895,9 +1941,9 @@ function renderManagerCard(manager) {
 
 function renderDashPersonCard(person) {
     if (!person) return '';
-    const name = person.full_name || '—';
+    const name = person.full_name || '-';
     const code = person.employee_code || '';
-    const meta = [person.role_label, person.designation, person.team].filter(Boolean).join(' · ');
+    const meta = [person.role_label, person.designation, person.team].filter(Boolean).join('  ·  ');
     return `<div class="ess-hierarchy-person-card">
         <span class="ess-hierarchy-person-avatar" aria-hidden="true">${escHtml(initials(name))}</span>
         <div class="ess-hierarchy-person-info">
@@ -1913,8 +1959,8 @@ function renderSidebarReporteesList(reportees) {
         const att = r.attendance || {};
         const st = att.status || 'absent';
         const label = dayStatusLabel({ status: st, label: att.label });
-        const name = r.full_name || '—';
-        const code = r.employee_code || '—';
+        const name = r.full_name || '-';
+        const code = r.employee_code || '-';
         return `<div class="ess-sidebar-reportee-row">
             <span class="ess-sidebar-reportee-name">${escHtml(name)}</span>
             <span class="ess-id-badge">${escHtml(code)}</span>
@@ -1926,7 +1972,7 @@ function renderSidebarReporteesList(reportees) {
 function renderSidebarManagerRow(manager) {
     if (!manager) return '';
     const code = manager.employee_code || '';
-    const meta = [manager.role_label, manager.designation].filter(Boolean).join(' · ');
+    const meta = [manager.role_label, manager.designation].filter(Boolean).join('  ·  ');
     return `<div class="ess-sidebar-manager-row">
         <span class="ess-sidebar-person-avatar" aria-hidden="true">${escHtml(initials(manager.full_name || 'M'))}</span>
         <div class="ess-sidebar-person-details">
@@ -1943,15 +1989,15 @@ function renderReporteesAttendanceRows(reportees, { clickable = false } = {}) {
         const att = r.attendance || {};
         const st = att.status || 'absent';
         const label = dayStatusLabel({ status: st, label: att.label });
-        const name = r.full_name || '—';
-        const code = r.employee_code || '—';
+        const name = r.full_name || '-';
+        const code = r.employee_code || '-';
         const uid = r.user_id || r.employee_code || '';
         const hint = att.check_in
-            ? `${formatTime(att.check_in)}${att.check_out ? ' → ' + formatTime(att.check_out) : (att.on_duty ? ' · on duty' : '')}`
+            ? `${formatTime(att.check_in)}${att.check_out ? ' -> ' + formatTime(att.check_out) : (att.on_duty ? '  ·  on duty' : '')}`
             : '';
         const tag = clickable ? 'button' : 'div';
         const extra = clickable
-            ? ` type="button" class="ess-dash-reportee-row ess-dash-reportee-row--click" data-reportee-id="${escHtml(String(uid))}" title="${escHtml(name)}${hint ? ' · ' + hint : ''}"`
+            ? ` type="button" class="ess-dash-reportee-row ess-dash-reportee-row--click" data-reportee-id="${escHtml(String(uid))}" title="${escHtml(name)}${hint ? '  ·  ' + hint : ''}"`
             : ' class="ess-dash-reportee-row"';
         return `<${tag}${extra}>
             <span class="ess-dash-reportee-name">${escHtml(name)}</span>
@@ -2106,13 +2152,13 @@ function renderReporteeChips(reportees, limit = 0) {
         const att = r.attendance || {};
         const st = att.status || 'absent';
         const label = dayStatusLabel({ status: st, label: att.label });
-        const code = r.employee_code || '—';
-        const name = r.full_name || '—';
+        const code = r.employee_code || '-';
+        const name = r.full_name || '-';
         const uid = r.user_id || r.employee_code || '';
         const hint = st === 'upcoming'
             ? 'Shift not started'
-            : (att.check_in ? `${formatTime(att.check_in)}${att.check_out ? ' → ' + formatTime(att.check_out) : (att.on_duty ? ' · on duty' : '')}` : '');
-        return `<button type="button" class="ess-reportee-chip" data-reportee-id="${escHtml(String(uid))}" title="${escHtml(name)}${hint ? ' · ' + hint : ''}">
+            : (att.check_in ? `${formatTime(att.check_in)}${att.check_out ? ' -> ' + formatTime(att.check_out) : (att.on_duty ? '  ·  on duty' : '')}` : '');
+        return `<button type="button" class="ess-reportee-chip" data-reportee-id="${escHtml(String(uid))}" title="${escHtml(name)}${hint ? '  ·  ' + hint : ''}">
             <span class="ess-reportee-chip-name">${escHtml(name)}</span>
             <span class="ess-id-badge">${escHtml(code)}</span>
             <span class="ess-pill ${st}">${escHtml(label)}</span>
@@ -2133,7 +2179,7 @@ function bindReporteeChipClicks(container) {
 }
 
 function formatPunchList(punches) {
-    if (!punches?.length) return '—';
+    if (!punches?.length) return '-';
     return punches.map(ts => formatTime(ts)).join(', ');
 }
 
@@ -2145,11 +2191,11 @@ function renderReporteeHistoryRows(history) {
         const st = day.status || 'absent';
         const checkOut = day.check_out
             ? formatTime(day.check_out)
-            : (day.on_duty ? 'On duty' : '—');
+            : (day.on_duty ? 'On duty' : '-');
         const hrs = day.working_hours != null ? Number(day.working_hours).toFixed(2) : '0.00';
         return `<tr>
             <td>${formatDate(day.shift_date)}</td>
-            <td>${day.check_in ? formatTime(day.check_in) : '—'}</td>
+            <td>${day.check_in ? formatTime(day.check_in) : '-'}</td>
             <td>${checkOut}</td>
             <td>${hrs} Hrs</td>
             <td>${day.punch_count ?? 0}</td>
@@ -2171,15 +2217,15 @@ function renderReporteeAttendanceDetail(reportee, history, loadingHistory = fals
     const att = reportee.attendance || {};
     const st = att.status || 'absent';
     const label = dayStatusLabel({ status: st, label: att.label });
-    const code = reportee.employee_code || '—';
-    const name = reportee.full_name || '—';
+    const code = reportee.employee_code || '-';
+    const name = reportee.full_name || '-';
     const hours = att.working_hours != null ? Number(att.working_hours).toFixed(2) + ' Hrs' : '0.00 Hrs';
     const checkOut = att.check_out
         ? formatTime(att.check_out)
-        : (att.on_duty ? 'On duty' : '—');
-    const shiftNote = att.shift_date ? `Shift date: ${formatDate(att.shift_date)}` : 'Night shift (5 PM – next day 4 AM)';
+        : (att.on_duty ? 'On duty' : '-');
+    const shiftNote = att.shift_date ? `Shift date: ${formatDate(att.shift_date)}` : 'Night shift (5 PM - next day 4 AM)';
     const historyBody = loadingHistory
-        ? '<tr><td colspan="7">Loading punch history…</td></tr>'
+        ? '<tr><td colspan="7">Loading punch history...</td></tr>'
         : renderReporteeHistoryRows(history);
 
     panel.classList.remove('hidden');
@@ -2187,12 +2233,12 @@ function renderReporteeAttendanceDetail(reportee, history, loadingHistory = fals
         <div class="ess-reportee-att-head">
             <div>
                 <h4>${escHtml(name)}</h4>
-                <p class="ess-muted-line"><span class="ess-id-badge">${escHtml(code)}</span>${reportee.team ? ` · ${escHtml(reportee.team)}` : ''}</p>
+                <p class="ess-muted-line"><span class="ess-id-badge">${escHtml(code)}</span>${reportee.team ? `  ·  ${escHtml(reportee.team)}` : ''}</p>
             </div>
             <span class="ess-pill ${st}">${escHtml(label)}</span>
         </div>
         <div class="ess-reportee-att-grid">
-            <div><span class="lbl">Check In</span><strong>${att.check_in ? formatTime(att.check_in) : '—'}</strong></div>
+            <div><span class="lbl">Check In</span><strong>${att.check_in ? formatTime(att.check_in) : '-'}</strong></div>
             <div><span class="lbl">Check Out</span><strong>${checkOut}</strong></div>
             <div><span class="lbl">Total Hours</span><strong>${hours}</strong></div>
             <div><span class="lbl">Punches</span><strong>${att.punch_count ?? 0}</strong></div>
@@ -2304,11 +2350,11 @@ function renderReporteesTable(rows) {
         const rowId = String(r.user_id || r.employee_code || '');
         const selected = selectedId && rowId === selectedId ? ' ess-reportee-row-selected' : '';
         return `<tr class="ess-reportee-row${selected}" data-reportee-id="${escHtml(rowId)}" tabindex="0" role="button" aria-label="View ${escHtml(r.full_name || '')} attendance">
-            <td><span class="ess-id-badge">${escHtml(r.employee_code || '—')}</span></td>
-            <td><strong>${escHtml(r.full_name || '—')}</strong>${r.team ? `<br><small>${escHtml(r.team)}</small>` : ''}</td>
-            <td>${escHtml(r.team || '—')}</td>
-            <td>${att.check_in ? formatTime(att.check_in) : '—'}</td>
-            <td>${att.check_out ? formatTime(att.check_out) : (att.on_duty ? 'On duty' : '—')}</td>
+            <td><span class="ess-id-badge">${escHtml(r.employee_code || '-')}</span></td>
+            <td><strong>${escHtml(r.full_name || '-')}</strong>${r.team ? `<br><small>${escHtml(r.team)}</small>` : ''}</td>
+            <td>${escHtml(r.team || '-')}</td>
+            <td>${att.check_in ? formatTime(att.check_in) : '-'}</td>
+            <td>${att.check_out ? formatTime(att.check_out) : (att.on_duty ? 'On duty' : '-')}</td>
             <td><span class="ess-pill ${st}">${escHtml(dayStatusLabel({ status: st, label: att.label }))}</span></td>
             <td onclick="event.stopPropagation()">
                 <button type="button" class="ess-btn ess-btn-outline ess-btn-sm ess-reportee-remove-btn" data-remove-id="${escHtml(String(r.user_id))}" title="Remove reportee" style="padding: 2px 8px;">
@@ -2368,7 +2414,7 @@ async function loadReporteesView() {
     }
 
     const tbody = document.getElementById('reporteesTableBody');
-    if (tbody) tbody.innerHTML = '<tr><td colspan="7">Loading team…</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7">Loading team...</td></tr>';
     const res = await apiGet('api/reportees_api.php?action=reportees');
     if (!res.success) {
         if (tbody) tbody.innerHTML = `<tr><td colspan="7">${escHtml(res.error || 'Could not load reportees')}</td></tr>`;
@@ -2452,7 +2498,7 @@ function bindPersonSearchField({
                     return `
                     <button type="button" class="ess-search-item" data-id="${escHtml(String(p.id))}" ${hasOtherMgr ? 'disabled style="opacity:0.6;cursor:not-allowed;"' : ''}>
                         <strong>${escHtml(p.full_name)}</strong>
-                        <small style="display:block;margin-top:2px">${escHtml([p.employee_code ? 'ID ' + p.employee_code : '', p.role_label, p.team || p.designation].filter(Boolean).join(' · '))}</small>
+                        <small style="display:block;margin-top:2px">${escHtml([p.employee_code ? 'ID ' + p.employee_code : '', p.role_label, p.team || p.designation].filter(Boolean).join('  ·  '))}</small>
                         ${mgrBadge}
                     </button>`;
                 }).join('');
@@ -2702,7 +2748,7 @@ function leaveStatusLabel(status) {
 
 function leaveWithdrawActionCell(r) {
     if (!r.can_withdraw) {
-        return '<td class="ess-leave-actions-col"><span class="ess-leave-no-action">—</span></td>';
+        return '<td class="ess-leave-actions-col"><span class="ess-leave-no-action">-</span></td>';
     }
     const label = r.status === 'approved' ? 'Revert' : 'Withdraw';
     return `<td class="ess-leave-actions-col">
@@ -2733,7 +2779,7 @@ function renderLeaveRows(data, tbodyId) {
         return `<tr class="${allotted ? 'ess-leave-row--allotted' : ''}">
         <td>${r.duration_type === 'half_day' ? 'Half (' + (r.half_day_slot || '') + ')' : 'Full'}</td>
         <td>${typeCell}</td>
-        <td>${formatDate(r.start_date)}${r.end_date !== r.start_date ? ' – ' + formatDate(r.end_date) : ''}</td>
+        <td>${formatDate(r.start_date)}${r.end_date !== r.start_date ? ' - ' + formatDate(r.end_date) : ''}</td>
         <td>${formatLeaveDays(days)}</td>
         <td>${viaCell}</td>
         <td><span class="status-pill ${r.status}">${leaveStatusLabel(r.status)}</span></td>
@@ -2765,7 +2811,7 @@ function openLeaveWithdrawModal(row) {
     const dur = row.duration_type === 'half_day'
         ? `Half day (${row.half_day_slot || 'session'})`
         : 'Full day';
-    const dates = formatDate(row.start_date) + (row.end_date !== row.start_date ? ' – ' + formatDate(row.end_date) : '');
+    const dates = formatDate(row.start_date) + (row.end_date !== row.start_date ? ' - ' + formatDate(row.end_date) : '');
     summary.innerHTML = `
         <div class="ess-withdraw-summary-grid">
             <div class="ess-withdraw-summary-item">
@@ -2868,7 +2914,7 @@ function leaveTypeLabel(type) {
 function durationLabel(r) {
     const credit = parseFloat(r.policy_credit_value);
     if (Number.isFinite(credit) && credit > 0) {
-        return 'Policy credit · ' + formatLeaveDays(credit) + ' days';
+        return 'Policy credit  ·  ' + formatLeaveDays(credit) + ' days';
     }
     if (r.duration_type === 'half_day') {
         return 'Half day' + (r.half_day_slot ? ' (' + r.half_day_slot + ')' : '');
@@ -2896,7 +2942,7 @@ function renderApprovalCard(r) {
                 <label class="ess-approval-action-label">Action</label>
                 <div class="ess-approval-action-row">
                     <select class="ess-approval-action-select" id="approvalActionSelect_${r.id}" aria-label="Leave action for ${escHtml(name)}">
-                        <option value="" disabled selected>Select action…</option>
+                        <option value="" disabled selected>Select action...</option>
                         ${actionOptions.join('')}
                     </select>
                     <button type="button" class="ess-btn ess-btn-primary ess-btn-sm" onclick="HRMS.runApprovalDropdown(${r.id})"><i class="fas fa-check"></i> Apply</button>
@@ -2909,7 +2955,7 @@ function renderApprovalCard(r) {
                     <div class="ess-approval-avatar">${initials(name)}</div>
                     <div>
                         <h4>${escHtml(name)}</h4>
-                        <small>${escHtml(r.employee_code || '—')} · ${escHtml(r.team || '—')} · ${escHtml(r.department || '—')}</small>
+                        <small>${escHtml(r.employee_code || '-')}  ·  ${escHtml(r.team || '-')}  ·  ${escHtml(r.department || '-')}</small>
                     </div>
                 </div>
                 <div class="ess-approval-head-badges">
@@ -2920,8 +2966,8 @@ function renderApprovalCard(r) {
             <div class="ess-approval-meta">
                 <div><span>Leave type</span><strong>${escHtml(leaveTypeLabel(r.leave_type))}</strong></div>
                 <div><span>Details</span><strong>${escHtml(durationLabel(r))}</strong></div>
-                <div><span>${isCredit ? 'Effective' : 'Dates'}</span><strong>${isCredit ? formatDate(r.start_date) : formatDate(r.start_date) + (r.end_date !== r.start_date ? ' – ' + formatDate(r.end_date) : '')}</strong></div>
-                <div><span>Applied</span><strong>${r.created_at ? new Date(r.created_at).toLocaleString() : '—'}</strong></div>
+                <div><span>${isCredit ? 'Effective' : 'Dates'}</span><strong>${isCredit ? formatDate(r.start_date) : formatDate(r.start_date) + (r.end_date !== r.start_date ? ' - ' + formatDate(r.end_date) : '')}</strong></div>
+                <div><span>Applied</span><strong>${r.created_at ? new Date(r.created_at).toLocaleString() : '-'}</strong></div>
             </div>
             ${r.reason ? `<div class="ess-approval-reason"><i class="fas fa-quote-left"></i> ${escHtml(r.reason)}</div>` : ''}
             ${r.allotted_by_name ? `<small class="ess-muted-line">Allotted by: <strong>${escHtml(r.allotted_by_name)}</strong></small>` : ''}
@@ -2981,13 +3027,13 @@ function openApprovalModal(id, mode) {
     const isRevert = HRMS.approvalModalMode === 'revert';
     title.textContent = isRevert ? 'Revert leave to pending' : (isApprove ? 'Approve leave request' : 'Reject leave request');
     body.innerHTML = row ? `
-        <p><strong>${escHtml(name)}</strong> · ${escHtml(row.employee_code || '')}</p>
-        <p>${durationLabel(row)} · ${formatDate(row.start_date)}${row.end_date !== row.start_date ? ' – ' + formatDate(row.end_date) : ''}</p>
+        <p><strong>${escHtml(name)}</strong>  ·  ${escHtml(row.employee_code || '')}</p>
+        <p>${durationLabel(row)}  ·  ${formatDate(row.start_date)}${row.end_date !== row.start_date ? ' - ' + formatDate(row.end_date) : ''}</p>
         ${isRevert ? '<p class="ess-muted-line">This removes attendance leave marks and sends the request back for review.</p>' : ''}
     ` : '<p>Confirm your decision for this leave request.</p>';
     if (note) {
         note.value = '';
-        note.placeholder = isRevert ? 'Optional note for the employee…' : (isApprove ? 'Optional approval note…' : 'Rejection reason…');
+        note.placeholder = isRevert ? 'Optional note for the employee...' : (isApprove ? 'Optional approval note...' : 'Rejection reason...');
     }
     if (reqLabel) reqLabel.classList.toggle('hidden', isApprove || isRevert);
     if (btnApprove) btnApprove.classList.toggle('hidden', !isApprove);
@@ -3336,9 +3382,9 @@ window.showView = showView;
                     return '<tr>' +
                         '<td><strong>' + escapeHtml(u.name) + '</strong></td>' +
                         '<td><span style="font-size: 12px; background: rgba(99,102,241,0.1); color: #818cf8; padding: 4px 8px; border-radius: 4px;">' + escapeHtml(u.role) + '</span></td>' +
-                        '<td>' + escapeHtml(u.branch || '�') + '</td>' +
+                        '<td>' + escapeHtml(u.branch || '') + '</td>' +
                         '<td>' + statusBadge + '</td>' +
-                        '<td style="font-family: monospace; color: #94a3b8;">' + escapeHtml(u.ip || '�') + '</td>' +
+                        '<td style="font-family: monospace; color: #94a3b8;">' + escapeHtml(u.ip || '') + '</td>' +
                     '</tr>';
                 }).join('');
             }
@@ -3363,4 +3409,3 @@ window.showView = showView;
             }
         }
     }, 500);
-

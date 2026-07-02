@@ -72,7 +72,7 @@ function allowed_portal_roles(): array {
 
         'team_lead', 'floor_manager', 'data_entry', 'dialer', 'developer',
 
-        'agent', 'analytics', 'attendance',
+        'agent', 'analytics', 'attendance', 'finance'
 
     ];
 
@@ -88,7 +88,7 @@ function portal_role_options(): array {
 
         'user', 'data_entry', 'dialer', 'developer', 'team_lead', 'floor_manager',
 
-        'receptionist', 'recruiter', 'hr', 'management', 'training', 'analytics', 'attendance', 'admin', 'super_admin',
+        'receptionist', 'recruiter', 'hr', 'management', 'training', 'analytics', 'attendance', 'finance', 'admin', 'super_admin',
 
     ];
 
@@ -406,6 +406,12 @@ function portal_role_may_access(string $user_role, string $portal_key): bool {
 
     }
 
+    if ($user_role === 'finance') {
+
+        return in_array($portal_key, ['admin', 'attendance'], true);
+
+    }
+
     $aliases = [
 
         'agent' => 'receptionist',
@@ -528,7 +534,7 @@ function effective_portal_role(array $user): string {
 
     }
 
-    if (in_array($role, ['super_admin', 'admin', 'hr', 'recruiter', 'management', 'training', 'analytics', 'attendance'], true)) {
+    if (in_array($role, ['super_admin', 'admin', 'hr', 'recruiter', 'management', 'training', 'analytics', 'attendance', 'finance'], true)) {
 
         return $role;
 

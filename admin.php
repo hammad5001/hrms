@@ -1,6 +1,6 @@
 <?php
 session_start();
-if (!isset($_SESSION['portal_role']) || !in_array($_SESSION['portal_role'], ['admin', 'super_admin'])) {
+if (!isset($_SESSION['portal_role']) || !in_array($_SESSION['portal_role'], ['admin', 'super_admin', 'finance'])) {
     header('Location: index.html');
     exit;
 }

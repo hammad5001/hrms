@@ -11,7 +11,7 @@
     }
 
     // --- Heartbeat Ping to maintain Online Status ---
-    const apiPrefix = window.balitechApiPrefix ? window.balitechApiPrefix() : (path.includes('/attendance/') ? '../' : '');
+    const apiPrefix = window.balitechApiPrefix ? window.balitechApiPrefix() : (path.includes('/attendance/') || path.includes('/workfromhome/') ? '../' : '');
     setInterval(() => {
         if (!document.hidden) {
             fetch(apiPrefix + 'api/ping.php').catch(() => { });
@@ -45,7 +45,7 @@
         return;
     }
 
-    const apiPrefix = window.balitechApiPrefix ? window.balitechApiPrefix() : (path.includes('/attendance/') ? '../' : '');
+    // apiPrefix already defined above - do not re-declare
 
     function showAdminViewBanner(name, role) {
         // Feature disabled: The user prefers using the native browser back button,
@@ -101,12 +101,15 @@
             const mayViewAsAdmin = (d.is_super || d.is_admin || isTeamManager) && (
                 !portalKey
                 || (window.portalRoleMayAccessPage && window.portalRoleMayAccessPage(role, portalKey))
+                || (role === 'finance' && portalKey === 'attendance')
             );
             if (mayViewAsAdmin || (d.admin_portal_view && portalKey && window.portalRoleMayAccessPage && window.portalRoleMayAccessPage(role, portalKey))) {
                 showAdminViewBanner(d.full_name, d.portal_role);
                 return;
             }
-            if ((d.is_admin || d.is_super) && portalKey) {
+            // If admin/super is on employee-portal AND came from workfromhome, allow it
+            const isWfhSession = localStorage.getItem('companyBranch') === 'workfromhome';
+            if ((d.is_admin || d.is_super) && portalKey && !isWfhSession) {
                 redirectToRolePortal(role);
                 return;
             }
@@ -132,7 +135,9 @@
         }
 
         const page = window.location.pathname.split('/').pop() || '';
-        window.location.replace(apiPrefix + 'index.html?redirect=' + encodeURIComponent(page));
+        const isWfh = localStorage.getItem('companyBranch') === 'workfromhome';
+        const loginPage = isWfh ? '/interview-forms/workfromhome/index.html' : (apiPrefix + 'index.html');
+        window.location.replace(loginPage + '?redirect=' + encodeURIComponent(page));
     }
 
     if (document.readyState === 'loading') {
@@ -140,4 +145,15 @@
     } else {
         guard();
     }
+    
+    // Update logout links if WFH
+    document.addEventListener('DOMContentLoaded', () => {
+        if (localStorage.getItem('companyBranch') === 'workfromhome') {
+            document.querySelectorAll('a[href*="logout.php"]').forEach(link => {
+                const url = new URL(link.href, window.location.origin);
+                url.searchParams.set('wfh', 'true');
+                link.href = url.toString();
+            });
+        }
+    });
 })();

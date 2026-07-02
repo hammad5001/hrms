@@ -17,7 +17,7 @@ $email = trim((string)($_SESSION['email'] ?? ''));
 $user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
 
 $is_super = ($role === 'super_admin');
-$is_admin = ($role === 'admin' || $is_super);
+$is_admin = ($role === 'admin' || $role === 'finance' || $is_super);
 $is_team_manager = role_has_limited_admin_dashboard($role);
 $can_view_admin_attendance = role_can_view_admin_attendance($role);
 $admin_portal_view = !empty($_SESSION['admin_portal_view']);

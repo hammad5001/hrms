@@ -76,7 +76,7 @@ async function editLead(id){
           events.slice().reverse().forEach(ev=>{
             html+=`<div class="call-item"><div class="call-dot"><i class="fas fa-route"></i></div><div>
               <div class="call-text">${esc(ev.title)}</div>
-              <div class="call-meta">${esc(ev.by||'System')} · ${fmtTime(ev.at)}</div>
+              <div class="call-meta">${esc(ev.by||'System')} - ${fmtTime(ev.at)}</div>
               ${ev.detail?`<div style="font-size:11px;color:var(--text-muted);margin-top:4px">${esc(ev.detail)}</div>`:''}
             </div></div>`;
           });
@@ -90,7 +90,7 @@ async function editLead(id){
           l.remarks.forEach(r=>{
             html+=`<div class="call-item"><div class="call-dot"><i class="fas fa-phone-alt"></i></div><div>
               <div class="call-text">${esc(r.remark)}</div>
-              <div class="call-meta">${esc(r.author_name||'System')} · ${fmtTime(r.created_at)}</div>
+              <div class="call-meta">${esc(r.author_name||'System')} - ${fmtTime(r.created_at)}</div>
             </div></div>`;
           });
         }

@@ -1,5 +1,5 @@
 /**
- * Recruiter portal — own profile, attendance, payroll (same data as Employee HRMS).
+ * Recruiter portal - own profile, attendance, payroll (same data as Employee HRMS).
  */
 let hrmsCache = null;
 
@@ -15,12 +15,12 @@ async function fetchHrmsData(force) {
 }
 
 function hrmsMoney(n) {
-  if (n == null || n === '') return '—';
+  if (n == null || n === '') return '-';
   return 'Rs ' + Number(n).toLocaleString('en-PK', { maximumFractionDigits: 0 });
 }
 
 function hrmsTime(ts) {
-  if (!ts) return '—';
+  if (!ts) return '-';
   return new Date(ts).toLocaleString('en-PK', {
     day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
   });
@@ -89,7 +89,7 @@ function hrmsTopBar(title, subtitle, refreshFn) {
 
 async function showMyHrms() {
   setActiveNav('myHrms');
-  setLoading('<div class="loading-state"><div class="loading-spinner"></div><p>Loading your profile…</p></div>');
+  setLoading('<div class="loading-state"><div class="loading-spinner"></div><p>Loading your profile...</p></div>');
   hrmsCache = null;
   const data = await fetchHrmsData(true);
   if (!data) {
@@ -136,7 +136,7 @@ async function showMyHrms() {
       </div>
       <div class="stat-card" onclick="showMyPayroll()" style="cursor:pointer;">
         <div class="stat-icon purple"><i class="fas fa-wallet"></i></div>
-        <div class="stat-value" style="font-size:18px;">${p.has_data ? hrmsMoney(p.basic_salary) : '—'}</div>
+        <div class="stat-value" style="font-size:18px;">${p.has_data ? hrmsMoney(p.basic_salary) : '-'}</div>
         <div class="stat-label">Basic salary</div>
       </div>
     </div>
@@ -144,24 +144,24 @@ async function showMyHrms() {
     <div class="stats-grid stats-2" style="margin-bottom:20px;">
       <div class="stat-card">
         <div class="stat-label">Today check-in</div>
-        <div class="stat-value" style="font-size:20px;">${today.check_in ? hrmsTime(today.check_in) : '—'}</div>
+        <div class="stat-value" style="font-size:20px;">${today.check_in ? hrmsTime(today.check_in) : '-'}</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Today check-out</div>
-        <div class="stat-value" style="font-size:20px;">${today.check_out ? hrmsTime(today.check_out) : '—'}</div>
+        <div class="stat-value" style="font-size:20px;">${today.check_out ? hrmsTime(today.check_out) : '-'}</div>
       </div>
     </div>
 
     <div class="table-wrap">
       <div class="table-header"><h3><i class="fas fa-id-card"></i> Personal details</h3></div>
       <div class="hrms-profile-grid">
-        <div><span class="hrms-lbl">Full name</span><strong>${esc(u.full_name || '—')}</strong></div>
-        <div><span class="hrms-lbl">Email</span><strong>${esc(u.email || '—')}</strong></div>
-        <div><span class="hrms-lbl">Employee ID (BID)</span><strong>${esc(u.employee_code || '—')}</strong></div>
-        <div><span class="hrms-lbl">Department</span><strong>${esc(u.department || '—')}</strong></div>
-        <div><span class="hrms-lbl">Designation</span><strong>${esc(u.designation || '—')}</strong></div>
-        <div><span class="hrms-lbl">Team</span><strong>${esc(u.team || '—')}</strong></div>
-        <div><span class="hrms-lbl">Branch</span><strong>${esc(u.branch || data.company_branch_label || '—')}</strong></div>
+        <div><span class="hrms-lbl">Full name</span><strong>${esc(u.full_name || '-')}</strong></div>
+        <div><span class="hrms-lbl">Email</span><strong>${esc(u.email || '-')}</strong></div>
+        <div><span class="hrms-lbl">Employee ID (BID)</span><strong>${esc(u.employee_code || '-')}</strong></div>
+        <div><span class="hrms-lbl">Department</span><strong>${esc(u.department || '-')}</strong></div>
+        <div><span class="hrms-lbl">Designation</span><strong>${esc(u.designation || '-')}</strong></div>
+        <div><span class="hrms-lbl">Team</span><strong>${esc(u.team || '-')}</strong></div>
+        <div><span class="hrms-lbl">Branch</span><strong>${esc(u.branch || data.company_branch_label || '-')}</strong></div>
         <div><span class="hrms-lbl">Portal role</span><strong>${esc(u.portal_role || 'recruiter')}</strong></div>
       </div>
     </div>
@@ -228,7 +228,7 @@ async function showMyPayroll() {
   const hasBid = !!(meta.resolved_employee_code);
   const monthLabel = p.month || new Date().toISOString().slice(0, 7);
 
-  let html = hrmsTopBar('💰 My Payroll', `Salary details · ${monthLabel}`, 'showMyPayroll');
+  let html = hrmsTopBar('💰 My Payroll', `Salary details - ${monthLabel}`, 'showMyPayroll');
   html += hrmsBidNotice(meta);
 
   if (!p.has_data && hasBid) {
@@ -262,10 +262,10 @@ async function showMyPayroll() {
     <div class="table-wrap">
       <div class="table-header"><h3><i class="fas fa-university"></i> Bank &amp; extras</h3></div>
       <div class="hrms-profile-grid">
-        <div><span class="hrms-lbl">Designation (payroll)</span><strong>${esc(p.designation || '—')}</strong></div>
-        <div><span class="hrms-lbl">Bank</span><strong>${esc(p.bank_name || '—')}</strong></div>
-        <div><span class="hrms-lbl">Account title</span><strong>${esc(p.account_title || '—')}</strong></div>
-        <div><span class="hrms-lbl">Account no.</span><strong>${esc(p.account_no || '—')}</strong></div>
+        <div><span class="hrms-lbl">Designation (payroll)</span><strong>${esc(p.designation || '-')}</strong></div>
+        <div><span class="hrms-lbl">Bank</span><strong>${esc(p.bank_name || '-')}</strong></div>
+        <div><span class="hrms-lbl">Account title</span><strong>${esc(p.account_title || '-')}</strong></div>
+        <div><span class="hrms-lbl">Account no.</span><strong>${esc(p.account_no || '-')}</strong></div>
         <div><span class="hrms-lbl">Leaves this month</span><strong>${p.leaves_this_month ?? 0}</strong></div>
         <div><span class="hrms-lbl">Pay month</span><strong>${esc(monthLabel)}</strong></div>
       </div>

@@ -238,6 +238,82 @@ $action = isset($_GET['action']) ? $_GET['action'] : '';
 switch ($action) {
 
     // =================================================
+    // 0. GET WEEKLY HISTORY FOR EMPLOYEE PORTAL
+    // =================================================
+    case 'weekly':
+        $emp_code = isset($_GET['employee_code']) ? trim($_GET['employee_code']) : '';
+        if (empty($emp_code) && isset($_SESSION['employee_code'])) {
+            $emp_code = $_SESSION['employee_code'];
+        }
+        if (empty($emp_code)) {
+            sendJSON(false, null, 'Employee code required');
+        }
+
+        $emp_code = $conn->real_escape_string($emp_code);
+        $emp_query = $conn->query("SELECT * FROM " . TABLE_EMPLOYEES . " WHERE employee_code = '$emp_code' LIMIT 1");
+        $employee = $emp_query ? $emp_query->fetch_assoc() : null;
+
+        $records = [];
+        for ($i = 0; $i < 7; $i++) {
+            $date = date('Y-m-d', strtotime("-$i days"));
+            $windows = getShiftWindows($date);
+
+            // Get check-in punches
+            $checkin_result = $conn->query("
+                SELECT timestamp FROM " . TABLE_ATTENDANCE . " 
+                WHERE user_id = '$emp_code' 
+                AND timestamp BETWEEN '{$windows['checkin_start']}' AND '{$windows['checkin_end']}'
+                ORDER BY timestamp LIMIT 1
+            ");
+            
+            // Get check-out punches
+            $checkout_result = $conn->query("
+                SELECT timestamp FROM " . TABLE_ATTENDANCE . " 
+                WHERE user_id = '$emp_code' 
+                AND timestamp BETWEEN '{$windows['checkout_start']}' AND '{$windows['checkout_end']}'
+                ORDER BY timestamp DESC LIMIT 1
+            ");
+
+            $first_in = null;
+            $last_out = null;
+            $status = 'absent';
+            $working_hours = 0;
+
+            if ($checkin_result && $checkin_result->num_rows > 0) {
+                $row = $checkin_result->fetch_assoc();
+                $first_in = $row['timestamp'];
+                
+                list($is_late, $minutes) = isLate($first_in, $date, $employee['team'] ?? '');
+                $status = $is_late ? 'late' : 'present';
+            }
+
+            if ($checkout_result && $checkout_result->num_rows > 0) {
+                $row = $checkout_result->fetch_assoc();
+                $last_out = $row['timestamp'];
+            }
+
+            if ($first_in && $last_out) {
+                $working_hours = calculateWorkingHours($first_in, $last_out);
+            }
+
+            $in_display = $first_in ? date('h:i A', strtotime($first_in)) : '---';
+            $out_display = $last_out ? date('h:i A', strtotime($last_out)) : '---';
+
+            $records[] = [
+                'date'          => $date,
+                'day'           => date('l', strtotime($date)),
+                'in_time'       => $in_display,
+                'out_time'      => $out_display,
+                'working_hrs'   => $working_hours ? number_format($working_hours, 2) . ' hrs' : '0.00 hrs',
+                'work_hours'    => $working_hours ? number_format($working_hours, 2) : '0.00',
+                'status'        => $status
+            ];
+        }
+
+        sendJSON(true, $records);
+        break;
+
+    // =================================================
     // 1. GET LIVE ATTENDANCE - UPDATED with CSV data
     // =================================================
     case 'getLiveAttendance':
@@ -1110,6 +1186,6 @@ switch ($action) {
     // DEFAULT: Invalid action
     // =================================================
     default:
-        sendJSON(false, null, 'Invalid action. Available actions: getLiveAttendance, getEmployeeHistory, getAttendanceForHR, getDateRange, importFromPython, searchEmployees, manualPunch, getStatistics, getFilterOptions, searchEmployeesCSV, getTeamStats');
+        sendJSON(false, null, 'Invalid action. Available actions: weekly, getLiveAttendance, getEmployeeHistory, getAttendanceForHR, getDateRange, importFromPython, searchEmployees, manualPunch, getStatistics, getFilterOptions, searchEmployeesCSV, getTeamStats');
 }
 ?>

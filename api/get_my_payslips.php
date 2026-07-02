@@ -30,7 +30,21 @@ if (empty($emp_code)) {
     exit;
 }
 
-$stmt = $conn->prepare("SELECT id, month, year, gross_salary, net_salary, slip_data_json, created_at FROM employee_salary_slips WHERE employee_code = ? ORDER BY year DESC, created_at DESC");
+$stmt = $conn->prepare("
+    SELECT id, month, year, gross_salary, net_salary, slip_data_json, created_at 
+    FROM employee_salary_slips 
+    WHERE employee_code = ? 
+    ORDER BY 
+        year DESC,
+        CASE month
+            WHEN 'January' THEN 1 WHEN 'February' THEN 2 WHEN 'March' THEN 3
+            WHEN 'April' THEN 4 WHEN 'May' THEN 5 WHEN 'June' THEN 6
+            WHEN 'July' THEN 7 WHEN 'August' THEN 8 WHEN 'September' THEN 9
+            WHEN 'October' THEN 10 WHEN 'November' THEN 11 WHEN 'December' THEN 12
+            ELSE 0
+        END DESC,
+        created_at DESC
+");
 $stmt->bind_param("s", $emp_code);
 $stmt->execute();
 $res = $stmt->get_result();

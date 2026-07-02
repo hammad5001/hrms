@@ -1,7 +1,7 @@
 /**
- * Enterprise HR Productivity OS — Advanced Frontend Module v3
- * Features: Time Tracker • Timesheets • Activity Feed • Score Engine
- *           Analytics Charts • Leaderboard • Smart Alerts • TS Approvals
+ * Enterprise HR Productivity OS - Advanced Frontend Module v3
+ * Features: Time Tracker * Timesheets * Activity Feed * Score Engine
+ *           Analytics Charts * Leaderboard * Smart Alerts * TS Approvals
  */
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -137,7 +137,7 @@ async function prodHandleClockInOut() {
         if (res.success) {
             updateWidgetUI(null);
             const el = document.getElementById('prodTotalTime');
-            if (el) el.textContent = '—';
+            if (el) el.textContent = '-';
             prodLoadFeed();
             prodLoadDashScore();
         } else alert(res.error || 'Clock out failed');
@@ -188,7 +188,7 @@ async function prodLoadFeed() {
         return `<div class="prod-feed-item">
             <div class="prod-feed-avatar" style="background:linear-gradient(135deg,${cfg.color}22,${cfg.color}44);border-color:${cfg.color}44;color:${cfg.color}">${init}</div>
             <div class="prod-feed-content">
-                <div class="prod-feed-title"><strong>${escH(item.employee_name)}</strong> — ${escH(item.title)}</div>
+                <div class="prod-feed-title"><strong>${escH(item.employee_name)}</strong> - ${escH(item.title)}</div>
                 <div class="prod-feed-desc">${escH(item.description)}</div>
                 <div class="prod-feed-meta"><i class="fas ${cfg.icon}" style="color:${cfg.color}"></i> ${prodTimeAgo(item.created_at)}</div>
             </div>
@@ -220,7 +220,7 @@ async function prodLoadTimesheet(weekStart = null) {
     if (!body) return;
     weekStart = weekStart || prodMondayOfWeek(0);
     ProdState.tsWeekStart = weekStart;
-    body.innerHTML = `<tr><td colspan="12" class="prod-ts-loading">Loading…</td></tr>`;
+    body.innerHTML = `<tr><td colspan="12" class="prod-ts-loading">Loading...</td></tr>`;
     const res = await prodApi('get_timesheet', { week_start: weekStart });
     if (!res.success) { body.innerHTML = `<tr><td colspan="12" class="prod-ts-error">Error: ${escH(res.error)}</td></tr>`; return; }
     ProdState.currentTsId = res.data.timesheet.id;
@@ -251,15 +251,15 @@ function prodRenderTsBody(entries, timesheet) {
         const rowTotal = dates.reduce((s, d) => s + (days[d] || 0), 0);
         const ro = isSubmitted ? 'readonly' : '';
         return `<tr class="prod-ts-row" data-project="${escH(project)}" data-task="${escH(task)}">
-            <td><input class="prod-ts-input prod-ts-project" value="${escH(project)}" placeholder="Project…" ${ro}></td>
-            <td><input class="prod-ts-input prod-ts-task" value="${escH(task)}" placeholder="Task…" ${ro}></td>
+            <td><input class="prod-ts-input prod-ts-project" value="${escH(project)}" placeholder="Project..." ${ro}></td>
+            <td><input class="prod-ts-input prod-ts-task" value="${escH(task)}" placeholder="Task..." ${ro}></td>
             ${dates.map(date => `<td><input type="number" class="prod-ts-input prod-ts-hours" min="0" max="24" step="0.5" data-date="${date}" value="${days[date] || ''}" placeholder="0" ${ro}></td>`).join('')}
             <td class="prod-ts-rowtotal"><strong>${rowTotal.toFixed(1)}h</strong></td>
             ${isSubmitted ? '' : '<td><button class="prod-ts-del" title="Remove">×</button></td>'}
         </tr>`;
     };
     const html = Object.values(rowMap).map(r => makeRow(r.project, r.task, r.days)).join('');
-    body.innerHTML = html || `<tr><td colspan="${isSubmitted?11:12}" class="prod-ts-empty">No entries yet — click Add Row to start.</td></tr>`;
+    body.innerHTML = html || `<tr><td colspan="${isSubmitted?11:12}" class="prod-ts-empty">No entries yet - click Add Row to start.</td></tr>`;
     if (!isSubmitted) {
         body.querySelectorAll('.prod-ts-hours').forEach(inp => inp.addEventListener('change', () => { prodSaveTsEntry(inp.closest('tr')); prodUpdateTsFooter(); }));
         body.querySelectorAll('.prod-ts-project, .prod-ts-task').forEach(inp => inp.addEventListener('blur', () => prodSaveTsEntry(inp.closest('tr'))));
@@ -314,8 +314,8 @@ function prodAddTsRow() {
     const tr = document.createElement('tr');
     tr.className = 'prod-ts-row';
     tr.innerHTML = `
-        <td><input class="prod-ts-input prod-ts-project" value="" placeholder="Project…"></td>
-        <td><input class="prod-ts-input prod-ts-task" value="" placeholder="Task…"></td>
+        <td><input class="prod-ts-input prod-ts-project" value="" placeholder="Project..."></td>
+        <td><input class="prod-ts-input prod-ts-task" value="" placeholder="Task..."></td>
         ${dates.map(d => `<td><input type="number" class="prod-ts-input prod-ts-hours" min="0" max="24" step="0.5" data-date="${d}" value="" placeholder="0"></td>`).join('')}
         <td class="prod-ts-rowtotal"><strong>0h</strong></td>
         <td><button class="prod-ts-del">×</button></td>`;
@@ -640,12 +640,12 @@ async function prodLoadTsApprovals() {
                 <div class="prod-lb-avatar" style="width:40px;height:40px;font-size:16px;">${(ts.full_name||'?').charAt(0).toUpperCase()}</div>
                 <div>
                     <strong>${escH(ts.full_name)}</strong>
-                    <span>${escH(ts.designation || 'Employee')} • ${escH(ts.team || '')}</span>
-                    <span class="prod-approval-dates"><i class="fas fa-calendar"></i> ${ts.week_start} → ${ts.week_end} • <i class="fas fa-clock"></i> ${hrs}h logged</span>
+                    <span>${escH(ts.designation || 'Employee')} * ${escH(ts.team || '')}</span>
+                    <span class="prod-approval-dates"><i class="fas fa-calendar"></i> ${ts.week_start} → ${ts.week_end} * <i class="fas fa-clock"></i> ${hrs}h logged</span>
                 </div>
             </div>
             <div class="prod-approval-actions">
-                <textarea class="prod-approval-note" placeholder="Optional note…" id="note-ts-${ts.id}"></textarea>
+                <textarea class="prod-approval-note" placeholder="Optional note..." id="note-ts-${ts.id}"></textarea>
                 <div style="display:flex;gap:8px;">
                     <button class="prod-btn prod-btn-emerald" style="flex:1;padding:8px;" onclick="prodApproveTs(${ts.id},'approved')"><i class="fas fa-check"></i> Approve</button>
                     <button class="prod-btn" style="flex:1;padding:8px;background:rgba(239,68,68,0.15);color:#F87171;border:1px solid rgba(239,68,68,0.3);" onclick="prodApproveTs(${ts.id},'rejected')"><i class="fas fa-times"></i> Reject</button>

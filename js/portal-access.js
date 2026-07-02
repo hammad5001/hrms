@@ -8,7 +8,7 @@ window.balitechApiPrefix = function () {
     return p.includes('/attendance/') ? '../' : '';
 };
 
-/** Work portals only — recruiters, HR, admin, etc. (not Employee Self Service). */
+/** Work portals only - recruiters, HR, admin, etc. (not Employee Self Service). */
 window.WORK_PORTAL_URLS = {
     super_admin: 'admin-dashboard.html',
     admin: 'admin-dashboard.html',
@@ -24,7 +24,8 @@ window.WORK_PORTAL_URLS = {
     team_lead: 'admin-dashboard.html',
     floor_manager: 'admin-dashboard.html',
     dialer: 'employee-portal.html',
-    developer: 'employee-portal.html'
+    developer: 'employee-portal.html',
+    finance: 'admin-dashboard.html'
 };
 
 window.TEAM_MANAGER_ROLES = ['team_lead', 'floor_manager'];
@@ -42,7 +43,7 @@ window.EMPLOYEE_PORTAL_ROLES = ['user', 'team_lead', 'floor_manager', 'dialer', 
 
 window.EMPLOYEE_SELF_SERVICE_URL = 'employee-portal.html';
 
-/** Pure employee accounts (`user` role) — Self Service only, no work HRMS portal. */
+/** Pure employee accounts (`user` role) - Self Service only, no work HRMS portal. */
 window.canAccessWorkPortal = function (role) {
     return !!role && role !== 'user';
 };
@@ -105,7 +106,7 @@ window.portalRoleMayAccessPage = function (userRole, portalKey) {
         training: ['training'],
         analytics: ['analytics'],
         attendance: ['attendance', 'hr'],
-        admin: ['admin'],
+        admin: ['admin', 'finance'],
     };
     if (portalKey === 'employee') {
         return !!userRole;

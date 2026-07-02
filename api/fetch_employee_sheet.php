@@ -4,7 +4,7 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/employee_sheet.php';
 
-$is_admin = isset($_SESSION['portal_role']) && in_array($_SESSION['portal_role'], ['admin', 'super_admin']);
+$is_admin = isset($_SESSION['portal_role']) && in_array($_SESSION['portal_role'], ['admin', 'super_admin', 'finance']);
 if (!$is_admin) {
     echo json_encode(['success' => false, 'error' => 'Admin access required']);
     exit;

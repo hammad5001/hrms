@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balitech · HRMS Enterprise Login</title>
-    <meta name="description" content="Balitech HRMS — employee self service, attendance, payroll, recruitment, and role-based work portals.">
+    <title>Balitech - HRMS Enterprise Login</title>
+    <meta name="description" content="Balitech HRMS - employee self service, attendance, payroll, recruitment, and role-based work portals.">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/images/balitech-favicon-32.png?v=5">
     <link rel="icon" type="image/png" sizes="192x192" href="assets/images/balitech-favicon-192.png?v=5">
     <link rel="shortcut icon" type="image/png" href="assets/images/balitech-favicon-32.png?v=5">
     <link rel="apple-touch-icon" href="assets/images/balitech-favicon-192.png?v=5">
     <link rel="manifest" href="site.webmanifest?v=5">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Balitech · HRMS Enterprise Login">
-    <meta property="og:description" content="Balitech HRMS — employee self service, attendance, payroll, recruitment, and role-based work portals.">
+    <meta property="og:title" content="Balitech - HRMS Enterprise Login">
+    <meta property="og:description" content="Balitech HRMS - employee self service, attendance, payroll, recruitment, and role-based work portals.">
     <meta property="og:image" content="assets/images/balitech-favicon.png?v=5">
     <meta property="og:image:alt" content="Balitech logo">
     <meta name="twitter:card" content="summary">
@@ -39,7 +39,7 @@
                         <div class="hrms-badge"><i class="fas fa-building"></i> Enterprise HRMS</div>
                     </div>
                     <h1>One platform.<br><span>Every branch.</span></h1>
-                    <p class="login-hero-desc">Secure human resources for Main, 2.0, 3.0, and Commercial — attendance, payroll, recruitment, and role-based portals in one workspace.</p>
+                    <p class="login-hero-desc">Secure human resources for Main, 2.0, 3.0, and Commercial - attendance, payroll, recruitment, and role-based portals in one workspace.</p>
 
                     <div class="hero-stats">
                         <div class="hero-stat"><strong>4</strong><span>Branches</span></div>
@@ -48,7 +48,7 @@
                     </div>
 
                     <ul class="feature-list">
-                        <li><i class="fas fa-id-card"></i> Employee Self Service — profile, attendance &amp; leave</li>
+                        <li><i class="fas fa-id-card"></i> Employee Self Service - profile, attendance &amp; leave</li>
                         <li><i class="fas fa-fingerprint"></i> Biometric attendance &amp; punch tracking</li>
                         <li><i class="fas fa-file-invoice-dollar"></i> Payroll visibility &amp; finance insights</li>
                         <li><i class="fas fa-user-tie"></i> Dedicated HR, Recruiter &amp; Admin portals</li>
@@ -57,7 +57,7 @@
                 </div>
                 <div class="login-hero-footer">
                     <i class="fas fa-lock"></i>
-                    <span>Encrypted sign-in · Internal use only · Balitech Pvt. Ltd</span>
+                    <span>Encrypted sign-in - Internal use only - Balitech Pvt. Ltd</span>
                 </div>
             </aside>
 
@@ -72,7 +72,7 @@
 
                 <div class="branch-section">
                     <label><i class="fas fa-code-branch"></i> Company branch</label>
-                    <p class="branch-login-hint">Main, Commercial, 2.0, and 3.0 accounts are separate — pick your assigned branch. Only <strong>Super Admin</strong> may sign in from any branch.</p>
+                    <p class="branch-login-hint">Main, Commercial, 2.0, and 3.0 accounts are separate - pick your assigned branch. Only <strong>Super Admin</strong> may sign in from any branch.</p>
                     <div class="branch-grid" id="branchGrid"></div>
                     <select id="companyBranch" class="branch-select-hidden" required aria-hidden="true" tabindex="-1">
                         <option value="main">Main Branch</option>
@@ -112,11 +112,11 @@
                     <div class="portal-hint">
                         <div class="portal-hint-card ess">
                             <strong><i class="fas fa-id-card"></i> Self Service</strong>
-                            <span>Personal dashboard — attendance, leave &amp; profile</span>
+                            <span>Personal dashboard - attendance, leave &amp; profile</span>
                         </div>
                         <div class="portal-hint-card work">
                             <strong><i class="fas fa-briefcase"></i> Work HRMS</strong>
-                            <span>Role portal — HR, Recruiter, Admin &amp; more</span>
+                            <span>Role portal - HR, Recruiter, Admin &amp; more</span>
                         </div>
                     </div>
 
@@ -237,7 +237,7 @@
             const activeBtn = mode === 'ess' ? essBtn : hrmsBtn;
             hrmsBtn.disabled = true;
             essBtn.disabled = true;
-            activeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating…';
+            activeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
 
             const company_branch = document.getElementById('companyBranch').value;
 
@@ -295,7 +295,7 @@
 
                     const branchLabel = data.user.company_branch_label || 'your branch';
                     const portalLabel = mode === 'ess' ? 'Self Service' : 'Work portal';
-                    showToast(`Welcome, ${name} · ${branchLabel} · ${portalLabel}`, 'success');
+                    showToast(`Welcome, ${name} - ${branchLabel} - ${portalLabel}`, 'success');
 
                     if (window.storeLoginPortalChoice) {
                         window.storeLoginPortalChoice(data.user, mode, dest);

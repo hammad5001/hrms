@@ -646,9 +646,9 @@ function showSyncStats() {
     if (stats.pending > 0) {
         message += `\n\nPending candidates:`;
         stats.unsyncedDetails.slice(0, 5).forEach(c => {
-            message += `\n• ${c.name}`;
+            message += `\n* ${c.name}`;
         });
-        if (stats.pending > 5) message += `\n• ... and ${stats.pending - 5} more`;
+        if (stats.pending > 5) message += `\n* ... and ${stats.pending - 5} more`;
     }
     
     showToast(message, 'info');

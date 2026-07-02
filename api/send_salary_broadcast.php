@@ -2,9 +2,9 @@
 session_start();
 header('Content-Type: application/json');
 
-// Ensure Super Admin access
-if (!isset($_SESSION['user_id']) || $_SESSION['portal_role'] !== 'super_admin') {
-    echo json_encode(['success' => false, 'message' => 'Unauthorized: Super Admin only']);
+// Ensure Super Admin or Finance access
+if (!isset($_SESSION['user_id']) || ($_SESSION['portal_role'] !== 'super_admin' && $_SESSION['portal_role'] !== 'finance')) {
+    echo json_encode(['success' => false, 'message' => 'Unauthorized: Elevated privileges required']);
     exit;
 }
 
@@ -32,22 +32,27 @@ $emails_sent = 0;
 $failed = 0;
 
 foreach ($salaryData as $row) {
-    // Attempt to identify employee ID
     $empCode = '';
-    $possibleIdKeys = ['Biometric ID', 'Employee Code', 'Emp ID', 'Sr. No'];
-    foreach ($possibleIdKeys as $key) {
-        if (isset($row[$key])) {
-            $empCode = trim((string)$row[$key]);
-            break;
-        }
-    }
-
     $empName = '';
-    $possibleNameKeys = ['Employee Name', 'Name'];
-    foreach ($possibleNameKeys as $key) {
-        if (isset($row[$key])) {
-            $empName = trim((string)$row[$key]);
-            break;
+
+    foreach ($row as $k => $v) {
+        $kLower = strtolower(trim($k));
+        $val = trim((string)$v);
+        
+        // Match IDs like 'B ID', 'Biometric ID', 'Emp ID', 'Sr ID'
+        if (empty($empCode) && (strpos($kLower, 'id') !== false || strpos($kLower, 'code') !== false || strpos($kLower, 'sr') !== false)) {
+            // Avoid matching 'Account ID' or similar if they exist, stick to expected variants
+            if (in_array($kLower, ['b id', 'biometric id', 'employee code', 'emp id', 'sr. no', 'sr id'])) {
+                $empCode = $val;
+            }
+        }
+        
+        // Match names like 'Employee Name', 'Name', 'Sudo Name'
+        if (strpos($kLower, 'name') !== false && strpos($kLower, 'bank') === false) {
+            // Prioritize primary name over others, or set if empty
+            if (empty($empName) || $kLower === 'employee name') {
+                $empName = $val;
+            }
         }
     }
 
@@ -88,8 +93,8 @@ foreach ($salaryData as $row) {
         if (stripos($col, 'net payable') !== false || stripos($col, 'net salary') !== false) $netCol = $col;
     }
 
-    $gross_salary = $grossCol && isset($row[$grossCol]) ? (float)$row[$grossCol] : 0.00;
-    $net_salary = $netCol && isset($row[$netCol]) ? (float)$row[$netCol] : 0.00;
+    $gross_salary = $grossCol && isset($row[$grossCol]) ? (float)str_replace(',', '', $row[$grossCol]) : 0.00;
+    $net_salary = $netCol && isset($row[$netCol]) ? (float)str_replace(',', '', $row[$netCol]) : 0.00;
 
     $json_data = json_encode($row);
 
@@ -98,7 +103,7 @@ foreach ($salaryData as $row) {
         $status = 'pending';
         
         $insertStmt = $conn->prepare("INSERT INTO employee_salary_slips (employee_code, month, year, gross_salary, net_salary, slip_data_json, email_sent_status) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $insertStmt->bind_param('ssiddds', $db_emp_code, $month, $year, $gross_salary, $net_salary, $json_data, $status);
+        $insertStmt->bind_param('ssiddss', $db_emp_code, $month, $year, $gross_salary, $net_salary, $json_data, $status);
         $insertStmt->execute();
         $slip_id = $insertStmt->insert_id;
         $insertStmt->close();

@@ -3,6 +3,7 @@
  * Ensures all application tables exist (payroll, leaves, notifications).
  */
 require_once __DIR__ . '/performance_schema.php';
+require_once __DIR__ . '/qa_schema.php';
 
 function ensure_app_schema(mysqli $conn): void {
     static $done = false;
@@ -261,6 +262,10 @@ function ensure_app_schema(mysqli $conn): void {
     ensure_leads_pipeline_indexes($conn);
     ensure_productivity_schema($conn);
     ensure_advanced_schema($conn);
+
+    if (function_exists('ensure_qa_schema')) {
+        ensure_qa_schema($conn);
+    }
 }
 
 function ensure_leave_request_columns(mysqli $conn): void {

@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        // API prefix interceptor for WFH subdirectory
+        (function() {
+            const orgFetch = window.fetch;
+            window.fetch = function(resource, init) {
+                if (typeof resource === 'string') {
+                    if (resource.startsWith('api/') || resource.startsWith('attendance/')) {
+                        resource = '../' + resource;
+                    }
+                }
+                return orgFetch(resource, init);
+            };
+        })();
+    </script>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balitech - Employee Self Service Portal</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/balitech-favicon-32.png?v=5">
+    <link rel="icon" type="image/png" sizes="192x192" href="../assets/images/balitech-favicon-192.png?v=5">
+    <link rel="shortcut icon" type="image/png" href="../assets/images/balitech-favicon-32.png?v=5">
+    <link rel="apple-touch-icon" href="../assets/images/balitech-favicon-192.png?v=5">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/portal-ui-polish.css?v=1">
+    <link rel="stylesheet" href="../css/employee-hrms.css?v=63">
+    <link rel="stylesheet" href="../css/employee-performance.css?v=4">
+    <link rel="stylesheet" href="../css/dropdown-fix.css?v=3">
+    <link rel="stylesheet" href="../css/hr-productivity.css?v=2">
+    <link rel="stylesheet" href="../css/advanced-analytics.css?v=1">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body class="ess-body">
+    <div class="ess-animated-bg" aria-hidden="true"></div>
+    <div class="ess-app">
+        <header class="ess-header">
+            <div class="ess-header-leading">
+                <button type="button" class="ess-chat-back-btn" id="btnChatBackDashboard" title="Back to dashboard" aria-label="Back to dashboard">
+                    <i class="fas fa-arrow-left" aria-hidden="true"></i>
+                    <span>Dashboard</span>
+                </button>
+            <nav class="ess-header-nav" aria-label="Workspace">
+                <button type="button" class="ess-header-link" data-nav-id="nav-header-overview" data-view="coming-soon" data-nav-label="Overview">Overview</button>
+                <button type="button" class="ess-header-link" data-nav-id="nav-header-dashboard" data-view="dashboard">Dashboard</button>
+                <button type="button" class="ess-header-link" data-nav-id="nav-header-calendar" data-view="attendance">Calendar</button>
+                <button type="button" class="ess-header-link hidden" data-nav-id="nav-header-approvals" data-view="approvals" id="headerApprovals">Approvals</button>
+                <button type="button" class="ess-header-link ess-header-chat" data-nav-id="nav-header-chat" data-view="chat"><i class="fas fa-comments"></i> Chat<span class="ess-badge hidden" id="badgeHeaderChat">0</span></button>
+            </nav>
+            </div>
+            <a href="#" class="ess-header-brand" id="essBrandHome" title="Balitech Employee Self Service" aria-label="Balitech - go to dashboard">
+                <span class="ess-brand-logo-wrap">
+                    <img src="../assets/images/balitech-logo.png?v=5" alt="Balitech Pvt. Ltd" class="balitech-logo balitech-logo--header" width="140" height="36">
+                </span>
+            </a>
+            <div class="ess-header-actions">
+                <a href="#" class="ess-back-work hidden" id="essBackToWork" title="Return to your work portal">
+                    <i class="fas fa-briefcase"></i> Work portal
+                </a>
+                <button type="button" class="ess-icon-btn" id="btnNotifBell" title="Notifications" data-nav-id="nav-header-notif" data-view="notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="ess-badge hidden" id="badgeNotif">0</span>
+                </button>
+                <button type="button" class="ess-user-pill" id="btnUserMenu" title="My profile">
+                    <span class="ess-user-avatar" id="topAvatar"><i class="fas fa-user"></i></span>
+                </button>
+            </div>
+        </header>
+
+        <div class="ess-shell">
+            <aside class="ess-sidebar">
+                <div class="ess-sidebar-brand" title="Balitech Pvt. Ltd">
+                    <span class="ess-sidebar-logo-wrap">
+                        <img src="../assets/images/balitech-icon-square.png?v=5" alt="" class="balitech-logo balitech-logo--sidebar" width="40" height="40" aria-hidden="true">
+                    </span>
+                </div>
+                <nav class="ess-side-nav">
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-home" data-view="dashboard"><i class="fas fa-house"></i><span>Home</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-onboarding" data-view="coming-soon" data-nav-label="Onboarding"><i class="fas fa-user-plus"></i><span>Onboarding</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-leave" data-view="leave"><i class="fas fa-calendar-minus"></i><span>Leaves</span></button>
+                    <button type="button" class="ess-side-item hidden" data-nav-id="nav-side-leave-policy" data-view="leave-policy" id="navSideLeavePolicy"><i class="fas fa-scale-balanced"></i><span>Leave Policy</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-attendance" data-view="attendance"><i class="fas fa-fingerprint"></i><span>Attendance</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-performance" data-view="performance"><i class="fas fa-clipboard-list"></i><span>Daily Report</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-performance-analytics" data-view="performance-analytics"><i class="fas fa-chart-pie"></i><span>My Performance</span></button>
+                    <button type="button" class="ess-side-item hidden" data-nav-id="nav-side-approvals" data-view="approvals" id="navApprovals"><i class="fas fa-user-check"></i><span>Approvals</span><span class="ess-side-badge hidden" id="badgeApprovals">0</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-timelogs" data-view="timelogs"><i class="fas fa-clock"></i><span>Time Tracker</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-payroll" data-view="salary"><i class="fas fa-wallet"></i><span>Payroll</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-files" data-view="coming-soon" data-nav-label="Files"><i class="fas fa-folder-open"></i><span>Files</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-chat" data-view="chat"><i class="fas fa-comments"></i><span>Chat</span><span class="ess-side-badge hidden" id="badgeSideChat">0</span></button>
+                    <button type="button" class="ess-side-item hidden" data-nav-id="nav-side-active-members" data-view="active-members" id="navSideActiveMembers"><i class="fas fa-users-viewfinder"></i><span>Active Members</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-more" data-view="notifications"><i class="fas fa-ellipsis"></i><span>More</span></button>
+                </nav>
+                <a href="../logout.php" class="ess-logout"><i class="fas fa-right-from-bracket"></i> Sign out</a>
+            </aside>
+
+            <main class="ess-main">
+                <nav class="ess-tabs" id="essTabBar" aria-label="Sections">
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-activities" data-view="dashboard">Activities</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-feeds" data-view="feeds">Activity Feeds</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-profile" data-view="profile" id="tabProfile">Profile</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-leave" data-view="leave">Leaves</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-attendance" data-view="attendance">Attendance</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-performance" data-view="performance">Daily Report</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-timelogs" data-view="timelogs">Time Tracking</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-timesheets" data-view="timesheets">Timesheets</button>
+                    <button type="button" class="ess-tab hidden" data-nav-id="nav-tab-leave-policy" data-view="leave-policy" id="tabLeavePolicy">Leave Policy</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-reportees" data-view="reportees" id="tabReportees">Manage Reportees</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-notifications" data-view="notifications">Notifications</button>
+                </nav>
+
+                <div class="ess-page-head">
+                    <div>
+                        <h1 id="pageTitle">Dashboard</h1>
+                        <p id="pageSubtitle">Your professional HR workspace</p>
+                    </div>
+                    <div class="ess-page-head-user hidden-mobile">
+                        <span id="chipName">Employee</span>
+                        <small id="chipRole">USER</small>
+                    </div>
+                </div>
+
+                <div class="ess-layout">
+                    <aside class="ess-left-col">
+                        <div class="ess-profile-card">
+                            <div class="ess-profile-photo-wrap">
+                                <div class="ess-profile-photo" id="profileCardAvatar"><span id="profileInitials">U</span></div>
+                                <button type="button" class="ess-photo-edit" id="btnChangePhoto" title="Change photo"><i class="fas fa-camera"></i></button>
+                                <input type="file" id="profilePhotoInput" hidden accept="image/jpeg,image/png,image/gif,image/webp">
+                            </div>
+                            <h3 id="profileCardName">-</h3>
+                            <p class="ess-status-line"><span id="profileCardStatus" class="ess-status absent">Absent</span></p>
+                            <p class="ess-timer-label">Shift Timer</p>
+                            <div class="ess-timer" id="profileTimer" aria-live="polite">00 : 00 : 00</div>
+                            <p id="wfhLocationDisplay" style="display:none; color:#10b981; font-size:12px; margin-top:8px; font-weight:600; text-align:center;"><i class="fas fa-map-marker-alt"></i> <span id="wfhCityName"></span></p>
+                            <button type="button" class="ess-bio-btn" id="webCheckInBtn" onclick="startWebCheckIn()"><i class="fas fa-map-marker-alt"></i> Web Check-In</button>
+                        </div>
+                        <div class="ess-hierarchy-card ess-sidebar-hierarchy hidden" id="hierarchyCard">
+                            <h4 class="ess-sidebar-hierarchy-title"><i class="fas fa-sitemap"></i> Hierarchy Information</h4>
+                            <div class="ess-sidebar-hierarchy-section" id="hierarchyReportingWrap">
+                                <p class="ess-sidebar-hierarchy-label">Reporting To</p>
+                                <div id="hierarchyReporting" class="ess-sidebar-hierarchy-body"></div>
+                                <p id="hierarchyReportingEmpty" class="ess-sidebar-hierarchy-empty">No manager assigned</p>
+                            </div>
+                            <div class="ess-sidebar-hierarchy-section" id="hierarchyReporteesWrap">
+                                <p class="ess-sidebar-hierarchy-label">Reportees <span class="ess-sidebar-hierarchy-count hidden" id="sidebarReporteesCount">0</span></p>
+                                <div id="hierarchyReportees" class="ess-sidebar-hierarchy-body"></div>
+                                <p id="hierarchyReporteesEmpty" class="ess-sidebar-hierarchy-empty">No reportees assigned</p>
+                            </div>
+                            <button type="button" class="ess-sidebar-hierarchy-link hidden" id="btnSidebarManageReportees">
+                                Manage team <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </aside>
+
+                    <div class="ess-content-col">
+
+                        <!-- Activity Feed View -->
+                        <section id="view-feeds" class="view-section">
+                            <div class="prod-two-col-grid">
+                                <div class="prod-glass-card">
+                                    <h3 style="margin-bottom: 20px; font-size: 18px; color: var(--prod-text);"><i class="fas fa-stream" style="margin-right:8px; color: var(--prod-indigo);"></i> HR Activity Feed</h3>
+                                    <div class="prod-feed-list" id="prodFeedList">
+                                        <div class="prod-feed-empty"><i class="fas fa-stream"></i><p>Loading feed...</p></div>
+                                    </div>
+                                </div>
+                                <div class="prod-glass-card">
+                                    <h3 style="margin-bottom: 20px; font-size: 18px; color: var(--prod-text);"><i class="fas fa-trophy" style="margin-right:8px; color: var(--prod-orange);"></i> Weekly Leaderboard</h3>
+
+                                    <div id="prodLeaderboard" class="prod-leaderboard-list">
+                                        <div class="prod-feed-empty"><i class="fas fa-trophy"></i><p>Loading leaderboard...</p></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Time Logs View -->
+                        <section id="view-timelogs" class="view-section">
+                            <div class="prod-glass-card" style="margin-bottom: 24px;">
+                                <div class="prod-tracker-container">
+                                    <div class="prod-tracker-header">
+                                        <div class="prod-tracker-title-wrap">
+                                            <h3><i class="fas fa-clock" style="color: var(--prod-indigo);"></i> Live Time Tracker</h3>
+                                            <p>Clock in and out, track breaks and work sessions</p>
+                                        </div>
+                                        <span class="prod-ts-badge" id="timelogs-status-badge"></span>
+                                    </div>
+
+                                    <div class="prod-tracker-stats">
+                                        <div class="prod-tracker-card">
+                                            <span>Current Session</span>
+                                            <strong id="prodSessionTime">00:00:00</strong>
+                                        </div>
+                                        <div class="prod-tracker-card">
+                                            <span>Total Today</span>
+                                            <strong id="prodTotalTime">0.00h</strong>
+                                        </div>
+                                    </div>
+
+                                    <div class="prod-tracker-status-bar">
+                                        <div class="prod-status-dot" id="prodStatusDot"></div>
+                                        <span id="prodStatusText" style="font-size:14px;font-weight:600;color:var(--prod-text);">Not Working</span>
+                                    </div>
+
+                                    <div class="prod-tracker-actions">
+                                        <button type="button" class="prod-btn prod-btn-emerald" id="btnClockInOut" style="flex:1;">
+                                            <i class="fas fa-play"></i> Clock In
+                                        </button>
+                                        <button type="button" class="prod-btn prod-btn-primary" id="btnBreakToggle" style="flex:1;display:none;">
+                                            <i class="fas fa-coffee"></i> Break
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Integrated Productivity Analytics -->
+                            <div class="prod-analytics-header" style="margin-top: 24px;">
+                                <h2><i class="fas fa-chart-line" style="color: var(--prod-indigo);"></i> Productivity Analytics</h2>
+                                <p>Your work intelligence dashboard - charts powered by real data</p>
+                            </div>
+
+                            <!-- KPI Cards -->
+                            <div class="prod-kpi-grid" id="prodKpiGrid">
+
+                                <div class="prod-kpi-card">
+                                    <div class="prod-kpi-icon" style="background:linear-gradient(135deg,#F59E0B,#FBBF24);"><i class="fas fa-phone"></i></div>
+                                    <div class="prod-kpi-info">
+                                        <span>Calls This Month</span>
+                                        <strong id="kpiCalls">-</strong>
+                                    </div>
+                                </div>
+                                <div class="prod-kpi-card">
+                                    <div class="prod-kpi-icon" style="background:linear-gradient(135deg,#EC4899,#F472B6);"><i class="fas fa-handshake"></i></div>
+                                    <div class="prod-kpi-info">
+                                        <span>Sales Closed</span>
+                                        <strong id="kpiSales">-</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Charts Row 1 -->
+                            <div class="prod-charts-row">
+                                <div class="prod-glass-card prod-chart-card">
+                                    <h4><i class="fas fa-wave-square"></i> Daily Work Hours</h4>
+                                    <div class="prod-chart-wrap"><canvas id="chartHours"></canvas></div>
+                                </div>
+                                <div class="prod-glass-card prod-chart-card">
+                                    <h4><i class="fas fa-bolt"></i> Productivity Score Trend</h4>
+                                    <div class="prod-chart-wrap"><canvas id="chartScore"></canvas></div>
+                                </div>
+                            </div>
+
+                            <!-- Charts Row 2 -->
+                            <div class="prod-charts-row">
+                                <div class="prod-glass-card prod-chart-card">
+                                    <h4><i class="fas fa-chart-bar"></i> Calls & Sales (30 days)</h4>
+                                    <div class="prod-chart-wrap"><canvas id="chartCalls"></canvas></div>
+                                </div>
+                                <div class="prod-glass-card prod-chart-card">
+                                    <h4><i class="fas fa-file-check"></i> Timesheet Status</h4>
+                                    <div class="prod-chart-wrap" style="max-height:220px;"><canvas id="chartTs"></canvas></div>
+                                    <div id="tsStatusLegend" style="margin-top:16px;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Attendance Heatmap -->
+                            <div class="prod-glass-card" style="margin-top:20px;">
+                                <h4><i class="fas fa-calendar-alt"></i> Work Attendance Heatmap (90 days)</h4>
+                                <div id="prodHeatmap" class="prod-heatmap"></div>
+                            </div>
+
+                            <!-- Break Pattern -->
+                            <div class="prod-glass-card" style="margin-top:20px;">
+                                <h4><i class="fas fa-coffee"></i> Work Rhythm Insights</h4>
+                                <div id="prodBreakInsights" class="prod-insights-grid"></div>
+                            </div>
+                        </section>
+
+                        <!-- Timesheets View -->
+                        <section id="view-timesheets" class="view-section">
+                            <div class="prod-glass-card" style="margin-bottom: 24px;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                                    <div>
+                                        <h3 style="font-size:18px;color:var(--prod-text);"><i class="fas fa-calendar-alt" style="margin-right:8px; color: var(--prod-indigo);"></i> Weekly Timesheet</h3>
+                                        <p style="font-size:12px;color:var(--prod-text-muted);margin-top:4px;">Log your project work per day - save automatically on change</p>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <span class="prod-ts-badge" id="prodTsStatus">Draft</span>
+                                        <button class="prod-btn prod-btn-primary" id="btnSubmitTimesheet" style="width:auto;padding:10px 18px;">
+                                            <i class="fas fa-paper-plane"></i> Submit
+                                        </button>
+                                    </div>
+                                </div>
+                                <div style="overflow-x:auto;">
+                                    <table class="prod-ts-table" id="prodTsTable">
+                                        <thead>
+                                            <tr>
+                                                <th style="min-width:130px;">Project</th>
+                                                <th style="min-width:130px;">Task</th>
+                                                <th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th>
+                                                <th>Total</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="prodTsBody"></tbody>
+                                        <tfoot id="prodTsFooter"></tfoot>
+                                    </table>
+                                </div>
+                                <button class="prod-btn" id="btnAddTsRow" style="margin-top:12px;width:auto;background:transparent;border:1px dashed rgba(255,255,255,0.15);color:var(--prod-text-muted);box-shadow:none;padding:8px 16px;">
+                                    <i class="fas fa-plus"></i> Add Row
+                                </button>
+                            </div>
+
+                            <!-- Timesheet Approvals (Managers only, toggled dynamically by JS) -->
+                            <div id="prodTsApprovalsSection" class="prod-glass-card" style="display:none; margin-top:24px;">
+                                <div class="prod-analytics-header" style="margin-bottom: 15px;">
+                                    <h3 style="font-size:18px;color:var(--prod-text);margin-bottom:4px; display:flex; align-items:center; gap:8px;"><i class="fas fa-clipboard-check" style="color: var(--prod-indigo);"></i> Timesheet Approvals</h3>
+                                    <p style="font-size:12px;color:var(--prod-text-muted);">Review and approve submitted timesheets from your team</p>
+                                </div>
+                                <div id="prodTsApprovals">
+                                    <div class="prod-feed-empty"><i class="fas fa-clipboard-check"></i><p>Loading pending timesheets...</p></div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Smart Alerts Banner -->
+                        <div id="smartAlertsBanner" style="display:none;"></div>
+
+                        <!-- Dashboard -->
+                        <section id="view-dashboard" class="view-section active">
+                            <div class="ess-welcome-banner">
+                                <div>
+                                    <h2 id="welcomeGreeting">Good day</h2>
+                                    <p id="welcomeSub">Have a productive day!</p>
+                                </div>
+                                <div class="ess-welcome-icon" id="welcomeIcon"><i class="fas fa-sun"></i></div>
+                            </div>
+
+
+
+                            <div class="ess-card-grid">
+                                <div class="ess-card ess-card-wide">
+                                    <div class="ess-card-head"><h3>Attendance Status</h3><span id="dashTodayStatus" class="ess-pill absent">Today Absent</span></div>
+                                    <div class="ess-att-status-grid">
+                                        <div><span class="lbl">Check In</span><strong id="dashCheckIn">-</strong></div>
+                                        <div><span class="lbl">Check Out</span><strong id="dashCheckOut">-</strong></div>
+                                        <div><span class="lbl">Total Hours</span><strong id="dashTotalHours">0.00 Hrs</strong></div>
+                                        <div><span class="lbl">Punches Today</span><strong id="dashPunchCount">0</strong></div>
+                                    </div>
+                                    <p class="ess-shift-note"><i class="fas fa-moon"></i> Shift: <span id="dashShift">Night shift (6 PM - 4 AM)</span></p>
+                                </div>
+                                <div class="ess-card">
+                                    <div class="ess-card-head"><h3>Employee Information</h3></div>
+                                    <div class="ess-info-list">
+                                        <div><span>Email</span><strong id="profEmail">-</strong></div>
+                                        <div><span>Employee ID</span><strong id="profEmpId">-</strong></div>
+                                        <div><span>Department</span><strong id="profDept">-</strong></div>
+                                        <div><span>Designation</span><strong id="profDesig">-</strong></div>
+                                        <div><span>Team</span><strong id="profTeam">-</strong></div>
+                                        <div><span>Branch</span><strong id="profBranch">-</strong></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="ess-dash-bottom-grid" id="essDashBottomGrid">
+                                <div class="ess-card ess-activities-card">
+                                    <div class="ess-activities-head">
+                                        <h3><i class="fas fa-chart-line"></i> Activities</h3>
+                                        <p id="activitiesRangeLabel">This week</p>
+                                    </div>
+                                    <div class="ess-activities-shift">
+                                        <strong>Night Shift</strong>
+                                        <span id="activitiesShiftHours">6:00 PM - 4:00 AM</span>
+                                    </div>
+                                    <div class="ess-activities-timeline" id="activitiesTimeline" role="list" aria-label="Weekly activity status"></div>
+                                </div>
+                                <div class="ess-card ess-dash-approvals-card hidden" id="dashLeaveApprovalsCard">
+                                    <div class="ess-card-head">
+                                        <h3><i class="fas fa-clipboard-check"></i> Team Leave Approvals</h3>
+                                        <span class="ess-pill pending" id="dashLeaveApprovalsBadge">0</span>
+                                    </div>
+                                    <p class="ess-dash-approvals-text" id="dashLeaveApprovalsText">Review pending leave requests from your team.</p>
+                                    <button type="button" class="ess-btn ess-btn-primary ess-btn-sm" id="btnDashReviewApprovals">
+                                        Review now <i class="fas fa-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- My Payslips View -->
+                        <section id="view-salary" class="view-section">
+                            <div class="prod-analytics-header" style="margin-bottom: 24px;">
+                                <h2><i class="fas fa-wallet" style="color: var(--prod-orange);"></i> My Payslips</h2>
+                                <p>View and download your monthly salary slips</p>
+                            </div>
+
+                            <div class="prod-glass-card" style="margin-bottom: 24px;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                                    <h3 style="font-size:18px;color:var(--prod-text);"><i class="fas fa-history" style="margin-right:8px; color: var(--prod-indigo);"></i> Payslip History</h3>
+                                </div>
+                                <div style="overflow-x:auto;">
+                                    <table class="prod-ts-table" id="payslipTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Month & Year</th>
+                                                <th>Gross Salary</th>
+                                                <th>Net Payable</th>
+                                                <th>Status</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="payslipBody">
+                                            <tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-muted);">Loading your payslips...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Modal for Payslip View -->
+                            <div id="payslipModal" class="ess-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+                                <div class="ess-modal-content" style="background:#fff; border-radius:16px; width:90%; max-width:600px; max-height:90vh; overflow-y:auto; padding:30px; position:relative;">
+                                    <button onclick="document.getElementById('payslipModal').style.display='none'" style="position:absolute; top:20px; right:20px; background:none; border:none; font-size:24px; cursor:pointer;"><i class="fas fa-times"></i></button>
+                                    <div id="payslipModalBody"></div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Coming soon placeholder -->
+                        <section id="view-coming-soon" class="view-section">
+                            <div class="ess-coming-soon ess-card">
+                                <div class="ess-coming-soon-icon" aria-hidden="true"><i class="fas fa-screwdriver-wrench"></i></div>
+                                <h2 id="comingSoonTitle">Working on this</h2>
+                                <p id="comingSoonSubtitle">This section is being built and will be available in a future update.</p>
+                                <p class="ess-coming-soon-hint">You can continue using Dashboard, Profile, Attendance, Leave, and Payroll in the meantime.</p>
+                                <button type="button" class="ess-btn ess-btn-primary" id="btnComingSoonBack">
+                                    <i class="fas fa-house"></i> Back to dashboard
+                                </button>
+                            </div>
+                        </section>
+
+                        <!-- Active Members View -->
+                        <section id="view-active-members" class="view-section">
+                            <div class="ess-card">
+                                <div class="ess-card-head" style="align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; margin-bottom: 15px;">
+                                    <div style="display: flex; flex-direction: column;">
+                                        <h3 style="font-size: 18px; color: #f8fafc;"><i class="fas fa-users-viewfinder" style="color: #6366f1; margin-right: 8px;"></i> Live Network Status</h3>
+                                        <p style="font-size: 13px; color: #94a3b8; margin-top: 4px;">Monitor currently connected employees and their network IP</p>
+                                    </div>
+                                    <div style="display: flex; gap: 12px;">
+                                        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 8px 16px; border-radius: 8px; display: flex; flex-direction: column; align-items: center;">
+                                            <span style="font-size: 11px; color: #10b981; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Online</span>
+                                            <strong id="activeMembersCount" style="font-size: 18px; color: #10b981; margin-top: 2px;">0</strong>
+                                        </div>
+                                        <div style="background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.2); padding: 8px 16px; border-radius: 8px; display: flex; flex-direction: column; align-items: center;">
+                                            <span style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Offline</span>
+                                            <strong id="offlineMembersCount" style="font-size: 18px; color: #94a3b8; margin-top: 2px;">0</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="ess-table-wrap">
+                                    <table class="data-table" style="width: 100%;">
+                                        <thead>
+                                            <tr>
+                                                <th>Employee Name</th>
+                                                <th>Portal Role</th>
+                                                <th>Branch</th>
+                                                <th>Presence</th>
+                                                <th>IP Address</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="activeMembersTableBody">
+                                            <tr><td colspan="5" style="text-align: center; padding: 30px; color: #64748b;"><i class="fas fa-spinner fa-spin"></i> Loading live user statuses...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Profile -->
+                        <section id="view-profile" class="view-section">
+                            <div class="ess-profile-page">
+                                <div class="ess-profile-hero ess-card">
+                                    <div class="ess-profile-hero-photo" id="profilePageAvatar"><span>U</span></div>
+                                    <div class="ess-profile-hero-meta">
+                                        <h2 id="profilePageName">-</h2>
+                                        <p id="profilePageRole">-</p>
+                                        <div class="ess-profile-hero-tags">
+                                            <span class="ess-id-badge" id="profilePageBid">-</span>
+                                            <span class="ess-pill present" id="profilePageStatus">Active</span>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="ess-btn ess-btn-outline ess-profile-photo-btn" id="btnProfilePagePhoto">
+                                        <i class="fas fa-camera"></i> Change photo
+                                    </button>
+                                </div>
+                                <div class="ess-profile-section ess-card" style="display: flex; flex-direction: column; align-items: center; text-align: center; padding: 25px; margin-bottom: 24px; border-top: 3px solid var(--primary);">
+                                    <h3 class="ess-profile-section-title" style="margin-bottom: 8px;"><i class="fas fa-qrcode" style="color:var(--primary); margin-right:6px;"></i> Digital Verification ID</h3>
+                                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px; max-width: 500px;">Scan this QR code to verify real-time employment status (Active, Inactive, or Terminated) on the Balitech HRMS network.</p>
+                                    <div style="background: white; padding: 12px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 16px;">
+                                        <div id="profileQrCode"></div>
+                                    </div>
+                                    <div>
+                                        <button type="button" class="ess-btn ess-btn-primary" id="btnDownloadQr" style="display: inline-flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-download"></i> Download QR Badge
+                                        </button>
+                                    </div>
+                                </div>
+    
+
+                                <p class="ess-profile-lock-note"><i class="fas fa-lock"></i> Biometric ID, name, and department are managed by HR and cannot be changed here.</p>
+
+                                <div class="ess-profile-section ess-card">
+                                    <h3 class="ess-profile-section-title">Basic information</h3>
+                                    <div class="ess-profile-form-grid">
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfEmpId">Biometric ID</label>
+                                            <input type="text" id="pfEmpId" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfEmail">Email address</label>
+                                            <input type="email" id="pfEmail" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfFirstName">First name</label>
+                                            <input type="text" id="pfFirstName" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfLastName">Last name</label>
+                                            <input type="text" id="pfLastName" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="ess-profile-section ess-card">
+                                    <h3 class="ess-profile-section-title">Work information</h3>
+                                    <div class="ess-profile-form-grid">
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfDepartment">Department</label>
+                                            <input type="text" id="pfDepartment" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfPortalRole">Portal role</label>
+                                            <input type="text" id="pfPortalRole" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfBranch">Branch</label>
+                                            <input type="text" id="pfBranch" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfTeam">Team</label>
+                                            <input type="text" id="pfTeam" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfDesignation">Designation</label>
+                                            <input type="text" id="pfDesignation" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfEmpStatus">Employee status</label>
+                                            <input type="text" id="pfEmpStatus" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfJoined">Date of joining</label>
+                                            <input type="text" id="pfJoined" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfBidSource">Attendance link</label>
+                                            <input type="text" id="pfBidSource" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="ess-profile-section ess-card">
+                                    <h3 class="ess-profile-section-title">Hierarchy information</h3>
+                                    <div class="ess-profile-form-grid ess-profile-form-grid--single">
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfManager">Reporting manager</label>
+                                            <input type="text" id="pfManager" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                    </div>
+                                    <p class="ess-muted-line ess-profile-hierarchy-note hidden" id="pfManagerLinkNote">
+                                        <button type="button" class="ess-link-btn" id="btnGoManageReportees">View reporting</button>
+                                        - see who you report to, or manage your team if you are a manager.
+                                    </p>
+                                </div>
+
+                                <div class="ess-profile-section ess-card">
+                                    <h3 class="ess-profile-section-title">Personal details</h3>
+                                    <div class="ess-profile-form-grid">
+                                        <div class="ess-profile-field">
+                                            <label for="pfDob">Date of birth</label>
+                                            <input type="date" id="pfDob">
+                                        </div>
+                                        <div class="ess-profile-field">
+                                            <label for="pfMarital">Marital status</label>
+                                            <select id="pfMarital">
+                                                <option value="">- Select -</option>
+                                                <option value="Single">Single</option>
+                                                <option value="Married">Married</option>
+                                                <option value="Divorced">Divorced</option>
+                                                <option value="Widowed">Widowed</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div class="ess-profile-field ess-profile-field--full">
+                                            <label for="pfExpertise">Ask me about / expertise</label>
+                                            <input type="text" id="pfExpertise" placeholder="e.g. React, payroll, dialer ops">
+                                        </div>
+                                        <div class="ess-profile-field ess-profile-field--full">
+                                            <label for="pfAbout">About me</label>
+                                            <textarea id="pfAbout" rows="4" placeholder="Short introduction about yourself..."></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="ess-profile-section ess-card">
+                                    <h3 class="ess-profile-section-title">Contact details</h3>
+                                    <div class="ess-profile-form-grid">
+                                        <div class="ess-profile-field">
+                                            <label for="pfEmergency">Emergency contact</label>
+                                            <input type="text" id="pfEmergency" placeholder="Name &amp; number">
+                                        </div>
+                                        <div class="ess-profile-field">
+                                            <label for="pfPersonalMobile">Personal mobile number</label>
+                                            <input type="tel" id="pfPersonalMobile" placeholder="03xx xxxxxxx" maxlength="15" autocomplete="tel">
+                                        </div>
+                                        <div class="ess-profile-field">
+                                            <label for="pfExtension">Extension</label>
+                                            <input type="text" id="pfExtension" placeholder="e.g. 101">
+                                        </div>
+                                        <div class="ess-profile-field">
+                                            <label for="pfPersonalEmail">Personal email address</label>
+                                            <input type="email" id="pfPersonalEmail" placeholder="you@example.com" autocomplete="email">
+                                        </div>
+                                        <div class="ess-profile-field ess-profile-field--full">
+                                            <label for="pfPresentAddr">Present address</label>
+                                            <textarea id="pfPresentAddr" rows="3" placeholder="Current residential address"></textarea>
+                                        </div>
+                                        <div class="ess-profile-field ess-profile-field--full">
+                                            <label for="pfPermanentAddr">Permanent address</label>
+                                            <textarea id="pfPermanentAddr" rows="3" placeholder="Permanent home address"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="ess-profile-section ess-card">
+                                    <h3 class="ess-profile-section-title">System fields</h3>
+                                    <div class="ess-profile-form-grid">
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfAddedBy">Added by</label>
+                                            <input type="text" id="pfAddedBy" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfModifiedBy">Modified by</label>
+                                            <input type="text" id="pfModifiedBy" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfAddedTime">Added time</label>
+                                            <input type="text" id="pfAddedTime" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                        <div class="ess-profile-field ess-field-locked">
+                                            <label for="pfModifiedTime">Modified time</label>
+                                            <input type="text" id="pfModifiedTime" readonly tabindex="-1" aria-readonly="true">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="ess-profile-save-bar">
+                                    <button type="button" class="ess-btn ess-btn-primary ess-btn-save-profile" id="btnSaveProfile">
+                                        <i class="fas fa-floppy-disk"></i> Save profile
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Attendance -->
+                        
+                        <section id="view-attendance" class="view-section">
+                            <div id="wfhAttendanceContainer">
+                                <div class="ess-card" style="margin-bottom: 20px; border-top: 3px solid var(--primary);">
+                                    <div class="ess-card-head" style="margin-bottom: 20px;">
+                                        <h3><i class="fas fa-globe" style="color:var(--primary);"></i> Web Attendance Status</h3>
+                                    </div>
+                                    <div style="text-align: center; padding: 40px 20px;">
+                                        <h4 id="wfhCurrentStatusText" style="font-size: 24px; margin-bottom: 15px; color: #9ca3af; font-weight:600;">You are currently Checked Out</h4>
+                                        <p id="wfhLocationDisplay" style="display:none; color:#10b981; font-size:14px; margin-bottom:20px; font-weight:600;"><i class="fas fa-map-marker-alt"></i> Location: <span id="wfhCityName">-</span></p>
+                                        <button type="button" id="wfhMainCheckBtn" onclick="startWebCheckIn()" style="background: var(--primary); color: #fff; border: none; padding: 15px 45px; font-size: 18px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);"><i class="fas fa-map-marker-alt"></i> Web Check-In</button>
+                                    </div>
+                                </div>
+                                <div class="ess-card">
+                                    <div class="ess-card-head">
+                                        <h3><i class="fas fa-history"></i> Web Attendance History</h3>
+                                        <div class="ess-date-nav">
+                                            <button type="button" class="ess-icon-btn" onclick="loadMyAttendance()"><i class="fas fa-sync-alt"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="ess-table-wrap" style="margin-top:20px;">
+                                        <table class="data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Check In</th>
+                                                    <th>Check Out</th>
+                                                    <th>Total Hours</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="wfhHistoryTableBody">
+                                                <tr><td colspan="5" style="text-align:center; padding:20px;">Loading records...</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+    
+
+                        <!-- Salary -->
+                        <section id="view-salary" class="view-section">
+                            <div class="ess-card">
+                                <h3><i class="fas fa-wallet"></i> Payroll - <span id="salMonth">-</span></h3>
+                                <div class="ess-stats-row">
+                                    <div class="ess-stat highlight"><span>Basic Salary</span><strong id="salBasic">-</strong></div>
+                                    <div class="ess-stat"><span>Bonus</span><strong id="salBonus">-</strong></div>
+                                    <div class="ess-stat"><span>TADA</span><strong id="salTada">-</strong></div>
+                                    <div class="ess-stat"><span>Advance / month</span><strong id="salAdvance">-</strong></div>
+                                </div>
+                                <p class="ess-muted-line">Leaves this month: <strong id="salLeaves">0</strong> - Bank: <strong id="salBank">-</strong></p>
+                            </div>
+                        </section>
+
+                        <!-- Leave -->
+                        <section id="view-leave" class="view-section">
+                            <div class="ess-leave-hero">
+                                <div class="ess-leave-hero-main">
+                                    <h3>Leaves</h3>
+                                    <p class="ess-muted-line ess-leave-intro">Available leave is credited by HR from Leave Policy. Taken increases when your approved leave is recorded.</p>
+                                </div>
+                                <div class="ess-leave-hero-meta">
+                                    <div class="ess-leave-year-nav" aria-label="Leave year">
+                                        <button type="button" class="ess-icon-btn" id="leaveYearPrev" title="Previous year"><i class="fas fa-chevron-left"></i></button>
+                                        <span id="leaveYearLabel">2026</span>
+                                        <button type="button" class="ess-icon-btn" id="leaveYearNext" title="Next year"><i class="fas fa-chevron-right"></i></button>
+                                    </div>
+                                    <button type="button" class="ess-btn ess-btn-outline" id="btnOpenHalfDayApply"><i class="fas fa-calendar-day"></i> Half Day</button>
+                                    <button type="button" class="ess-btn ess-btn-primary" id="btnOpenLeaveApply"><i class="fas fa-plus"></i> Apply Leave</button>
+                                </div>
+                            </div>
+                            <div class="ess-leave-balances" id="leaveBalanceGrid" aria-label="Leave balances"></div>
+                            <div class="ess-card">
+                                <h3>My Leaves</h3>
+                                <div class="ess-table-wrap">
+                                    <table class="data-table">
+                                        <thead><tr><th>Duration</th><th>Type</th><th>Dates</th><th>Days</th><th>Approver</th><th>Status</th><th>Applied</th><th class="ess-leave-actions-col">Action</th></tr></thead>
+                                        <tbody id="myLeavesBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Half Day -->
+                        <section id="view-halfday" class="view-section">
+                            <div class="ess-card-head-row ess-leave-halfday-head">
+                                <h3><i class="fas fa-calendar-day"></i> Apply Half Day</h3>
+                                <button type="button" class="ess-btn ess-btn-outline ess-btn-sm" id="btnBackToLeaves"><i class="fas fa-arrow-left"></i> Back to Leaves</button>
+                            </div>
+                            <div class="ess-card">
+                                <div class="form-field hidden" id="halfLeaveEmployeeField">
+                                    <label>Apply leave for employee</label>
+                                    <div class="ess-person-search" data-search-type="employee-half">
+                                        <input type="text" class="ess-search-input" id="halfEmployeeSearch" placeholder="Search employee..." autocomplete="off">
+                                        <div class="ess-search-results hidden" id="halfEmployeeResults"></div>
+                                        <div class="ess-selected-person hidden" id="halfEmployeeSelected"></div>
+                                    </div>
+                                </div>
+                                <div class="form-field">
+                                    <label>Send to approver <span class="ess-req">*</span></label>
+                                    <div class="ess-person-search" data-search-type="approver-half">
+                                        <input type="text" class="ess-search-input" id="halfApproverSearch" placeholder="Search approver..." autocomplete="off">
+                                        <div class="ess-search-results hidden" id="halfApproverResults"></div>
+                                        <div class="ess-selected-person hidden" id="halfApproverSelected"></div>
+                                    </div>
+                                </div>
+                                <form id="formHalfLeave">
+                                    <div class="form-grid">
+                                        <div class="form-field">
+                                            <label>Date</label>
+                                            <input type="date" name="start_date" required>
+                                        </div>
+                                        <div class="form-field" id="halfDayFields">
+                                            <label>Session</label>
+                                            <select name="half_day_slot">
+                                                <option value="morning">Morning (1st half)</option>
+                                                <option value="afternoon">Afternoon (2nd half)</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-field">
+                                            <label>Leave Type</label>
+                                            <select name="leave_type" data-leave-select="half_day"></select>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="end_date" value="">
+                                    <div class="form-field">
+                                        <label>Reason</label>
+                                        <textarea name="reason" required></textarea>
+                                    </div>
+                                    <button type="submit" class="ess-btn ess-btn-primary"><i class="fas fa-paper-plane"></i> Submit Half Day</button>
+                                </form>
+                            </div>
+                        </section>
+
+                        <!-- Leave Policy -->
+                        <section id="view-leave-policy" class="view-section">
+                            <div class="ess-card" id="leavePolicyManageCard">
+                                <div class="ess-card-head-row">
+                                    <h3><i class="fas fa-coins"></i> Allot Leave Credits</h3>
+                                    <span class="ess-pill present">Admin / HR</span>
+                                </div>
+                                <p class="ess-muted-line">Allot leave credits to employees. Each submission creates rows in the allotments table below - credits apply immediately and are managed here, not in Approvals.</p>
+                                <form id="formLeavePolicyDef" class="ess-policy-def-form">
+                                    <div class="form-grid form-grid--policy">
+                                        <div class="form-field">
+                                            <label>Policy name <span class="ess-req">*</span></label>
+                                            <input type="text" name="policy_name" id="policyDefName" required placeholder="Casual Leave">
+                                        </div>
+                                        <div class="form-field">
+                                            <label>Policy code <span class="ess-req">*</span></label>
+                                            <input type="text" name="policy_code" id="policyDefCode" required placeholder="CL" maxlength="32" autocomplete="off">
+                                        </div>
+                                        <div class="form-field">
+                                            <label>Leave type <span class="ess-req">*</span></label>
+                                            <select name="leave_type" id="policyDefLeaveType" required></select>
+                                        </div>
+                                        <div class="form-field">
+                                            <label>Category</label>
+                                            <select name="leave_category" id="policyDefCategory">
+                                                <option value="paid">Paid</option>
+                                                <option value="unpaid">Unpaid</option>
+                                                <option value="compensatory">Compensatory</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-field">
+                                            <label>Unit</label>
+                                            <select name="unit" id="policyDefUnit">
+                                                <option value="days">Days</option>
+                                                <option value="hours">Hours</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-field">
+                                            <label>Credit value <span class="ess-req">*</span></label>
+                                            <input type="number" name="credit_value" id="policyDefCredit" min="0" required placeholder="12">
+                                        </div>
+                                        <div class="form-field">
+                                            <label>Valid from</label>
+                                            <input type="date" name="valid_from" id="policyDefValidFrom">
+                                        </div>
+                                        <div class="form-field">
+                                            <label>Expires on</label>
+                                            <input type="date" name="expires_on" id="policyDefExpiresOn">
+                                        </div>
+                                    </div>
+                                    <div class="ess-policy-def-checks">
+                                        <label class="ess-check-inline"><input type="checkbox" name="reset_enabled" id="policyDefReset"> Enable yearly reset</label>
+                                        <div class="form-field ess-policy-def-reset-extra">
+                                            <label>Reset frequency</label>
+                                            <select name="reset_frequency" id="policyDefResetFreq">
+                                                <option value="yearly">Yearly</option>
+                                                <option value="monthly">Monthly</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-field ess-policy-def-reset-extra">
+                                            <label>Reset day / month</label>
+                                            <input type="text" name="reset_day_month" id="policyDefResetDay" value="31-Dec" placeholder="31-Dec">
+                                        </div>
+                                    </div>
+                                    <div class="form-field ess-policy-apply-target">
+                                        <label>Apply policy credits to</label>
+                                        <div class="ess-policy-targets ess-policy-targets--cards">
+                                            <label class="ess-radio-card">
+                                                <input type="radio" name="policy_def_target" value="all" checked>
+                                                <span class="ess-radio-card-inner">
+                                                    <i class="fas fa-users" aria-hidden="true"></i>
+                                                    <strong>All active employees</strong>
+                                                    <small>Entire branch</small>
+                                                </span>
+                                            </label>
+                                            <label class="ess-radio-card">
+                                                <input type="radio" name="policy_def_target" value="selected">
+                                                <span class="ess-radio-card-inner">
+                                                    <i class="fas fa-user-check" aria-hidden="true"></i>
+                                                    <strong>Selected employees</strong>
+                                                    <small>Pick individuals</small>
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-field hidden" id="policyDefEmployeeField">
+                                        <label>Select employees</label>
+                                        <div class="ess-person-search">
+                                            <input type="text" class="ess-search-input" id="policyDefEmployeeSearch" placeholder="Search by name, email or BID - click to add..." autocomplete="off">
+                                            <div class="ess-search-results hidden" id="policyDefEmployeeResults"></div>
+                                        </div>
+                                        <div class="ess-policy-selected-list hidden" id="policyDefEmployeeSelected"></div>
+                                    </div>
+                                    <div class="ess-policy-def-actions">
+                                        <button type="submit" class="ess-btn ess-btn-primary" id="btnPolicyDefSave"><i class="fas fa-user-plus"></i> Allot credits</button>
+                                    </div>
+                                </form>
+                                <div class="ess-table-wrap ess-policy-allot-table-wrap" id="leavePolicyAllotmentsSection">
+                                    <div class="ess-policy-allot-head">
+                                        <div>
+                                            <h4 class="ess-policy-table-title">Policy allotments</h4>
+                                            <p class="ess-muted-line ess-policy-allot-hint">Each row is one employee credit. Use Reject or Revert from the actions menu when needed.</p>
+                                        </div>
+                                        <span class="ess-pill ess-pill-sm" id="policyAllotmentCount">-</span>
+                                    </div>
+                                    <table class="data-table ess-policy-allot-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Allotted on</th>
+                                                <th>Policy</th>
+                                                <th>Code</th>
+                                                <th>Type</th>
+                                                <th>Credit</th>
+                                                <th>Employee</th>
+                                                <th>Status</th>
+                                                <th class="ess-policy-actions-col">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="leavePolicyAllotmentsBody">
+                                            <tr><td colspan="8">Loading...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Approvals -->
+                        <section id="view-approvals" class="view-section">
+                            <div class="ess-approvals-hero">
+                                <div>
+                                    <h3><i class="fas fa-clipboard-check"></i> Leave Approvals</h3>
+                                    <p>Review employee leave requests - approve, reject, or revert approved leave back to pending.</p>
+                                </div>
+                            </div>
+                            <div class="ess-approval-tabs">
+                                <button type="button" class="ess-approval-tab active" data-filter="pending">Pending</button>
+                                <button type="button" class="ess-approval-tab" data-filter="approved">Approved</button>
+                                <button type="button" class="ess-approval-tab" data-filter="rejected">Rejected</button>
+                                <button type="button" class="ess-approval-tab" data-filter="all">All requests</button>
+                            </div>
+                            <div id="approvalsList" class="ess-approvals-list"></div>
+                        </section>
+
+                        <!-- Manage Reportees / My Reporting -->
+                        <section id="view-reportees" class="view-section">
+                            <div class="ess-reportees-hero">
+                                <div>
+                                    <h3 id="reporteesPageTitle"><i class="fas fa-users-gear"></i> My Reporting</h3>
+                                    <p id="reporteesPageSubtitle">View your reporting manager. Only team leads, HR, and admins can assign reportees.</p>
+                                </div>
+                            </div>
+
+                            <div class="ess-reportees-top-grid">
+                                <div class="ess-card ess-reportees-reporting-card" id="reporteesReportingCard">
+                                    <div class="ess-card-head">
+                                        <h3><i class="fas fa-user-tie"></i> Reporting To</h3>
+                                    </div>
+                                    <div id="reporteesReportingView" class="ess-reporting-readonly hidden"></div>
+                                    <div id="reporteesReportingEmpty" class="ess-reporting-empty">
+                                        <i class="fas fa-user-clock" aria-hidden="true"></i>
+                                        <p>No reporting manager assigned yet.</p>
+                                        <small id="reporteesReportingEmptyHint">Your team lead, floor manager, HR, or admin will link you to the correct reporting line.</small>
+                                    </div>
+                                    <div id="reporteesManagerAssign" class="ess-reportees-manager-assign hidden">
+                                        <label class="ess-mini-label" for="reporteeManagerSearchInput">Assign reporting manager</label>
+                                        <div class="ess-hierarchy-inline-form">
+                                            <div class="ess-person-search ess-hierarchy-search">
+                                                <input type="text" class="ess-search-input" id="reporteeManagerSearchInput" placeholder="Search manager by name or ID..." autocomplete="off">
+                                                <div class="ess-search-results hidden" id="reporteeManagerSearchResults"></div>
+                                            </div>
+                                            <button type="button" class="ess-btn ess-btn-primary ess-btn-sm" id="btnConfirmReporteeManager" disabled title="Save reporting manager">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </div>
+                                        <div class="ess-selected-person hidden" id="reporteeManagerSearchSelected"></div>
+                                    </div>
+                                </div>
+
+                                <div class="ess-card ess-reportees-team-overview hidden" id="reporteesTeamOverview">
+                                    <div class="ess-card-head">
+                                        <h3><i class="fas fa-users"></i> My Reportees</h3>
+                                        <span class="ess-pill present" id="reporteesOverviewCount">0</span>
+                                    </div>
+                                    <p class="ess-muted-line ess-reportees-overview-note">Today&apos;s attendance for your direct reportees.</p>
+                                    <div id="reporteesTeamChips" class="ess-reportees-team-chips"></div>
+                                    <div id="reporteesTeamOverviewEmpty" class="ess-reporting-empty ess-reporting-empty--compact hidden">
+                                        <p>No reportees assigned yet. Add team members below.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="ess-card ess-reportees-link-card hidden" id="reporteesAssignCard">
+                                <div class="ess-card-head">
+                                    <h3><i class="fas fa-user-plus"></i> Add Reportee</h3>
+                                </div>
+                                <p class="ess-muted-line ess-reportees-assign-note">Search an employee by biometric ID or name and add them to your team.</p>
+                                <label class="ess-mini-label" for="reporteeSearchInput">Employee</label>
+                                <div class="ess-person-search">
+                                    <input type="text" class="ess-search-input" id="reporteeSearchInput" placeholder="Enter employee ID or name..." autocomplete="off">
+                                    <div class="ess-search-results hidden" id="reporteeSearchResults"></div>
+                                    <div class="ess-selected-person hidden" id="reporteeSearchSelected"></div>
+                                </div>
+                                <button type="button" class="ess-btn ess-btn-primary" id="btnConfirmReportee" disabled>
+                                    <i class="fas fa-user-check"></i> Add to my reportees
+                                </button>
+                            </div>
+
+                            <div class="ess-card hidden" id="reporteesTeamCard">
+                                <div class="ess-card-head">
+                                    <h3><i class="fas fa-users"></i> Your Reportees</h3>
+                                    <span class="ess-pill present" id="reporteesCountBadge">0 reportees</span>
+                                </div>
+                                <p class="ess-muted-line ess-reportees-team-note">Select a reportee to view their today&apos;s attendance.</p>
+                                <div id="reporteeAttendancePanel" class="ess-reportee-att-panel hidden"></div>
+                                <div class="ess-table-wrap">
+                                    <table class="data-table ess-reportees-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Biometric ID</th>
+                                                <th>Name</th>
+                                                <th>Team</th>
+                                                <th>Check In</th>
+                                                <th>Check Out</th>
+                                                <th>Today</th>
+                                                <th style="width: 100px;">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="reporteesTableBody">
+                                            <tr><td colspan="7">Loading team...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Performance - Daily Full Day Report -->
+                        <section id="view-performance" class="view-section ess-perf-view">
+                            <div class="prod-analytics-header" style="margin-bottom: 24px;">
+                                <h2 style="font-size: 24px; color: var(--text-color);"><i class="fas fa-headset" style="color: var(--primary); margin-right: 8px;"></i> Daily Reporting Console</h2>
+                                <p style="font-size: 14px; color: var(--text-muted);">Log your transferred calls securely to the database</p>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                                <!-- Daily Reporting Form -->
+                                <div class="ess-card">
+                                    <div class="ess-card-head" style="margin-bottom: 20px;">
+                                        <h3><i class="fas fa-plus-circle" style="color: var(--primary);"></i> Log Transfer Call</h3>
+                                    </div>
+                                    
+                                    <form id="dailyReportingForm" style="display: flex; flex-direction: column; gap: 16px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(16,185,129,0.1); padding: 15px; border-radius: 8px; border: 1px solid rgba(16,185,129,0.2); margin-bottom: 8px;">
+                                            <div>
+                                                <label style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;"><i class="fas fa-fingerprint"></i> Biometric ID (DID)</label>
+                                                <strong id="drpBiometricId" style="font-size: 18px; color: #10b981; display: block; margin-top: 4px; font-family: monospace;">Loading...</strong>
+                                            </div>
+                                            <div style="height: 36px; width: 36px; border-radius: 50%; background: rgba(16,185,129,0.2); display: flex; align-items: center; justify-content: center;"><i class="fas fa-check" style="color: #10b981;"></i></div>
+                                        </div>
+
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                            <div class="form-field">
+                                                <label for="drpCustomerNumber">Customer Number <span style="color:#ef4444">*</span></label>
+                                                <input type="text" id="drpCustomerNumber" required placeholder="e.g. 555-0198" class="ess-leave-input">
+                                            </div>
+                                            <div class="form-field">
+                                                <label for="drpCustomerZip">Zip Code</label>
+                                                <input type="text" id="drpCustomerZip" placeholder="e.g. 90210" class="ess-leave-input">
+                                            </div>
+                                        </div>
+
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                            <div class="form-field">
+                                                <label for="drpCustomerName">Customer Name</label>
+                                                <input type="text" id="drpCustomerName" placeholder="e.g. John Doe" class="ess-leave-input">
+                                            </div>
+                                            <div class="form-field">
+                                                <label for="drpCustomerAge">Customer Age</label>
+                                                <input type="number" id="drpCustomerAge" placeholder="e.g. 45" class="ess-leave-input">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-field">
+                                            <label for="drpTransferOn">Transfer Option <span style="color:#ef4444">*</span></label>
+                                            <select id="drpTransferOn" required class="ess-leave-input">
+                                                <option value="D1">Option D1</option>
+                                                <option value="D2">Option D2</option>
+                                            </select>
+                                        </div>
+
+                                        <button type="submit" class="ess-btn ess-btn-primary" style="margin-top: 8px;">
+                                            <i class="fas fa-paper-plane"></i> Log Transfer Call
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <!-- Today's Logged Transfers Table -->
+                                <div class="ess-card">
+                                    <div class="ess-card-head" style="margin-bottom: 20px;">
+                                        <h3><i class="fas fa-history" style="color: var(--primary);"></i> Today's Logged Transfers</h3>
+                                    </div>
+                                    <div class="ess-table-wrap">
+                                        <table class="data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Time</th>
+                                                    <th>Customer Number</th>
+                                                    <th>Name</th>
+                                                    <th>Transfer Option</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="todayTransfersTableBody">
+                                                <tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">No transfers logged today yet.</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- My Performance Analytics View -->
+                        <section id="view-performance-analytics" class="view-section ess-perf-view">
+                            <div class="prod-analytics-header" style="margin-bottom: 24px;">
+                                <h2 style="font-size: 24px; color: var(--text-color);"><i class="fas fa-chart-pie" style="color: var(--primary); margin-right: 8px;"></i> My Performance Analytics</h2>
+                                <p style="font-size: 14px; color: var(--text-muted);">Track your QA-verified sales metrics and history</p>
+                            </div>
+
+                            <!-- KPI Cards -->
+                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+                                <div class="ess-stat highlight" style="display: flex; flex-direction: column; padding: 20px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border-color);">
+                                    <span style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">QA Sales Closed</span>
+                                    <strong id="qaStatsSales" style="font-size: 28px; margin-top: 8px; color: #10b981;">0</strong>
+                                </div>
+                                <div class="ess-stat" style="display: flex; flex-direction: column; padding: 20px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border-color);">
+                                    <span style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Rejected Sales</span>
+                                    <strong id="qaStatsRejected" style="font-size: 28px; margin-top: 8px; color: #ef4444;">0</strong>
+                                </div>
+                                <div class="ess-stat" style="display: flex; flex-direction: column; padding: 20px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border-color);">
+                                    <span style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Total QA Transfers</span>
+                                    <strong id="qaStatsTransfers" style="font-size: 28px; margin-top: 8px; color: #818cf8;">0</strong>
+                                </div>
+                                <div class="ess-stat" style="display: flex; flex-direction: column; padding: 20px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border-color);">
+                                    <span style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Conversion Rate</span>
+                                    <strong id="qaStatsConversion" style="font-size: 28px; margin-top: 8px; color: #f59e0b;">0%</strong>
+                                </div>
+                            </div>
+
+                            <!-- Charts Grid -->
+                            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+                                <div class="ess-card">
+                                    <div class="ess-card-head" style="margin-bottom: 20px;">
+                                        <h3><i class="fas fa-chart-line" style="color: var(--primary);"></i> 30-Day Performance Trend</h3>
+                                    </div>
+                                    <div style="height: 350px; position: relative;">
+                                        <canvas id="perfTrendChart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="ess-card">
+                                    <div class="ess-card-head" style="margin-bottom: 20px;">
+                                        <h3><i class="fas fa-pie-chart" style="color: var(--primary);"></i> Sales vs Rejections Ratio</h3>
+                                    </div>
+                                    <div style="height: 350px; position: relative;">
+                                        <canvas id="perfRatioChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Chat (embedded - same page URL) -->
+                        <section id="view-chat" class="view-section ess-chat-view">
+                            <iframe id="essChatFrame" class="ess-chat-iframe" title="Balitech Workspace Chat" src="about:blank" allow="clipboard-write"></iframe>
+                        </section>
+
+                        <!-- Notifications -->
+                        <section id="view-notifications" class="view-section">
+                            <div class="ess-card">
+                                <h3><i class="fas fa-bell"></i> Notifications</h3>
+                                <div class="notif-list" id="notifList"></div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="hrmsToast" class="hrms-toast"></div>
+
+    <div class="ess-modal-overlay ess-leave-overlay hidden" id="leaveApplyModal" aria-hidden="true">
+        <div class="ess-modal ess-leave-modal" role="dialog" aria-labelledby="leaveApplyModalTitle">
+            <div class="ess-leave-modal-accent" aria-hidden="true"></div>
+            <div class="ess-modal-header ess-leave-modal-head">
+                <div class="ess-leave-modal-title-wrap">
+                    <span class="ess-leave-modal-icon" aria-hidden="true"><i class="fas fa-calendar-minus"></i></span>
+                    <div>
+                        <h3 id="leaveApplyModalTitle">Apply Leave</h3>
+                        <p class="ess-leave-modal-sub">Fill in the details below - your approver will be notified</p>
+                    </div>
+                </div>
+                <button type="button" class="ess-modal-close ess-leave-modal-close" id="leaveApplyModalClose" aria-label="Close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="ess-leave-modal-body">
+                <div class="ess-leave-block">
+                    <h4 class="ess-leave-block-title"><i class="fas fa-user-check"></i> Approval</h4>
+                    <div class="ess-leave-approval-grid">
+                        <div class="ess-leave-modal-field hidden" id="leaveEmployeeField">
+                            <label class="ess-leave-label" for="leaveEmployeeSearch">Employee</label>
+                            <div class="ess-person-search ess-leave-person-search">
+                                <input type="text" class="ess-search-input ess-leave-input" id="leaveEmployeeSearch" placeholder="Name or BID..." autocomplete="off">
+                                <div class="ess-search-results ess-leave-search-results hidden" id="leaveEmployeeResults"></div>
+                                <div class="ess-selected-person hidden" id="leaveEmployeeSelected"></div>
+                            </div>
+                        </div>
+                        <div class="ess-leave-modal-field ess-leave-field-approver">
+                            <label class="ess-leave-label" for="leaveApproverSearch">Approver <span class="ess-req">*</span></label>
+                            <div class="ess-person-search ess-leave-person-search">
+                                <input type="text" class="ess-search-input ess-leave-input" id="leaveApproverSearch" placeholder="Name or role..." autocomplete="off">
+                                <div class="ess-search-results ess-leave-search-results hidden" id="leaveApproverResults"></div>
+                                <div class="ess-selected-person hidden" id="leaveApproverSelected"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <form id="formFullLeave" class="ess-leave-modal-form">
+                    <div class="ess-leave-block">
+                        <h4 class="ess-leave-block-title"><i class="fas fa-calendar-alt"></i> Leave details</h4>
+                        <div class="ess-leave-modal-field ess-leave-field-type">
+                            <label class="ess-leave-label" for="leaveTypeSelect">Leave type</label>
+                            <div class="ess-leave-select-wrap">
+                                <select name="leave_type" id="leaveTypeSelect" class="ess-leave-select" data-leave-select="apply"></select>
+                                <i class="fas fa-chevron-down ess-leave-select-chevron" aria-hidden="true"></i>
+                            </div>
+                        </div>
+                        <div class="ess-leave-date-row">
+                            <div class="ess-leave-modal-field">
+                                <label class="ess-leave-label" for="leaveStartDate">From</label>
+                                <div class="ess-leave-date-wrap">
+                                    <input type="date" name="start_date" id="leaveStartDate" class="ess-leave-input ess-leave-date" required>
+                                    <i class="fas fa-calendar-day ess-leave-date-icon" aria-hidden="true"></i>
+                                </div>
+                            </div>
+                            <div class="ess-leave-modal-field">
+                                <label class="ess-leave-label" for="leaveEndDate">To</label>
+                                <div class="ess-leave-date-wrap">
+                                    <input type="date" name="end_date" id="leaveEndDate" class="ess-leave-input ess-leave-date" required>
+                                    <i class="fas fa-calendar-day ess-leave-date-icon" aria-hidden="true"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ess-leave-block ess-leave-block--last">
+                        <div class="ess-leave-modal-field">
+                            <label class="ess-leave-label" for="leaveReason">Reason</label>
+                            <textarea name="reason" id="leaveReason" class="ess-leave-input ess-leave-textarea" rows="2" required placeholder="Brief reason for your leave request..."></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="ess-modal-actions ess-leave-modal-actions">
+                <button type="button" class="ess-btn ess-btn-outline ess-leave-btn-cancel" id="leaveApplyModalCancel">Cancel</button>
+                <button type="submit" form="formFullLeave" class="ess-btn ess-btn-primary ess-leave-btn-submit" id="leaveApplyModalSubmit">
+                    <i class="fas fa-paper-plane"></i> Submit request
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ess-modal-overlay ess-leave-overlay hidden" id="leaveWithdrawModal" aria-hidden="true">
+        <div class="ess-modal ess-leave-modal ess-withdraw-modal" role="dialog" aria-labelledby="leaveWithdrawModalTitle">
+            <div class="ess-leave-modal-accent" aria-hidden="true"></div>
+            <div class="ess-modal-header ess-leave-modal-head">
+                <div class="ess-leave-modal-title-wrap">
+                    <span class="ess-leave-modal-icon ess-withdraw-modal-icon" aria-hidden="true"><i class="fas fa-undo"></i></span>
+                    <div>
+                        <h3 id="leaveWithdrawModalTitle">Withdraw leave request</h3>
+                        <p class="ess-leave-modal-sub">This will cancel your leave - you can apply again if needed</p>
+                    </div>
+                </div>
+                <button type="button" class="ess-modal-close ess-leave-modal-close" id="leaveWithdrawModalClose" aria-label="Close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="ess-leave-modal-body">
+                <div class="ess-withdraw-summary" id="leaveWithdrawSummary"></div>
+                <div class="ess-leave-block ess-leave-block--last">
+                    <div class="ess-leave-modal-field">
+                        <label class="ess-leave-label" for="leaveWithdrawNote">Reason for withdrawal <span class="ess-muted-opt">(optional)</span></label>
+                        <textarea id="leaveWithdrawNote" class="ess-leave-input ess-leave-textarea" rows="2" placeholder="e.g. Plans changed, no longer required..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="ess-modal-actions ess-leave-modal-actions">
+                <button type="button" class="ess-btn ess-btn-outline ess-leave-btn-cancel" id="leaveWithdrawModalCancel">Keep request</button>
+                <button type="button" class="ess-btn ess-btn-danger ess-withdraw-confirm-btn" id="leaveWithdrawModalConfirm">
+                    <i class="fas fa-undo"></i> Confirm withdrawal
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ess-modal-overlay hidden" id="approvalModal" aria-hidden="true">
+        <div class="ess-modal" role="dialog" aria-labelledby="approvalModalTitle">
+            <div class="ess-modal-header">
+                <h3 id="approvalModalTitle">Review leave request</h3>
+                <button type="button" class="ess-modal-close" id="approvalModalClose" aria-label="Close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="ess-modal-body" id="approvalModalBody"></div>
+            <div class="ess-modal-field">
+                <label for="approvalModalNote">Note to employee <span id="approvalNoteRequired" class="hidden">(required for rejection)</span></label>
+                <textarea id="approvalModalNote" rows="3" placeholder="Optional approval note or rejection reason..."></textarea>
+            </div>
+            <div class="ess-modal-actions">
+                <button type="button" class="ess-btn ess-btn-outline" id="approvalModalCancel">Cancel</button>
+                <button type="button" class="ess-btn ess-btn-outline hidden" id="approvalModalRevert"><i class="fas fa-rotate-left"></i> Revert to pending</button>
+                <button type="button" class="ess-btn ess-btn-danger hidden" id="approvalModalReject"><i class="fas fa-times"></i> Reject</button>
+                <button type="button" class="ess-btn ess-btn-primary hidden" id="approvalModalApprove"><i class="fas fa-check"></i> Approve</button>
+            </div>
+        </div>
+    </div>
+
+    <script charset="utf-8" src="../js/portal-access.js"></script>
+    <script charset="utf-8" src="../js/portal-session-guard.js"></script>
+    <script src="../js/portal-notify-sound.js?v=1"></script>
+    <script charset="utf-8" src="../js/employee-hrms.js?v=76"></script>
+    <script charset="utf-8" src="../js/employee-performance.js?v=4"></script>
+    <script charset="utf-8" src="../js/portal-chat-fab.js"></script>
+    <!-- Register new productivity views so showView() recognises them -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof ESS_VIEW_TITLES !== 'undefined') {
+                ESS_VIEW_TITLES['feeds']        = ['Activity Feed', 'Real-time HR event stream'];
+                ESS_VIEW_TITLES['timelogs']     = ['Time Tracker', 'Clock in, clock out and manage your work sessions'];
+                ESS_VIEW_TITLES['timesheets']   = ['Timesheets', 'Weekly project time logs - auto-saved, manager approval'];
+                ESS_VIEW_TITLES['salary']       = ['My Payslips', 'View and download your monthly salary slips'];
+            }
+            if (typeof ESS_DEFAULT_NAV !== 'undefined') {
+                ESS_DEFAULT_NAV['feeds']        = 'nav-tab-feeds';
+                ESS_DEFAULT_NAV['timelogs']     = 'nav-tab-timelogs';
+                ESS_DEFAULT_NAV['timesheets']   = 'nav-tab-timesheets';
+            }
+        });
+    </script>
+    <script charset="utf-8" src="../js/hr-productivity.js?v=3"></script>
+    <script charset="utf-8" src="../js/employee-salary.js"></script>
+
+    <!-- Modal for Payslip View -->
+    <div id="payslipModal" class="ess-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:999999; align-items:center; justify-content:center;">
+        <div class="ess-modal-content" style="background:#fff; border-radius:16px; width:90%; max-width:650px; max-height:90vh; overflow-y:auto; padding:0; position:relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
+            <button onclick="document.getElementById('payslipModal').style.display='none'" style="position:absolute; top:20px; right:20px; background:rgba(255,255,255,0.9); border:none; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:18px; color:#475569; cursor:pointer; z-index:10; box-shadow:0 4px 6px rgba(0,0,0,0.1);"><i class="fas fa-times"></i></button>
+                                    <div id="payslipModalBody"></div>
+                                </div>
+                            </div>
+                            <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+                            <script>
+                                let wfhCheckedIn = false;
+
+                                async function checkWFHStatus() {
+                                    try {
+                                        const res = await fetch('api/wfh_status.php');
+                                        const data = await res.json();
+                                        if (data.success) {
+                                            wfhCheckedIn = data.checked_in;
+                                            updateWFHUI();
+                                        }
+                                    } catch (e) {
+                                        console.error("Error loading WFH status:", e);
+                                    }
+                                }
+
+                                function updateWFHUI() {
+                                    const btn = document.getElementById('webCheckInBtn');
+                                    const mainBtn = document.getElementById('wfhMainCheckBtn');
+                                    const statusText = document.getElementById('wfhCurrentStatusText');
+                                    const locationDisplay = document.getElementById('wfhLocationDisplay');
+                                    
+                                    if (wfhCheckedIn) {
+                                        if (btn) {
+                                            btn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Web Check-Out';
+                                            btn.style.backgroundColor = '#ef4444';
+                                        }
+                                        if (mainBtn) {
+                                            mainBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Web Check-Out';
+                                            mainBtn.style.backgroundColor = '#ef4444';
+                                            mainBtn.style.boxShadow = '0 4px 15px rgba(239, 68, 68, 0.4)';
+                                        }
+                                        if (statusText) {
+                                            statusText.innerHTML = '<span style="color:#10b981;"><i class="fas fa-check-circle"></i> You are currently Checked In</span>';
+                                        }
+                                        if (locationDisplay) locationDisplay.style.display = 'block';
+                                    } else {
+                                        if (btn) {
+                                            btn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Web Check-In';
+                                            btn.style.backgroundColor = '';
+                                        }
+                                        if (mainBtn) {
+                                            mainBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Web Check-In';
+                                            mainBtn.style.backgroundColor = 'var(--primary)';
+                                            mainBtn.style.boxShadow = '0 4px 15px rgba(249, 115, 22, 0.4)';
+                                        }
+                                        if (statusText) {
+                                            statusText.innerHTML = 'You are currently Checked Out';
+                                        }
+                                        if (locationDisplay) locationDisplay.style.display = 'none';
+                                    }
+                                }
+
+                                function startWebCheckIn() {
+                                    const btn = document.getElementById('webCheckInBtn');
+                                    const mainBtn = document.getElementById('wfhMainCheckBtn');
+                                    const originalHtml = btn ? btn.innerHTML : '';
+                                    const originalMainHtml = mainBtn ? mainBtn.innerHTML : '';
+                                    
+                                    if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ...'; btn.disabled = true; }
+                                    if (mainBtn) { mainBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...'; mainBtn.disabled = true; }
+
+                                    if (!navigator.geolocation) {
+                                        showToast('Geolocation is not supported by your browser.', 'error');
+                                        if (btn) { btn.innerHTML = originalHtml; btn.disabled = false; }
+                                        if (mainBtn) { mainBtn.innerHTML = originalMainHtml; mainBtn.disabled = false; }
+                                        return;
+                                    }
+
+                                    navigator.geolocation.getCurrentPosition(
+                                        async (position) => {
+                                            const lat = position.coords.latitude;
+                                            const lng = position.coords.longitude;
+                                            
+                                            try {
+                                                const response = await fetch('api/wfh_attendance_api.php', {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify({ lat, lng })
+                                                });
+                                                const data = await response.json();
+                                                
+                                                if (data.success) {
+                                                    let city = 'your location';
+                                                    try {
+                                                        const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+                                                        const geoData = await geoRes.json();
+                                                        if (geoData && geoData.address) {
+                                                            city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.state || city;
+                                                        }
+                                                    } catch (e) { }
+
+                                                    document.getElementById('wfhCityName').innerText = city;
+                                                    wfhCheckedIn = !wfhCheckedIn;
+                                                    showToast(wfhCheckedIn ? 'Checked in successfully!' : 'Checked out successfully!', 'success');
+                                                    updateWFHUI();
+                                                    loadMyAttendance();
+                                                    
+                                                    if (typeof loadDashboardData === 'function') {
+                                                        loadDashboardData();
+                                                    }
+                                                } else {
+                                                    showToast(data.message || 'Server error. Could not record attendance.', 'error');
+                                                }
+                                            } catch (err) {
+                                                showToast('Network error. Check connection.', 'error');
+                                            } finally {
+                                                if (btn) { btn.innerHTML = originalHtml; btn.disabled = false; }
+                                                if (mainBtn) { mainBtn.innerHTML = originalMainHtml; mainBtn.disabled = false; }
+                                            }
+                                        },
+                                        (error) => {
+                                            if (btn) { btn.innerHTML = originalHtml; btn.disabled = false; }
+                                            if (mainBtn) { mainBtn.innerHTML = originalMainHtml; mainBtn.disabled = false; }
+                                            showToast('Location access denied. You must allow location to check in.', 'error');
+                                        },
+                                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                                    );
+                                }
+
+                                async function loadMyAttendance() {
+                                    const tbody = document.getElementById('wfhHistoryTableBody');
+                                    if (!tbody) return;
+                                    
+                                    try {
+                                        const empCode = localStorage.getItem('userEmployeeCode') || '';
+                                        const response = await fetch('attendance/attendance-api.php?action=weekly&employee_code=' + encodeURIComponent(empCode));
+                                        const res = await response.json();
+                                        if (res.success && res.data) {
+                                            tbody.innerHTML = '';
+                                            const list = res.data;
+                                            if (list.length === 0) {
+                                                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">No web attendance records found.</td></tr>';
+                                                return;
+                                            }
+                                            
+                                            list.forEach(r => {
+                                                const tr = document.createElement('tr');
+                                                const statusColor = r.status.toLowerCase() === 'present' ? '#10b981' : '#f59e0b';
+                                                tr.innerHTML = `
+                                                    <td><strong>${r.date}</strong></td>
+                                                    <td><span style="background:rgba(16,185,129,0.1); color:#10b981; padding:4px 8px; border-radius:4px; font-size:13px;"><i class="fas fa-sign-in-alt"></i> ${r.in_time || '---'}</span></td>
+                                                    <td><span style="background:rgba(239,68,68,0.1); color:#ef4444; padding:4px 8px; border-radius:4px; font-size:13px;"><i class="fas fa-sign-out-alt"></i> ${r.out_time || '---'}</span></td>
+                                                    <td><strong>${r.work_hours || '0.00'} hrs</strong></td>
+                                                    <td><span style="color:${statusColor}; font-weight:600; font-size:12px; text-transform:uppercase;">${r.status}</span></td>
+                                                `;
+                                                tbody.appendChild(tr);
+                                            });
+                                        }
+                                    } catch (e) {
+                                        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#ef4444;">Error loading attendance logs.</td></tr>';
+                                    }
+                                }
+
+                                document.addEventListener('DOMContentLoaded', () => {
+                                    const stdContainer = document.getElementById('standardAttendanceContainer');
+                                    if (stdContainer) stdContainer.style.display = 'none';
+                                    
+                                    const wfhContainer = document.getElementById('wfhAttendanceContainer');
+                                    if (wfhContainer) wfhContainer.classList.remove('hidden');
+
+                                    checkWFHStatus();
+                                    loadMyAttendance();
+                                    
+                                    const standardAttendanceCard = document.querySelector('.ess-card-wide');
+                                    if (standardAttendanceCard && standardAttendanceCard.querySelector('h3').textContent.trim() === 'Attendance Status') {
+                                        const btn = standardAttendanceCard.querySelector('.ess-shift-note');
+                                        if (btn) {
+                                            btn.style.cursor = 'pointer';
+                                            btn.onclick = () => showView('attendance');
+                                        }
+                                    }
+                                });
+                                
+                                function showToast(msg, type = 'success') {
+                                    let container = document.getElementById('toastContainer');
+                                    if (!container) {
+                                        container = document.createElement('div');
+                                        container.id = 'toastContainer';
+                                        container.style.position = 'fixed';
+                                        container.style.bottom = '20px';
+                                        container.style.right = '20px';
+                                        container.style.zIndex = '9999';
+                                        document.body.appendChild(container);
+                                    }
+                                    const t = document.createElement('div');
+                                    t.className = 'toast show';
+                                    t.style.borderLeftColor = type === 'success' ? '#10b981' : '#ef4444';
+                                    t.style.backgroundColor = '#1f2937';
+                                    t.style.color = '#fff';
+                                    t.style.padding = '15px 20px';
+                                    t.style.borderRadius = '8px';
+                                    t.style.marginBottom = '10px';
+                                    t.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                                    t.style.display = 'flex';
+                                    t.style.alignItems = 'center';
+                                    t.style.gap = '10px';
+                                    
+                                    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+                                    const color = type === 'success' ? '#10b981' : '#ef4444';
+                                    t.innerHTML = `<div><i class="fas ${icon}" style="color:${color}"></i></div><div><div style="font-size:14px;">${msg}</div></div>`;
+                                    container.appendChild(t);
+                                    setTimeout(() => { t.remove(); }, 3000);
+                                }
+                            </script>
+                        </body>
+                    </html>

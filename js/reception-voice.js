@@ -1,6 +1,6 @@
 /**
  * Reception desk voice announcements (female English, 2×).
- * HR portal queues via API only — no speech on HR PC.
+ * HR portal queues via API only - no speech on HR PC.
  */
 (function (global) {
     'use strict';
@@ -79,7 +79,7 @@
         if (nameEl) nameEl.textContent = name || 'Candidate';
         if (countEl) countEl.textContent = `${count}/${total}`;
         if (msgEl) {
-            msgEl.textContent = `Please come to the interview desk — announcement ${count} of ${total}`;
+            msgEl.textContent = `Please come to the interview desk - announcement ${count} of ${total}`;
         }
         if (panel) {
             panel.classList.add('active');
@@ -140,12 +140,12 @@
         }
     }
 
-    /** Test voice — requires user click */
+    /** Test voice - requires user click */
     async function testVoice() {
         refreshVoices();
         const ok = await playAnnouncement('Test Candidate', 'Reception', 1);
         if (typeof global.showToast === 'function') {
-            global.showToast(ok ? 'Voice system is working' : 'Voice failed — check browser permissions', ok ? 'success' : 'error');
+            global.showToast(ok ? 'Voice system is working' : 'Voice failed - check browser permissions', ok ? 'success' : 'error');
         }
         return ok;
     }

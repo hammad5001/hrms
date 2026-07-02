@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balitech · Admin Command Center</title>
+    <title>Balitech - Admin Command Center</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap"
@@ -1168,6 +1168,7 @@
                     <a href="javascript:void(0)" class="nav-item feature-admin-full" onclick="openPortalWithSession('hr-portal.html')"><i class="fas fa-users-cog"></i><span>HR Portal</span></a>
                     <a href="javascript:void(0)" class="nav-item feature-admin-full" onclick="openPortalWithSession('Management-Portal.html')"><i class="fas fa-chart-line"></i><span>Management Portal</span></a>
                     <a href="javascript:void(0)" class="nav-item feature-admin-full" onclick="openPortalWithSession('reception-portal.html')"><i class="fas fa-concierge-bell"></i><span>Reception Portal</span></a>
+                    <a href="qa-dashboard.php" class="nav-item super-admin-only feature-qa-full" id="qaDashboardNavItem" style="display:none"><i class="fas fa-shield-check"></i><span>QA Dashboard</span></a>
                 </div>
             </div>
             <div class="sidebar-footer">
@@ -1182,7 +1183,7 @@
         <!-- Main Content -->
         <main class="main-content">
             <div class="top-header">
-                <div class="page-title"><h1>Command Center</h1><p><i class="fas fa-chart-line"></i> Welcome back, <span id="adminName">Admin</span> · Real-time enterprise intelligence</p></div>
+                <div class="page-title"><h1>Command Center</h1><p><i class="fas fa-chart-line"></i> Welcome back, <span id="adminName">Admin</span> - Real-time enterprise intelligence</p></div>
                 <div class="header-actions">
                     <div class="date-badge" id="currentDate"><i class="fas fa-calendar-alt"></i><span>Loading...</span></div>
                     <button class="refresh-btn" onclick="refreshAllData()"><i class="fas fa-sync-alt"></i> Refresh</button>
@@ -1328,8 +1329,8 @@
             </div>
 
             <div class="footer">
-                <div><span style="color: var(--primary);">⚡ BALITECH NEXUS</span> · Admin Command Center v5.0</div>
-                <div><i class="fas fa-shield-alt"></i> Enterprise Security · Real-time Sync</div>
+                <div><span style="color: var(--primary);">⚡ BALITECH NEXUS</span> - Admin Command Center v5.0</div>
+                <div><i class="fas fa-shield-alt"></i> Enterprise Security - Real-time Sync</div>
             </div>
         </main>
     </div>
@@ -1372,7 +1373,7 @@
             return { userName, userRole, userId };
         }
 
-        // Open portal in new tab — keeps admin dashboard open, uses PHP session
+        // Open portal in new tab - keeps admin dashboard open, uses PHP session
         async function openPortalWithSession(portalUrl) {
             storeUserSession();
             sessionStorage.setItem('adminPortalAccess', 'true');
@@ -1586,7 +1587,8 @@
                 const res = await fetch('api/portal_auth_check.php', { credentials: 'include' });
                 const data = await res.json();
                 const d = data.data || {};
-                if (!data.success || !d.authenticated || (!d.is_admin && !d.is_super && !d.is_team_manager)) {
+                const isFinance = (d.portal_role === 'finance');
+                if (!data.success || !d.authenticated || (!d.is_admin && !d.is_super && !d.is_team_manager && !isFinance)) {
                     showToast('Please log in with an authorized work account', 'error');
                     setTimeout(() => { window.location.href = 'index.html'; }, 1200);
                     return false;
@@ -1604,7 +1606,7 @@
                 applyRoleBasedUI(window.currentUserRole);
                 return true;
             } catch (e) {
-                showToast('Session check failed — log in again', 'error');
+                showToast('Session check failed - log in again', 'error');
                 setTimeout(() => { window.location.href = 'index.html'; }, 1200);
                 return false;
             }
@@ -1614,11 +1616,16 @@
         function applyRoleBasedUI(role) {
             const isSuperAdmin = (role === 'super_admin');
             const isTeamManager = (role === 'team_lead' || role === 'floor_manager');
-            const canViewAttendance = isSuperAdmin || isTeamManager || role === 'admin' || role === 'attendance';
+            const isFinance = (role === 'finance');
+            const canViewAttendance = isSuperAdmin || isTeamManager || role === 'admin' || role === 'attendance' || isFinance;
 
             document.querySelectorAll('.feature-admin-full').forEach(el => {
-                el.style.display = isTeamManager ? 'none' : '';
+                el.style.display = (isTeamManager || isFinance) ? 'none' : '';
             });
+            if (isFinance) {
+                const finTab = document.querySelector('a[href="finance-attendance.php"]');
+                if (finTab) finTab.style.display = 'flex';
+            }
             document.querySelectorAll('.feature-team-manager-only').forEach(el => {
                 el.style.display = isTeamManager ? '' : 'none';
                 if (isTeamManager && el.classList.contains('nav-item')) el.style.display = 'flex';
@@ -1632,7 +1639,7 @@
                 const title = document.querySelector('.page-title h1');
                 const sub = document.querySelector('.page-title p');
                 if (title) title.textContent = 'Team Attendance Hub';
-                if (sub) sub.innerHTML = '<i class="fas fa-users-line"></i> Attendance overview · <span id="adminName">' + (document.getElementById('adminName')?.textContent || 'Manager') + '</span>';
+                if (sub) sub.innerHTML = '<i class="fas fa-users-line"></i> Attendance overview - <span id="adminName">' + (document.getElementById('adminName')?.textContent || 'Manager') + '</span>';
             }
 
             // Update role labels
@@ -1640,6 +1647,7 @@
             if (isSuperAdmin) roleLabel = '⚡ Super Admin';
             else if (role === 'team_lead') roleLabel = 'Team Lead';
             else if (role === 'floor_manager') roleLabel = 'Floor Manager';
+            else if (isFinance) roleLabel = 'Finance';
             const headerRoleEl = document.getElementById('headerRoleLabel');
             const sidebarRoleEl = document.getElementById('sidebarRoleLabel');
             const portalBadge = document.getElementById('portalAccessBadge');
@@ -1650,12 +1658,12 @@
             // Style portal badge
             if (portalBadge) {
                 if (isSuperAdmin) {
-                    portalBadge.innerHTML = '<i class="fas fa-shield-alt"></i> Super Admin — Full Access';
+                    portalBadge.innerHTML = '<i class="fas fa-shield-alt"></i> Super Admin - Full Access';
                     portalBadge.style.background = 'linear-gradient(135deg, rgba(250,204,21,0.2), rgba(234,179,8,0.1))';
                     portalBadge.style.color = '#facc15';
                     portalBadge.style.borderColor = 'rgba(250,204,21,0.4)';
                 } else if (isTeamManager) {
-                    portalBadge.innerHTML = '<i class="fas fa-user-check"></i> Team Manager — Attendance &amp; Approvals';
+                    portalBadge.innerHTML = '<i class="fas fa-user-check"></i> Team Manager - Attendance &amp; Approvals';
                     portalBadge.style.background = 'linear-gradient(135deg, rgba(59,130,246,0.2), rgba(37,99,235,0.1))';
                     portalBadge.style.color = '#60a5fa';
                     portalBadge.style.borderColor = 'rgba(59,130,246,0.35)';
@@ -1669,10 +1677,12 @@
             const recruiterNav = document.getElementById('recruiterNavItem');
             const salaryBroadcastNav = document.getElementById('salaryBroadcastNavItem');
             const employeeCard = document.getElementById('employeePortalCard');
+            const qaDashboardNav = document.getElementById('qaDashboardNavItem');
             if (recruiterCard) recruiterCard.style.display = isSuperAdmin ? 'block' : 'none';
             if (recruiterNav) recruiterNav.style.display = isSuperAdmin ? 'flex' : 'none';
-            if (salaryBroadcastNav) salaryBroadcastNav.style.display = isSuperAdmin ? 'flex' : 'none';
+            if (salaryBroadcastNav) salaryBroadcastNav.style.display = (isSuperAdmin || isFinance) ? 'flex' : 'none';
             if (employeeCard) employeeCard.style.display = isSuperAdmin ? 'block' : 'none';
+            if (qaDashboardNav) qaDashboardNav.style.display = (isSuperAdmin || role === 'qa') ? 'flex' : 'none';
 
             // Style sidebar avatar for super admin
             const sidebarAvatar = document.getElementById('sidebarAvatar');

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balitech &middot; Work From Home Portal</title>
+    <meta name="description" content="Balitech HRMS Work From Home Portal - employee self service, attendance, payroll, and role-based portals.">
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/balitech-favicon-32.png?v=5">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/portal-ui-polish.css?v=1">
+    <link rel="stylesheet" href="../css/powered-by.css?v=4">
+    <link rel="stylesheet" href="../css/index-login.css?v=8">
+</head>
+<body class="login-page">
+    <div class="login-bg" aria-hidden="true"></div>
+    <div class="login-bg-grid" aria-hidden="true"></div>
+    <div class="login-orb login-orb-1" aria-hidden="true"></div>
+    <div class="login-orb login-orb-2" aria-hidden="true"></div>
+    <div class="login-container">
+        <div class="login-shell">
+            <aside class="login-hero">
+                <div class="login-hero-accent" aria-hidden="true"></div>
+                <div class="login-hero-top">
+                    <div class="login-hero-brand">
+                        <img src="../assets/images/balitech-logo.png?v=5" alt="Balitech Pvt. Ltd" class="balitech-logo balitech-logo--hero" width="240" height="72">
+                        <div class="hrms-badge"><i class="fas fa-house-laptop"></i> Work From Home</div>
+                    </div>
+                    <h1>Remote work.<br><span>Made simple.</span></h1>
+                    <p class="login-hero-desc">Your complete Work From Home portal - mark attendance, track leave, view payroll, and stay connected from anywhere.</p>
+                    <div class="hero-stats">
+                        <div class="hero-stat"><strong><i class="fas fa-fingerprint"></i></strong><span>GPS Attendance</span></div>
+                        <div class="hero-stat"><strong>ESS</strong><span>Self Service</span></div>
+                        <div class="hero-stat"><strong>24/7</strong><span>Access</span></div>
+                    </div>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-map-marker-alt"></i> Location-based biometric attendance</li>
+                        <li><i class="fas fa-id-card"></i> Employee Self Service - profile and leave</li>
+                        <li><i class="fas fa-file-invoice-dollar"></i> Payroll visibility and finance insights</li>
+                        <li><i class="fas fa-comments"></i> Team chat and communication</li>
+                        <li><i class="fas fa-shield-halved"></i> Secure, role-based access control</li>
+                    </ul>
+                </div>
+                <div class="login-hero-footer">
+                    <i class="fas fa-lock"></i>
+                    <span>Encrypted sign-in - Internal use only - Balitech Pvt. Ltd</span>
+                </div>
+            </aside>
+            <div class="login-panel">
+                <div class="panel-header">
+                    <div class="panel-icon" aria-hidden="true"><i class="fas fa-house-laptop"></i></div>
+                    <div class="panel-header-copy">
+                        <h2>Work From Home</h2>
+                        <p>Sign in to access your <strong>remote work portal</strong>.</p>
+                    </div>
+                </div>
+                <input type="hidden" id="companyBranch" value="workfromhome">
+                <div class="error-message" id="errorMessage" role="alert">
+                    <i class="fas fa-circle-exclamation"></i>
+                    <span id="errorText"></span>
+                </div>
+                <form id="loginForm" onsubmit="handleLogin(event)" novalidate>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope field-icon" aria-hidden="true"></i>
+                            <input type="email" id="email" name="email" placeholder="name@balitech.com" required autocomplete="username">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock field-icon" aria-hidden="true"></i>
+                            <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+                            <button type="button" class="toggle-password" id="togglePassword" aria-label="Show password" title="Show password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="login-actions" style="margin-top:24px;">
+                        <button type="submit" class="login-btn login-btn-work" id="loginBtn" style="width:100%;">
+                            <span>Sign In</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </form>
+                <div class="login-panel-footer">
+                    &copy; 2026 Balitech Pvt. Ltd &middot; Work From Home Portal
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="login-site-footer">
+        <p class="login-page-footer">Need help? Contact your HR administrator or IT support.</p>
+        <div class="gc-powered-wrap gc-powered-wrap--login">
+            <div class="gc-powered-badge" role="contentinfo" aria-label="Powered by GO CONNECTIVO">
+                <span class="gc-powered-eyebrow">Powered by</span>
+                <span class="gc-powered-lockup" aria-hidden="true">
+                    <img src="../assets/images/go-connectivo-logo.png" alt="GO CONNECTIVO" class="gc-powered-logo-img" decoding="async">
+                </span>
+            </div>
+        </div>
+    </footer>
+    <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+    <script src="../js/portal-access.js"></script>
+    <script>
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            var inp  = document.getElementById('password');
+            var icon = this.querySelector('i');
+            var show = (inp.type === 'password');
+            inp.type = show ? 'text' : 'password';
+            icon.className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
+            this.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+            this.title = show ? 'Hide password' : 'Show password';
+        });
+
+        function showToast(msg, type) {
+            type = type || 'success';
+            var c = document.getElementById('toastContainer');
+            var t = document.createElement('div');
+            t.className = 'toast';
+            var clr = {success:'#10b981',error:'#ef4444',info:'#f97316'}[type] || '#10b981';
+            var ico = {success:'fa-check-circle',error:'fa-exclamation-circle',info:'fa-info-circle'}[type] || 'fa-check-circle';
+            t.style.borderLeftColor = clr;
+            t.innerHTML = '<i class="fas ' + ico + '" style="color:' + clr + '"></i> ' + msg;
+            c.appendChild(t);
+            setTimeout(function() {
+                t.style.animation = 'slideOut 0.3s ease forwards';
+                setTimeout(function() { if (t.parentNode) t.parentNode.removeChild(t); }, 300);
+            }, 3200);
+        }
+
+        function showError(msg) {
+            var d = document.getElementById('errorMessage');
+            var s = document.getElementById('errorText');
+            if (s) s.textContent = msg;
+            if (d) d.classList.add('show');
+            document.getElementById('password').value = '';
+            document.getElementById('password').focus();
+            resetBtn();
+            setTimeout(function() { if (d) d.classList.remove('show'); }, 6000);
+        }
+
+        function resetBtn() {
+            var btn = document.getElementById('loginBtn');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<span>Sign In</span><i class="fas fa-arrow-right"></i>';
+            }
+        }
+
+        var urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('logout') === 'true') {
+            localStorage.clear();
+            showToast('Signed out successfully', 'info');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            var email    = document.getElementById('email').value.trim();
+            var password = document.getElementById('password').value;
+            var branch   = document.getElementById('companyBranch').value;
+
+            if (!email || !password) {
+                showError('Please enter your email and password.');
+                return;
+            }
+
+            var btn = document.getElementById('loginBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+            }
+
+            // Absolute URL - works regardless of trailing slash
+            var loginUrl = '/interview-forms/login.php';
+
+            fetch(loginUrl, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'email=' + encodeURIComponent(email)
+                    + '&password=' + encodeURIComponent(password)
+                    + '&company_branch=' + encodeURIComponent(branch)
+            })
+            .then(function(resp) {
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                return resp.json();
+            })
+            .then(function(data) {
+                if (!data.success || !data.user) {
+                    showError(data.message || 'Invalid email or password. Please try again.');
+                    return;
+                }
+                var role = data.user.portal_role;
+                var name = data.user.full_name;
+
+                localStorage.setItem('userRole',          role);
+                localStorage.setItem('userId',            data.user.id);
+                localStorage.setItem('userFullName',      name);
+                localStorage.setItem('userEmail',         data.user.email);
+                localStorage.setItem('companyBranch',     branch);
+                localStorage.setItem('companyBranchLabel','Work From Home');
+                if (role === 'super_admin' || data.is_super_admin) {
+                    localStorage.setItem('recruiter_type', 'super');
+                } else {
+                    localStorage.removeItem('recruiter_type');
+                }
+                if (data.user.employee_code) localStorage.setItem('userEmployeeCode', data.user.employee_code);
+                if (data.user.department)    localStorage.setItem('userDepartment',    data.user.department);
+                if (data.user.designation)   localStorage.setItem('userDesignation',   data.user.designation);
+
+                // WFH portal redirects to local employee-portal.html clone
+                var dest = 'employee-portal.html';
+
+                showToast('Welcome back, ' + name + '!', 'success');
+
+                var shell = document.querySelector('.login-shell');
+                if (shell) {
+                    shell.style.transition = 'all 0.35s ease';
+                    shell.style.transform  = 'scale(0.97)';
+                    shell.style.opacity    = '0';
+                }
+
+                setTimeout(function() { window.location.href = dest; }, 500);
+            })
+            .catch(function(err) {
+                console.error('Login error:', err);
+                showError('Unable to reach the server. Please check your connection.');
+                resetBtn();
+            });
+        }
+
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                var e = document.getElementById('email');
+                if (e) e.focus();
+            }, 300);
+        });
+    </script>
+</body>
+</html>

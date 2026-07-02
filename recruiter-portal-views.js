@@ -27,7 +27,7 @@ async function showDashboard() {
     <div class="top-bar" id="dashView">
       <div class="page-title">
         <h1>🔮 Intelligence Hub</h1>
-        <p><i class="fas fa-chart-line"></i> Real-time analytics & predictive insights · 
+        <p><i class="fas fa-chart-line"></i> Real-time analytics & predictive insights - 
           <span id="liveUpdated" class="live-indicator">
             <div class="live-dot"></div> Live
           </span>
@@ -118,7 +118,7 @@ async function showDashboard() {
               <div class="priority-item" onclick="editLead(${l.id})">
                 <div class="priority-info">
                   <h5>${esc(l.full_name)}</h5>
-                  <p>${l.phone} · ${esc(l.current_stage)}</p>
+                  <p>${l.phone} - ${esc(l.current_stage)}</p>
                 </div>
                 <div class="priority-actions">
                   <span class="priority-tag">${l.call_count === 0 ? 'NEVER CALLED' : 'STALE LEAD'}</span>
@@ -707,7 +707,7 @@ async function showAllLeads(offset = 0, search = '', stage = '') {
   <div class="top-bar">
     <div class="page-title">
       <h1>📊 Master Database</h1>
-      <p>${total} total leads · Real-time synchronization</p>
+      <p>${total} total leads - Real-time synchronization</p>
     </div>
     <div class="top-actions">
       <button class="btn btn-primary" onclick="showAddLeadModal()">
@@ -1091,7 +1091,7 @@ async function showDistributeLeads() {
           <div class="rec-avatar" style="width: 44px; height: 44px; font-size: 18px;">${r.full_name.charAt(0)}</div>
           <div class="info">
             <h4>${esc(r.full_name)}</h4>
-            <p><i class="fas fa-tasks"></i> ${r.pending_leads || 0} pending · <i class="fas fa-trophy"></i> ${r.hired_leads || 0} hired</p>
+            <p><i class="fas fa-tasks"></i> ${r.pending_leads || 0} pending - <i class="fas fa-trophy"></i> ${r.hired_leads || 0} hired</p>
           </div>
           <input type="number" id="dist_${r.id}" class="dist-input" placeholder="0" min="0" max="${unassigned}" value="0">
           <button class="btn btn-primary btn-sm" onclick="assignCount(${r.id})">
@@ -1200,7 +1200,7 @@ async function showRecruitersList() {
   <div class="top-bar">
     <div class="page-title">
       <h1><i class="fas fa-users-cog"></i> Recruiter Management</h1>
-      <p>${activeCount} active · ${inactiveCount} inactive · Total ${list.length} recruiters</p>
+      <p>${activeCount} active - ${inactiveCount} inactive - Total ${list.length} recruiters</p>
     </div>
     <div class="top-actions">
       <button class="btn btn-success" onclick="showAddRecruiterModal()">
@@ -1255,7 +1255,7 @@ async function showRecruitersList() {
         <\/td>
         <td>
           <span style="color: var(--secondary);">${r.hired_leads || 0} Hired</span><br>
-          ${r.total_calls || 0} Calls · ${conversionRate}% Conv
+          ${r.total_calls || 0} Calls - ${conversionRate}% Conv
         <\/td>
         <td>${statusBadge}<\/td>
         <td>
@@ -1312,7 +1312,7 @@ function showAddRecruiterModal() {
           </div>
           <div class="form-group" style="margin-bottom: 15px;">
             <label>Employee ID (BID) *</label>
-            <input type="text" id="new_rec_bid" class="form-control" placeholder="e.g. 508 — from biometric / roster" required>
+            <input type="text" id="new_rec_bid" class="form-control" placeholder="e.g. 508 - from biometric / roster" required>
             <small style="color: var(--text-dim);">Required for attendance &amp; payroll in portal</small>
           </div>
           <div class="form-group">

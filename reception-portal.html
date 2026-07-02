@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balitech · Reception Portal</title>
+    <title>Balitech - Reception Portal</title>
     <link rel="stylesheet" href="css/dropdown-fix.css">
     <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
     <link rel="stylesheet" href="css/reception-pro.css?v=1">
@@ -1038,7 +1038,7 @@
                 }
                 return raw;
             }
-            if (lead.queueType === 'form') return 'Form submitted — assign slot';
+            if (lead.queueType === 'form') return 'Form submitted - assign slot';
             return 'Date not set';
         }
 
@@ -1134,14 +1134,14 @@
                     ...basePayload,
                     new_stage: 'interview_conducted',
                     action: 'reception_send_hr',
-                    remark: `Interview conducted — sent to HR queue ${new Date().toLocaleString()}`
+                    remark: `Interview conducted - sent to HR queue ${new Date().toLocaleString()}`
                 });
                 if (!toHr.success) {
                     const checkIn = await updateLeadStage({
                         ...basePayload,
                         new_stage: 'receptionist',
                         action: 'reception_checkin',
-                        remark: `Checked in at reception — slot assigned ${new Date().toLocaleString()}`
+                        remark: `Checked in at reception - slot assigned ${new Date().toLocaleString()}`
                     });
                     if (!checkIn.success) {
                         showToast(checkIn.error || toHr.error || 'Check-in failed', 'error');
@@ -1153,7 +1153,7 @@
                         id: lid,
                         new_stage: 'interview_conducted',
                         action: 'reception_send_hr',
-                        remark: `Interview conducted — sent to HR queue ${new Date().toLocaleString()}`
+                        remark: `Interview conducted - sent to HR queue ${new Date().toLocaleString()}`
                     });
                 }
                 if (toHr.success) {
@@ -1192,7 +1192,7 @@
                 phone,
                 new_stage: 'receptionist',
                 action: 'reception_checkin',
-                remark: `${name} appeared at reception — time slot assigned`,
+                remark: `${name} appeared at reception - time slot assigned`,
                 user_role: 'Reception'
             });
             if (data.success) {

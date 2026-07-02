@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balitech · HR Command Center</title>
+    <title>Balitech - HR Command Center</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap"
@@ -1228,7 +1228,7 @@
             <div class="header-left">
                 <div class="header-title">
                     <h2>HR Command Center</h2>
-                    <p>Interview Management · First Round</p>
+                    <p>Interview Management - First Round</p>
                 </div>
             </div>
 
@@ -1292,7 +1292,7 @@
         let candidates = [];
         let nextId = 1;
 
-        // Voice: js/hr-voice-request.js — queues on reception PC only (no speech on this machine)
+        // Voice: js/hr-voice-request.js - queues on reception PC only (no speech on this machine)
 
         // ==================== LOAD DATA FROM GOOGLE SHEETS ====================
         async function loadDataFromSheet() {
@@ -1412,7 +1412,7 @@
             /* Candidates persist via update_candidate_global on each status change */
         }
 
-        // Voice call from HR — reception desk only (makeVoiceCall from hr-voice-request.js)
+        // Voice call from HR - reception desk only (makeVoiceCall from hr-voice-request.js)
         async function callCandidate(id, room) {
             const candidate = candidates.find(c => c.id == id);
             if (!candidate) return;
@@ -1519,11 +1519,11 @@
                     id: candidate.id,
                     new_stage: 'selected',
                     action: 'hr_select',
-                    remark: 'SELECTED in HR interview — eligible for training',
+                    remark: 'SELECTED in HR interview - eligible for training',
                     user_role: 'HR Manager'
                 })
             });
-            addRemark(candidate.id, 'SELECTED in HR interview — eligible for training', 'HR Manager');
+            addRemark(candidate.id, 'SELECTED in HR interview - eligible for training', 'HR Manager');
             saveData();
             updateCandidateInSheet(candidate.phone, {
                 status: 'selected',
@@ -1533,7 +1533,7 @@
                 trainingStatus: 'pending',
                 trainingDate: candidate.trainingDate
             });
-            showToast(`✅ ${candidate.fullName} selected — Training portal will pick up for training.`, 'success');
+            showToast(`✅ ${candidate.fullName} selected - Training portal will pick up for training.`, 'success');
             renderDashboard();
         }
 
