@@ -1330,6 +1330,7 @@
                     <button class="nav-btn" onclick="showManualPunchModal()"><i class="fas fa-pen-fancy"></i> Manual</button>
                     <button class="nav-btn" onclick="openAttendanceDownload()"><i class="fas fa-download"></i> Export</button>
                     <button class="nav-btn" onclick="importFromPython()"><i class="fas fa-cloud-download-alt"></i> Import</button>
+                    <button class="nav-btn" id="syncDevicesBtn" style="display: none;" onclick="triggerLiveDeviceSync()"><i class="fas fa-satellite-dish"></i> Sync Devices</button>
                     <a href="employee_status.php" class="nav-btn"><i class="fas fa-users-cog"></i> Status</a>
                     <a href="monthly-attendance.html" class="nav-btn"><i class="fas fa-calendar-alt"></i> Monthly Attendance</a>
                     <a href="../chat-portal.html" class="nav-btn"><i class="fas fa-comments"></i> Chat</a>
@@ -1404,6 +1405,73 @@
 
     <div class="modal" id="manualPunchModal"><div class="modal-content" style="max-width: 500px;"><div class="modal-header"><h2><i class="fas fa-pen-fancy"></i> Manual Entry</h2><div class="modal-close" onclick="closeManualPunchModal()">&times;</div></div><div class="modal-body"><form id="manualPunchForm" onsubmit="submitManualPunch(event)"><div style="margin-bottom: 16px;"><label style="display: block; margin-bottom: 8px; color: white;">Personnel</label><select id="punchEmployee" required style="width:100%; padding:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:white;"><option>Loading...</option></select></div><div style="margin-bottom: 16px;"><label style="display: block; margin-bottom: 8px; color: white;">Timestamp</label><input type="datetime-local" id="punchDateTime" required style="width:100%; padding:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:white;"></div><div style="display: flex; justify-content: flex-end; gap: 12px;"><button type="button" class="clear-filters" onclick="closeManualPunchModal()" style="background:transparent;">Cancel</button><button type="submit" class="export-btn" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border:none;">Submit</button></div></form></div></div></div>
 
+    <!-- ZKTeco Sync Command Center Modal -->
+    <div class="modal" id="zkSyncModal">
+        <div class="modal-content" style="max-width: 650px; background: rgba(10, 12, 21, 0.95); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);">
+            <div class="modal-header">
+                <h2><i class="fas fa-satellite-dish" style="color: var(--primary);"></i> ZKTeco Sync Command Center</h2>
+                <div class="modal-close" onclick="closeZkSyncModal()">&times;</div>
+            </div>
+            <div class="modal-body">
+                <form id="zkSyncForm" onsubmit="executeZkSyncCommand(event)">
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 10px; color: #a1a1aa; font-weight: 600;">Select Command Operation</label>
+                        <select id="zkCommand" onchange="toggleZkDateFields()" required style="width:100%; padding:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); border-radius:12px; color:white; outline:none; font-size:14px; cursor:pointer;">
+                            <option value="sync-today-all">Fetch Today Data - All Devices</option>
+                            <option value="sync-today-main">Fetch Today Data - Main Branch</option>
+                            <option value="sync-today-commercial">Fetch Today Data - Commercial Branch</option>
+                            <option value="sync-users-all">Fetch Users - All Devices</option>
+                            <option value="sync-users-main">Fetch Users - Main Branch</option>
+                            <option value="sync-users-commercial">Fetch Users - Commercial Branch</option>
+                            <option value="test-connections">Test Device Connections</option>
+                            <option value="sync-month-main">Fetch Monthly Data - Main Branch</option>
+                            <option value="sync-month-commercial">Fetch Monthly Data - Commercial Branch</option>
+                        </select>
+                    </div>
+
+                    <!-- Year/Month picker, only shown for monthly fetching -->
+                    <div id="zkMonthContainer" style="display: none; margin-bottom: 20px; gap: 15px;">
+                        <div style="flex: 1;">
+                            <label style="display: block; margin-bottom: 8px; color: #a1a1aa;">Select Month</label>
+                            <select id="zkMonth" style="width:100%; padding:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); border-radius:12px; color:white; outline:none;">
+                                <option value="1">January</option>
+                                <option value="2">February</option>
+                                <option value="3">March</option>
+                                <option value="4">April</option>
+                                <option value="5">May</option>
+                                <option value="6">June</option>
+                                <option value="7">July</option>
+                                <option value="8">August</option>
+                                <option value="9">September</option>
+                                <option value="10">October</option>
+                                <option value="11">November</option>
+                                <option value="12">December</option>
+                            </select>
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="display: block; margin-bottom: 8px; color: #a1a1aa;">Select Year</label>
+                            <select id="zkYear" style="width:100%; padding:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); border-radius:12px; color:white; outline:none;">
+                                <option value="2026">2026</option>
+                                <option value="2025">2025</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Live terminal log output box -->
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; color: #a1a1aa;">Terminal Sync Output Logs</label>
+                        <div id="zkConsoleLog" style="width:100%; height:180px; background:#020617; border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:12px; font-family:monospace; font-size:12px; color:#38bdf8; overflow-y:auto; white-space:pre-wrap; border-left: 3px solid var(--primary);">Terminal ready... Click execute to start.</div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                        <button type="button" class="clear-filters" onclick="closeZkSyncModal()" style="background:transparent;">Close</button>
+                        <button type="submit" id="zkExecuteBtn" class="export-btn" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border:none;"><i class="fas fa-play"></i> Execute Sync</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div class="toast-container" id="toastContainer"></div>
 
     <link rel="stylesheet" href="../css/portal-ui-polish.css?v=1">
@@ -1418,7 +1486,7 @@
 
         function isWeekend(date) { const day = new Date(date).getDay(); return day === 0 || day === 6; }
 
-        document.addEventListener('DOMContentLoaded', function() { updateDateTime(); loadFilterOptions(); loadLiveAttendance(); loadEmployeesForManualPunch(); startAutoRefresh(); setInterval(updateDateTime, 1000); });
+        document.addEventListener('DOMContentLoaded', function() { updateDateTime(); loadFilterOptions(); loadLiveAttendance(); loadEmployeesForManualPunch(); startAutoRefresh(); checkSuperAdminAccess(); setInterval(updateDateTime, 1000); });
 
         function startAutoRefresh() { if (refreshTimer) clearInterval(refreshTimer); if (countdownInterval) clearInterval(countdownInterval); countdownSeconds = 15 * 60; updateCountdown(); countdownInterval = setInterval(() => { countdownSeconds--; if (countdownSeconds < 0) countdownSeconds = 15 * 60; updateCountdown(); }, 1000); refreshTimer = setInterval(() => { loadLiveAttendance(); showToast('Data synchronized', 'info'); }, 15 * 60 * 1000); }
         function updateCountdown() { const m = Math.floor(countdownSeconds / 60), s = countdownSeconds % 60; document.getElementById('countdown').textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`; }
@@ -1658,6 +1726,78 @@
         function showManualPunchModal() { loadEmployeesForManualPunch(); const n = new Date(); document.getElementById('punchDateTime').value = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}T${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`; document.getElementById('manualPunchModal').classList.add('active'); }
         function closeManualPunchModal() { document.getElementById('manualPunchModal').classList.remove('active'); }
         async function submitManualPunch(e) { e.preventDefault(); const id = document.getElementById('punchEmployee').value, dt = document.getElementById('punchDateTime').value; if (!id || !dt) { showToast('Complete all fields', 'warning'); return; } const punch = dt.replace('T', ' ') + ':00'; showToast('Submitting...', 'info'); const fd = new FormData(); fd.append('employee_id', id); fd.append('punch_time', punch); try { const r = await fetch('attendance-api.php?action=manualPunch', { method: 'POST', body: fd }); const d = await r.json(); if (d.success) { showToast('Entry recorded', 'success'); closeManualPunchModal(); loadLiveAttendance(); } else showToast('Error: ' + d.message, 'error'); } catch(e) { showToast('Submission failed', 'error'); } }
+        async function checkSuperAdminAccess() {
+            try {
+                const res = await fetch('../api/portal_auth_check.php');
+                const d = await res.json();
+                if (d.success && d.data && d.data.portal_role === 'super_admin') {
+                    const btn = document.getElementById('syncDevicesBtn');
+                    if (btn) btn.style.display = 'inline-flex';
+                }
+            } catch (e) { console.error(e); }
+        }
+        function triggerLiveDeviceSync() {
+            document.getElementById('zkConsoleLog').textContent = 'Terminal ready... Select a command option and click Execute Sync.';
+            document.getElementById('zkSyncModal').classList.add('active');
+        }
+        function closeZkSyncModal() {
+            document.getElementById('zkSyncModal').classList.remove('active');
+        }
+        function toggleZkDateFields() {
+            const cmd = document.getElementById('zkCommand').value;
+            const container = document.getElementById('zkMonthContainer');
+            if (cmd === 'sync-month-main' || cmd === 'sync-month-commercial') {
+                container.style.display = 'flex';
+            } else {
+                container.style.display = 'none';
+            }
+        }
+        async function executeZkSyncCommand(e) {
+            e.preventDefault();
+            const cmd = document.getElementById('zkCommand').value;
+            const month = document.getElementById('zkMonth').value;
+            const year = document.getElementById('zkYear').value;
+            const execBtn = document.getElementById('zkExecuteBtn');
+            const consoleBox = document.getElementById('zkConsoleLog');
+
+            showToast('Executing command...', 'warning');
+            consoleBox.textContent = `[System] Executing command: ${cmd}...\nPlease wait, communicating with devices...\n\n`;
+            
+            if (execBtn) {
+                execBtn.disabled = true;
+                execBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Executing...';
+            }
+
+            try {
+                let url = `attendance-api.php?action=fetchDevices&cmd=${cmd}`;
+                if (cmd === 'sync-month-main' || cmd === 'sync-month-commercial') {
+                    url += `&year=${year}&month=${month}`;
+                }
+                const r = await fetch(url);
+                const d = await r.json();
+                
+                if (d.data && d.data.logs) {
+                    consoleBox.textContent += d.data.logs;
+                } else {
+                    consoleBox.textContent += '[System] No logs returned.';
+                }
+
+                if (d.success) {
+                    showToast('Command executed successfully', 'success');
+                    loadLiveAttendance();
+                } else {
+                    showToast(d.message || 'Execution failed', 'error');
+                }
+            } catch(err) {
+                showToast('Execution request failed', 'error');
+                consoleBox.textContent += `\n[System Error] Failed to connect to server: ${err.message}`;
+            } finally {
+                if (execBtn) {
+                    execBtn.disabled = false;
+                    execBtn.innerHTML = '<i class="fas fa-play"></i> Execute Sync';
+                }
+            }
+        }
         async function importFromPython() { showToast('Importing...', 'warning'); try { const r = await fetch('attendance-api.php?action=importFromPython'); const d = await r.json(); if (d.success) { showToast(d.message, 'success'); loadLiveAttendance(); loadFilterOptions(); } else showToast('Import failed: ' + d.message, 'error'); } catch(e) { showToast('Import failed', 'error'); } }
         function openEditModal(id, name, status) { document.getElementById('editEmployeeId').value = id; document.getElementById('editEmployeeName').value = name; document.getElementById('editStatus').value = status || 'active'; document.getElementById('editRemarks').value = ''; document.getElementById('editStatusModal').classList.add('active'); }
         function closeEditModal() { document.getElementById('editStatusModal').classList.remove('active'); }

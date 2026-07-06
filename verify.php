@@ -5,7 +5,7 @@ $employee_code = isset($_GET['code']) ? trim($_GET['code']) : '';
 $user = null;
 
 if (!empty($employee_code)) {
-    $stmt = $conn->prepare("SELECT full_name, designation, department, status, email FROM users WHERE employee_code = ? LIMIT 1");
+    $stmt = $conn->prepare("SELECT full_name, designation, department, status, email, chat_avatar FROM users WHERE employee_code = ? LIMIT 1");
     $stmt->bind_param("s", $employee_code);
     $stmt->execute();
     $res = $stmt->get_result();
@@ -109,6 +109,53 @@ if (!empty($employee_code)) {
             font-size: 36px;
             margin-bottom: 5px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .profile-photo-container {
+            position: relative;
+            width: 90px;
+            height: 90px;
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+
+        .profile-photo {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .status-badge-mini {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border: 2px solid #1e293b;
+        }
+
+        .status-badge-mini.active {
+            background-color: var(--active-color);
+            color: white;
+        }
+
+        .status-badge-mini.inactive {
+            background-color: var(--inactive-color);
+            color: white;
+        }
+
+        .status-badge-mini.terminated {
+            background-color: var(--terminated-color);
+            color: white;
         }
 
         /* Active styling */
@@ -235,14 +282,34 @@ if (!empty($employee_code)) {
                 $status_text = 'Terminated / Inactive';
                 $status_icon = 'fa-ban';
             }
+
+            $avatar_url = '';
+            if (!empty($user['chat_avatar'])) {
+                $avatar_name = basename($user['chat_avatar']);
+                $avatar_url = 'uploads/chat/avatars/' . $avatar_name;
+                if (!file_exists(__DIR__ . '/' . $avatar_url)) {
+                    $avatar_url = '';
+                }
+            }
         ?>
             <div class="card">
-                <div class="logo"><i class="fas fa-shield-halved"></i> BALITECH<span>.PORTAL</span></div>
+                <div class="logo">
+                    <img src="assets/images/balitech-logo.png" alt="Balitech Logo" style="height: 48px; width: auto; object-fit: contain;">
+                </div>
                 
                 <div class="status-badge-container">
-                    <div class="status-icon <?php echo $status_class; ?>">
-                        <i class="fas <?php echo $status_icon; ?>"></i>
-                    </div>
+                    <?php if (!empty($avatar_url)): ?>
+                        <div class="profile-photo-container">
+                            <img src="<?php echo $avatar_url; ?>" alt="Profile Photo" class="profile-photo">
+                            <div class="status-badge-mini <?php echo $status_class; ?>">
+                                <i class="fas <?php echo $status_icon; ?>"></i>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <div class="status-icon <?php echo $status_class; ?>">
+                            <i class="fas <?php echo $status_icon; ?>"></i>
+                        </div>
+                    <?php endif; ?>
                     <div class="status-label <?php echo $status_class; ?>">
                         <?php echo $status_text; ?>
                     </div>
@@ -274,7 +341,9 @@ if (!empty($employee_code)) {
             </div>
         <?php else: ?>
             <div class="card error-card">
-                <div class="logo"><i class="fas fa-shield-halved"></i> BALITECH<span>.PORTAL</span></div>
+                <div class="logo">
+                    <img src="assets/images/balitech-logo.png" alt="Balitech Logo" style="height: 48px; width: auto; object-fit: contain;">
+                </div>
                 <i class="fas fa-circle-xmark error-icon"></i>
                 <h3 style="margin-bottom: 10px; font-weight: 700;">Invalid QR Code</h3>
                 <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px; line-height: 1.6;">

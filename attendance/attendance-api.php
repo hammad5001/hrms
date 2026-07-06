@@ -1176,10 +1176,72 @@ switch ($action) {
         ]);
         break;
 
+    case 'fetchDevices':
+        // Check permissions: only super_admin allowed
+        if (empty($_SESSION['portal_role']) || $_SESSION['portal_role'] !== 'super_admin') {
+            sendJSON(false, null, 'Access denied. Only Super Admin is permitted to run live synchronization.');
+        }
+
+        $cmd = isset($_GET['cmd']) ? trim($_GET['cmd']) : 'sync-today-all';
+        $year = isset($_GET['year']) ? (int)$_GET['year'] : 0;
+        $month = isset($_GET['month']) ? (int)$_GET['month'] : 0;
+
+        // Map safe command prefixes
+        $allowed_commands = [
+            'sync-today-main' => '--sync-today-main',
+            'sync-today-commercial' => '--sync-today-commercial',
+            'sync-today-all' => '--sync-today-all',
+            'sync-users-main' => '--sync-users-main',
+            'sync-users-commercial' => '--sync-users-commercial',
+            'sync-users-all' => '--sync-users-all',
+            'test-connections' => '--test-connections',
+            'sync-month-main' => '--sync-month-main',
+            'sync-month-commercial' => '--sync-month-commercial'
+        ];
+
+        if (!isset($allowed_commands[$cmd])) {
+            sendJSON(false, null, 'Invalid ZKTeco command selected.');
+        }
+
+        $venvPython = __DIR__ . '/python-script/venv/Scripts/python.exe';
+        $pythonScript = __DIR__ . '/python-script/' . PYTHON_SCRIPT;
+
+        if (!file_exists($venvPython)) {
+            sendJSON(false, null, 'Virtual environment Python not found at: ' . $venvPython);
+        }
+        if (!file_exists($pythonScript)) {
+            sendJSON(false, null, 'Python script not found at: ' . $pythonScript);
+        }
+
+        $arg = $allowed_commands[$cmd];
+        $extra_args = '';
+        if ($cmd === 'sync-month-main' || $cmd === 'sync-month-commercial') {
+            if ($year < 2020 || $year > 2035 || $month < 1 || $month > 12) {
+                sendJSON(false, null, 'Please select a valid Year and Month.');
+            }
+            $extra_args = ' ' . escapeshellarg($year) . ' ' . escapeshellarg($month);
+        }
+
+        // Run python script with arguments
+        $command = escapeshellarg($venvPython) . ' ' . escapeshellarg($pythonScript) . ' ' . $arg . $extra_args . ' 2>&1';
+        $output = shell_exec($command);
+
+        if ($output === null) {
+            sendJSON(false, null, 'Failed to execute command on the server.');
+        }
+
+        // Check if there's any error in python output
+        if (stripos($output, 'error') !== false || stripos($output, 'failed') !== false) {
+            sendJSON(false, ['logs' => $output], 'Command executed but returned some errors. Check terminal output.');
+        } else {
+            sendJSON(true, ['logs' => $output], 'ZKTeco action completed successfully!');
+        }
+        break;
+
     // =================================================
     // DEFAULT: Invalid action
     // =================================================
     default:
-        sendJSON(false, null, 'Invalid action. Available actions: weekly, getLiveAttendance, getEmployeeHistory, getAttendanceForHR, getDateRange, importFromPython, searchEmployees, manualPunch, getStatistics, getFilterOptions, searchEmployeesCSV, getTeamStats');
+        sendJSON(false, null, 'Invalid action. Available actions: weekly, getLiveAttendance, getEmployeeHistory, getAttendanceForHR, getDateRange, importFromPython, searchEmployees, manualPunch, getStatistics, getFilterOptions, searchEmployeesCSV, getTeamStats, fetchDevices');
 }
 ?>

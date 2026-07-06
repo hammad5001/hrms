@@ -1132,6 +1132,7 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                     <span style="background: rgba(249,115,22,0.2); color: #f97316; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px;">ADMIN</span>
                     <?php endif; ?>
                 </span>
+                <a href="attendance/download_qrcodes.php" target="_blank" class="btn" style="background: rgba(249,115,22,0.1); border-color: rgba(249,115,22,0.3); color: #f97316;"><i class="fas fa-qrcode"></i> QR Codes</a>
                 <a href="admin-dashboard.html" class="btn"><i class="fas fa-arrow-left"></i> Back</a>
                 <a href="logout.php" class="btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
