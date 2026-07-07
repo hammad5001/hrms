@@ -57,7 +57,7 @@
         if (url) {
             window.location.replace(apiPrefix + url);
         } else {
-            window.location.replace(apiPrefix + 'user-login.html');
+            window.location.replace('/user-login.html');
         }
     }
 
@@ -93,7 +93,7 @@
             const role = d.portal_role || '';
 
             if (d.requires_password_change) {
-                window.location.replace(apiPrefix + 'user-login.html');
+                window.location.replace('/user-login.html');
                 return;
             }
 
