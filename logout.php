@@ -1,13 +1,13 @@
 <?php
 session_start();
 
-$redirect = '/index.html?logout=true';
+$redirect = 'index.html?logout=true';
 
 if (
     (isset($_SESSION['company_branch']) && $_SESSION['company_branch'] === 'workfromhome') ||
     (isset($_GET['wfh']) && $_GET['wfh'] === 'true')
 ) {
-    $redirect = '/workfromhome/index.html?logout=true';
+    $redirect = 'workfromhome/index.html?logout=true';
 }
 
 if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
