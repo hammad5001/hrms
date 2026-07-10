@@ -99,7 +99,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $branch = trim($_POST['branch']);
             $company_branch = normalize_company_branch($_POST['company_branch'] ?? 'main');
             $team = trim($_POST['team']);
-            $joined_date = $_POST['joined_date'];
+            $joined_date = trim($_POST['joined_date'] ?? '');
+            $joined_date = $joined_date !== '' ? $joined_date : null;
             $password = $_POST['password'];
             
             // Enforce balitech.org by extracting prefix and appending
@@ -250,7 +251,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $branch = trim($_POST['branch']);
             $company_branch = normalize_company_branch($_POST['company_branch'] ?? 'main');
             $team = trim($_POST['team']);
-            $joined_date = $_POST['joined_date'];
+            $joined_date = trim($_POST['joined_date'] ?? '');
+            $joined_date = $joined_date !== '' ? $joined_date : null;
             $status = $_POST['status'];
             
             $errors = [];

@@ -12,3 +12,9 @@ __pycache__/
 *.csv
 uploads/
 attendance/python-script/*.csv
+
+# Local Python virtual environments
+attendance/python-script/venv/
+
+# Local backups
+*.bak.*
