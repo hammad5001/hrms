@@ -4,6 +4,33 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['portal_role'] !== 'super_admin' 
     header('Location: index.html');
     exit;
 }
+require_once 'config.php';
+
+// Auto-create history table if not exists
+$conn->query("
+CREATE TABLE IF NOT EXISTS `salary_broadcast_history` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `month` VARCHAR(20) NOT NULL,
+    `year` INT(11) NOT NULL,
+    `file_name` VARCHAR(255) NOT NULL,
+    `uploaded_by_id` INT NOT NULL,
+    `uploaded_by_name` VARCHAR(150) NOT NULL,
+    `total_records` INT NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY `uq_month_year` (`month`, `year`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+");
+
+$uploader_name = 'User';
+if ($stmt = $conn->prepare("SELECT full_name FROM users WHERE id = ?")) {
+    $stmt->bind_param("i", $_SESSION['user_id']);
+    $stmt->execute();
+    $stmt->bind_result($name_val);
+    if ($stmt->fetch()) {
+        $uploader_name = $name_val;
+    }
+    $stmt->close();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -313,7 +340,12 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['portal_role'] !== 'super_admin' 
 
     <div class="header">
         <h1><i class="fas fa-paper-plane"></i> Platform Broadcast</h1>
-        <a href="admin.php" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <span style="font-size: 14px; color: var(--text-muted);">
+                <i class="fas fa-user-circle"></i> Logged in: <strong style="color: var(--text-main);"><?php echo htmlspecialchars($uploader_name); ?></strong>
+            </span>
+            <a href="admin.php" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        </div>
     </div>
 
     <div class="container">
@@ -399,12 +431,102 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['portal_role'] !== 'super_admin' 
             </div>
 
             <div class="actions">
+                <button class="btn btn-outline" id="revertBtn" style="display: none; color: #ef4444; border-color: rgba(239, 68, 68, 0.2);" onclick="revertSheet()">
+                    <i class="fas fa-undo"></i> Clear/Revert Sheet
+                </button>
                 <button class="btn btn-outline" onclick="window.location.reload()">Cancel</button>
                 <button class="btn btn-primary" id="broadcastBtn" disabled onclick="startBroadcast()">
                     <i class="fas fa-paper-plane"></i> Broadcast Salary Slips
                 </button>
             </div>
 
+        </div>
+
+        <div class="broadcast-card" style="margin-top: 30px; border-color: rgba(239, 68, 68, 0.2);">
+            <h3 class="section-title" style="color: #ef4444;"><i class="fas fa-history"></i> Revert / Delete Past Broadcast</h3>
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
+                If you made a mistake or uploaded the wrong sheet, select the month and year below to delete all associated salary slips. 
+                They will be immediately removed from the system and will no longer show in the Employee Portal.
+            </p>
+            
+            <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px;">Month</label>
+                    <select id="revertMonthSelect" class="form-control">
+                        <option value="January">January</option>
+                        <option value="February">February</option>
+                        <option value="March">March</option>
+                        <option value="April">April</option>
+                        <option value="May">May</option>
+                        <option value="June">June</option>
+                        <option value="July">July</option>
+                        <option value="August">August</option>
+                        <option value="September">September</option>
+                        <option value="October">October</option>
+                        <option value="November">November</option>
+                        <option value="December">December</option>
+                    </select>
+                </div>
+                <div style="width: 150px;">
+                    <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px;">Year</label>
+                    <input type="number" id="revertYearSelect" class="form-control" value="<?php echo date('Y'); ?>">
+                </div>
+                <button class="btn btn-outline" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3); background: #fef2f2; height: 46px;" onclick="revertPastBroadcast()">
+                    <i class="fas fa-trash-alt"></i> Delete Broadcast
+                </button>
+            </div>
+        </div>
+
+        <div class="broadcast-card" style="margin-top: 30px;">
+            <h3 class="section-title"><i class="fas fa-list-alt"></i> Broadcast History Logs</h3>
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
+                Below is the history of all sheets uploaded and broadcasted. You can revert any specific month's upload directly from here.
+            </p>
+            
+            <div class="table-responsive">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border);">
+                            <th style="padding: 12px; text-align: left; color: var(--text-muted); font-weight: 600;">Month / Year</th>
+                            <th style="padding: 12px; text-align: left; color: var(--text-muted); font-weight: 600;">Uploaded Sheet Name</th>
+                            <th style="padding: 12px; text-align: left; color: var(--text-muted); font-weight: 600;">Uploaded By</th>
+                            <th style="padding: 12px; text-align: left; color: var(--text-muted); font-weight: 600;">Records</th>
+                            <th style="padding: 12px; text-align: left; color: var(--text-muted); font-weight: 600;">Broadcast Date</th>
+                            <th style="padding: 12px; text-align: center; color: var(--text-muted); font-weight: 600;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $histQuery = $conn->query("SELECT month, year, file_name, uploaded_by_name, total_records, created_at FROM salary_broadcast_history ORDER BY created_at DESC");
+                        if ($histQuery && $histQuery->num_rows > 0) {
+                            while ($hRow = $histQuery->fetch_assoc()) {
+                                $hMonth = htmlspecialchars($hRow['month']);
+                                $hYear = (int)$hRow['year'];
+                                $hFileName = htmlspecialchars($hRow['file_name']);
+                                $hUploadedBy = htmlspecialchars($hRow['uploaded_by_name']);
+                                $hTotal = (int)$hRow['total_records'];
+                                $hDate = date('M d, Y h:i A', strtotime($hRow['created_at']));
+                                
+                                echo "<tr style='border-bottom: 1px solid var(--border);'>";
+                                echo "<td style='padding: 12px;'><strong>{$hMonth} {$hYear}</strong></td>";
+                                echo "<td style='padding: 12px; font-family: monospace; font-size: 12px;'>{$hFileName}</td>";
+                                echo "<td style='padding: 12px;'>{$hUploadedBy}</td>";
+                                echo "<td style='padding: 12px;'>{$hTotal}</td>";
+                                echo "<td style='padding: 12px; color: var(--text-muted);'>{$hDate}</td>";
+                                echo "<td style='padding: 12px; text-align: center;'>
+                                        <button class='btn btn-outline' style='padding: 6px 12px; font-size: 12px; color: #ef4444; border-color: rgba(239, 68, 68, 0.2); display: inline-flex; margin: auto;' onclick=\"revertPastBroadcast('{$hMonth}', {$hYear})\">
+                                            <i class='fas fa-undo'></i> Revert
+                                        </button>
+                                      </td>";
+                                echo "</tr>";
+                            }
+                        } else {
+                            echo "<tr><td colspan='6' style='padding: 20px; text-align: center; color: var(--text-muted);'>No broadcast history found.</td></tr>";
+                        }
+                        ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -422,6 +544,7 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['portal_role'] !== 'super_admin' 
         // Current Month Selection
         const currentMonth = new Date().toLocaleString('default', { month: 'long' });
         document.getElementById('monthSelect').value = currentMonth;
+        document.getElementById('revertMonthSelect').value = currentMonth;
 
         dropzone.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -466,6 +589,48 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['portal_role'] !== 'super_admin' 
                         return (kl.includes('name') || kl.includes('id') || kl.includes('sr')) && val !== "";
                     });
                 });
+
+                // Calculate Gross Salary and Total Deductions dynamically
+                if (parsedData.length > 0) {
+                    const firstRow = parsedData[0];
+                    const getCol = (keyParts) => Object.keys(firstRow).find(k => keyParts.some(p => k.toLowerCase().includes(p)));
+                    
+                    const basicCol = getCol(['basic salary', 'basic']);
+                    const punctualityCol = getCol(['punctuality', 'punctual']);
+                    const grossCol = getCol(['gross salary', 'gross']) || 'Gross Salary';
+                    const deductCol = getCol(['total deductions', 'deduction', 'deduct']) || 'Total Deductions';
+                    const netCol = getCol(['net payable', 'net salary', 'net']) || 'Net Payable';
+
+                    const getFloat = (val) => {
+                        if (val === undefined || val === null) return 0;
+                        const clean = String(val).replace(/,/g, '').trim();
+                        const parsed = parseFloat(clean);
+                        return isNaN(parsed) ? 0 : parsed;
+                    };
+
+                    parsedData = parsedData.map(row => {
+                        // 1. Calculate Gross if Basic + Punctuality exist
+                        if (basicCol && punctualityCol) {
+                            const basicVal = getFloat(row[basicCol]);
+                            const punctVal = getFloat(row[punctualityCol]);
+                            const calculatedGross = basicVal + punctVal;
+                            if (calculatedGross > 0) {
+                                row[grossCol] = calculatedGross;
+                            }
+                        }
+
+                        // 2. Calculate Total Deductions = Gross - Net if deductions are empty/0 and Gross > Net
+                        const grossVal = getFloat(row[grossCol]);
+                        const netVal = getFloat(row[netCol]);
+                        const currentDeduct = getFloat(row[deductCol]);
+
+                        if ((currentDeduct === 0 || !row[deductCol]) && grossVal > netVal) {
+                            row[deductCol] = grossVal - netVal;
+                        }
+                        
+                        return row;
+                    });
+                }
                 
                 renderPreview(parsedData);
             };
@@ -506,8 +671,22 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['portal_role'] !== 'super_admin' 
             document.getElementById('recordCount').innerText = `${data.length} records found`;
             document.getElementById('previewContainer').style.display = 'block';
             document.getElementById('broadcastBtn').disabled = false;
+            document.getElementById('revertBtn').style.display = 'inline-flex';
             document.getElementById('dropzone').style.borderColor = 'var(--secondary)';
-            document.getElementById('dropzone').querySelector('h3').innerText = fileInput.files[0].name;
+            document.getElementById('dropzone').querySelector('h3').innerText = fileInput.files[0] ? fileInput.files[0].name : 'File Loaded';
+        }
+
+        function revertSheet() {
+            parsedData = [];
+            fileInput.value = '';
+            document.getElementById('previewContainer').style.display = 'none';
+            document.getElementById('broadcastBtn').disabled = true;
+            document.getElementById('revertBtn').style.display = 'none';
+            dropzone.style.borderColor = 'var(--border)';
+            dropzone.querySelector('h3').innerText = 'Click or drag Excel file to upload';
+            const tbody = document.querySelector('#previewTable tbody');
+            tbody.innerHTML = '';
+            document.getElementById('recordCount').innerText = '0 records found';
         }
 
         async function startBroadcast() {
@@ -533,6 +712,7 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['portal_role'] !== 'super_admin' 
                         year: year,
                         sendEmail: sendEmail,
                         sendPortal: sendPortal,
+                        fileName: fileInput.files[0] ? fileInput.files[0].name : 'Unknown File',
                         salaryData: parsedData
                     })
                 });
@@ -550,6 +730,45 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['portal_role'] !== 'super_admin' 
             } catch (err) {
                 document.getElementById('loadingOverlay').style.display = 'none';
                 alert("An error occurred during broadcast.");
+                console.error(err);
+            }
+        }
+
+        async function revertPastBroadcast(month, year) {
+            if (!month || !year) {
+                month = document.getElementById('revertMonthSelect').value;
+                year = document.getElementById('revertYearSelect').value;
+            }
+
+            if (!confirm(`Are you sure you want to delete all salary slips for ${month} ${year}?\nThis action CANNOT be undone and they will be removed from the Employee Portal.`)) {
+                return;
+            }
+
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            document.getElementById('loadingStatus').innerText = `Reverting ${month} ${year} broadcast...`;
+
+            try {
+                const response = await fetch('api/delete_salary_broadcast.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        month: month,
+                        year: year
+                    })
+                });
+
+                const result = await response.json();
+                document.getElementById('loadingOverlay').style.display = 'none';
+
+                if (result.success) {
+                    alert(result.message || "Broadcast successfully reverted.");
+                    window.location.reload();
+                } else {
+                    alert("Error: " + result.message);
+                }
+            } catch (err) {
+                document.getElementById('loadingOverlay').style.display = 'none';
+                alert("An error occurred during revert.");
                 console.error(err);
             }
         }

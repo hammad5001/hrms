@@ -25,6 +25,7 @@ $month = $conn->real_escape_string($input['month'] ?? date('F'));
 $year = (int)($input['year'] ?? date('Y'));
 $sendEmail = !empty($input['sendEmail']);
 $sendPortal = !empty($input['sendPortal']);
+$fileName = $conn->real_escape_string($input['fileName'] ?? 'Unknown File');
 $salaryData = $input['salaryData'];
 
 $processed = 0;
@@ -123,6 +124,27 @@ foreach ($salaryData as $row) {
                 $conn->query("UPDATE employee_salary_slips SET email_sent_status = 'failed' WHERE id = $slip_id");
             }
         }
+    }
+}
+
+if ($processed > 0) {
+    $uploader_id = $_SESSION['user_id'];
+    $uploader_name = 'User';
+    if ($stmt_user = $conn->prepare("SELECT full_name FROM users WHERE id = ?")) {
+        $stmt_user->bind_param("i", $uploader_id);
+        $stmt_user->execute();
+        $stmt_user->bind_result($name_val);
+        if ($stmt_user->fetch()) {
+            $uploader_name = $name_val;
+        }
+        $stmt_user->close();
+    }
+
+    $histStmt = $conn->prepare("INSERT INTO salary_broadcast_history (month, year, file_name, uploaded_by_id, uploaded_by_name, total_records) VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE file_name = VALUES(file_name), uploaded_by_id = VALUES(uploaded_by_id), uploaded_by_name = VALUES(uploaded_by_name), total_records = VALUES(total_records), created_at = NOW()");
+    if ($histStmt) {
+        $histStmt->bind_param("sisisi", $month, $year, $fileName, $uploader_id, $uploader_name, $processed);
+        $histStmt->execute();
+        $histStmt->close();
     }
 }
 
