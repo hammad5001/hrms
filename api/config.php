@@ -14,8 +14,8 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS
 
 // Database configuration
 define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_USER', 'balitech_user');
+define('DB_PASS', '12344321');
 define('DB_NAME', 'balitech');
 
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);

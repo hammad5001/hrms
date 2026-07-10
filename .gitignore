@@ -1,1 +1,20 @@
 uploads/
+
+# HRMS attendance runtime data - keep on server, do not track in git
+attendance/python-script/attendance_master_*.csv
+attendance/python-script/last_sync_*.txt
+attendance/python-script/all_users_*.xlsx
+attendance/python-script/daily_report_*.csv
+attendance/python-script/shift_summary_*.csv
+attendance/python-script/*.log
+__pycache__/
+*.pyc
+*.csv
+uploads/
+attendance/python-script/*.csv
+
+# Local Python virtual environments
+attendance/python-script/venv/
+
+# Local backups
+*.bak.*

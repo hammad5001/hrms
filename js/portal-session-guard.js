@@ -57,7 +57,7 @@
         if (url) {
             window.location.replace(apiPrefix + url);
         } else {
-            window.location.replace(apiPrefix + 'user-login.html');
+            window.location.replace('/user-login.html');
         }
     }
 
@@ -93,7 +93,7 @@
             const role = d.portal_role || '';
 
             if (d.requires_password_change) {
-                window.location.replace(apiPrefix + 'user-login.html');
+                window.location.replace('/user-login.html');
                 return;
             }
 
@@ -136,7 +136,7 @@
 
         const page = window.location.pathname.split('/').pop() || '';
         const isWfh = localStorage.getItem('companyBranch') === 'workfromhome';
-        const loginPage = isWfh ? '/interview-forms/workfromhome/index.html' : (apiPrefix + 'index.html');
+        const loginPage = isWfh ? '/workfromhome/index.html' : (apiPrefix + 'index.html');
         window.location.replace(loginPage + '?redirect=' + encodeURIComponent(page));
     }
 

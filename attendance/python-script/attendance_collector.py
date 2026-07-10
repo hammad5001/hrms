@@ -44,8 +44,8 @@ class DailyAttendanceTracker:
 
         self.db_config = {
             'host': 'localhost',
-            'user': 'root',
-            'password': '',
+            'user': 'balitech_user',
+            'password': '12344321',
             'database': 'balitech',
             'charset': 'utf8mb4'
         }
@@ -809,11 +809,10 @@ class DailyAttendanceTracker:
         print("2. April 2026")
         print("3. May 2026")
         print("4. June 2026")
-        print("5. July 2026")
-        print("6. Cancel")
-        choice = input("\nSelect option (1-6): ").strip()
+        print("5. Cancel")
+        choice = input("\nSelect option (1-5): ").strip()
         months = {
-            "1": (2026, 3), "2": (2026, 4), "3": (2026, 5), "4": (2026, 6), "5": (2026, 7),
+            "1": (2026, 3), "2": (2026, 4), "3": (2026, 5), "4": (2026, 6),
         }
         if choice not in months:
             print("Operation cancelled")
@@ -1188,35 +1187,4 @@ def main():
 
 
 if __name__ == "__main__":
-    import sys
-    if len(sys.argv) > 1:
-        tracker = DailyAttendanceTracker()
-        arg = sys.argv[1].lower()
-        if arg == "--sync-today-main":
-            tracker.fetch_today_for_device(DEVICES[0])
-        elif arg == "--sync-today-commercial":
-            tracker.fetch_today_for_device(DEVICES[1])
-        elif arg == "--sync-today-all" or arg == "--sync":
-            tracker.fetch_today_all_devices()
-        elif arg == "--sync-users-main":
-            tracker.fetch_users_for_device(DEVICES[0])
-        elif arg == "--sync-users-commercial":
-            tracker.fetch_users_for_device(DEVICES[1])
-        elif arg == "--sync-users-all" or arg == "--users":
-            tracker.fetch_users_all_devices()
-        elif arg == "--test-connections":
-            tracker.test_all_connections()
-        elif arg == "--sync-month-main":
-            if len(sys.argv) > 3:
-                tracker.fetch_month_for_device(DEVICES[0], int(sys.argv[2]), int(sys.argv[3]))
-            else:
-                print("Error: Year and Month required. E.g. --sync-month-main 2026 7")
-        elif arg == "--sync-month-commercial":
-            if len(sys.argv) > 3:
-                tracker.fetch_month_for_device(DEVICES[1], int(sys.argv[2]), int(sys.argv[3]))
-            else:
-                print("Error: Year and Month required. E.g. --sync-month-commercial 2026 7")
-        else:
-            print(f"Unknown argument: {arg}")
-    else:
-        main()  
+    main()  
