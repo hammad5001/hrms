@@ -407,25 +407,20 @@
                                             <tr>
                                                 <th>Month & Year</th>
                                                 <th>Gross Salary</th>
+                                                <th>Total Deduction</th>
                                                 <th>Net Payable</th>
                                                 <th>Status</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
                                         <tbody id="payslipBody">
-                                            <tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-muted);">Loading your payslips...</td></tr>
+                                            <tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted);">Loading your payslips...</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
                             
-                            <!-- Modal for Payslip View -->
-                            <div id="payslipModal" class="ess-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
-                                <div class="ess-modal-content" style="background:#fff; border-radius:16px; width:90%; max-width:600px; max-height:90vh; overflow-y:auto; padding:30px; position:relative;">
-                                    <button onclick="document.getElementById('payslipModal').style.display='none'" style="position:absolute; top:20px; right:20px; background:none; border:none; font-size:24px; cursor:pointer;"><i class="fas fa-times"></i></button>
-                                    <div id="payslipModalBody"></div>
-                                </div>
-                            </div>
+
                         </section>
 
                         <!-- Coming soon placeholder -->
@@ -1350,10 +1345,10 @@
         });
     </script>
     <script charset="utf-8" src="../js/hr-productivity.js?v=3"></script>
-    <script charset="utf-8" src="../js/employee-salary.js"></script>
+    <script charset="utf-8" src="../js/employee-salary.js?v=6"></script>
 
     <!-- Modal for Payslip View -->
-    <div id="payslipModal" class="ess-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:999999; align-items:center; justify-content:center;">
+    <div id="payslipModal" class="payslip-modal-overlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:999999; align-items:center; justify-content:center;">
         <div class="ess-modal-content" style="background:#fff; border-radius:16px; width:90%; max-width:650px; max-height:90vh; overflow-y:auto; padding:0; position:relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
             <button onclick="document.getElementById('payslipModal').style.display='none'" style="position:absolute; top:20px; right:20px; background:rgba(255,255,255,0.9); border:none; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:18px; color:#475569; cursor:pointer; z-index:10; box-shadow:0 4px 6px rgba(0,0,0,0.1);"><i class="fas fa-times"></i></button>
                                     <div id="payslipModalBody"></div>
