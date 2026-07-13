@@ -1517,7 +1517,7 @@
                         if (data.success) {
                             let city = 'your location';
                             try {
-                                const geoRes = await fetch(\`https://nominatim.openstreetmap.org/reverse?format=json&lat=\${lat}&lon=\${lng}\`);
+                                const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
                                 const geoData = await geoRes.json();
                                 if (geoData && geoData.address) {
                                     city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.state || city;
@@ -1526,10 +1526,10 @@
 
                             document.getElementById('wfhCityName').innerText = city;
                             if (!wfhCheckedIn) {
-                                showToast(\`Checked in successfully from \${city}!\`, 'success');
+                                showToast(`Checked in successfully from ${city}!`, 'success');
                                 wfhCheckedIn = true;
                             } else {
-                                showToast(\`Checked out successfully from \${city}!\`, 'success');
+                                showToast(`Checked out successfully from ${city}!`, 'success');
                                 wfhCheckedIn = false;
                             }
                             updateWFHUI();
@@ -1583,7 +1583,7 @@
             
             const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
             const color = type === 'success' ? '#10b981' : '#ef4444';
-            t.innerHTML = \`<div><i class="fas \${icon}" style="color:\${color}"></i></div><div><div style="font-size:14px;">\${msg}</div></div>\`;
+            t.innerHTML = `<div><i class="fas ${icon}" style="color:${color}"></i></div><div><div style="font-size:14px;">${msg}</div></div>`;
             container.appendChild(t);
             setTimeout(() => { t.remove(); }, 3000);
         }

@@ -11,7 +11,8 @@ require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/session_user.php';
 require_once __DIR__ . '/../includes/chat_helpers.php';
 
-ensure_chat_schema($conn);
+// Disabled in production: schema migration must run manually, not on every request.
+// ensure_chat_schema($conn);
 
 $me = resolve_logged_in_user($conn);
 if (!$me || ($me['status'] ?? 'active') !== 'active') {

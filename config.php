@@ -23,5 +23,6 @@ ensure_company_branch_schema($conn);
 ensure_app_schema($conn);
 ensure_receptionist_portal_role($conn);
 require_once __DIR__ . '/includes/chat_schema.php';
-ensure_chat_schema($conn);
+// Disabled in production: schema migration must run manually, not on every request.
+// ensure_chat_schema($conn);
 ?>
