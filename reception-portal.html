@@ -1280,7 +1280,8 @@
             
             if (!qrGenerated) {
                 qrDiv.innerHTML = '';
-                const mobileUrl = window.location.origin + '/candidate-form.html';
+                const currentUrl = window.location.href;
+                const mobileUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/')) + '/candidate-form.html';
                 
                 new QRCode(qrDiv, {
                     text: mobileUrl,
@@ -1296,7 +1297,8 @@
         }
 
         function copyMobileLink() {
-            const mobileUrl = window.location.origin + '/candidate-form.html';
+            const currentUrl = window.location.href;
+            const mobileUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/')) + '/candidate-form.html';
             navigator.clipboard.writeText(mobileUrl).then(() => {
                 showToast('✅ Mobile form link copied!', 'success');
             }).catch(() => {

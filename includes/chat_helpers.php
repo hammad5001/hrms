@@ -201,7 +201,12 @@ function chat_process_upload(mysqli $conn, int $me_id): void {
         chat_json(false, null, 'Could not save file on server');
     }
 
-    $msg_type = str_starts_with($mime, 'image/') ? 'image' : 'file';
+    $msg_type = 'file';
+    if (str_starts_with($mime, 'image/')) {
+        $msg_type = 'image';
+    } elseif (str_starts_with($mime, 'audio/')) {
+        $msg_type = 'audio';
+    }
     
     // Accept caption/body from POST if provided, otherwise fallback to defaults
     $body = trim((string)($_POST['body'] ?? ''));

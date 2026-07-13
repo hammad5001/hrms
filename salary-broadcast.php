@@ -409,6 +409,12 @@ if ($stmt = $conn->prepare("SELECT full_name FROM users WHERE id = ?")) {
                 <input type="file" id="fileInput" accept=".xlsx, .xls" style="display: none;">
             </div>
 
+            <div style="text-align: right; margin-top: -15px; margin-bottom: 25px;">
+                <a href="javascript:void(0)" onclick="downloadTemplate()" style="font-size: 13px; color: var(--primary); text-decoration: none; font-weight: 600;">
+                    <i class="fas fa-download"></i> Download Excel Template
+                </a>
+            </div>
+
             <div class="preview-container" id="previewContainer">
                 <div class="preview-header">
                     <span><i class="fas fa-table"></i> Data Preview</span>
@@ -771,6 +777,38 @@ if ($stmt = $conn->prepare("SELECT full_name FROM users WHERE id = ?")) {
                 alert("An error occurred during revert.");
                 console.error(err);
             }
+        }
+
+        function downloadTemplate() {
+            // Define headers and sample rows for the Excel template
+            const templateData = [
+                {
+                    "Biometric ID": "101",
+                    "Employee Name": "John Doe",
+                    "Basic Salary": 50000,
+                    "Punctuality": 5000,
+                    "Gross Salary": 55000,
+                    "Total Deductions": 2000,
+                    "Net Payable": 53000
+                },
+                {
+                    "Biometric ID": "102",
+                    "Employee Name": "Jane Smith",
+                    "Basic Salary": 60000,
+                    "Punctuality": 0,
+                    "Gross Salary": 60000,
+                    "Total Deductions": 0,
+                    "Net Payable": 60000
+                }
+            ];
+
+            // Create worksheet and workbook using SheetJS
+            const worksheet = XLSX.utils.json_to_sheet(templateData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Salary Template");
+
+            // Write and download file
+            XLSX.writeFile(workbook, "Salary_Slip_Import_Template.xlsx");
         }
     </script>
 </body>

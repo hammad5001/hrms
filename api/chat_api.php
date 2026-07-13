@@ -213,7 +213,7 @@ switch ($action) {
             $stmt = $conn->prepare("
                 SELECT m.id, m.conversation_id, m.sender_id, m.body, m.msg_type,
                        m.file_name, m.file_path, m.file_size, m.created_at,
-                       m.is_edited, m.is_deleted,
+                       m.is_edited, m.is_deleted, m.is_pinned, m.pinned_by, m.pinned_at,
                        u.full_name AS sender_name, u.chat_avatar AS sender_avatar
                 FROM chat_messages m
                 INNER JOIN users u ON u.id = m.sender_id
@@ -226,7 +226,7 @@ switch ($action) {
             $stmt = $conn->prepare("
                 SELECT m.id, m.conversation_id, m.sender_id, m.body, m.msg_type,
                        m.file_name, m.file_path, m.file_size, m.created_at,
-                       m.is_edited, m.is_deleted,
+                       m.is_edited, m.is_deleted, m.is_pinned, m.pinned_by, m.pinned_at,
                        u.full_name AS sender_name, u.chat_avatar AS sender_avatar
                 FROM chat_messages m
                 INNER JOIN users u ON u.id = m.sender_id
@@ -239,7 +239,7 @@ switch ($action) {
             $stmt = $conn->prepare("
                 SELECT m.id, m.conversation_id, m.sender_id, m.body, m.msg_type,
                        m.file_name, m.file_path, m.file_size, m.created_at,
-                       m.is_edited, m.is_deleted,
+                       m.is_edited, m.is_deleted, m.is_pinned, m.pinned_by, m.pinned_at,
                        u.full_name AS sender_name, u.chat_avatar AS sender_avatar
                 FROM chat_messages m
                 INNER JOIN users u ON u.id = m.sender_id
@@ -315,6 +315,29 @@ switch ($action) {
 
         $conv_meta = chat_conversation_meta_for_user($conn, $cid, $me_id, $conv);
 
+        // Fetch pinned messages
+        $pinStmt = $conn->prepare("
+            SELECT m.id, m.conversation_id, m.sender_id, m.body, m.msg_type,
+                   m.file_name, m.file_path, m.file_size, m.created_at,
+                   m.is_pinned, m.pinned_by, m.pinned_at,
+                   u.full_name AS sender_name, p.full_name AS pinned_by_name
+            FROM chat_messages m
+            INNER JOIN users u ON u.id = m.sender_id
+            LEFT JOIN users p ON p.id = m.pinned_by
+            WHERE m.conversation_id = ? AND m.is_pinned = 1 AND m.is_deleted = 0
+            ORDER BY m.pinned_at DESC
+        ");
+        $pinStmt->bind_param('i', $cid);
+        $pinStmt->execute();
+        $pinned_messages = [];
+        $pinRes = $pinStmt->get_result();
+        while ($row = $pinRes->fetch_assoc()) {
+            if (!empty($row['file_path'])) {
+                $row['file_url'] = chat_public_file_url($row['file_path']);
+            }
+            $pinned_messages[] = $row;
+        }
+
         chat_json(true, [
             'conversation' => $conv,
             'messages' => $messages,
@@ -325,6 +348,7 @@ switch ($action) {
             'unread_count' => chat_unread_count($conn, $cid, $me_id),
             'has_more' => $has_more,
             'meta' => $conv_meta,
+            'pinned_messages' => $pinned_messages,
         ]);
         break;
 
@@ -881,6 +905,122 @@ switch ($action) {
             $media[] = $row;
         }
         chat_json(true, ['items' => $media]);
+        break;
+
+    case 'getMessageReceipts':
+        $message_id = (int)($_GET['message_id'] ?? $input['message_id'] ?? 0);
+        if (!$message_id) {
+            chat_json(false, null, 'Message ID is required');
+        }
+        // Check access
+        $chk = $conn->prepare("
+            SELECT m.conversation_id, m.sender_id
+            FROM chat_messages m
+            INNER JOIN chat_participants p ON p.conversation_id = m.conversation_id AND p.user_id = ?
+            WHERE m.id = ?
+        ");
+        $chk->bind_param('ii', $me_id, $message_id);
+        $chk->execute();
+        $msg_row = $chk->get_result()->fetch_assoc();
+        if (!$msg_row) {
+            chat_json(false, null, 'Access denied or message not found');
+        }
+        $cid = (int)$msg_row['conversation_id'];
+        
+        // Fetch receipts for all participants except sender
+        $stmt = $conn->prepare("
+            SELECT u.id, u.full_name, u.portal_role, u.chat_avatar, r.read_at, r.delivered_at
+            FROM chat_participants p
+            INNER JOIN users u ON u.id = p.user_id
+            LEFT JOIN chat_message_receipts r ON r.message_id = ? AND r.user_id = u.id
+            WHERE p.conversation_id = ? AND u.id != ?
+        ");
+        $sender_id = (int)$msg_row['sender_id'];
+        $stmt->bind_param('iii', $message_id, $cid, $sender_id);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        
+        $read_by = [];
+        $delivered_to = [];
+        while ($row = $res->fetch_assoc()) {
+            $row['avatar_url'] = chat_public_avatar_url($row['chat_avatar'] ?? '');
+            $row['avatar_color'] = chat_user_avatar_color((int)$row['id']);
+            unset($row['chat_avatar']);
+            
+            if ($row['read_at'] !== null) {
+                $read_by[] = $row;
+            } else {
+                $delivered_to[] = $row;
+            }
+        }
+        chat_json(true, [
+            'read_by' => $read_by,
+            'delivered_to' => $delivered_to,
+        ]);
+        break;
+
+    case 'pinMessage':
+        $message_id = (int)($input['message_id'] ?? 0);
+        if (!$message_id) {
+            chat_json(false, null, 'Message ID is required');
+        }
+        $chk = $conn->prepare("
+            SELECT m.id, m.conversation_id
+            FROM chat_messages m
+            INNER JOIN chat_participants p ON p.conversation_id = m.conversation_id AND p.user_id = ?
+            WHERE m.id = ?
+        ");
+        $chk->bind_param('ii', $me_id, $message_id);
+        $chk->execute();
+        $msg_row = $chk->get_result()->fetch_assoc();
+        if (!$msg_row) {
+            chat_json(false, null, 'Access denied or message not found');
+        }
+        $cid = (int)$msg_row['conversation_id'];
+        
+        $stmt = $conn->prepare("UPDATE chat_messages SET is_pinned = 1, pinned_by = ?, pinned_at = NOW() WHERE id = ?");
+        $stmt->bind_param('ii', $me_id, $message_id);
+        $stmt->execute();
+        
+        // Notify WS
+        chat_ws_notify_conversation($conn, $cid, 'message.pinned', [
+            'message_id' => $message_id,
+            'pinned_by' => $me_id,
+            'pinned_by_name' => $me['full_name'] ?? 'Someone',
+        ]);
+        
+        chat_json(true, ['ok' => true]);
+        break;
+
+    case 'unpinMessage':
+        $message_id = (int)($input['message_id'] ?? 0);
+        if (!$message_id) {
+            chat_json(false, null, 'Message ID is required');
+        }
+        $chk = $conn->prepare("
+            SELECT m.id, m.conversation_id
+            FROM chat_messages m
+            INNER JOIN chat_participants p ON p.conversation_id = m.conversation_id AND p.user_id = ?
+            WHERE m.id = ?
+        ");
+        $chk->bind_param('ii', $me_id, $message_id);
+        $chk->execute();
+        $msg_row = $chk->get_result()->fetch_assoc();
+        if (!$msg_row) {
+            chat_json(false, null, 'Access denied or message not found');
+        }
+        $cid = (int)$msg_row['conversation_id'];
+        
+        $stmt = $conn->prepare("UPDATE chat_messages SET is_pinned = 0, pinned_by = NULL, pinned_at = NULL WHERE id = ?");
+        $stmt->bind_param('i', $message_id);
+        $stmt->execute();
+        
+        // Notify WS
+        chat_ws_notify_conversation($conn, $cid, 'message.unpinned', [
+            'message_id' => $message_id,
+        ]);
+        
+        chat_json(true, ['ok' => true]);
         break;
 
     default:

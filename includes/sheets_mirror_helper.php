@@ -18,7 +18,10 @@ function sheets_mirror_post(array $payload): void {
             CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
             CURLOPT_POSTFIELDS => json_encode($payload),
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 6,
+            CURLOPT_CONNECTTIMEOUT => 2,
+            CURLOPT_TIMEOUT => 3,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => 0,
         ]);
         curl_exec($ch);
         curl_close($ch);

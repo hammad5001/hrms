@@ -3273,3 +3273,51 @@ body.chat-modal-open .chat-modal-overlay.open {
     color: var(--c-text-3);
     margin-top: 4px;
 }
+
+/* ── Pinned Message Banner ── */
+.chat-pinned-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: #ffffff;
+    border-bottom: 1px solid var(--c-border, rgba(15, 23, 42, 0.08));
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.chat-pinned-banner.hidden {
+    display: none !important;
+}
+
+.pinned-banner-icon {
+    font-size: 14px;
+    color: var(--c-accent, #4f46e5);
+    transform: rotate(45deg);
+    flex-shrink: 0;
+}
+
+.pinned-banner-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.pinned-banner-content strong {
+    font-size: 11px;
+    color: var(--c-accent, #4f46e5);
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.pinned-banner-content span {
+    font-size: 13px;
+    color: var(--c-text-2, #334155);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}

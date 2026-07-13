@@ -38,10 +38,13 @@ function ensure_chat_schema(mysqli $conn): void {
             `conversation_id` INT NOT NULL,
             `sender_id` INT NOT NULL,
             `body` TEXT,
-            `msg_type` ENUM('text','image','file') NOT NULL DEFAULT 'text',
+            `msg_type` ENUM('text','image','file','audio') NOT NULL DEFAULT 'text',
             `file_name` VARCHAR(255) DEFAULT NULL,
             `file_path` VARCHAR(500) DEFAULT NULL,
             `file_size` INT DEFAULT NULL,
+            `is_pinned` TINYINT(1) NOT NULL DEFAULT 0,
+            `pinned_by` INT DEFAULT NULL,
+            `pinned_at` DATETIME DEFAULT NULL,
             `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
             INDEX `idx_conv_created` (`conversation_id`, `created_at`),
             INDEX `idx_sender` (`sender_id`)
@@ -69,6 +72,10 @@ function ensure_chat_schema(mysqli $conn): void {
     @$conn->query("ALTER TABLE `chat_messages` ADD COLUMN IF NOT EXISTS `is_edited` TINYINT(1) NOT NULL DEFAULT 0");
     @$conn->query("ALTER TABLE `chat_messages` ADD COLUMN IF NOT EXISTS `is_deleted` TINYINT(1) NOT NULL DEFAULT 0");
     @$conn->query("ALTER TABLE `chat_messages` ADD COLUMN IF NOT EXISTS `edited_at` DATETIME DEFAULT NULL");
+    @$conn->query("ALTER TABLE `chat_messages` MODIFY COLUMN `msg_type` ENUM('text','image','file','audio') NOT NULL DEFAULT 'text'");
+    @$conn->query("ALTER TABLE `chat_messages` ADD COLUMN IF NOT EXISTS `is_pinned` TINYINT(1) NOT NULL DEFAULT 0");
+    @$conn->query("ALTER TABLE `chat_messages` ADD COLUMN IF NOT EXISTS `pinned_by` INT DEFAULT NULL");
+    @$conn->query("ALTER TABLE `chat_messages` ADD COLUMN IF NOT EXISTS `pinned_at` DATETIME DEFAULT NULL");
 
     @$conn->query("ALTER TABLE `chat_messages` ADD INDEX IF NOT EXISTS `idx_conv_id` (`conversation_id`, `id`)");
     @$conn->query("ALTER TABLE `chat_messages` ADD INDEX IF NOT EXISTS `idx_conv_deleted` (`conversation_id`, `is_deleted`, `id`)");
@@ -204,6 +211,7 @@ function chat_mime_for_extension(string $ext): string {
         'tar' => 'application/x-tar', 'gz' => 'application/gzip',
         'json' => 'application/json', 'xml' => 'application/xml',
         'yml' => 'text/yaml', 'yaml' => 'text/yaml',
+        'mp3' => 'audio/mpeg', 'wav' => 'audio/wav', 'ogg' => 'audio/ogg', 'm4a' => 'audio/mp4', 'webm' => 'audio/webm',
     ];
     return $map[$ext] ?? 'application/octet-stream';
 }
@@ -230,7 +238,8 @@ function chat_is_allowed_upload_extension(string $ext): bool {
         return false;
     }
     return in_array($ext, chat_allowed_image_extensions(), true)
-        || in_array($ext, chat_allowed_document_extensions(), true);
+        || in_array($ext, chat_allowed_document_extensions(), true)
+        || in_array($ext, ['mp3', 'wav', 'ogg', 'm4a', 'webm'], true);
 }
 
 function chat_resolve_upload_type_from_mime(string $mime, string $fallbackExt = ''): ?array {
@@ -240,6 +249,20 @@ function chat_resolve_upload_type_from_mime(string $mime, string $fallbackExt = 
     }
     if (str_starts_with($mime, 'image/')) {
         $ext = chat_extension_from_image_mime($mime);
+        if ($fallbackExt !== '' && chat_is_allowed_upload_extension($fallbackExt)) {
+            $ext = chat_normalize_upload_extension($fallbackExt);
+        }
+        return ['mime' => $mime, 'ext' => $ext];
+    }
+    if (str_starts_with($mime, 'audio/')) {
+        $ext = match (true) {
+            str_contains($mime, 'mpeg') || str_contains($mime, 'mp3') => 'mp3',
+            str_contains($mime, 'wav') => 'wav',
+            str_contains($mime, 'ogg') => 'ogg',
+            str_contains($mime, 'm4a') || str_contains($mime, 'mp4') => 'm4a',
+            str_contains($mime, 'webm') => 'webm',
+            default => 'mp3',
+        };
         if ($fallbackExt !== '' && chat_is_allowed_upload_extension($fallbackExt)) {
             $ext = chat_normalize_upload_extension($fallbackExt);
         }

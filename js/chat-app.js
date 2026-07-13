@@ -58,6 +58,11 @@ const Chat = {
         userHasScrolled: false,
         opening: false,
         programmatic: false,
+    },
+    activeAudio: {
+        src: null,
+        currentTime: 0,
+        playing: false
     }
 };
 
@@ -896,6 +901,7 @@ function renderMessages(scrollMode) {
         const isDeleted = m.is_deleted || m.is_deleted === 1;
         const isEdited  = m.is_edited  || m.is_edited  === 1;
         const isImage   = !isDeleted && m.msg_type === 'image' && m.file_url;
+        const isAudio   = !isDeleted && m.msg_type === 'audio' && m.file_url;
         const isFile    = !isDeleted && m.msg_type === 'file'  && m.file_url;
         const fileUrl   = chatFileUrl(m.file_url);
         const isTmp     = String(m.id || '').startsWith('tmp');
@@ -910,6 +916,13 @@ function renderMessages(scrollMode) {
             bubbleClass += ' chat-bubble-media';
             const cap = m.body && !/^(📷|Photo)/i.test(m.body) ? `<div class="chat-caption">${linkify(m.body)}</div>` : '';
             inner = `<div class="chat-media"><img class="chat-img" src="${escapeHtml(fileUrl)}" alt="Photo" loading="lazy" data-full="${escapeHtml(fileUrl)}"></div>${cap}`;
+        } else if (isAudio) {
+            bubbleClass += ' chat-bubble-media chat-bubble-audio';
+            const cap = m.body && m.body !== m.file_name ? `<div class="chat-caption" style="margin-top:6px;">${linkify(m.body)}</div>` : '';
+            inner = `<div class="chat-audio" style="padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+                <div style="font-size: 11px; color: var(--c-text-muted, #64748b); font-weight: 600;"><i class="fas fa-volume-high" style="margin-right: 4px;"></i>${escapeHtml(m.file_name || 'Recording')}</div>
+                <audio controls src="${escapeHtml(fileUrl)}" style="width: 100%; max-width: 280px; height: 36px; border-radius: 8px;"></audio>
+            </div>${cap}`;
         } else if (isFile) {
             const fic = fileIconClass(m.file_name, '');
             const size = m.file_size ? ` &bull; ${formatFileSize(m.file_size)}` : '';
@@ -1009,6 +1022,15 @@ function renderMessages(scrollMode) {
 
     area.innerHTML = html;
 
+    // Restore playing audio state if it was playing before re-rendering
+    if (Chat.activeAudio.src && Chat.activeAudio.playing) {
+        const aud = Array.from(area.querySelectorAll('audio')).find(a => a.src === Chat.activeAudio.src);
+        if (aud) {
+            aud.currentTime = Chat.activeAudio.currentTime;
+            aud.play().catch(() => {});
+        }
+    }
+
     let mode = scrollMode;
     if (Chat.scroll.opening) mode = 'bottom';
     else if (!mode && searchQ.length >= 2) mode = 'search';
@@ -1069,10 +1091,19 @@ function showMessageContextMenu(e, msgId, isMine) {
     const ctxDelete = document.getElementById('ctxDelete');
     const ctxDeleteForMe = document.getElementById('ctxDeleteForMe');
     const ctxReply = document.getElementById('ctxReply');
+    const ctxReceipts = document.getElementById('ctxReceipts');
+    const ctxPin = document.getElementById('ctxPin');
+    const ctxUnpin = document.getElementById('ctxUnpin');
     ctxEdit.style.display = isMine ? 'flex' : 'none';
     ctxDelete.style.display = isMine ? 'flex' : 'none';
     if (ctxDeleteForMe) ctxDeleteForMe.style.display = isMine ? 'none' : 'flex';
     if (ctxReply) ctxReply.style.display = 'flex';
+    if (ctxReceipts) ctxReceipts.style.display = (isMine && Chat.convType === 'group') ? 'flex' : 'none';
+
+    const msg = Chat.messages.find(m => m.id === msgId);
+    const isPinned = msg && (msg.is_pinned === 1 || msg.is_pinned === true);
+    if (ctxPin) ctxPin.style.display = !isPinned ? 'flex' : 'none';
+    if (ctxUnpin) ctxUnpin.style.display = isPinned ? 'flex' : 'none';
 
     menu.classList.remove('hidden');
     const mw = 190, mh = 180;
@@ -1557,6 +1588,38 @@ function handleChatWsEvent(ev) {
         return;
     }
 
+    if (ev.type === 'message.pinned') {
+        const msg = Chat.messages.find(m => parseInt(m.id, 10) === parseInt(ev.message_id, 10));
+        if (msg) {
+            msg.is_pinned = 1;
+            msg.pinned_by = ev.pinned_by;
+        }
+        if (!Chat.pinnedMessages) Chat.pinnedMessages = [];
+        if (!Chat.pinnedMessages.some(m => parseInt(m.id, 10) === parseInt(ev.message_id, 10))) {
+            Chat.pinnedMessages.push({
+                id: ev.message_id,
+                body: ev.body || (msg ? msg.body : ''),
+                msg_type: ev.msg_type || (msg ? msg.msg_type : 'text'),
+                pinned_by_name: ev.pinned_by_name || 'Someone'
+            });
+        }
+        updatePinnedBanner();
+        renderMessages('preserve');
+        return;
+    }
+
+    if (ev.type === 'message.unpinned') {
+        const msg = Chat.messages.find(m => parseInt(m.id, 10) === parseInt(ev.message_id, 10));
+        if (msg) {
+            msg.is_pinned = 0;
+            msg.pinned_by = null;
+        }
+        Chat.pinnedMessages = (Chat.pinnedMessages || []).filter(m => parseInt(m.id, 10) !== parseInt(ev.message_id, 10));
+        updatePinnedBanner();
+        renderMessages('preserve');
+        return;
+    }
+
     if (ev.type === 'chat.cleared') {
         Chat.messages = [];
         renderMessages('bottom');
@@ -1596,6 +1659,9 @@ async function openConversation(id) {
     if (!res.success) { toast(res.error || 'Could not load chat'); return; }
     Chat.messages  = res.data.messages;
     Chat.hasMoreHistory = !!res.data.has_more;
+    Chat.pinnedMessages = res.data.pinned_messages || [];
+    Chat.activePinIndex = 0;
+    updatePinnedBanner();
     updateLoadOlderBar();
     Chat.activeConversation = res.data.conversation;
     Chat.convType = res.data.conversation.type;
@@ -1951,6 +2017,9 @@ function queueFileForUpload(file) {
     const fileWrap = document.getElementById('uploadPreviewFileWrapper');
     const fileName = document.getElementById('uploadPreviewFileName');
     const fileSize = document.getElementById('uploadPreviewFileSize');
+    const audioWrap = document.getElementById('uploadPreviewAudioWrapper');
+    const audioPlayer = document.getElementById('uploadPreviewAudioPlayer');
+    const audioName = document.getElementById('uploadPreviewAudioName');
     const input = document.getElementById('uploadCaptionInput');
     const cropBtn = document.getElementById('btnCropUploadModal');
     
@@ -1963,16 +2032,33 @@ function queueFileForUpload(file) {
         cropBtn.dataset.mode = 'crop';
     }
     
+    // Stop any existing playing preview audio
+    if (audioPlayer) {
+        audioPlayer.pause();
+        audioPlayer.src = '';
+    }
+    
     if (isImageFile(file)) {
         img.src = URL.createObjectURL(file);
         imgWrap.classList.remove('hidden');
         fileWrap.classList.add('hidden');
+        audioWrap?.classList.add('hidden');
         if (cropBtn) cropBtn.classList.remove('hidden');
+    } else if (file.type.startsWith('audio/') || ['.mp3', '.wav', '.ogg', '.m4a', '.webm'].some(ext => file.name.toLowerCase().endsWith(ext))) {
+        imgWrap.classList.add('hidden');
+        fileWrap.classList.add('hidden');
+        audioWrap?.classList.remove('hidden');
+        if (cropBtn) cropBtn.classList.add('hidden');
+        if (audioPlayer && audioName) {
+            audioName.textContent = file.name || 'Recording';
+            audioPlayer.src = URL.createObjectURL(file);
+        }
     } else {
         fileName.textContent = file.name || 'Document';
         fileSize.textContent = formatFileSize(file.size);
         imgWrap.classList.add('hidden');
         fileWrap.classList.remove('hidden');
+        audioWrap?.classList.add('hidden');
         if (cropBtn) cropBtn.classList.add('hidden');
     }
     
@@ -1987,6 +2073,11 @@ function initUploadPreviewModal() {
     if (!modal) return;
     
     const closeIt = () => {
+        const audioPlayer = document.getElementById('uploadPreviewAudioPlayer');
+        if (audioPlayer) {
+            audioPlayer.pause();
+            audioPlayer.src = '';
+        }
         if (cropperInstance) {
             cropperInstance.destroy();
             cropperInstance = null;
@@ -2301,6 +2392,155 @@ function closeSettingsModal() {
     }
 }
 
+function closeReceiptsModal() {
+    document.getElementById('receiptsModal')?.classList.remove('open');
+    if (!document.getElementById('profileModal')?.classList.contains('open') && !document.getElementById('settingsModal')?.classList.contains('open')) {
+        document.body.classList.remove('chat-modal-open');
+    }
+}
+
+async function openReceiptsModal(msgId) {
+    const modal = document.getElementById('receiptsModal');
+    if (!modal) return;
+    
+    document.getElementById('receiptsReadList').innerHTML = '<div style="font-size: 13px; color: var(--c-text-muted, #64748b); padding: 8px 0;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+    document.getElementById('receiptsUnreadList').innerHTML = '<div style="font-size: 13px; color: var(--c-text-muted, #64748b); padding: 8px 0;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+    
+    modal.classList.add('open');
+    document.body.classList.add('chat-modal-open');
+    
+    const res = await chatApi('getMessageReceipts', { params: { message_id: msgId } });
+    if (!res.success) {
+        toast(res.error || 'Could not load read receipts');
+        closeReceiptsModal();
+        return;
+    }
+    
+    const read = res.data.read_by || [];
+    const unread = res.data.delivered_to || [];
+    
+    const renderList = (list, targetId, emptyText) => {
+        const target = document.getElementById(targetId);
+        if (!list.length) {
+            target.innerHTML = `<div style="font-size: 13px; color: var(--c-text-muted, #64748b); padding: 8px 0;">${emptyText}</div>`;
+            return;
+        }
+        target.innerHTML = list.map(u => {
+            const time = u.read_at ? new Date(u.read_at.replace(' ', 'T')).toLocaleString(undefined, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) : '';
+            return `
+                <div style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--c-border-light, #f1f5f9);">
+                    ${avatarHtml({ url: u.avatar_url, name: u.full_name, id: u.id, className: 'receipt-user-av', color: u.avatar_color })}
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-size: 13px; font-weight: 600; color: var(--c-text, #1e293b); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(u.full_name)}</div>
+                        <div style="font-size: 11px; color: var(--c-text-muted, #64748b); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(u.portal_role || 'member')}</div>
+                    </div>
+                    ${time ? `<div style="font-size: 11px; color: var(--c-text-muted, #64748b);">${escapeHtml(time)}</div>` : ''}
+                </div>
+            `;
+        }).join('');
+    };
+    
+    renderList(read, 'receiptsReadList', 'No one has read this message yet.');
+    renderList(unread, 'receiptsUnreadList', 'All members have read this message.');
+}
+
+function updatePinnedBanner() {
+    const banner = document.getElementById('pinnedBanner');
+    if (!banner) return;
+    
+    if (!Chat.pinnedMessages || Chat.pinnedMessages.length === 0) {
+        banner.classList.add('hidden');
+        return;
+    }
+    
+    if (typeof Chat.activePinIndex === 'undefined' || Chat.activePinIndex >= Chat.pinnedMessages.length || Chat.activePinIndex < 0) {
+        Chat.activePinIndex = 0;
+    }
+    
+    const pin = Chat.pinnedMessages[Chat.activePinIndex];
+    if (!pin) {
+        banner.classList.add('hidden');
+        return;
+    }
+    
+    const bannerAuthor = document.getElementById('pinnedBannerAuthor');
+    const bannerBody = document.getElementById('pinnedBannerBody');
+    const nextBtn = document.getElementById('btnNextPin');
+    
+    if (bannerAuthor) {
+        bannerAuthor.textContent = `Pinned by ${pin.pinned_by_name || 'Admin'}`;
+    }
+    if (bannerBody) {
+        bannerBody.textContent = pin.body || (pin.msg_type === 'image' ? '📷 Photo' : pin.msg_type === 'audio' ? '🎵 Audio Recording' : '📁 Attachment');
+    }
+    
+    if (nextBtn) {
+        nextBtn.style.display = Chat.pinnedMessages.length > 1 ? 'inline-block' : 'none';
+    }
+    
+    banner.classList.remove('hidden');
+}
+
+function cyclePinnedMessage() {
+    if (!Chat.pinnedMessages || Chat.pinnedMessages.length <= 1) return;
+    Chat.activePinIndex = (Chat.activePinIndex + 1) % Chat.pinnedMessages.length;
+    updatePinnedBanner();
+}
+
+async function pinMessage(msgId) {
+    const res = await chatApi('pinMessage', { method: 'POST', body: { message_id: msgId } });
+    if (!res.success) {
+        toast(res.error || 'Could not pin message');
+        return;
+    }
+    
+    const msg = Chat.messages.find(m => m.id === msgId);
+    if (msg) {
+        msg.is_pinned = 1;
+        msg.pinned_by = Chat.me.id;
+        
+        if (!Chat.pinnedMessages) Chat.pinnedMessages = [];
+        if (!Chat.pinnedMessages.some(m => m.id === msgId)) {
+            Chat.pinnedMessages.push({
+                id: msg.id,
+                body: msg.body,
+                msg_type: msg.msg_type,
+                pinned_by_name: Chat.me.full_name
+            });
+        }
+    }
+    
+    updatePinnedBanner();
+    renderMessages('preserve');
+    toast('Message pinned to top');
+}
+
+async function unpinMessage(msgId) {
+    const res = await chatApi('unpinMessage', { method: 'POST', body: { message_id: msgId } });
+    if (!res.success) {
+        toast(res.error || 'Could not unpin message');
+        return;
+    }
+    
+    Chat.pinnedMessages = (Chat.pinnedMessages || []).filter(m => m.id !== msgId);
+    const msg = Chat.messages.find(m => m.id === msgId);
+    if (msg) {
+        msg.is_pinned = 0;
+        msg.pinned_by = null;
+    }
+    
+    updatePinnedBanner();
+    renderMessages('preserve');
+    toast('Message unpinned');
+}
+
+async function unpinCurrentMessage() {
+    if (!Chat.pinnedMessages || Chat.pinnedMessages.length === 0) return;
+    const pin = Chat.pinnedMessages[Chat.activePinIndex || 0];
+    if (!pin) return;
+    await unpinMessage(pin.id);
+}
+
 function openProfileModal() {
     renderProfileModal();
     updateBlockedCountBadge();
@@ -2566,12 +2806,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         hideAttachMenu();
         document.getElementById('photoInput').click();
     });
+    document.getElementById('btnPickAudio').addEventListener('click', () => {
+        hideAttachMenu();
+        document.getElementById('audioInput').click();
+    });
     document.getElementById('btnPickDocument').addEventListener('click', () => {
         hideAttachMenu();
         document.getElementById('fileInput').click();
     });
     document.getElementById('photoInput').addEventListener('change', e => {
         handleFilePick(e.target.files);
+        e.target.value = '';
+    });
+    document.getElementById('audioInput').addEventListener('change', e => {
+        if (e.target.files[0]) queueFileForUpload(e.target.files[0]);
         e.target.value = '';
     });
     document.getElementById('fileInput').addEventListener('change', e => {
@@ -2687,6 +2935,43 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (msg) setReply(msg);
     });
 
+    document.getElementById('ctxReceipts')?.addEventListener('click', () => {
+        const id = Chat.contextMsgId; hideContextMenu();
+        if (id) openReceiptsModal(id);
+    });
+    document.getElementById('closeReceiptsModal')?.addEventListener('click', closeReceiptsModal);
+    document.getElementById('receiptsModal')?.addEventListener('click', e => {
+        if (e.target.id === 'receiptsModal') closeReceiptsModal();
+    });
+
+    document.getElementById('ctxPin')?.addEventListener('click', () => {
+        const id = Chat.contextMsgId; hideContextMenu();
+        if (id) pinMessage(id);
+    });
+
+    document.getElementById('ctxUnpin')?.addEventListener('click', () => {
+        const id = Chat.contextMsgId; hideContextMenu();
+        if (id) unpinMessage(id);
+    });
+
+    document.getElementById('btnNextPin')?.addEventListener('click', cyclePinnedMessage);
+    document.getElementById('btnUnpinBanner')?.addEventListener('click', unpinCurrentMessage);
+
+    document.getElementById('pinnedBannerContent')?.addEventListener('click', () => {
+        if (!Chat.pinnedMessages || Chat.pinnedMessages.length === 0) return;
+        const pin = Chat.pinnedMessages[Chat.activePinIndex || 0];
+        if (!pin) return;
+        
+        const el = document.querySelector(`[data-msg-id="${pin.id}"]`);
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('msg-unread-blink');
+            setTimeout(() => el.classList.remove('msg-unread-blink'), 2000);
+        } else {
+            toast('Message is further up. Scroll up to load older messages.');
+        }
+    });
+
     document.getElementById('btnCancelReply')?.addEventListener('click', clearReply);
 
     document.getElementById('btnSearchInChat')?.addEventListener('click', () => {
@@ -2792,8 +3077,38 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('deleteMsgModal')?.classList.remove('open');
             document.getElementById('chatActionModal')?.classList.remove('open');
             closeSettingsModal();
+            closeReceiptsModal();
         }
     });
+
+    // Track active audio state and enforce single playback
+    document.getElementById('msgArea')?.addEventListener('play', e => {
+        if (e.target.tagName === 'AUDIO') {
+            document.querySelectorAll('#msgArea audio').forEach(aud => {
+                if (aud !== e.target) {
+                    aud.pause();
+                }
+            });
+            Chat.activeAudio.src = e.target.src;
+            Chat.activeAudio.playing = true;
+        }
+    }, true);
+
+    document.getElementById('msgArea')?.addEventListener('pause', e => {
+        if (e.target.tagName === 'AUDIO') {
+            if (Chat.activeAudio.src === e.target.src) {
+                Chat.activeAudio.playing = false;
+            }
+        }
+    }, true);
+
+    document.getElementById('msgArea')?.addEventListener('timeupdate', e => {
+        if (e.target.tagName === 'AUDIO') {
+            if (Chat.activeAudio.src === e.target.src) {
+                Chat.activeAudio.currentTime = e.target.currentTime;
+            }
+        }
+    }, true);
 
     /* ── Right-click on messages → context menu ── */
     document.getElementById('msgArea')?.addEventListener('contextmenu', e => {

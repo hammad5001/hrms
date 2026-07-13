@@ -204,6 +204,17 @@
                     </div>
                 </div>
                 <div class="chat-messages-wrap" id="messagesWrap">
+                    <div class="chat-pinned-banner hidden" id="pinnedBanner">
+                        <i class="fas fa-thumbtack pinned-banner-icon"></i>
+                        <div class="pinned-banner-content" id="pinnedBannerContent" style="flex: 1; min-width: 0; cursor: pointer;">
+                            <strong id="pinnedBannerAuthor" style="font-size: 11px; color: var(--c-primary, #6264a7); display: block;">Pinned Announcement</strong>
+                            <span id="pinnedBannerBody" style="font-size: 13px; color: var(--c-text, #1e293b); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">Message body...</span>
+                        </div>
+                        <div class="pinned-banner-actions" style="display: flex; gap: 8px;">
+                            <button type="button" class="btn-icon" id="btnNextPin" title="Next pinned message" style="display: none; padding: 4px; color: var(--c-text-muted, #64748b);"><i class="fas fa-chevron-right"></i></button>
+                            <button type="button" class="btn-icon" id="btnUnpinBanner" title="Unpin message" style="padding: 4px; color: var(--c-text-muted, #64748b);"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
                     <div class="chat-load-older hidden" id="loadOlderBar">
                         <button type="button" class="btn-load-older" id="btnLoadOlder"><i class="fas fa-chevron-up"></i> Load older messages</button>
                     </div>
@@ -244,6 +255,10 @@
                                 <span class="attach-menu-icon photo"><i class="fas fa-image"></i></span>
                                 <span class="attach-menu-label">Photos</span>
                             </button>
+                            <button type="button" class="attach-menu-item" id="btnPickAudio">
+                                <span class="attach-menu-icon audio" style="background-color: #6264a7; color: white;"><i class="fas fa-volume-high"></i></span>
+                                <span class="attach-menu-label">Audio / Recording</span>
+                            </button>
                             <button type="button" class="attach-menu-item" id="btnPickDocument">
                                 <span class="attach-menu-icon doc"><i class="fas fa-file-lines"></i></span>
                                 <span class="attach-menu-label">Document</span>
@@ -253,6 +268,7 @@
                             <button type="button" class="btn-icon" id="btnAttach" title="Attach"><i class="fas fa-plus"></i></button>
                             <button type="button" class="btn-icon" id="btnEmoji" title="Insert emoji"><i class="far fa-face-smile"></i></button>
                             <input type="file" id="photoInput" hidden accept="image/*" multiple>
+                            <input type="file" id="audioInput" hidden accept="audio/*,.mp3,.wav,.ogg,.m4a,.webm">
                             <input type="file" id="fileInput" hidden accept=".pdf,.doc,.docx,.xls,.xlsx,.xlsm,.csv,.txt,.rtf,.ppt,.pptx,.odt,.ods,.zip,.rar,.7z,.tar,.gz,application/pdf,application/zip,application/x-zip-compressed,application/vnd.rar,application/x-7z-compressed,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv">
                             <textarea id="msgInput" rows="1" placeholder="Type a message..."></textarea>
                             <button type="button" class="btn-send" id="btnSend" title="Send message"><i class="fas fa-paper-plane"></i></button>
@@ -312,6 +328,9 @@
         <button type="button" class="msg-ctx-item msg-ctx-danger" id="ctxDelete"><i class="fas fa-trash"></i> Delete</button>
         <button type="button" class="msg-ctx-item msg-ctx-danger" id="ctxDeleteForMe"><i class="fas fa-eye-slash"></i> Delete for me</button>
         <button type="button" class="msg-ctx-item" id="ctxCopy"><i class="fas fa-copy"></i> Copy</button>
+        <button type="button" class="msg-ctx-item" id="ctxReceipts"><i class="fas fa-eye"></i> Read receipts</button>
+        <button type="button" class="msg-ctx-item" id="ctxPin"><i class="fas fa-thumbtack"></i> Pin message</button>
+        <button type="button" class="msg-ctx-item" id="ctxUnpin"><i class="fas fa-trash-can"></i> Unpin message</button>
     </div>
 
     <div class="chat-modal-overlay" id="editMsgModal">
@@ -342,6 +361,29 @@
             <div class="modal-actions">
                 <button type="button" class="btn-secondary" id="cancelDeleteMsg">Cancel</button>
                 <button type="button" class="btn-primary btn-danger" id="confirmDeleteMsg">Delete for everyone</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-modal-overlay" id="receiptsModal">
+        <div class="chat-modal receipts-modal" style="max-width: 420px;">
+            <div class="modal-head">
+                <h3><i class="fas fa-eye modal-icon-accent"></i> Read Receipts</h3>
+                <button type="button" class="btn-icon" id="closeReceiptsModal" aria-label="Close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 16px; max-height: 400px; overflow-y: auto;">
+                <div class="receipts-section">
+                    <h4 style="font-size: 13px; font-weight: 700; margin-bottom: 12px; color: var(--c-text, #1e293b);"><i class="fas fa-check-double" style="color: #10b981; margin-right: 6px;"></i> Read by</h4>
+                    <div id="receiptsReadList" class="receipts-list">
+                        <div style="font-size: 13px; color: var(--c-text-muted, #64748b); padding: 8px 0;">No one has read this message yet.</div>
+                    </div>
+                </div>
+                <div class="receipts-section" style="margin-top: 20px; border-top: 1px solid var(--c-border, #e2e8f0); padding-top: 16px;">
+                    <h4 style="font-size: 13px; font-weight: 700; margin-bottom: 12px; color: var(--c-text, #1e293b);"><i class="fas fa-check" style="color: var(--c-text-muted, #64748b); margin-right: 6px;"></i> Sent / Unread</h4>
+                    <div id="receiptsUnreadList" class="receipts-list">
+                        <div style="font-size: 13px; color: var(--c-text-muted, #64748b); padding: 8px 0;">All members have read this message.</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -496,6 +538,11 @@
                         <i id="uploadPreviewFileIcon" class="fas fa-file"></i>
                         <span id="uploadPreviewFileName">Document.pdf</span>
                         <span id="uploadPreviewFileSize">1.2 MB</span>
+                    </div>
+                    <div id="uploadPreviewAudioWrapper" class="hidden" style="text-align: center; padding: 20px;">
+                        <i class="fas fa-volume-high" style="font-size: 48px; color: var(--c-accent, #4f46e5); margin-bottom: 12px;"></i>
+                        <div id="uploadPreviewAudioName" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--c-text, #1e293b);">Recording.mp3</div>
+                        <audio id="uploadPreviewAudioPlayer" controls style="width: 100%; max-width: 320px;"></audio>
                     </div>
                 </div>
                 <div class="upload-caption-wrapper">
