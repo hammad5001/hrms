@@ -162,6 +162,7 @@ CREATE TABLE IF NOT EXISTS `employee_payroll_meta` (
     `employee_code` VARCHAR(32) NOT NULL PRIMARY KEY,
     `basic_salary` DECIMAL(12,2) DEFAULT 50000,
     `punctuality_enabled` TINYINT(1) DEFAULT 1,
+    `punctuality_amount` DECIMAL(12,2) DEFAULT 5000.00,
     `sudo_name` VARCHAR(150) DEFAULT NULL,
     `designation` VARCHAR(120) DEFAULT NULL,
     `cnic` VARCHAR(20) DEFAULT NULL,

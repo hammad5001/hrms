@@ -22,7 +22,7 @@ try {
     }
 
     $today = date('Y-m-d');
-    $month = date('Y-m');
+    $month = $_GET['month'] ?? date('Y-m');
 
     $branch = function_exists('get_active_company_branch')
         ? normalize_company_branch(get_active_company_branch())

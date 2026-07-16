@@ -5,6 +5,11 @@ if (!isAuthenticated()) {
     respond(false, null, 'Unauthorized');
 }
 
+$portalRole = $_SESSION['portal_role'] ?? '';
+if (!in_array($portalRole, ['finance', 'admin', 'super_admin'], true)) {
+    respond(false, null, 'Finance access required');
+}
+
 ensure_app_schema($conn);
 
 $branch = get_active_company_branch();
@@ -123,6 +128,7 @@ function fetchMonthBundle(mysqli $conn, string $month, string $branch): array {
         $bundle['empMeta'][$code] = [
             'basicSalary' => (float)$row['basic_salary'],
             'punctualityEnabled' => (bool)$row['punctuality_enabled'],
+            'punctualityAmount' => (float)($row['punctuality_amount'] ?? 5000.00),
             'sudoName' => $row['sudo_name'] ?? '',
             'designation' => $row['designation'] ?? '',
             'cnic' => $row['cnic'] ?? '',
@@ -224,11 +230,12 @@ function saveMonthBundle(mysqli $conn, string $month, string $branch, array $bun
 
         if (!empty($bundle['empMeta']) && is_array($bundle['empMeta'])) {
             $metaStmt = $conn->prepare("INSERT INTO employee_payroll_meta 
-                (employee_code, basic_salary, punctuality_enabled, sudo_name, designation, cnic, bank_name, account_no, account_title, appointment_date, company_branch)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (employee_code, basic_salary, punctuality_enabled, punctuality_amount, sudo_name, designation, cnic, bank_name, account_no, account_title, appointment_date, company_branch)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
                 basic_salary = VALUES(basic_salary),
                 punctuality_enabled = VALUES(punctuality_enabled),
+                punctuality_amount = VALUES(punctuality_amount),
                 sudo_name = VALUES(sudo_name),
                 designation = VALUES(designation),
                 cnic = VALUES(cnic),
@@ -240,6 +247,7 @@ function saveMonthBundle(mysqli $conn, string $month, string $branch, array $bun
             foreach ($bundle['empMeta'] as $empCode => $m) {
                 $basic = (float)($m['basicSalary'] ?? 50000);
                 $punc = !empty($m['punctualityEnabled']) ? 1 : 0;
+                $puncAmt = (float)($m['punctualityAmount'] ?? 5000.00);
                 $sudo = $m['sudoName'] ?? '';
                 $desig = $m['designation'] ?? '';
                 $cnic = $m['cnic'] ?? '';
@@ -247,7 +255,7 @@ function saveMonthBundle(mysqli $conn, string $month, string $branch, array $bun
                 $acc = $m['accountNo'] ?? '';
                 $title = $m['accountTitle'] ?? '';
                 $appt = $bundle['appointmentDate'][$empCode] ?? null;
-                $metaStmt->bind_param('sdissssssss', $empCode, $basic, $punc, $sudo, $desig, $cnic, $bank, $acc, $title, $appt, $branch);
+                $metaStmt->bind_param('sdidssssssss', $empCode, $basic, $punc, $puncAmt, $sudo, $desig, $cnic, $bank, $acc, $title, $appt, $branch);
                 $metaStmt->execute();
             }
         }
@@ -302,6 +310,83 @@ switch ($action) {
             }
         }
         respond(true, array_slice($results, 0, 50));
+        break;
+
+    case 'getFinanceUsers':
+        $stmt = $conn->prepare("
+            SELECT u.id, u.employee_code, u.full_name, u.email, u.department, u.designation,
+                   m.basic_salary, m.punctuality_enabled, m.punctuality_amount
+            FROM users u
+            LEFT JOIN employee_payroll_meta m
+              ON u.employee_code = m.employee_code
+             AND COALESCE(NULLIF(m.company_branch, ''), 'main') = ?
+            WHERE COALESCE(NULLIF(u.company_branch, ''), 'main') = ?
+            ORDER BY CAST(u.employee_code AS UNSIGNED) ASC
+        ");
+        $stmt->bind_param('ss', $branch, $branch);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        $results = [];
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                $row['basic_salary'] = (float)($row['basic_salary'] ?? 0.0);
+                $row['punctuality_enabled'] = (bool)($row['punctuality_enabled'] ?? false);
+                $row['punctuality_amount'] = (float)($row['punctuality_amount'] ?? 5000.00);
+                $results[] = $row;
+            }
+        }
+        respond(true, $results);
+        break;
+
+    case 'updateFinanceUser':
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            respond(false, null, 'POST request required');
+        }
+
+        $data = $input;
+        $employee_code = trim($data['employee_code'] ?? '');
+        $basicSalaryInput = $data['basic_salary'] ?? null;
+        $punctualityAmountInput = $data['punctuality_amount'] ?? null;
+
+        if ($employee_code === '' || strlen($employee_code) > 32) {
+            respond(false, null, 'Valid employee ID required');
+        }
+        if (!is_numeric($basicSalaryInput) || !is_numeric($punctualityAmountInput)) {
+            respond(false, null, 'Salary and punctuality amounts must be numeric');
+        }
+
+        $basic_salary = (float)$basicSalaryInput;
+        $punctuality_enabled = !empty($data['punctuality_enabled']) ? 1 : 0;
+        $punctuality_amount = (float)$punctualityAmountInput;
+        if ($basic_salary < 0 || $punctuality_amount < 0) {
+            respond(false, null, 'Amounts cannot be negative');
+        }
+
+        $userStmt = $conn->prepare("
+            SELECT id FROM users
+            WHERE employee_code = ?
+              AND COALESCE(NULLIF(company_branch, ''), 'main') = ?
+            LIMIT 1
+        ");
+        $userStmt->bind_param('ss', $employee_code, $branch);
+        $userStmt->execute();
+        if (!$userStmt->get_result()->fetch_assoc()) {
+            respond(false, null, 'Employee not found in the active branch');
+        }
+
+        $metaStmt = $conn->prepare("INSERT INTO employee_payroll_meta
+            (employee_code, basic_salary, punctuality_enabled, punctuality_amount, company_branch)
+            VALUES (?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+            basic_salary = VALUES(basic_salary),
+            punctuality_enabled = VALUES(punctuality_enabled),
+            punctuality_amount = VALUES(punctuality_amount),
+            company_branch = VALUES(company_branch)");
+        $metaStmt->bind_param('sdids', $employee_code, $basic_salary, $punctuality_enabled, $punctuality_amount, $branch);
+        if (!$metaStmt->execute()) {
+            respond(false, null, 'Unable to save payroll settings');
+        }
+        respond(true, null, 'Payroll settings updated successfully');
         break;
 
     case 'getMonthBundle':
@@ -432,8 +517,8 @@ switch ($action) {
 
     case 'deleteAdjustment':
         $id = intval($_GET['id'] ?? 0);
-        $stmt = $conn->prepare("DELETE FROM payroll_adjustments WHERE id = ?");
-        $stmt->bind_param('i', $id);
+        $stmt = $conn->prepare("DELETE FROM payroll_adjustments WHERE id = ? AND company_branch = ?");
+        $stmt->bind_param('is', $id, $branch);
         if ($stmt->execute()) {
             respond(true, null, 'Adjustment deleted');
         }

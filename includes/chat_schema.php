@@ -7,6 +7,18 @@ function ensure_chat_schema(mysqli $conn): void {
     }
     $done = true;
 
+    // Optimize: Check if database is already updated to prevent running ALTER TABLE queries on every page load/API call.
+    // In MariaDB/MySQL, running ALTER TABLE statements causes metadata locks and high CPU usage.
+    $checkPinned = @$conn->query("SHOW COLUMNS FROM `chat_messages` LIKE 'is_pinned'");
+    $hasPinned = ($checkPinned && $checkPinned->num_rows > 0);
+
+    $checkStatus = @$conn->query("SHOW COLUMNS FROM `chat_participants` LIKE 'participant_status'");
+    $hasStatus = ($checkStatus && $checkStatus->num_rows > 0);
+
+    if ($hasPinned && $hasStatus) {
+        return; // Schema is already updated. Bypass all query operations.
+    }
+
     $queries = [
         "CREATE TABLE IF NOT EXISTS `chat_conversations` (
             `id` INT AUTO_INCREMENT PRIMARY KEY,

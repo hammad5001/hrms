@@ -74,6 +74,7 @@
                     <button type="button" class="ess-side-item hidden" data-nav-id="nav-side-approvals" data-view="approvals" id="navApprovals"><i class="fas fa-user-check"></i><span>Approvals</span><span class="ess-side-badge hidden" id="badgeApprovals">0</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-timelogs" data-view="timelogs"><i class="fas fa-clock"></i><span>Time Tracker</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-payroll" data-view="salary"><i class="fas fa-wallet"></i><span>Payroll</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-payslips" data-view="payslips"><i class="fas fa-file-invoice-dollar"></i><span>Payslips</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-files" data-view="coming-soon" data-nav-label="Files"><i class="fas fa-folder-open"></i><span>Files</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-chat" data-view="chat"><i class="fas fa-comments"></i><span>Chat</span><span class="ess-side-badge hidden" id="badgeSideChat">0</span></button>
                     <button type="button" class="ess-side-item hidden" data-nav-id="nav-side-active-members" data-view="active-members" id="navSideActiveMembers"><i class="fas fa-users-viewfinder"></i><span>Active Members</span></button>
@@ -376,7 +377,7 @@
                         </section>
 
                         <!-- My Payslips View -->
-                        <section id="view-salary" class="view-section">
+                        <section id="view-payslips" class="view-section">
                             <div class="prod-analytics-header" style="margin-bottom: 24px;">
                                 <h2><i class="fas fa-wallet" style="color: var(--prod-orange);"></i> My Payslips</h2>
                                 <p>View and download your monthly salary slips</p>
@@ -732,15 +733,64 @@
 
                         <!-- Salary -->
                         <section id="view-salary" class="view-section">
-                            <div class="ess-card">
-                                <h3><i class="fas fa-wallet"></i> Payroll - <span id="salMonth">-</span></h3>
-                                <div class="ess-stats-row">
-                                    <div class="ess-stat highlight"><span>Basic Salary</span><strong id="salBasic">-</strong></div>
-                                    <div class="ess-stat"><span>Bonus</span><strong id="salBonus">-</strong></div>
-                                    <div class="ess-stat"><span>TADA</span><strong id="salTada">-</strong></div>
-                                    <div class="ess-stat"><span>Advance / month</span><strong id="salAdvance">-</strong></div>
+                            <div class="ess-card" style="margin-bottom: 24px;">
+                                <div class="ess-card-head" style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom:15px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                                    <h3><i class="fas fa-wallet" style="color:var(--primary); margin-right:8px;"></i> Live Earnings & Salary Payout</h3>
+                                    <div style="display:flex; align-items:center; gap:10px;">
+                                        <select id="salMonthFilter" onchange="onSalaryMonthChange(this.value)" style="padding:6px 12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); border-radius:8px; color:white; font-size:12px; outline:none; font-family:'Inter', sans-serif; cursor:pointer;">
+                                            <option value="2026-07">July 2026</option>
+                                            <option value="2026-08">August 2026</option>
+                                            <option value="2026-06">June 2026</option>
+                                            <option value="2026-05">May 2026</option>
+                                        </select>
+                                        <span class="ess-pill" id="salMonth" style="background:rgba(249,115,22,0.15); color:var(--primary); font-weight:700; border:1px solid rgba(249,115,22,0.3);">-</span>
+                                    </div>
                                 </div>
-                                <p class="ess-muted-line">Leaves this month: <strong id="salLeaves">0</strong> - Bank: <strong id="salBank">-</strong></p>
+
+                                <div class="ess-stats-row" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:15px; margin-bottom:20px;">
+                                    <div class="ess-stat highlight" style="text-align:center; padding:15px; background:rgba(255,255,255,0.02); border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
+                                        <span>Basic Salary</span>
+                                        <strong id="salBasic" style="font-size:20px; color:#fff;">-</strong>
+                                    </div>
+                                    <div class="ess-stat" style="text-align:center; padding:15px; background:rgba(255,255,255,0.02); border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
+                                        <span>Punctuality Bonus</span>
+                                        <strong id="salPunc" style="font-size:20px; color:#10b981;">-</strong>
+                                    </div>
+                                    <div class="ess-stat" style="text-align:center; padding:15px; background:rgba(255,255,255,0.02); border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
+                                        <span>Per Day Rate</span>
+                                        <strong id="salPerDay" style="font-size:20px; color:var(--primary);">-</strong>
+                                    </div>
+                                </div>
+
+                                <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.15); padding:20px; border-radius:12px; text-align:center; margin-bottom:24px;">
+                                    <span style="font-size:12px; text-transform:uppercase; color:#10b981; font-weight:700; letter-spacing:1px; display:block; margin-bottom:4px;">Earning Till Today (After Deductions)</span>
+                                    <strong id="salEarningsTillToday" style="font-size:36px; color:#fff; font-weight:800; letter-spacing:-1px;">Rs. 0</strong>
+                                    <div style="font-size:11px; color:rgba(255,255,255,0.5); margin-top:8px;">Calculated dynamically based on month working days & attendance records.</div>
+                                </div>
+
+                                <h4 style="font-size:14px; font-weight:700; color:#fff; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; display:flex; align-items:center; gap:8px;"><i class="fas fa-calculator" style="color:var(--primary);"></i> Salary Payout Parameters</h4>
+                                <div class="ess-info-list" style="background:rgba(255,255,255,0.01); border:1px solid rgba(255,255,255,0.05); padding:16px; border-radius:12px;">
+                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Total Days in Month</span><strong id="salTotalDays" style="color:#fff;">0</strong></div>
+                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Present Days</span><strong id="salPresentDays" style="color:#fff;">0</strong></div>
+                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Absent Days (After Leaves)</span><strong id="salAbsentDays" style="color:#fff;">0</strong></div>
+                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Approved / Allowed Leaves</span><strong id="salLeaves" style="color:#fff;">0</strong></div>
+                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Travelling Allowance (TA/DA)</span><strong id="salTada" style="color:#10b981;">Rs. 0</strong></div>
+                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Arrears</span><strong id="salArrears" style="color:#10b981;">Rs. 0</strong></div>
+                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Bonus</span><strong id="salBonus" style="color:#10b981;">Rs. 0</strong></div>
+                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Remaining Advance Salary</span><strong id="salAdvanceRemaining" style="color:#f59e0b;">Rs. 0</strong></div>
+                                </div>
+
+                                <h4 style="font-size:14px; font-weight:700; color:#fff; text-transform:uppercase; letter-spacing:1px; margin-top:24px; margin-bottom:12px; display:flex; align-items:center; gap:8px;"><i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i> Deductions & Docks</h4>
+                                <div class="ess-info-list" style="background:rgba(255,255,255,0.01); border:1px solid rgba(255,255,255,0.05); padding:16px; border-radius:12px;">
+                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Absent Deduction</span><strong id="salAbsentDeduct" style="color:#ef4444;">Rs. 0</strong></div>
+                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>NCNS Deduction</span><strong id="salNcnsDeduct" style="color:#ef4444;">Rs. 0</strong></div>
+                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Sandwich Dock (SD)</span><strong id="salSdDeduct" style="color:#ef4444;">Rs. 0</strong></div>
+                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Late Coming Fine</span><strong id="salLateFine" style="color:#ef4444;">Rs. 0</strong></div>
+                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>QA Docks</span><strong id="salQaDocks" style="color:#ef4444;">Rs. 0</strong></div>
+                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Tax Deduction</span><strong id="salTaxDeduct" style="color:#ef4444;">Rs. 0</strong></div>
+                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Misspunch Fine</span><strong id="salMisspunchFine" style="color:#ef4444;">Rs. 0</strong></div>
+                                    <div style="display:flex; justify-content:space-between; padding:8px 0;"><span>Advance Deduction</span><strong id="salAdvanceDeduct" style="color:#ef4444;">Rs. 0</strong></div>
+                                </div>
                             </div>
                         </section>
 
@@ -1353,7 +1403,8 @@
                 ESS_VIEW_TITLES['feeds']        = ['Activity Feed', 'Real-time HR event stream'];
                 ESS_VIEW_TITLES['timelogs']     = ['Time Tracker', 'Clock in, clock out and manage your work sessions'];
                 ESS_VIEW_TITLES['timesheets']   = ['Timesheets', 'Weekly project time logs - auto-saved, manager approval'];
-                ESS_VIEW_TITLES['salary']       = ['My Payslips', 'View and download your monthly salary slips'];
+                ESS_VIEW_TITLES['salary']       = ['Live Salary Dashboard', 'Real-time month-to-date salary payout calculation'];
+                ESS_VIEW_TITLES['payslips']     = ['My Payslips', 'View and download your monthly salary slips'];
             }
             if (typeof ESS_DEFAULT_NAV !== 'undefined') {
                 ESS_DEFAULT_NAV['feeds']        = 'nav-tab-feeds';

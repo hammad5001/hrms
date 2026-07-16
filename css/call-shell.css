@@ -1,0 +1,380 @@
+/* css/call-shell.css - Modern Teams-inspired WebRTC Call UI styling */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+.bt-call-shell-root {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #f3f4f6;
+}
+
+/* Incoming Call Modal styling */
+.bt-call-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(12px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100000;
+    animation: btCallFadeIn 0.3s ease-out;
+}
+
+.bt-call-modal-card {
+    background: linear-gradient(145deg, #1f2937, #111827);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    width: 380px;
+    padding: 32px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    position: relative;
+}
+
+.bt-call-avatar-container {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 36px;
+    font-weight: 700;
+    color: #fff;
+    box-shadow: 0 0 25px rgba(99, 102, 241, 0.5);
+    position: relative;
+}
+
+.bt-call-avatar-ripple {
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    border-radius: 50%;
+    border: 2px solid rgba(99, 102, 241, 0.6);
+    animation: btCallPulse 1.5s infinite;
+}
+
+.bt-call-modal-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #fff;
+}
+
+.bt-call-modal-subtitle {
+    font-size: 14px;
+    color: #9ca3af;
+    margin-bottom: 32px;
+}
+
+.bt-call-btn-group {
+    display: flex;
+    justify-content: space-around;
+    gap: 16px;
+}
+
+.bt-call-btn {
+    border: none;
+    border-radius: 50px;
+    padding: 14px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s ease;
+}
+
+.bt-call-btn-accept {
+    background: #10b981;
+    color: #fff;
+}
+
+.bt-call-btn-accept:hover {
+    background: #059669;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+}
+
+.bt-call-btn-decline {
+    background: #ef4444;
+    color: #fff;
+}
+
+.bt-call-btn-decline:hover {
+    background: #dc2626;
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+}
+
+/* Active Call Panel */
+.bt-call-active-window {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #0f172a;
+    display: flex;
+    flex-direction: column;
+    z-index: 99999;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bt-call-active-window.minimized {
+    width: 320px;
+    height: 180px;
+    bottom: 24px;
+    right: 24px;
+    top: auto;
+    left: auto;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    overflow: hidden;
+}
+
+.bt-call-header {
+    height: 60px;
+    background: rgba(15, 23, 42, 0.8);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.bt-call-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.bt-call-badge {
+    background: #3b82f6;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 4px;
+}
+
+.bt-call-actions-header {
+    display: flex;
+    gap: 8px;
+}
+
+.bt-call-btn-icon {
+    background: transparent;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.bt-call-btn-icon:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Call Screens / Grid Layout */
+.bt-call-viewport {
+    flex: 1;
+    display: flex;
+    background: #0b0f19;
+    position: relative;
+    overflow: hidden;
+}
+
+.bt-call-main-grid {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    padding: 24px;
+}
+
+.bt-call-participant-card {
+    background: #1e293b;
+    border-radius: 12px;
+    min-width: 220px;
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.bt-call-participant-card.speaking {
+    outline: 2px solid #10b981;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+}
+
+.bt-call-participant-name {
+    margin-top: 12px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.bt-call-participant-status-indicator {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    font-size: 12px;
+}
+
+/* Screen Sharing View */
+.bt-call-screen-share-wrap {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+}
+
+.bt-call-screen-share-video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Call Toolbar */
+.bt-call-toolbar-container {
+    height: 80px;
+    background: #111827;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.bt-call-toolbar-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #1f2937;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: #f3f4f6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.2s;
+}
+
+.bt-call-toolbar-btn:hover {
+    background: #374151;
+    color: #fff;
+}
+
+.bt-call-toolbar-btn.active {
+    background: #3b82f6;
+    color: #fff;
+}
+
+.bt-call-toolbar-btn-hangup {
+    background: #ef4444;
+}
+
+.bt-call-toolbar-btn-hangup:hover {
+    background: #dc2626;
+}
+
+/* Mini Toolbar for Minimized state */
+.bt-call-active-window.minimized .bt-call-header,
+.bt-call-active-window.minimized .bt-call-viewport {
+    display: none;
+}
+
+.bt-call-active-window.minimized .bt-call-toolbar-container {
+    height: 100%;
+    background: rgba(17, 24, 39, 0.95);
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 0 16px;
+}
+
+.bt-call-active-window.minimized .bt-call-toolbar-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+}
+
+/* Animations */
+@keyframes btCallFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes btCallPulse {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.15); opacity: 0.3; }
+    100% { transform: scale(1.3); opacity: 0; }
+}
+
+/* Device settings dropdown menu styling */
+.bt-call-device-menu {
+    position: absolute;
+    bottom: 90px;
+    right: 24px;
+    background: #1f2937;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    width: 280px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    z-index: 100001;
+    animation: btCallFadeIn 0.2s ease-out;
+}
+
+.bt-call-active-window.minimized .bt-call-device-menu {
+    display: none !important; /* hide in minimized view */
+}
+
+.bt-call-device-item {
+    margin-bottom: 12px;
+}
+
+.bt-call-device-item:last-child {
+    margin-bottom: 0;
+}
+
+.bt-call-device-item label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #9ca3af;
+    margin-bottom: 6px;
+}
+
+.bt-call-device-select {
+    width: 100%;
+    background: #374151;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #f3f4f6;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.bt-call-device-select:focus {
+    border-color: #3b82f6;
+}

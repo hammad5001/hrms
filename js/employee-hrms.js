@@ -1368,16 +1368,203 @@ async function loadProfile() {
     }
 }
 
+async function onSalaryMonthChange(selectedMonth) {
+    try {
+        const data = await apiGet('api/employee_self_service.php?month=' + selectedMonth);
+        if (data.success && data.payroll) {
+            HRMS.payroll = data.payroll;
+            HRMS.attendance = data.attendance_raw || [];
+            renderSalary();
+        } else {
+            toast('Failed to load payroll details for ' + selectedMonth, 'error');
+        }
+    } catch (err) {
+        console.error(err);
+        toast('Connection error.', 'error');
+    }
+}
+window.onSalaryMonthChange = onSalaryMonthChange;
+
 function renderSalary() {
     const p = HRMS.payroll;
     if (!p) return;
-    setText('salBasic', formatMoney(p.basic_salary));
-    setText('salBonus', formatMoney(p.bonus));
-    setText('salTada', formatMoney(p.tada));
-    setText('salAdvance', formatMoney(p.advance_per_month));
-    setText('salLeaves', String(p.leaves_this_month ?? 0));
-    setText('salBank', [p.bank_name, p.account_no].filter(Boolean).join('  ·  ') || '-');
+
+    // 1. Basic configuration constants matching the backend/finance portal
+    const LATE_PENALTY = 300;
+    const NCNS_PENALTY = 5000;
+    const MISSPUNCH_DEDUCTION = 1000;
+    const PERFECT_ATTENDANCE_BONUS = 5000;
+
+    // Calculate month parameters from month string (e.g. 2026-07)
+    const [year, month] = (p.month || '').split('-');
+    const currentYear = parseInt(year) || new Date().getFullYear();
+    const currentMonth = parseInt(month) || (new Date().getMonth() + 1);
+
+    // Get number of days in this month
+    const totalDaysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+    // Helper: isWeekend
+    function isWeekend(y, m, d) {
+        const date = new Date(y, m - 1, d);
+        const day = date.getDay();
+        return day === 0 || day === 6; // Sunday or Saturday
+    }
+
+    // Helper: getWorkingDaysCount
+    function getWorkingDaysCount(y, m) {
+        let count = 0;
+        const days = new Date(y, m, 0).getDate();
+        for (let day = 1; day <= days; day++) {
+            if (!isWeekend(y, m, day)) count++;
+        }
+        return count;
+    }
+
+    const workingDaysCount = getWorkingDaysCount(currentYear, currentMonth);
+
+    // 2. Extract meta values
+    const basicSalary = parseFloat(p.basic_salary) || 0.0;
+    const punctualityBonus = p.punctuality_enabled ? (parseFloat(p.punctuality_amount) ?? PERFECT_ATTENDANCE_BONUS) : 0;
+    const totalSalary = basicSalary + punctualityBonus;
+    const perDaySalary = workingDaysCount > 0 ? totalSalary / workingDaysCount : 0;
+
+    // 3. Count present/late from attendance list
+    let presentCount = 0;
+    let lateCount = 0;
+
+    // Extract raw attendance list from this month
+    const monthPrefix = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+    const monthlyAtt = (HRMS.attendance || []).filter(r => {
+        const sd = r.shift_date || (r.timestamp ? r.timestamp.split(' ')[0] : '');
+        return sd.startsWith(monthPrefix);
+    });
+
+    // Unique present days count
+    const uniqueDays = new Set();
+    monthlyAtt.forEach(r => {
+        const sd = r.shift_date || (r.timestamp ? r.timestamp.split(' ')[0] : '');
+        if (sd) uniqueDays.add(sd);
+    });
+    presentCount = uniqueDays.size;
+
+    // Simple check: isCheckinLate matching standard shift (after 6:10 PM / 18:10 or 7:00 PM / 19:00 depending on team)
+    const teamForShift = HRMS.user?.team || '';
+    const lateHour = teamForShift.match(/\bFE\b/i) ? 19 : 18;
+    const lateMinute = teamForShift.match(/\bFE\b/i) ? 0 : 10;
+
+    // Scan for lates
+    monthlyAtt.forEach(r => {
+        if (r.timestamp) {
+            const timePart = r.timestamp.split(' ')[1] || '';
+            const [h, mSec] = timePart.split(':');
+            const hr = parseInt(h) || 0;
+            const mn = parseInt(mSec) || 0;
+            // Shift checkin starts at 16:00 (4 PM)
+            if (hr >= 16) {
+                if (hr > lateHour || (hr === lateHour && mn > lateMinute)) {
+                    lateCount++;
+                }
+            }
+        }
+    });
+
+    // Calculate leaves
+    const approvedLeaves = parseInt(p.leaves_this_month || 0);
+    
+    // Auto Leave logic (if probation completed, 60 days after appointment)
+    let autoLeave = 0;
+    const apptDateStr = HRMS.profileMeta?.appointment_date || HRMS.profileDetails?.joined_date || '';
+    let probationCompleted = false;
+    if (apptDateStr) {
+        const apptDate = new Date(apptDateStr);
+        const daysDiff = Math.floor((new Date() - apptDate) / (1000 * 60 * 60 * 24));
+        if (daysDiff >= 60) probationCompleted = true;
+    }
+    const rawAbsent = Math.max(0, workingDaysCount - presentCount);
+    if (probationCompleted && rawAbsent > 0 && approvedLeaves === 0) {
+        autoLeave = 1;
+    }
+    const totalApprovedLeaves = approvedLeaves + autoLeave;
+    const adjustedLeaveCount = Math.min(rawAbsent, totalApprovedLeaves);
+    const adjustedAbsent = Math.max(0, rawAbsent - adjustedLeaveCount);
+    const totalWorkingDays = presentCount + adjustedLeaveCount;
+
+    // Punctuality Qualification Check
+    let punctualityQualified = false;
+    let punctualityAmount = 0;
+    if (p.manual_punctuality !== null && p.manual_punctuality !== undefined) {
+        punctualityAmount = parseFloat(p.manual_punctuality) || 0.0;
+        punctualityQualified = punctualityAmount > 0;
+    } else if (p.punctuality_enabled) {
+        // Qualified if 100% working days completed (or only 1 allowed leave as per requirement) AND < 3 lates
+        if (totalWorkingDays >= (workingDaysCount - 1) && lateCount < 3) {
+            punctualityQualified = true;
+            punctualityAmount = punctualityBonus;
+        }
+    }
+
+    // Late coming deduction calculation
+    let lateDeduction = 0.0;
+    if (lateCount >= 3) {
+        if (punctualityQualified) {
+            // Strip punctuality bonus
+            punctualityAmount = 0.0;
+            punctualityQualified = false;
+        } else {
+            // Deduct $300 fine per late coming if punctuality is already lost
+            lateDeduction = lateCount * LATE_PENALTY;
+        }
+    }
+    if (p.manual_late_deduction > 0) {
+        lateDeduction = p.manual_late_deduction;
+    }
+
+    // Adjustments & Docks
+    const tada = parseFloat(p.tada) || 0.0;
+    const bonus = parseFloat(p.bonus) || 0.0;
+    const arrears = parseFloat(p.arrears) || 0.0;
+    const ncnsDeduction = parseFloat(p.ncns_deduction) || 0.0;
+    const sdDeduction = parseFloat(p.sd_deduction) || 0.0;
+    const halfDayDeduction = parseFloat(p.half_day_deduction) || 0.0;
+    const misspunchDeduction = parseFloat(p.misspunch_deduction) || 0.0;
+    const qaDeduction = parseFloat(p.qa_deduction) || 0.0;
+    const taxDeduction = parseFloat(p.tax_deduction) || 0.0;
+    const advanceDeduction = parseFloat(p.advance_deduction) || 0.0;
+
+    // Absent Deduction
+    const absentDeduction = adjustedAbsent * perDaySalary;
+
+    // Earning Till Today (Live calculation)
+    const earningsBase = totalWorkingDays * perDaySalary;
+    const totalEarnings = earningsBase + punctualityAmount + bonus + tada + arrears;
+    const totalDeductions = lateDeduction + halfDayDeduction + ncnsDeduction + sdDeduction + qaDeduction + misspunchDeduction + advanceDeduction + taxDeduction;
+    const grossSalary = totalEarnings - totalDeductions - absentDeduction;
+    const liveNetSalary = Math.max(0.0, grossSalary);
+
+    // Bind to DOM
     setText('salMonth', p.month || '-');
+    setText('salBasic', formatMoney(basicSalary));
+    setText('salPunc', formatMoney(punctualityAmount));
+    setText('salPerDay', formatMoney(perDaySalary));
+    setText('salEarningsTillToday', formatMoney(liveNetSalary));
+    
+    setText('salTotalDays', String(workingDaysCount));
+    setText('salPresentDays', String(presentCount));
+    setText('salAbsentDays', String(adjustedAbsent));
+    setText('salLeaves', String(totalApprovedLeaves));
+    setText('salTada', formatMoney(tada));
+    setText('salArrears', formatMoney(arrears));
+    setText('salBonus', formatMoney(bonus));
+    setText('salAdvanceRemaining', formatMoney(p.advance_remaining || 0));
+
+    setText('salAbsentDeduct', formatMoney(absentDeduction));
+    setText('salNcnsDeduct', formatMoney(ncnsDeduction));
+    setText('salSdDeduct', formatMoney(sdDeduction));
+    setText('salLateFine', formatMoney(lateDeduction));
+    setText('salQaDocks', formatMoney(qaDeduction));
+    setText('salTaxDeduct', formatMoney(taxDeduction));
+    setText('salMisspunchFine', formatMoney(misspunchDeduction));
+    setText('salAdvanceDeduct', formatMoney(advanceDeduction));
 }
 
 function getShiftDatesFromAttendance(days = 30) {

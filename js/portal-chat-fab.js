@@ -4,7 +4,23 @@
 (function () {
     if (document.getElementById('portalChatFab')) return;
 
+    // Inject WebRTC Call Shell and CSS dynamically on all portals
     const path = (window.location.pathname || '').toLowerCase();
+    const isWfh = path.includes('/workfromhome/');
+    const inAttendance = path.includes('/attendance/');
+    const prefix = (isWfh || inAttendance) ? '../' : '';
+
+    if (!document.querySelector('link[href*="call-shell.css"]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = prefix + 'css/call-shell.css';
+        document.head.appendChild(link);
+    }
+
+    const script = document.createElement('script');
+    script.src = prefix + 'js/call-shell.js';
+    document.body.appendChild(script);
+
     if (!path.includes('employee-portal.html')) {
         return;
     }

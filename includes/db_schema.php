@@ -25,6 +25,7 @@ function ensure_app_schema(mysqli $conn): void {
             `employee_code` VARCHAR(32) NOT NULL PRIMARY KEY,
             `basic_salary` DECIMAL(12,2) DEFAULT 50000,
             `punctuality_enabled` TINYINT(1) DEFAULT 1,
+            `punctuality_amount` DECIMAL(12,2) DEFAULT 5000.00,
             `sudo_name` VARCHAR(150) DEFAULT NULL,
             `designation` VARCHAR(120) DEFAULT NULL,
             `cnic` VARCHAR(20) DEFAULT NULL,
@@ -339,8 +340,16 @@ function ensure_payroll_meta_columns(mysqli $conn): void {
 
     $table = 'employee_payroll_meta';
     $needed = [
+        'basic_salary' => "ALTER TABLE `$table` ADD COLUMN `basic_salary` DECIMAL(12,2) DEFAULT 50000",
+        'punctuality_enabled' => "ALTER TABLE `$table` ADD COLUMN `punctuality_enabled` TINYINT(1) DEFAULT 1",
+        'punctuality_amount' => "ALTER TABLE `$table` ADD COLUMN `punctuality_amount` DECIMAL(12,2) DEFAULT 5000.00",
         'designation' => "ALTER TABLE `$table` ADD COLUMN `designation` VARCHAR(120) DEFAULT NULL",
         'sudo_name' => "ALTER TABLE `$table` ADD COLUMN `sudo_name` VARCHAR(150) DEFAULT NULL",
+        'cnic' => "ALTER TABLE `$table` ADD COLUMN `cnic` VARCHAR(20) DEFAULT NULL",
+        'bank_name' => "ALTER TABLE `$table` ADD COLUMN `bank_name` VARCHAR(120) DEFAULT NULL",
+        'account_no' => "ALTER TABLE `$table` ADD COLUMN `account_no` VARCHAR(50) DEFAULT NULL",
+        'account_title' => "ALTER TABLE `$table` ADD COLUMN `account_title` VARCHAR(150) DEFAULT NULL",
+        'appointment_date' => "ALTER TABLE `$table` ADD COLUMN `appointment_date` DATE DEFAULT NULL",
         'company_branch' => "ALTER TABLE `$table` ADD COLUMN `company_branch` VARCHAR(32) NOT NULL DEFAULT 'main'",
     ];
 
@@ -582,4 +591,3 @@ function ensure_advanced_schema(mysqli $conn): void {
         @$conn->query("ALTER TABLE `timesheet_entries` ADD UNIQUE KEY `uq_te_ts_proj_date` (`timesheet_id`, `project`, `log_date`)");
     }
 }
-

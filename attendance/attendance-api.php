@@ -723,6 +723,21 @@ switch ($action) {
         
         $csv_employees = loadEmployeeDataFromCSV();
 
+        // Fetch ALL punches for the entire range for ALL employees in ONE query to be efficient
+        $all_punches_query = $conn->query("
+            SELECT user_id, timestamp 
+            FROM " . TABLE_ATTENDANCE . " 
+            WHERE timestamp BETWEEN '$start_date 14:00:00' AND '" . date('Y-m-d', strtotime($end_date . ' +1 day')) . " 12:00:00'
+            ORDER BY timestamp ASC
+        ");
+        
+        $punches_by_user = [];
+        if ($all_punches_query) {
+            while ($p = $all_punches_query->fetch_assoc()) {
+                $punches_by_user[$p['user_id']][] = $p['timestamp'];
+            }
+        }
+
         $report = [];
         $total_days = (strtotime($end_date) - strtotime($start_date)) / (60*60*24) + 1;
 
@@ -733,31 +748,34 @@ switch ($action) {
             $present_days = 0;
             $late_days = 0;
             
+            $user_punches = $punches_by_user[$emp_code] ?? [];
+            
             $current = $start_date;
             while ($current <= $end_date) {
                 $windows = getShiftWindows($current);
                 
-                // Check if employee had any punch in this shift
-                $check = $conn->query("
-                    SELECT COUNT(*) as count FROM " . TABLE_ATTENDANCE . " 
-                    WHERE user_id = '$emp_code' 
-                    AND timestamp BETWEEN '{$windows['checkin_start']}' AND '{$windows['checkout_end']}'
-                ");
+                // Find if employee had any punch in this shift (between checkin_start and checkout_end)
+                $first_in = null;
+                foreach ($user_punches as $p) {
+                    if ($p >= $windows['checkin_start'] && $p <= $windows['checkout_end']) {
+                        $first_in = $p;
+                        break;
+                    }
+                }
                 
-                if ($check && $check->fetch_assoc()['count'] > 0) {
+                if ($first_in) {
                     $present_days++;
                     
-                    // Check if first punch was late
-                    $first_punch = $conn->query("
-                        SELECT timestamp FROM " . TABLE_ATTENDANCE . " 
-                        WHERE user_id = '$emp_code' 
-                        AND timestamp BETWEEN '{$windows['checkin_start']}' AND '{$windows['checkin_end']}'
-                        ORDER BY timestamp LIMIT 1
-                    ");
-                    
-                    if ($first_punch && $first_punch->num_rows > 0) {
-                        $punch = $first_punch->fetch_assoc();
-                        list($is_late,) = isLate($punch['timestamp'], $current, $csv_emp['team'] ?? $emp['team'] ?? '');
+                    // Check if first checkin punch (2PM to midnight of shift date) was late
+                    $checkin_punch = null;
+                    foreach ($user_punches as $p) {
+                        if ($p >= $windows['checkin_start'] && $p <= $windows['checkin_end']) {
+                            $checkin_punch = $p;
+                            break;
+                        }
+                    }
+                    if ($checkin_punch) {
+                        list($is_late,) = isLate($checkin_punch, $current, $csv_emp['team'] ?? $emp['team'] ?? '');
                         if ($is_late) {
                             $late_days++;
                         }
@@ -775,7 +793,7 @@ switch ($action) {
                 'department'      => $csv_emp['department'] ?? $emp['department'] ?: 'General',
                 'designation'     => $csv_emp['designation'] ?? 'Employee',
                 'branch'          => $csv_emp['branch'] ?? 'Head Office',
-                'team'            => $csv_emp['team'] ?? '', // NEW: Added team
+                'team'            => $csv_emp['team'] ?? '',
                 'present'         => $present_days,
                 'late'            => $late_days,
                 'absent'          => $total_days - $present_days,

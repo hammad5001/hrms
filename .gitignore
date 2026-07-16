@@ -18,3 +18,7 @@ attendance/python-script/venv/
 
 # Local backups
 *.bak.*
+
+snapshots/
+call-token-service/.env
+.env

@@ -1,3 +1,11 @@
+<?php
+session_start();
+if (!isset($_SESSION['portal_role']) || !in_array($_SESSION['portal_role'], ['admin', 'super_admin', 'finance'])) {
+    header('Location: index.html');
+    exit;
+}
+require_once 'config.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,100 +38,127 @@
         .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; }
         .particle { position: absolute; background: rgba(249,115,22,0.25); border-radius: 50%; animation: float linear infinite; }
         @keyframes float { 0% { transform: translateY(100vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.6; } 90% { opacity: 0.6; } 100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; } }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: 10px; }
-        .app-container { max-width: 1600px; margin: 0 auto; padding: 24px; position: relative; z-index: 1; }
-        .header { background: var(--card-bg); backdrop-filter: blur(20px); border-radius: 28px; padding: 20px 32px; margin-bottom: 28px; border: 1px solid var(--glass-border); box-shadow: var(--shadow); animation: slideDown 0.5s ease; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--primary), var(--primary-dark)); border-radius: 10px; }
+
+        /* ===== LAYOUT ===== */
+        .app-container { max-width: 1600px; margin: 0 auto; padding: 20px 24px; position: relative; z-index: 1; }
+
+        /* ===== HEADER / TOPBAR ===== */
+        .header { background: rgba(15,12,30,0.85); backdrop-filter: blur(30px); border-bottom: 1px solid rgba(249,115,22,0.15); padding: 0 32px; margin-bottom: 28px; border-radius: 0; position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; height: 68px; box-shadow: 0 4px 30px rgba(0,0,0,0.4); }
         .logo { display: flex; align-items: center; gap: 14px; }
-        .logo-icon { width: 52px; height: 52px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 26px; color: white; box-shadow: 0 0 30px var(--primary-glow); animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 var(--primary-glow); } 50% { box-shadow: 0 0 30px 10px var(--primary-glow); } }
-        .logo-text h1 { font-size: 26px; font-weight: 800; background: linear-gradient(135deg, #fff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .finance-badge { display: flex; align-items: center; gap: 8px; background: rgba(249,115,22,0.15); padding: 8px 20px; border-radius: 50px; border: 1px solid rgba(249,115,22,0.3); }
-        .nav-bar { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.03); padding: 6px; border-radius: 60px; border: 1px solid var(--glass-border); }
-        .nav-btn { padding: 10px 22px; border-radius: 50px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.3s; background: transparent; color: rgba(255,255,255,0.7); border: none; text-decoration: none; }
-        .nav-btn:hover { color: white; transform: translateY(-2px); background: rgba(255,255,255,0.1); }
-        .nav-btn.primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 4px 15px rgba(249,115,22,0.4); }
-        .nav-btn.success { background: linear-gradient(135deg, var(--secondary), #059669); color: white; box-shadow: 0 4px 15px rgba(16,185,129,0.4); }
-        .header-right { display: flex; align-items: center; gap: 12px; }
-        .date-time { background: rgba(255,255,255,0.05); padding: 10px 22px; border-radius: 50px; font-size: 13px; font-weight: 500; color: white; display: flex; align-items: center; gap: 10px; backdrop-filter: blur(10px); }
-        .hero-section { background: linear-gradient(135deg, rgba(249,115,22,0.15), rgba(139,92,246,0.15)); backdrop-filter: blur(20px); border-radius: 32px; padding: 40px; margin-bottom: 32px; border: 1px solid var(--glass-border-light); position: relative; overflow: hidden; }
-        .hero-section::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(249,115,22,0.15), transparent); animation: rotateGlow 20s linear infinite; }
-        @keyframes rotateGlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: white; box-shadow: 0 0 20px var(--primary-glow); }
+        @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 var(--primary-glow); } 50% { box-shadow: 0 0 20px 6px var(--primary-glow); } }
+        .logo-text h1 { font-size: 20px; font-weight: 800; background: linear-gradient(135deg, #fff 40%, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px; }
+        .finance-badge { display: flex; align-items: center; gap: 6px; background: rgba(249,115,22,0.1); padding: 5px 14px; border-radius: 50px; border: 1px solid rgba(249,115,22,0.25); font-size: 11px; font-weight: 600; color: var(--primary); margin-left: 4px; }
+        .nav-bar { display: flex; align-items: center; gap: 2px; }
+        .nav-btn { padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 7px; cursor: pointer; transition: all 0.25s; background: transparent; color: rgba(255,255,255,0.55); border: none; text-decoration: none; white-space: nowrap; }
+        .nav-btn:hover { color: white; background: rgba(255,255,255,0.08); }
+        .nav-btn.active { color: var(--primary); background: rgba(249,115,22,0.1); }
+        .nav-btn.primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border-radius: 8px; box-shadow: 0 4px 14px rgba(249,115,22,0.35); }
+        .nav-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(249,115,22,0.5); }
+        .nav-btn.success { background: linear-gradient(135deg, var(--secondary), #059669); color: white; border-radius: 8px; }
+        .nav-divider { width: 1px; height: 24px; background: rgba(255,255,255,0.1); margin: 0 6px; }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .date-time { background: rgba(255,255,255,0.05); padding: 7px 16px; border-radius: 8px; font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.7); display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.07); }
+
+        /* ===== HERO ===== */
+        .hero-section { background: linear-gradient(135deg, rgba(249,115,22,0.1) 0%, rgba(15,12,30,0) 60%), linear-gradient(225deg, rgba(139,92,246,0.12) 0%, transparent 60%); backdrop-filter: blur(20px); border-radius: 24px; padding: 36px 40px; margin-bottom: 24px; border: 1px solid rgba(249,115,22,0.15); position: relative; overflow: hidden; }
+        .hero-section::before { content: ''; position: absolute; top: -60px; right: -60px; width: 280px; height: 280px; background: radial-gradient(circle, rgba(249,115,22,0.18) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
+        .hero-section::after { content: ''; position: absolute; bottom: -40px; left: 30%; width: 200px; height: 200px; background: radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
         .hero-content { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 30px; }
-        .hero-text h1 { font-size: 42px; font-weight: 800; background: linear-gradient(135deg, #fff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 12px; }
-        .hero-text p { color: rgba(255,255,255,0.7); display: flex; align-items: center; gap: 8px; font-size: 15px; }
-        .hero-stats { display: flex; gap: 40px; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); padding: 20px 40px; border-radius: 40px; border: 1px solid var(--glass-border); }
-        .hero-stat { text-align: center; }
-        .hero-stat h3 { font-size: 36px; font-weight: 800; background: linear-gradient(135deg, #fff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 5px; }
-        .hero-stat p { font-size: 12px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; }
-        .info-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 28px; }
-        .info-card { background: var(--card-bg); backdrop-filter: blur(20px); border-radius: 20px; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--glass-border); transition: all 0.3s; }
-        .info-card:hover { border-color: rgba(249,115,22,0.4); transform: translateY(-2px); }
-        .info-card-left { display: flex; align-items: center; gap: 12px; }
-        .info-icon { width: 40px; height: 40px; background: rgba(59,130,246,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #60a5fa; }
-        .info-icon.warning { background: rgba(245,158,11,0.2); color: #f59e0b; }
-        .info-icon.success { background: rgba(16,185,129,0.2); color: #10b981; }
-        .info-text { font-size: 13px; color: rgba(255,255,255,0.7); }
-        .info-text strong { color: white; font-size: 14px; }
-        .info-badge { padding: 6px 14px; border-radius: 30px; font-size: 12px; font-weight: 600; }
-        .info-badge.old { background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
-        .info-badge.new { background: rgba(16,185,129,0.2); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 28px; }
-        .stat-card { background: var(--card-bg); backdrop-filter: blur(20px); border-radius: 28px; padding: 24px; border: 1px solid var(--glass-border); transition: all 0.4s; position: relative; overflow: hidden; }
-        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--primary), var(--primary-dark)); transform: translateX(-100%); transition: transform 0.4s; }
-        .stat-card:hover::before { transform: translateX(0); }
-        .stat-card:hover { transform: translateY(-5px); border-color: rgba(249,115,22,0.3); }
-        .stat-icon { width: 50px; height: 50px; background: rgba(249,115,22,0.15); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--primary); margin-bottom: 16px; }
-        .stat-value { font-size: 32px; font-weight: 800; color: white; }
-        .stat-label { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 4px; }
-        .stat-trend { font-size: 11px; margin-top: 8px; display: flex; align-items: center; gap: 4px; }
+        .hero-eyebrow { display: inline-flex; align-items: center; gap: 7px; background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.25); padding: 5px 14px; border-radius: 50px; font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+        .hero-text h1 { font-size: 44px; font-weight: 900; color: white; margin-bottom: 10px; line-height: 1.1; letter-spacing: -1.5px; }
+        .hero-text h1 span { background: linear-gradient(135deg, var(--primary), #fb923c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-text p { color: rgba(255,255,255,0.55); display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .hero-stats { display: flex; gap: 0; background: rgba(0,0,0,0.35); backdrop-filter: blur(10px); border-radius: 20px; border: 1px solid rgba(255,255,255,0.08); overflow: hidden; }
+        .hero-stat { text-align: center; padding: 20px 36px; border-right: 1px solid rgba(255,255,255,0.07); }
+        .hero-stat:last-child { border-right: none; }
+        .hero-stat h3 { font-size: 34px; font-weight: 900; color: white; margin-bottom: 4px; letter-spacing: -1px; }
+        .hero-stat p { font-size: 10px; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 1.5px; }
+
+        /* ===== INFO BANNER ===== */
+        .info-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
+        .info-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); border-radius: 16px; padding: 18px 22px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.07); transition: all 0.3s; gap: 20px; }
+        .info-card:hover { border-color: rgba(249,115,22,0.3); background: rgba(249,115,22,0.04); }
+        .info-card-left { display: flex; align-items: center; gap: 14px; }
+        .info-icon { width: 38px; height: 38px; background: rgba(59,130,246,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #60a5fa; font-size: 15px; flex-shrink: 0; }
+        .info-icon.warning { background: rgba(245,158,11,0.15); color: #f59e0b; }
+        .info-icon.success { background: rgba(16,185,129,0.15); color: #10b981; }
+        .info-text { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.5; }
+        .info-text strong { color: white; font-size: 13px; font-weight: 700; display: block; margin-bottom: 2px; }
+        .info-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+        .info-badge { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .info-badge.old { background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+        .info-badge.new { background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.25); }
+
+        /* ===== STAT CARDS ===== */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: rgba(255,255,255,0.03); border-radius: 20px; padding: 22px 24px; border: 1px solid rgba(255,255,255,0.07); transition: all 0.35s; position: relative; overflow: hidden; }
+        .stat-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--primary), var(--primary-dark)); transform: scaleX(0); transform-origin: left; transition: transform 0.35s; }
+        .stat-card:hover::after { transform: scaleX(1); }
+        .stat-card:hover { transform: translateY(-4px); border-color: rgba(249,115,22,0.2); background: rgba(249,115,22,0.04); }
+        .stat-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+        .stat-icon { width: 44px; height: 44px; background: rgba(249,115,22,0.12); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--primary); }
+        .stat-badge { font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+        .stat-badge.up { background: rgba(16,185,129,0.12); color: var(--secondary); }
+        .stat-badge.down { background: rgba(239,68,68,0.12); color: var(--danger); }
+        .stat-value { font-size: 36px; font-weight: 900; color: white; letter-spacing: -1.5px; line-height: 1; }
+        .stat-label { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 6px; font-weight: 500; }
+        .stat-trend { font-size: 11px; margin-top: 12px; display: flex; align-items: center; gap: 5px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05); }
         .stat-trend.up { color: var(--secondary); }
         .stat-trend.down { color: var(--danger); }
-        .charts-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-bottom: 28px; }
-        .chart-card { background: var(--card-bg); backdrop-filter: blur(20px); border-radius: 28px; padding: 24px; border: 1px solid var(--glass-border); transition: all 0.3s; }
-        .chart-card:hover { border-color: rgba(249,115,22,0.3); }
-        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--glass-border); }
-        .chart-header h3 { font-size: 16px; font-weight: 600; color: white; display: flex; align-items: center; gap: 8px; }
+
+        /* ===== CHART CARDS ===== */
+        .charts-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
+        .chart-card { background: rgba(255,255,255,0.03); border-radius: 20px; padding: 24px; border: 1px solid rgba(255,255,255,0.07); transition: all 0.3s; }
+        .chart-card:hover { border-color: rgba(249,115,22,0.2); }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .chart-header h3 { font-size: 14px; font-weight: 700; color: white; display: flex; align-items: center; gap: 8px; }
         .chart-header h3 i { color: var(--primary); }
-        .chart-container { height: 260px; position: relative; }
-        .control-panel { background: var(--card-bg); backdrop-filter: blur(20px); border-radius: 28px; padding: 24px; margin-bottom: 28px; border: 1px solid var(--glass-border); }
-        .filter-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
-        .month-selector { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 10px 20px; border-radius: 50px; }
-        .month-selector input { background: transparent; border: none; color: white; font-size: 14px; }
-        .search-box { flex: 1; min-width: 250px; position: relative; }
-        .search-box i { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.5); }
-        .search-box input { width: 100%; padding: 12px 20px 12px 48px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 50px; font-size: 14px; color: white; }
+        .chart-container { height: 250px; position: relative; }
+
+        /* ===== CONTROL PANEL ===== */
+        .control-panel { background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); border-radius: 20px; padding: 20px 24px; margin-bottom: 24px; border: 1px solid rgba(255,255,255,0.07); }
+        .filter-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+        .month-selector { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 9px 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); }
+        .month-selector input { background: transparent; border: none; color: white; font-size: 13px; font-family: 'Inter', sans-serif; }
+        .search-box { flex: 1; min-width: 220px; position: relative; }
+        .search-box i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.4); font-size: 13px; }
+        .search-box input { width: 100%; padding: 10px 16px 10px 40px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; font-size: 13px; color: white; font-family: 'Inter', sans-serif; }
         .search-box input:focus { outline: none; border-color: var(--primary); }
-        .filter-select { padding: 12px 36px 12px 20px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 50px; font-size: 14px; color: white; cursor: pointer; min-width: 160px; }
-        .filter-select option { background: #1a1c2c; color: #fff; }
-        .btn { padding: 12px 24px; border: none; border-radius: 50px; font-weight: 600; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s; }
-        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 4px 15px rgba(249,115,22,0.3); }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(249,115,22,0.5); }
-        .btn-secondary { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: rgba(255,255,255,0.8); }
-        .btn-secondary:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
-        .btn-success { background: linear-gradient(135deg, var(--secondary), #059669); color: white; box-shadow: 0 4px 15px rgba(16,185,129,0.3); }
+        .filter-select { padding: 10px 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; font-size: 13px; color: white; cursor: pointer; min-width: 150px; font-family: 'Inter', sans-serif; }
+        .filter-select option { background: #1a1825; color: #fff; }
+        .btn { padding: 10px 20px; border: none; border-radius: 10px; font-weight: 700; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; transition: all 0.25s; font-family: 'Inter', sans-serif; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 4px 14px rgba(249,115,22,0.3); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(249,115,22,0.45); }
+        .btn-secondary { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); transform: translateY(-1px); }
+        .btn-success { background: linear-gradient(135deg, var(--secondary), #059669); color: white; }
         .btn-danger { background: linear-gradient(135deg, var(--danger), #dc2626); color: white; }
         .btn-info { background: linear-gradient(135deg, var(--info), #2563eb); color: white; }
         .btn-purple { background: linear-gradient(135deg, var(--purple), #7c3aed); color: white; }
-        .table-container { background: var(--card-bg); backdrop-filter: blur(20px); border-radius: 28px; padding: 24px; overflow: visible; border: 1px solid var(--glass-border); }
-        .table-wrapper { overflow-x: auto; border-radius: 16px; }
-        .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 16px; }
-        .table-header h2 { color: white; font-size: 18px; display: flex; align-items: center; gap: 10px; }
-        .month-info { background: rgba(249,115,22,0.2); padding: 6px 16px; border-radius: 30px; color: var(--primary); font-size: 13px; font-weight: 600; }
+
+        /* ===== TABLE ===== */
+        .table-container { background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); border-radius: 20px; padding: 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.07); }
+        .table-wrapper { overflow-x: auto; border-radius: 16px; max-height: 600px; overflow-y: auto; }
+        .table-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.07); flex-wrap: wrap; gap: 12px; }
+        .table-header h2 { color: white; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .month-info { background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.25); padding: 5px 14px; border-radius: 20px; color: var(--primary); font-size: 12px; font-weight: 700; }
         table { width: 100%; border-collapse: collapse; min-width: 1000px; }
-        th { text-align: left; padding: 14px 12px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); font-weight: 600; font-size: 12px; position: sticky; top: 0; z-index: 10; }
-        td { padding: 12px; border-bottom: 1px solid var(--glass-border); color: rgba(255,255,255,0.9); font-size: 12px; }
-        tr:hover td { background: rgba(255,255,255,0.05); cursor: pointer; }
+        th { text-align: left; padding: 12px 14px; background: rgba(249,115,22,0.06); color: rgba(255,255,255,0.5); font-weight: 700; font-size: 11px; position: sticky; top: 0; z-index: 10; text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        td { padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); color: rgba(255,255,255,0.85); font-size: 12px; }
+        tr:hover td { background: rgba(249,115,22,0.03); }
         .checkin-time { font-family: monospace; font-weight: 600; color: var(--primary); }
         .weekend-checkin { font-family: monospace; font-weight: 600; color: #a78bfa; }
-        .absent-cell { color: rgba(255,255,255,0.4); font-style: italic; }
-        .summary-badge { font-weight: 600; padding: 4px 10px; border-radius: 20px; font-size: 11px; display: inline-block; }
-        .summary-present { background: rgba(16,185,129,0.2); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
-        .summary-late { background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
-        .summary-absent { background: rgba(239,68,68,0.2); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
-        .summary-leave { background: rgba(139,92,246,0.2); color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); }
-        .view-btn { background: rgba(59,130,246,0.2); color: #60a5fa; border: none; padding: 6px 12px; border-radius: 16px; font-size: 11px; cursor: pointer; transition: all 0.2s; }
+        .absent-cell { color: rgba(255,255,255,0.25); font-style: italic; }
+        .summary-badge { font-weight: 700; padding: 3px 10px; border-radius: 20px; font-size: 10px; display: inline-block; letter-spacing: 0.3px; }
+        .summary-present { background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.25); }
+        .summary-late { background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+        .summary-absent { background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
+        .summary-leave { background: rgba(139,92,246,0.12); color: #a78bfa; border: 1px solid rgba(139,92,246,0.25); }
+        .view-btn { background: rgba(249,115,22,0.1); color: var(--primary); border: 1px solid rgba(249,115,22,0.2); padding: 5px 12px; border-radius: 8px; font-size: 11px; cursor: pointer; transition: all 0.2s; font-weight: 600; }
         .view-btn:hover { background: var(--primary); color: white; }
         .payroll-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); z-index: 2000; justify-content: center; align-items: center; }
         .payroll-modal.active { display: flex; animation: modalFadeIn 0.3s ease; }
@@ -197,10 +232,10 @@
         .adj-delete { background: rgba(239,68,68,0.2); color: var(--danger); border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
         .adj-delete:hover { background: var(--danger); color: white; }
 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(12px); z-index: 1000; justify-content: center; align-items: center; }
-        .modal.active { display: flex; }
-        .modal-content { background: linear-gradient(135deg, #1e1b2e, #13112a); border-radius: 28px; width: 90%; max-width: 900px; max-height: 85vh; overflow: visible; border: 1px solid var(--glass-border); box-shadow: var(--shadow); }
-        .modal-content > .modal-body { max-height: 70vh; overflow-y: auto; overflow-x: visible; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(12px); z-index: 1000; overflow-y: auto; padding: 40px 10px; box-sizing: border-box; }
+        .modal.active { display: flex; justify-content: center; align-items: flex-start; }
+        .modal-content { background: linear-gradient(135deg, #1e1b2e, #13112a); border-radius: 28px; width: 90%; max-width: 900px; max-height: none; overflow: visible; border: 1px solid var(--glass-border); box-shadow: var(--shadow); margin-bottom: 40px; }
+        .modal-content > .modal-body { overflow-x: visible; }
         .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: 28px 28px 0 0; }
         .modal-header h2 { color: white; display: flex; align-items: center; gap: 10px; font-size: 18px; }
         .modal-close { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.2); color: white; transition: all 0.3s; }
@@ -213,6 +248,52 @@
         .toast { background: rgba(10,12,21,0.95); backdrop-filter: blur(20px); padding: 12px 20px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; transform: translateX(450px); transition: transform 0.3s; border-left: 3px solid var(--primary); font-size: 12px; color: white; }
         .toast.show { transform: translateX(0); }
         .footer { background: var(--card-bg); backdrop-filter: blur(20px); border-radius: 24px; padding: 16px 24px; margin-top: 28px; text-align: center; color: rgba(255,255,255,0.5); font-size: 12px; border: 1px solid var(--glass-border); }
+
+        /* Custom toggle switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .3s;
+            border: 1px solid var(--glass-border);
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+        }
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+        .slider.round {
+            border-radius: 24px;
+        }
+        .slider.round:before {
+            border-radius: 50%;
+        }
 
         .slip-pro { background: linear-gradient(135deg, #ffffff, #f8fafc); color: #1e293b; border-radius: 20px; padding: 32px; font-family: 'Inter', sans-serif; }
         .slip-pro * { color: inherit; }
@@ -246,6 +327,89 @@
         @media (max-width: 1400px) { .payroll-summary { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 1024px) { .payroll-rules { grid-template-columns: repeat(2, 1fr); } .payroll-summary { grid-template-columns: repeat(2, 1fr); } .charts-row { grid-template-columns: 1fr; } .adj-form-grid, .adj-form-grid.three { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 768px) { .stats-grid, .info-cards { grid-template-columns: 1fr; } .payroll-rules, .payroll-summary { grid-template-columns: 1fr; } .hero-stats { flex-wrap: wrap; justify-content: center; gap: 20px; } .filter-row { flex-direction: column; } .adj-form-grid, .adj-form-grid.three, .adj-form-grid.two { grid-template-columns: 1fr; } }
+
+        .modal-form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
+        @media (max-width: 768px) { .modal-form-grid { grid-template-columns: 1fr !important; } }
+
+        /* ===== FINANCE USER MANAGEMENT PREMIUM STYLES ===== */
+        .fum-container { background: var(--card-bg); backdrop-filter: blur(20px); border-radius: 32px; border: 1px solid var(--glass-border); overflow: hidden; box-shadow: var(--shadow); }
+        .fum-hero { background: linear-gradient(135deg, rgba(249,115,22,0.2), rgba(139,92,246,0.15)); padding: 28px 32px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; position: relative; overflow: hidden; }
+        .fum-hero::before { content: ''; position: absolute; top: -40%; right: -10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(249,115,22,0.15), transparent 70%); border-radius: 50%; pointer-events: none; }
+        .fum-hero-title { position: relative; z-index: 1; }
+        .fum-hero-title h2 { font-size: 24px; font-weight: 800; color: white; display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+        .fum-hero-title h2 .fum-icon { width: 42px; height: 42px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 4px 15px var(--primary-glow); }
+        .fum-hero-title p { color: rgba(255,255,255,0.6); font-size: 13px; padding-left: 54px; }
+        .fum-hero-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; position: relative; z-index: 1; }
+        .fum-search { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.06); border: 1px solid var(--glass-border); border-radius: 50px; padding: 10px 20px; min-width: 280px; transition: border-color 0.3s; }
+        .fum-search:focus-within { border-color: var(--primary); }
+        .fum-search i { color: rgba(255,255,255,0.4); font-size: 14px; }
+        .fum-search input { background: transparent; border: none; outline: none; color: white; font-size: 14px; flex: 1; font-family: 'Inter', sans-serif; }
+        .fum-search input::placeholder { color: rgba(255,255,255,0.35); }
+        .fum-stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-bottom: 1px solid var(--glass-border); }
+        .fum-stat { padding: 18px 24px; display: flex; align-items: center; gap: 14px; border-right: 1px solid var(--glass-border); transition: background 0.3s; }
+        .fum-stat:last-child { border-right: none; }
+        .fum-stat:hover { background: rgba(255,255,255,0.03); }
+        .fum-stat-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+        .fum-stat-icon.orange { background: rgba(249,115,22,0.15); color: var(--primary); }
+        .fum-stat-icon.green { background: rgba(16,185,129,0.15); color: var(--secondary); }
+        .fum-stat-icon.blue { background: rgba(59,130,246,0.15); color: var(--info); }
+        .fum-stat-icon.purple { background: rgba(139,92,246,0.15); color: var(--purple); }
+        .fum-stat-text h4 { font-size: 20px; font-weight: 800; color: white; line-height: 1; }
+        .fum-stat-text span { font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; display: block; }
+        .fum-table-wrap { overflow-x: auto; max-height: 560px; overflow-y: auto; }
+        .fum-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        .fum-table thead { position: sticky; top: 0; z-index: 5; }
+        .fum-table th { padding: 14px 18px; background: rgba(249,115,22,0.08); color: rgba(255,255,255,0.55); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; text-align: left; border-bottom: 1px solid var(--glass-border); white-space: nowrap; }
+        .fum-table th:first-child { padding-left: 24px; }
+        .fum-table th:last-child { text-align: center; padding-right: 24px; }
+        .fum-table td { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; font-size: 13px; color: rgba(255,255,255,0.85); transition: background 0.2s; }
+        .fum-table td:first-child { padding-left: 24px; }
+        .fum-table td:last-child { padding-right: 24px; text-align: center; }
+        .fum-table tr:hover td { background: rgba(249,115,22,0.04); }
+        .fum-table tr:last-child td { border-bottom: none; }
+        .fum-avatar { width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: white; flex-shrink: 0; }
+        .fum-user-cell { display: flex; align-items: center; gap: 12px; }
+        .fum-user-info h5 { font-size: 13px; font-weight: 600; color: white; margin-bottom: 2px; }
+        .fum-user-info span { font-size: 11px; color: rgba(255,255,255,0.45); }
+        .fum-id-badge { display: inline-flex; align-items: center; background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.25); color: var(--primary); padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; font-family: monospace; }
+        .fum-salary { font-weight: 700; font-size: 13px; color: var(--secondary); }
+        .fum-edit-btn { display: inline-flex; align-items: center; gap: 7px; padding: 7px 16px; background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.3); color: var(--primary); border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.25s; white-space: nowrap; }
+        .fum-edit-btn:hover { background: var(--primary); color: white; transform: translateY(-1px); box-shadow: 0 4px 12px var(--primary-glow); }
+        .fum-empty { text-align: center; padding: 60px 20px; }
+        .fum-empty i { font-size: 40px; color: rgba(255,255,255,0.1); margin-bottom: 12px; display: block; }
+        .fum-empty p { color: rgba(255,255,255,0.35); font-size: 14px; }
+
+        /* ===== EDIT MODAL PREMIUM STYLES ===== */
+        #financeUserEditModal { z-index: 2000; }
+        .fum-modal { max-width: 820px; width: 95%; background: linear-gradient(145deg, #181622, #0f0d1a); border-radius: 28px; border: 1px solid rgba(249,115,22,0.2); box-shadow: 0 30px 80px rgba(0,0,0,0.7); overflow: hidden; margin: auto; }
+        .fum-modal-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); padding: 22px 28px; display: flex; justify-content: space-between; align-items: center; }
+        .fum-modal-header-left { display: flex; align-items: center; gap: 14px; }
+        .fum-modal-avatar { width: 46px; height: 46px; border-radius: 14px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; color: white; }
+        .fum-modal-title h3 { font-size: 17px; font-weight: 700; color: white; }
+        .fum-modal-title p { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 2px; }
+        .fum-modal-close { width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.15); border: none; color: white; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+        .fum-modal-close:hover { background: rgba(0,0,0,0.3); transform: rotate(90deg); }
+        .fum-modal-body { padding: 24px 28px; overflow-y: auto; max-height: calc(100vh - 200px); }
+        .fum-section-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0 16px; grid-column: 1 / -1; }
+        .fum-section-divider::before, .fum-section-divider::after { content: ''; flex: 1; height: 1px; background: var(--glass-border); }
+        .fum-section-divider span { font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+        .fum-field { display: flex; flex-direction: column; gap: 6px; }
+        .fum-field label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.6px; }
+        .fum-field input, .fum-field select { padding: 11px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; color: white; font-size: 13px; font-family: 'Inter', sans-serif; transition: border-color 0.3s, background 0.3s; width: 100%; }
+        .fum-field input:focus, .fum-field select:focus { outline: none; border-color: var(--primary); background: rgba(249,115,22,0.07); }
+        .fum-field select option { background: #1a1825; color: white; }
+        .fum-identity-grid { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+        .fum-identity-item { min-width: 0; padding: 13px 15px; border-radius: 14px; background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.07); }
+        .fum-identity-item.wide { grid-column: 1 / -1; }
+        .fum-identity-item span { display: block; margin-bottom: 5px; color: rgba(255,255,255,0.42); font-size: 10px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; }
+        .fum-identity-item strong { display: block; overflow: hidden; color: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+        .fum-policy-note { grid-column: 1 / -1; display: flex; gap: 11px; align-items: flex-start; padding: 13px 15px; border-radius: 14px; color: rgba(255,255,255,.68); background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.2); font-size: 11px; line-height: 1.55; }
+        .fum-policy-note i { margin-top: 2px; color: #60a5fa; }
+        .fum-modal-footer { padding: 18px 28px; border-top: 1px solid var(--glass-border); display: flex; justify-content: flex-end; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); }
+        .fum-toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; grid-column: 1 / -1; }
+        .fum-toggle-row .fum-toggle-info h5 { font-size: 13px; font-weight: 600; color: white; }
+        .fum-toggle-row .fum-toggle-info p { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+        @media (max-width: 620px) { .fum-identity-grid { grid-template-columns: 1fr; } .fum-identity-item.wide { grid-column: auto; } }
 
         .payroll-tabs { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; overflow-x: auto; }
         .payroll-tab { padding: 10px 20px; background: var(--glass); border: 1px solid var(--glass-border); color: rgba(255,255,255,0.6); border-radius: 12px; cursor: pointer; transition: all 0.3s; white-space: nowrap; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
@@ -331,34 +495,49 @@
     <div class="app-container">
         <header class="header">
             <div class="logo">
-                <div class="logo-icon"><i class="fas fa-chart-line"></i></div>
-                <div class="logo-text"><h1>BALITECH · FINANCE</h1></div>
-                <div class="finance-badge"><i class="fas fa-coins"></i><span>Payroll Intelligence Hub</span></div>
+                <div class="logo-icon" style="animation: pulse 3s infinite;"><i class="fas fa-chart-line"></i></div>
+                <div class="logo-text"><h1>BALITECH &middot; FINANCE</h1></div>
+                <div class="finance-badge"><i class="fas fa-coins"></i> Payroll Hub</div>
             </div>
-            <div class="nav-bar">
-                <a href="javascript:history.back()" class="nav-btn" title="Back" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; padding: 0; background: rgba(255,255,255,0.1);"><i class="fas fa-arrow-left"></i></a>
-                <a href="admin-dashboard.html" class="nav-btn"><i class="fas fa-chart-pie"></i> Dashboard</a>
-                <a href="profile.php" class="nav-btn"><i class="fas fa-user"></i> Profile</a>
+            <nav class="nav-bar">
+                <a href="javascript:history.back()" class="nav-btn" title="Back"><i class="fas fa-arrow-left"></i></a>
+                <div class="nav-divider"></div>
+                <button class="nav-btn active" id="btnMainDashboard" onclick="switchMainView('dashboard')"><i class="fas fa-chart-area"></i> Dashboard</button>
+                <button class="nav-btn" id="btnUserManagementView" onclick="switchMainView('usermanagement')"><i class="fas fa-users-cog"></i> Users</button>
+                <div class="nav-divider"></div>
+                <a href="admin-dashboard.html" class="nav-btn"><i class="fas fa-th-large"></i> Portal</a>
+                <a href="profile.php" class="nav-btn"><i class="fas fa-user-circle"></i> Profile</a>
                 <a href="chat-portal.html" class="nav-btn"><i class="fas fa-comments"></i> Chat</a>
-                <a href="attendance/attendance-dashboard.html" class="nav-btn"><i class="fas fa-clock"></i> Attendance</a>
+                <div class="nav-divider"></div>
                 <button class="nav-btn success" onclick="openPayrollDashboard()"><i class="fas fa-file-invoice-dollar"></i> Payroll</button>
                 <a href="logout.php" class="nav-btn primary"><i class="fas fa-sign-out-alt"></i> Logout</a>
-            </div>
+            </nav>
             <div class="header-right">
-                <div class="date-time" id="currentDate"><i class="fas fa-calendar-alt"></i><span>Loading...</span></div>
+                <div class="date-time" id="currentDate"><i class="fas fa-clock" style="color: var(--primary);"></i><span>Loading...</span></div>
             </div>
         </header>
 
+        <div id="mainDashboardContent">
         <div class="hero-section">
             <div class="hero-content">
                 <div class="hero-text">
-                    <h1>Payroll Analytics</h1>
-                    <p><i class="fas fa-calculator"></i> Working Days Only (Monday-Friday) · Real-time Salary Calculations</p>
+                    <div class="hero-eyebrow"><i class="fas fa-bolt"></i> Live Analytics</div>
+                    <h1>Payroll <span>Analytics</span></h1>
+                    <p><i class="fas fa-calendar-check" style="color: var(--primary);"></i> Working Days Only (Mon&ndash;Fri) &middot; Real-time Salary Calculations</p>
                 </div>
                 <div class="hero-stats">
-                    <div class="hero-stat"><h3 id="totalEmployees">0</h3><p>Total Employees</p></div>
-                    <div class="hero-stat"><h3 id="totalPresent">0</h3><p>Present Days</p></div>
-                    <div class="hero-stat"><h3 id="totalLate">0</h3><p>Late Arrivals</p></div>
+                    <div class="hero-stat">
+                        <h3 id="totalEmployees">0</h3>
+                        <p>Employees</p>
+                    </div>
+                    <div class="hero-stat">
+                        <h3 id="totalPresent">0</h3>
+                        <p>Present Days</p>
+                    </div>
+                    <div class="hero-stat">
+                        <h3 id="totalLate">0</h3>
+                        <p>Late Arrivals</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -367,31 +546,63 @@
             <div class="info-card">
                 <div class="info-card-left">
                     <div class="info-icon"><i class="fas fa-calendar-week"></i></div>
-                    <div class="info-text"><strong>Salary Calculation Basis</strong><br>Working Days Only (Mon-Fri)</div>
+                    <div class="info-text"><strong>Salary Calculation Basis</strong>Working Days Only (Mon-Fri)</div>
                 </div>
-                <div>
-                    <span class="info-badge old">✅ Present </span>
-                    <span class="info-badge old">⚠️ Late </span>
-                    <span class="info-badge new">🌿 Leave </span>
+                <div class="info-badges">
+                    <span class="info-badge old">✅ Present</span>
+                    <span class="info-badge old">⚠️ Late</span>
+                    <span class="info-badge new">🌿 Leave</span>
                 </div>
             </div>
             <div class="info-card">
                 <div class="info-card-left">
                     <div class="info-icon warning"><i class="fas fa-clock"></i></div>
-                    <div class="info-text"><strong>⚠️ Shift Timing Change Alert</strong></div>
+                    <div class="info-text"><strong>6:00 PM Check-in Cutoff</strong>No grace period; a late check-in deducts one day of salary</div>
                 </div>
-                <div>
-                    <span class="info-badge old">📅 March 1-8: Late after 7:00 PM</span>
-                    <span class="info-badge new">📅 March 9-31: Late after 6:10 PM</span>
+                <div class="info-badges">
+                    <span class="info-badge old">✅ 6:00 PM is on time</span>
+                    <span class="info-badge new">⚠️ After 6:00 PM is late</span>
                 </div>
             </div>
         </div>
 
         <div class="stats-grid">
-            <div class="stat-card"><div class="stat-icon"><i class="fas fa-users"></i></div><div class="stat-value" id="statTotal">0</div><div class="stat-label">Active Personnel</div><div class="stat-trend up"><i class="fas fa-arrow-up"></i> Full Capacity</div></div>
-            <div class="stat-card"><div class="stat-icon"><i class="fas fa-calendar-check"></i></div><div class="stat-value" id="statPresent">0</div><div class="stat-label">Present Days</div><div class="stat-trend up"><i class="fas fa-chart-line"></i> Working Days Only</div></div>
-            <div class="stat-card"><div class="stat-icon"><i class="fas fa-clock"></i></div><div class="stat-value" id="statLate">0</div><div class="stat-label">Late Arrivals</div><div class="stat-trend down"><i class="fas fa-exclamation-triangle"></i> Working Days Only</div></div>
-            <div class="stat-card"><div class="stat-icon"><i class="fas fa-chart-line"></i></div><div class="stat-value" id="statRate">0%</div><div class="stat-label">Attendance Rate</div><div class="stat-trend up"><i class="fas fa-arrow-up"></i> Monthly Average</div></div>
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <span class="stat-badge up"><i class="fas fa-arrow-up"></i> 100%</span>
+                </div>
+                <div class="stat-value" id="statTotal">0</div>
+                <div class="stat-label">Active Personnel</div>
+                <div class="stat-trend up"><i class="fas fa-circle" style="font-size:6px;"></i> Full Capacity</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-icon" style="background: rgba(16,185,129,0.12); color: var(--secondary);"><i class="fas fa-calendar-check"></i></div>
+                    <span class="stat-badge up"><i class="fas fa-chart-line"></i> Live</span>
+                </div>
+                <div class="stat-value" id="statPresent">0</div>
+                <div class="stat-label">Present Days</div>
+                <div class="stat-trend up"><i class="fas fa-circle" style="font-size:6px;"></i> Working Days Only</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning);"><i class="fas fa-clock"></i></div>
+                    <span class="stat-badge down"><i class="fas fa-exclamation"></i> Alert</span>
+                </div>
+                <div class="stat-value" id="statLate">0</div>
+                <div class="stat-label">Late Arrivals</div>
+                <div class="stat-trend down"><i class="fas fa-circle" style="font-size:6px;"></i> Working Days Only</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-icon" style="background: rgba(59,130,246,0.12); color: var(--info);"><i class="fas fa-percent"></i></div>
+                    <span class="stat-badge up"><i class="fas fa-arrow-up"></i> Good</span>
+                </div>
+                <div class="stat-value" id="statRate">0%</div>
+                <div class="stat-label">Attendance Rate</div>
+                <div class="stat-trend up"><i class="fas fa-circle" style="font-size:6px;"></i> Monthly Average</div>
+            </div>
         </div>
 
         <div class="charts-row">
@@ -407,7 +618,7 @@
 
         <div class="control-panel">
             <div class="filter-row">
-                <div class="month-selector"><i class="fas fa-calendar-alt"></i><input type="month" id="monthPicker" value="2026-03"></div>
+                <div class="month-selector"><i class="fas fa-calendar-alt" style="color: var(--primary);"></i><input type="month" id="monthPicker" value="<?php echo date('Y-m'); ?>" onchange="loadAttendanceData()"></div>
                 <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Search by name or ID..."></div>
                 <select id="departmentFilter" class="filter-select"><option value="">All Departments</option></select>
                 <!-- NEW: Team Lead Filter Dropdown -->
@@ -424,7 +635,7 @@
         <div class="table-container">
             <div class="table-header">
                 <h2><i class="fas fa-table"></i> Monthly Attendance · Check-in Times</h2>
-                <div class="month-info" id="monthInfo">March 2026</div>
+                <div class="month-info" id="monthInfo"><?php echo date('F Y'); ?></div>
             </div>
             <div class="table-wrapper">
                 <table id="attendanceTable">
@@ -433,6 +644,72 @@
                         <tr><td colspan="10"><div class="loading-state"><div class="loading-spinner"></div><p>Loading attendance data...</p></div></td></tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+        </div> <!-- End of mainDashboardContent -->
+
+        <!-- User Management Content for Finance - PREMIUM REDESIGN -->
+        <div id="userManagementContent" style="display: none; margin-top: 24px;">
+            <div class="fum-container">
+
+                <!-- Header Hero -->
+                <div class="fum-hero">
+                    <div class="fum-hero-title">
+                        <h2>
+                            <span class="fum-icon"><i class="fas fa-users-cog"></i></span>
+                            User Management
+                        </h2>
+                        <p>Configure basic salary &amp; punctuality settings per employee</p>
+                    </div>
+                    <div class="fum-hero-actions">
+                        <div class="fum-search">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="financeUserSearch" placeholder="Search name, ID, dept, email..." onkeyup="filterFinanceUsers()">
+                        </div>
+                        <button class="btn btn-secondary" onclick="loadFinanceUsers()" style="border-radius: 50px;"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                </div>
+
+                <!-- Stats Row -->
+                <div class="fum-stat-row" id="fumStatRow">
+                    <div class="fum-stat">
+                        <div class="fum-stat-icon orange"><i class="fas fa-users"></i></div>
+                        <div class="fum-stat-text"><h4 id="fumTotalCount">—</h4><span>Total Employees</span></div>
+                    </div>
+                    <div class="fum-stat">
+                        <div class="fum-stat-icon green"><i class="fas fa-coins"></i></div>
+                        <div class="fum-stat-text"><h4 id="fumConfigured">—</h4><span>Salary Configured</span></div>
+                    </div>
+                    <div class="fum-stat">
+                        <div class="fum-stat-icon blue"><i class="fas fa-star"></i></div>
+                        <div class="fum-stat-text"><h4 id="fumPunctuality">—</h4><span>Punctuality Eligible</span></div>
+                    </div>
+                    <div class="fum-stat">
+                        <div class="fum-stat-icon purple"><i class="fas fa-chart-line"></i></div>
+                        <div class="fum-stat-text"><h4 id="fumAvgSalary">—</h4><span>Avg. Salary</span></div>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="fum-table-wrap">
+                    <table class="fum-table" id="financeUsersTable">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>ID</th>
+                                <th>Email</th>
+                                <th>Department</th>
+                                <th>Designation</th>
+                                <th>Basic Salary</th>
+                                <th style="text-align:center;">Punctuality</th>
+                                <th style="text-align:center;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="financeUsersTableBody">
+                            <tr><td colspan="8"><div class="fum-empty"><i class="fas fa-users"></i><p>Click User Management to load employees</p></div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -468,6 +745,76 @@
         </div>
     </div>
 
+    <!-- Edit User Modal for Finance User Management - PREMIUM REDESIGN -->
+    <div class="modal" id="financeUserEditModal">
+        <div class="fum-modal">
+
+            <!-- Modal Header -->
+            <div class="fum-modal-header">
+                <div class="fum-modal-header-left">
+                    <div class="fum-modal-avatar" id="feModalAvatar">?</div>
+                    <div class="fum-modal-title">
+                        <h3 id="feModalName">Edit Employee</h3>
+                        <p id="feModalSub">Payroll configuration</p>
+                    </div>
+                </div>
+                <button class="fum-modal-close" onclick="closeModal('financeUserEditModal')">&times;</button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="fum-modal-body">
+                <form id="financeUserEditForm" onsubmit="saveFinanceUserSettings(event)">
+                    <div class="modal-form-grid">
+                        <input type="hidden" id="fe_employee_code" name="employee_code">
+
+                        <div class="fum-section-divider"><span><i class="fas fa-id-card"></i> Employee Information</span></div>
+                        <div class="fum-identity-grid" aria-label="Read-only employee details">
+                            <div class="fum-identity-item"><span>Biometric ID</span><strong id="fe_view_code">—</strong></div>
+                            <div class="fum-identity-item"><span>Employee Name</span><strong id="fe_view_name">—</strong></div>
+                            <div class="fum-identity-item wide"><span>Email</span><strong id="fe_view_email">—</strong></div>
+                            <div class="fum-identity-item"><span>Department</span><strong id="fe_view_department">—</strong></div>
+                            <div class="fum-identity-item"><span>Designation</span><strong id="fe_view_designation">—</strong></div>
+                        </div>
+
+                        <div class="fum-section-divider"><span><i class="fas fa-coins"></i> Financial Settings</span></div>
+
+                        <div class="fum-field">
+                            <label for="fe_basic_salary">Basic Salary (₨) *</label>
+                            <input type="number" id="fe_basic_salary" name="basic_salary" required min="0" placeholder="e.g. 50000">
+                        </div>
+
+                        <div class="fum-toggle-row">
+                            <div class="fum-toggle-info">
+                                <h5><i class="fas fa-star" style="color: var(--warning); margin-right: 6px;"></i> Punctuality Reward</h5>
+                                <p>Employee will receive a punctuality bonus if eligible</p>
+                            </div>
+                            <label class="switch" style="flex-shrink: 0;">
+                                <input type="checkbox" id="fe_punctuality_enabled" name="punctuality_enabled">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                        <div class="fum-field">
+                            <label for="fe_punctuality_amount">Punctuality Reward Amount (₨)</label>
+                            <input type="number" id="fe_punctuality_amount" name="punctuality_amount" min="0" placeholder="e.g. 5000">
+                        </div>
+
+                        <div class="fum-policy-note">
+                            <i class="fas fa-shield-alt"></i>
+                            <div>Finance access is limited to salary and punctuality configuration. Employee identity, role, branch, status, and login details remain read-only.</div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="fum-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('financeUserEditModal')">Cancel</button>
+                <button type="submit" form="financeUserEditForm" class="btn btn-primary"><i class="fas fa-save"></i> Save Changes</button>
+            </div>
+        </div>
+    </div>
+
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
@@ -478,10 +825,206 @@
         let currentMonth = 3;
         let daysInMonth = 31;
         let workingDaysCount = 0;
+        let elapsedWorkingDaysCount = 0;
         let leaves = {};
         let attendanceTrendChart = null;
         let departmentChart = null;
         const PAYROLL_API = 'api/payroll_api.php';
+
+        // ================== FINANCE USER MANAGEMENT SCRIPTS ==================
+        let currentMainView = 'dashboard';
+        let financeUsersList = [];
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function switchMainView(view) {
+            const dashboardBtn = document.getElementById('btnMainDashboard');
+            const userMgmtBtn = document.getElementById('btnUserManagementView');
+            const dashboardContent = document.getElementById('mainDashboardContent');
+            const userMgmtContent = document.getElementById('userManagementContent');
+
+            if (view === 'usermanagement') {
+                dashboardContent.style.display = 'none';
+                userMgmtContent.style.display = 'block';
+                userMgmtBtn.classList.add('active');
+                if (dashboardBtn) dashboardBtn.classList.remove('active');
+                loadFinanceUsers();
+                currentMainView = 'usermanagement';
+            } else {
+                userMgmtContent.style.display = 'none';
+                dashboardContent.style.display = 'block';
+                if (dashboardBtn) dashboardBtn.classList.add('active');
+                userMgmtBtn.classList.remove('active');
+                currentMainView = 'dashboard';
+            }
+        }
+
+        async function loadFinanceUsers() {
+            const tbody = document.getElementById('financeUsersTableBody');
+            tbody.innerHTML = '<tr><td colspan="8"><div class="loading-state"><div class="loading-spinner"></div><p>Loading user list...</p></div></td></tr>';
+            try {
+                const res = await fetch('api/payroll_api.php?action=getFinanceUsers');
+                const data = await res.json();
+                if (data.success && data.data) {
+                    financeUsersList = data.data;
+                    renderFinanceUsersTable(financeUsersList);
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--danger); padding: 20px;">Failed to load: ${data.error || 'Unknown error'}</td></tr>`;
+                }
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--danger); padding: 20px;">Error connecting to API.</td></tr>';
+            }
+        }
+
+        function renderFinanceUsersTable(list) {
+            const tbody = document.getElementById('financeUsersTableBody');
+            // Update stat counters
+            const allList = financeUsersList;
+            const configured = allList.filter(u => u.basic_salary > 0).length;
+            const punctual = allList.filter(u => u.punctuality_enabled).length;
+            const avgSalary = allList.length > 0 ? Math.round(allList.reduce((s,u) => s + Number(u.basic_salary||0), 0) / allList.length) : 0;
+            const tc = document.getElementById('fumTotalCount');
+            const cf = document.getElementById('fumConfigured');
+            const pp = document.getElementById('fumPunctuality');
+            const av = document.getElementById('fumAvgSalary');
+            if (tc) tc.textContent = allList.length;
+            if (cf) cf.textContent = configured;
+            if (pp) pp.textContent = punctual;
+            if (av) av.textContent = '₨' + (avgSalary >= 1000 ? Math.round(avgSalary/1000)+'k' : avgSalary);
+
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8"><div class="fum-empty"><i class="fas fa-search"></i><p>No matching employees found</p></div></td></tr>';
+                return;
+            }
+            const avatarColors = ['#f97316','#10b981','#8b5cf6','#3b82f6','#ec4899','#06b6d4','#f59e0b'];
+            tbody.innerHTML = list.map((u) => {
+                const initials = escapeHtml((u.full_name || '?').split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase());
+                const userId = Number(u.id) || 0;
+                const color = avatarColors[userId % avatarColors.length];
+                const salaryFmt = Number(u.basic_salary) > 0 ? '₨ ' + Number(u.basic_salary).toLocaleString() : '<span style="color:rgba(255,255,255,0.3); font-style:italic;">Not set</span>';
+                return `
+                <tr>
+                    <td>
+                        <div class="fum-user-cell">
+                            <div class="fum-avatar" style="background: ${color}22; color: ${color}; border: 1px solid ${color}44;">${initials}</div>
+                            <div class="fum-user-info">
+                                <h5>${escapeHtml(u.full_name || 'Unnamed Employee')}</h5>
+                                <span>Payroll profile</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="fum-id-badge">${escapeHtml(u.employee_code || '—')}</span></td>
+                    <td style="color: rgba(255,255,255,0.6); font-size:12px;">${u.email ? escapeHtml(u.email) : '<span style="color:rgba(255,255,255,0.25); font-style:italic;">No email</span>'}</td>
+                    <td>${escapeHtml(u.department || '—')}</td>
+                    <td style="color: rgba(255,255,255,0.7);">${escapeHtml(u.designation || '—')}</td>
+                    <td class="fum-salary">${salaryFmt}</td>
+                    <td style="text-align:center;">
+                        <span class="summary-badge ${u.punctuality_enabled ? 'summary-present' : 'summary-absent'}">
+                            ${u.punctuality_enabled ? '✓ Yes' : '✗ No'}
+                        </span>
+                    </td>
+                    <td style="text-align:center;">
+                        <button class="fum-edit-btn" onclick="openFinanceUserEditor(${userId})" aria-label="Edit payroll settings for ${escapeHtml(u.full_name || 'employee')}">
+                            <i class="fas fa-coins"></i> Salary
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function filterFinanceUsers() {
+            const query = document.getElementById('financeUserSearch').value.toLowerCase().trim();
+            if (!query) {
+                renderFinanceUsersTable(financeUsersList);
+                return;
+            }
+            const filtered = financeUsersList.filter(u =>
+                (u.employee_code || '').toLowerCase().includes(query) ||
+                (u.full_name || '').toLowerCase().includes(query) ||
+                (u.department || '').toLowerCase().includes(query) ||
+                (u.designation || '').toLowerCase().includes(query) ||
+                (u.email || '').toLowerCase().includes(query)
+            );
+            renderFinanceUsersTable(filtered);
+        }
+
+        function openFinanceUserEditor(userId) {
+            const u = financeUsersList.find(item => Number(item.id) === Number(userId));
+            if (!u) return;
+
+            // Populate avatar & header
+            const initials = (u.full_name || '?').split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase();
+            const avatarEl = document.getElementById('feModalAvatar');
+            const nameEl = document.getElementById('feModalName');
+            const subEl = document.getElementById('feModalSub');
+            if (avatarEl) avatarEl.textContent = initials;
+            if (nameEl) nameEl.textContent = u.full_name || 'Edit Employee';
+            if (subEl) subEl.textContent = (u.designation || '') + (u.department ? ' · ' + u.department : '');
+
+            document.getElementById('fe_employee_code').value = u.employee_code || '';
+            document.getElementById('fe_view_code').textContent = u.employee_code || '—';
+            document.getElementById('fe_view_name').textContent = u.full_name || '—';
+            document.getElementById('fe_view_email').textContent = u.email || '—';
+            document.getElementById('fe_view_department').textContent = u.department || '—';
+            document.getElementById('fe_view_designation').textContent = u.designation || '—';
+            document.getElementById('fe_basic_salary').value = u.basic_salary || '0';
+            document.getElementById('fe_punctuality_enabled').checked = !!u.punctuality_enabled;
+            document.getElementById('fe_punctuality_amount').value = u.punctuality_amount ?? '5000';
+
+            document.getElementById('financeUserEditModal').classList.add('active');
+        }
+
+        async function saveFinanceUserSettings(event) {
+            event.preventDefault();
+
+            const employee_code = document.getElementById('fe_employee_code').value;
+            const salary = parseFloat(document.getElementById('fe_basic_salary').value) || 0;
+            const punctuality = document.getElementById('fe_punctuality_enabled').checked;
+            const punctuality_amount = parseFloat(document.getElementById('fe_punctuality_amount').value) || 0;
+
+            const saveBtn = document.querySelector('button[form="financeUserEditForm"][type="submit"]') || event.target.querySelector('button[type="submit"]');
+            const origHTML = saveBtn ? saveBtn.innerHTML : 'Save Changes';
+            if (saveBtn) {
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                saveBtn.disabled = true;
+            }
+
+            try {
+                const res = await fetch('api/payroll_api.php?action=updateFinanceUser', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        employee_code: employee_code,
+                        basic_salary: salary,
+                        punctuality_enabled: punctuality ? 1 : 0,
+                        punctuality_amount: punctuality_amount
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('✅ Payroll settings updated!', 'success');
+                    closeModal('financeUserEditModal');
+                    loadFinanceUsers();
+                } else {
+                    showToast(`❌ Error: ${data.error || 'Failed to save settings'}`, 'error');
+                }
+            } catch (e) {
+                showToast('❌ Connection error.', 'error');
+            } finally {
+                if (saveBtn) {
+                    saveBtn.innerHTML = origHTML;
+                    saveBtn.disabled = false;
+                }
+            }
+        }
+
         let payrollSaveTimer = null;
 
         function payrollMonthStr() {
@@ -491,9 +1034,7 @@
         // ================== PAYROLL CONSTANTS ==================
         const BASE_SALARY = 50000;
         const PERFECT_ATTENDANCE_BONUS = 5000;
-        const LATE_PENALTY = 300;
-        const ABSENT_PENALTY = 5000;
-        const CONTINUOUS_ABSENCE_PENALTY = 15000;
+        const CHECKIN_CUTOFF_MINUTES = 18 * 60;
         const NCNS_PENALTY = 5000;
         const MISSPUNCH_DEDUCTION = 1000;
         const PROBATION_DAYS = 60;
@@ -592,30 +1133,35 @@
             return date.getDay() === 0 || date.getDay() === 6;
         }
 
-        function getWorkingDaysCount(year, month) {
+        function getWorkingDaysCount(year, month, throughDay = null) {
             let count = 0;
-            const days = new Date(year, month, 0).getDate();
+            const daysInSelectedMonth = new Date(year, month, 0).getDate();
+            const days = throughDay === null ? daysInSelectedMonth : Math.min(Math.max(throughDay, 0), daysInSelectedMonth);
             for (let day = 1; day <= days; day++) {
                 if (!isWeekend(year, month, day)) count++;
             }
             return count;
         }
 
-        function isCheckinLate(checkinTime, day) {
+        function getCalculationEndDay(year, month) {
+            const now = new Date();
+            const selectedMonth = new Date(year, month - 1, 1);
+            const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            if (selectedMonth < currentMonthStart) return new Date(year, month, 0).getDate();
+            if (selectedMonth > currentMonthStart) return 0;
+            return now.getDate();
+        }
+
+        function isCheckinLate(checkinTime) {
             if (!checkinTime || checkinTime === '--:--') return false;
-            let hour;
-            if (checkinTime.match(/(AM|PM)/i)) {
-                const match = checkinTime.match(/(\d+):(\d+)\s*(AM|PM)/i);
-                if (match) {
-                    hour = parseInt(match[1]);
-                    const period = match[3].toUpperCase();
-                    if (period === 'PM' && hour !== 12) hour += 12;
-                    if (period === 'AM' && hour === 12) hour = 0;
-                } else { return false; }
-            } else { hour = parseInt(checkinTime.split(':')[0]); }
-            const minute = parseInt(checkinTime.split(':')[1]) || 0;
-            if (day <= 8) { return (hour > 19 || (hour === 19 && minute > 0)); }
-            else { return (hour > 18 || (hour === 18 && minute > 10)); }
+            const match = String(checkinTime).trim().match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?/i);
+            if (!match) return false;
+            let hour = Number(match[1]);
+            const minute = Number(match[2]);
+            const period = (match[3] || '').toUpperCase();
+            if (period === 'PM' && hour !== 12) hour += 12;
+            if (period === 'AM' && hour === 12) hour = 0;
+            return (hour * 60 + minute) > CHECKIN_CUTOFF_MINUTES;
         }
 
         async function loadEmployeeList() {
@@ -642,67 +1188,79 @@
             currentMonth = parseInt(month);
             daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
             workingDaysCount = getWorkingDaysCount(currentYear, currentMonth);
-            await loadAllAdj();
+            elapsedWorkingDaysCount = getWorkingDaysCount(currentYear, currentMonth, getCalculationEndDay(currentYear, currentMonth));
 
             const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-            document.getElementById('monthInfo').innerHTML = `${monthNames[currentMonth - 1]} ${currentYear} (${workingDaysCount} Working Days)`;
-            document.getElementById('payrollMonthLabel').textContent = `${monthNames[currentMonth - 1]} ${currentYear}`;
+            const periodLabel = elapsedWorkingDaysCount < workingDaysCount ? ` · ${elapsedWorkingDaysCount} elapsed` : '';
+            document.getElementById('monthInfo').textContent = `${monthNames[currentMonth - 1]} ${currentYear} (${workingDaysCount} Working Days${periodLabel})`;
 
-            const startDate = `${year}-${month}-01`;
-            const endDate = `${year}-${month}-${daysInMonth}`;
-            document.getElementById('tableBody').innerHTML = '<tr><td colspan="10"><div class="loading-state"><div class="loading-spinner"></div><p>Fetching attendance records...</p></div></td></tr>';
+            const startDate = `${year}-${month.padStart(2,'0')}-01`;
+            const endDate   = `${year}-${month.padStart(2,'0')}-${String(daysInMonth).padStart(2,'0')}`;
+
+            document.getElementById('tableBody').innerHTML = `
+                <tr><td colspan="10">
+                    <div class="loading-state">
+                        <div class="loading-spinner"></div>
+                        <p>Loading ${monthNames[currentMonth-1]} ${currentYear} data&hellip;</p>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.4); margin-top:6px;">Fetching ${daysInMonth} days in parallel &mdash; please wait</p>
+                    </div>
+                </td></tr>`;
 
             try {
-                const summaryResponse = await fetch(API_BASE + `attendance-api.php?action=getDateRange&start_date=${startDate}&end_date=${endDate}`);
-                const summaryResult = await summaryResponse.json();
+                // ── Step 1: summary report + adjustments in parallel ─────────────
+                const [summaryResult] = await Promise.all([
+                    fetch(API_BASE + `attendance-api.php?action=getDateRange&start_date=${startDate}&end_date=${endDate}`, { credentials: 'include' }).then(r => r.json()),
+                    loadAllAdj()
+                ]);
+
                 if (!summaryResult.success || !summaryResult.data || !summaryResult.data.report) {
-                    showToast('No data found', 'warning');
+                    document.getElementById('tableBody').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--danger);"><i class="fas fa-exclamation-circle"></i> No attendance data found for ${monthNames[currentMonth-1]} ${currentYear}</td></tr>`;
+                    showToast('No data found for this month', 'warning');
                     return;
                 }
 
-                const dailyCheckins = {};
-                const dates = [];
-                for (let d = 1; d <= daysInMonth; d++) { dates.push(`${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`); }
+                document.getElementById('payrollMonthLabel').textContent = `${monthNames[currentMonth - 1]} ${currentYear}`;
 
-                for (const date of dates) {
-                    try {
-                        const dailyResponse = await fetch(API_BASE + `attendance-api.php?action=getLiveAttendance&date=${date}`);
-                        const dailyResult = await dailyResponse.json();
-                        if (dailyResult.success && dailyResult.data && dailyResult.data.attendance) {
-                            dailyResult.data.attendance.forEach(emp => {
-                                const empId = emp.code;
-                                let checkinTime = emp.in_time;
-                                checkinTime = convertTo12Hour(checkinTime);
-                                if (!dailyCheckins[empId]) dailyCheckins[empId] = {};
-                                dailyCheckins[empId][date] = checkinTime;
-                            });
+                // ── Step 3: fetch monthly grid in a single call ──────────────────
+                const gridResponse = await fetch(API_BASE + `attendance-api.php?action=getMonthlyGrid&month=${year}-${month.padStart(2,'0')}`, { credentials: 'include' }).then(r => r.json());
+                const dailyCheckins = {};
+                if (gridResponse.success && gridResponse.data && gridResponse.data.grid) {
+                    gridResponse.data.grid.forEach(emp => {
+                        const empId = emp.code;
+                        dailyCheckins[empId] = {};
+                        for (let day = 1; day <= daysInMonth; day++) {
+                            const dateStr = `${year}-${month.padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                            const rawTime = emp.attendance[day] || '--:--';
+                            dailyCheckins[empId][dateStr] = convertTo12Hour(rawTime);
                         }
-                    } catch(e) { console.log(`Error fetching data for ${date}`); }
-                    await new Promise(resolve => setTimeout(resolve, 20));
+                    });
                 }
 
+                // ── Step 4: build allData ────────────────────────────────────────
                 allData = summaryResult.data.report.map(emp => {
                     const dailyTimes = {};
                     let presentCount = 0, lateCount = 0, leaveCount = 0;
+                    const paidLeaveDates = [];
                     const empLeaves = leaves[emp.code] || [];
+                    const calculationEndDay = getCalculationEndDay(currentYear, currentMonth);
 
                     for (let day = 1; day <= daysInMonth; day++) {
-                        const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                        let checkin = dailyCheckins[emp.code] ? dailyCheckins[emp.code][dateStr] : null;
-                        let formattedTime = checkin || '--:--';
+                        const dateStr = `${year}-${month.padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                        const checkin = dailyCheckins[emp.code] ? dailyCheckins[emp.code][dateStr] : null;
+                        const formattedTime = checkin || '--:--';
                         dailyTimes[day] = formattedTime;
                         const isLeaveDay = empLeaves.some(l => l.date === dateStr);
-                        const isWorkingDay = !isWeekend(currentYear, currentMonth, day);
-                        if (isLeaveDay && isWorkingDay) { leaveCount++; }
-                        else if (isWorkingDay && !isLeaveDay) {
-                            if (formattedTime !== '--:--') {
-                                presentCount++;
-                                if (isCheckinLate(formattedTime, day)) lateCount++;
-                            }
+                        const isWorkingDay = !isWeekend(currentYear, currentMonth, day) && day <= calculationEndDay;
+                        if (isWorkingDay && formattedTime !== '--:--') {
+                            presentCount++;
+                            if (isCheckinLate(formattedTime)) lateCount++;
+                        } else if (isWorkingDay && isLeaveDay && leaveCount < 1) {
+                            leaveCount = 1;
+                            paidLeaveDates.push(dateStr);
                         }
                     }
-                    const absent = workingDaysCount - presentCount - leaveCount;
-                    const attendance_rate = workingDaysCount > 0 ? Math.round((presentCount / workingDaysCount) * 100) : 0;
+                    const absent = Math.max(0, elapsedWorkingDaysCount - presentCount - leaveCount);
+                    const attendance_rate = elapsedWorkingDaysCount > 0 ? Math.round((presentCount / elapsedWorkingDaysCount) * 100) : 0;
 
                     return {
                         id: emp.code, name: emp.name, department: emp.department || 'General',
@@ -711,18 +1269,20 @@
                         accountTitle: emp.account_title || '', bankName: emp.bank_name || '',
                         appointmentDate: payrollAdj.appointmentDate[emp.code] || emp.appointment_date || '',
                         present: presentCount, late: lateCount, absent: absent, leave: leaveCount,
-                        working_days: workingDaysCount, attendance_rate: attendance_rate,
-                        attendance: dailyTimes, leaves: empLeaves
+                        working_days: workingDaysCount, elapsed_working_days: elapsedWorkingDaysCount, attendance_rate: attendance_rate,
+                        attendance: dailyTimes, leaves: empLeaves, paidLeaveDates
                     };
                 });
 
                 calculateStats();
                 renderTable();
                 updateCharts();
-                showToast(`✅ Loaded ${allData.length} employees (Working Days: ${workingDaysCount})`, 'success');
+                showToast(`✅ Loaded ${allData.length} employees for ${monthNames[currentMonth-1]} ${currentYear} (${workingDaysCount} working days)`, 'success');
+
             } catch (error) {
-                console.error('Error:', error);
-                showToast('Error loading data', 'error');
+                console.error('Load error:', error);
+                document.getElementById('tableBody').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--danger);"><i class="fas fa-exclamation-circle"></i> Failed to load data. Check your connection and try again.</td></tr>`;
+                showToast('Error loading attendance data', 'error');
             }
         }
 
@@ -779,7 +1339,7 @@
             }
             let headerHtml = `<tr><th>ID</th><th>Personnel</th><th>Department</th><th>Designation</th><th>Branch</th><th>Team</th>`;
             for (let day = 1; day <= daysInMonth; day++) {
-                let tooltip = day <= 8 ? "Late after 7:00 PM" : "Late after 6:10 PM";
+                let tooltip = "Late after 6:00 PM — one day salary deducted";
                 if (isWeekend(currentYear, currentMonth, day)) tooltip = "Weekend - Not counted in salary";
                 headerHtml += `<th title="${tooltip}" style="${isWeekend(currentYear, currentMonth, day) ? 'color: #a78bfa;' : ''}">${day} ${getMonthAbbr(currentMonth)}</th>`;
             }
@@ -800,7 +1360,7 @@
                     const checkin = emp.attendance[day];
                     const isPresent = checkin !== '--:--';
                     const isWeekendDay = isWeekend(currentYear, currentMonth, day);
-                    const hasLeave = emp.leaves.some(l => l.date === `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
+                    const hasLeave = emp.paidLeaveDates.includes(`${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
                     let cellClass = 'absent-cell';
                     let displayText = checkin;
                     if (hasLeave && !isWeekendDay) { cellClass = 'weekend-checkin'; displayText = '🌿 Leave'; }
@@ -841,6 +1401,7 @@
                 payrollAdj.empMeta[empId] = {
                     basicSalary: BASE_SALARY,
                     punctualityEnabled: true,
+                    punctualityAmount: PERFECT_ATTENDANCE_BONUS,
                     sudoName: '',
                     designation: '',
                     cnic: ''
@@ -859,31 +1420,37 @@
         }
 
         function isProbationCompleted(emp) {
-            if (!emp.appointmentDate) return true;
+            if (!emp.appointmentDate) return false;
             try {
                 const apptDate = new Date(emp.appointmentDate);
-                const monthEndDate = new Date(currentYear, currentMonth - 1, daysInMonth);
-                const diffDays = Math.floor((monthEndDate - apptDate) / (1000 * 60 * 60 * 24));
+                if (Number.isNaN(apptDate.getTime())) return false;
+                const calculationEndDay = getCalculationEndDay(currentYear, currentMonth);
+                if (calculationEndDay === 0) return false;
+                const eligibilityDate = new Date(currentYear, currentMonth - 1, calculationEndDay);
+                const diffDays = Math.floor((eligibilityDate - apptDate) / (1000 * 60 * 60 * 24));
                 return diffDays >= PROBATION_DAYS;
-            } catch(e) { return true; }
+            } catch(e) { return false; }
         }
 
         function calculatePayrollForEmployee(emp) {
             const meta = getEmpMeta(emp.id);
             const basicSalary = parseFloat(meta.basicSalary) || BASE_SALARY;
-            const punctualityBonus = meta.punctualityEnabled ? PERFECT_ATTENDANCE_BONUS : 0;
+            const configuredPunctuality = parseFloat(meta.punctualityAmount);
+            const punctualityBonus = meta.punctualityEnabled
+                ? (Number.isFinite(configuredPunctuality) ? configuredPunctuality : PERFECT_ATTENDANCE_BONUS)
+                : 0;
             const totalSalary = basicSalary + punctualityBonus;
-            const perDaySalary = workingDaysCount > 0 ? totalSalary / workingDaysCount : 0;
+            const perDaySalary = workingDaysCount > 0 ? basicSalary / workingDaysCount : 0;
 
-            let approvedLeaves = parseInt(payrollAdj.manualLeaves[emp.id] || 0);
-            let autoLeave = 0;
-            if (isProbationCompleted(emp) && emp.absent > 0 && approvedLeaves === 0) {
-                autoLeave = 1;
-            }
-            const totalApprovedLeaves = approvedLeaves + autoLeave;
-            const adjustedLeaveCount = Math.min(emp.absent, totalApprovedLeaves);
-            const adjustedAbsent = Math.max(0, emp.absent - adjustedLeaveCount);
+            const rawAbsence = Math.max(0, (emp.elapsed_working_days ?? elapsedWorkingDaysCount) - emp.present);
+            const hasManualLeaveOverride = Object.prototype.hasOwnProperty.call(payrollAdj.manualLeaves, emp.id);
+            const manualLeaveAllowed = parseInt(payrollAdj.manualLeaves[emp.id] || 0) > 0;
+            const recordedLeaveAllowed = Number(emp.leave || 0) > 0;
+            const automaticLeaveAllowed = !hasManualLeaveOverride && isProbationCompleted(emp) && rawAbsence > 0;
+            const adjustedLeaveCount = rawAbsence > 0 && (manualLeaveAllowed || recordedLeaveAllowed || automaticLeaveAllowed) ? 1 : 0;
+            const adjustedAbsent = Math.max(0, rawAbsence - adjustedLeaveCount);
             const totalWorkingDays = emp.present + adjustedLeaveCount;
+            const payrollMonthComplete = elapsedWorkingDaysCount >= workingDaysCount;
 
             let punctualityQualified = false;
             let punctualityAmount = 0;
@@ -891,22 +1458,12 @@
             if (manualPunc !== undefined) {
                 punctualityAmount = parseFloat(manualPunc) || 0;
                 punctualityQualified = punctualityAmount > 0;
-            } else if (meta.punctualityEnabled) {
-                if (totalWorkingDays === workingDaysCount && emp.late < 3) {
-                    punctualityQualified = true;
-                    punctualityAmount = punctualityBonus;
-                }
+            } else if (meta.punctualityEnabled && payrollMonthComplete && totalWorkingDays === workingDaysCount && emp.late === 0) {
+                punctualityQualified = true;
+                punctualityAmount = punctualityBonus;
             }
 
-            let lateDeduction = 0;
-            if (emp.late >= 3) {
-                if (punctualityQualified) {
-                    punctualityAmount = 0;
-                    punctualityQualified = false;
-                } else {
-                    lateDeduction = emp.late * LATE_PENALTY;
-                }
-            }
+            let lateDeduction = emp.late * perDaySalary;
             const manualLate = parseFloat(payrollAdj.manualLate[emp.id] || 0);
             if (manualLate > 0) lateDeduction = manualLate;
 
@@ -948,14 +1505,16 @@
             const grossSalary = totalEarnings - totalDeductions;
 
             let status = 'Good', statusClass = 'badge-perfect';
-            if (punctualityQualified && emp.absent === 0 && emp.late === 0) { status = 'Perfect'; statusClass = 'badge-perfect'; }
-            else if (emp.absent > 2) { status = 'Critical'; statusClass = 'badge-danger'; }
-            else if (emp.late >= 3 || emp.absent > 0) { status = 'Warning'; statusClass = 'badge-warning'; }
+            if (!payrollMonthComplete && adjustedAbsent === 0 && emp.late === 0) { status = 'Accruing'; statusClass = 'badge-perfect'; }
+            else if (punctualityQualified && adjustedAbsent === 0 && emp.late === 0) { status = 'Perfect'; statusClass = 'badge-perfect'; }
+            else if (adjustedAbsent > 2) { status = 'Critical'; statusClass = 'badge-danger'; }
+            else if (emp.late > 0 || adjustedAbsent > 0) { status = 'Warning'; statusClass = 'badge-warning'; }
 
             return {
                 ...emp,
-                meta, basicSalary, totalSalary, perDaySalary,
-                approvedLeaves: totalApprovedLeaves, adjustedLeaveCount, adjustedAbsent, totalWorkingDays,
+                meta, basicSalary, punctualityBonus, totalSalary, perDaySalary,
+                approvedLeaves: adjustedLeaveCount, adjustedLeaveCount, adjustedAbsent, totalWorkingDays,
+                rawAbsence, payrollMonthComplete,
                 punctualityQualified, punctualityAmount,
                 lateDeduction, tada, bonus, arrears, extraDays, extraDayPay,
                 halfDayCount, halfDayAmount, ncnsCount, ncnsAmount, sdCount, sdAmount,
@@ -1022,21 +1581,21 @@
             inputWrapper.appendChild(resultsDiv);
         }
 
-        function openPayrollDashboard() {
+        async function openPayrollDashboard() {
             const modal = document.getElementById('payrollModal');
             const body = document.getElementById('payrollModalBody');
             modal.classList.add('active');
             body.innerHTML = '<div class="loading-state"><div class="loading-spinner"></div><p>Calculating professional payroll...</p></div>';
             if (allData.length === 0) {
-                loadAttendanceData().then(() => renderPayrollDashboard());
+                await loadAttendanceData();
             } else {
-                renderPayrollDashboard();
+                await loadAllAdj();
             }
+            renderPayrollDashboard();
         }
 
         function renderPayrollDashboard() {
             const body = document.getElementById('payrollModalBody');
-            loadAllAdj();
             let dataToProcess = allData;
             if (currentPayrollSearchTerm) {
                 dataToProcess = allData.filter(emp => 
@@ -1054,6 +1613,8 @@
             const totalBonusAmt = payrollData.reduce((s, e) => s + e.bonus, 0);
             const totalArrears = payrollData.reduce((s, e) => s + e.arrears, 0);
             const totalAdvance = payrollData.reduce((s, e) => s + e.advanceDeduction, 0);
+            const totalDailyAccrued = payrollData.reduce((s, e) => s + (e.present * e.perDaySalary), 0);
+            const totalPaidLeaveAccrued = payrollData.reduce((s, e) => s + (e.adjustedLeaveCount * e.perDaySalary), 0);
 
             body.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; gap:20px; flex-wrap:wrap;">
@@ -1080,8 +1641,10 @@
 
                 <div class="tab-content active" id="tab-overview">
                     <div class="payroll-rules">
-                        <div class="rule-card"><div class="rule-icon"><i class="fas fa-star"></i></div><div class="rule-title">Punctuality Bonus</div><div class="rule-amount">+₨ ${PERFECT_ATTENDANCE_BONUS.toLocaleString()}</div><div class="rule-desc">Full days, <3 lates</div></div>
-                        <div class="rule-card"><div class="rule-icon warning"><i class="fas fa-clock"></i></div><div class="rule-title">Late Penalty</div><div class="rule-amount negative">-₨ ${LATE_PENALTY}/late</div><div class="rule-desc">≥3 lates triggers</div></div>
+                        <div class="rule-card"><div class="rule-icon"><i class="fas fa-star"></i></div><div class="rule-title">Punctuality Reward</div><div class="rule-amount">Configured per employee</div><div class="rule-desc">Full month, no late arrivals</div></div>
+                        <div class="rule-card"><div class="rule-icon warning"><i class="fas fa-clock"></i></div><div class="rule-title">6:00 PM Cutoff</div><div class="rule-amount negative">-1 day salary</div><div class="rule-desc">Any check-in after 6:00 PM; no grace</div></div>
+                        <div class="rule-card"><div class="rule-icon info"><i class="fas fa-calendar-check"></i></div><div class="rule-title">Paid Leave</div><div class="rule-amount">Maximum 1 day</div><div class="rule-desc">Auto after 60-day probation or manual approval</div></div>
+                        <div class="rule-card"><div class="rule-icon purple"><i class="fas fa-calendar-week"></i></div><div class="rule-title">Working Week</div><div class="rule-amount">Monday–Friday</div><div class="rule-desc">Saturday and Sunday are excluded</div></div>
                         <div class="rule-card"><div class="rule-icon danger"><i class="fas fa-user-slash"></i></div><div class="rule-title">NCNS Penalty</div><div class="rule-amount negative">-₨ ${NCNS_PENALTY.toLocaleString()}</div><div class="rule-desc">No Call No Show / day</div></div>
                         <div class="rule-card"><div class="rule-icon info"><i class="fas fa-bread-slice"></i></div><div class="rule-title">SandWich (SD)</div><div class="rule-amount negative">-Per Day × 2</div><div class="rule-desc">Per SD occurrence</div></div>
                         <div class="rule-card"><div class="rule-icon warning"><i class="fas fa-hourglass-half"></i></div><div class="rule-title">Half Day</div><div class="rule-amount negative">-Per Day ÷ 2</div><div class="rule-desc">Approved by admin</div></div>
@@ -1090,11 +1653,11 @@
                         <div class="rule-card"><div class="rule-icon info"><i class="fas fa-hand-holding-usd"></i></div><div class="rule-title">Advance Salary</div><div class="rule-amount negative">-Per Month Plan</div><div class="rule-desc">Auto-deducted</div></div>
                     </div>
                     <div class="payroll-summary">
-                        <div class="summary-card"><div class="value info">${payrollData.length}</div><div class="label">Matched Personnel</div></div>
-                        <div class="summary-card"><div class="value">₨ ${totalGross.toLocaleString()}</div><div class="label">Total Salary (Base)</div></div>
-                        <div class="summary-card"><div class="value">₨ ${totalEarnings.toLocaleString()}</div><div class="label">Total Earnings</div></div>
+                        <div class="summary-card"><div class="value info">${payrollData.length}</div><div class="label">Employees</div></div>
+                        <div class="summary-card"><div class="value">₨ ${Math.round(totalDailyAccrued).toLocaleString()}</div><div class="label">Present-Day Salary Accrued</div></div>
+                        <div class="summary-card"><div class="value info">₨ ${Math.round(totalPaidLeaveAccrued).toLocaleString()}</div><div class="label">Paid Leave Accrued</div></div>
+                        <div class="summary-card"><div class="value">₨ ${totalGross.toLocaleString()}</div><div class="label">Monthly Contract Value</div></div>
                         <div class="summary-card"><div class="value negative">₨ ${totalDeductionsSum.toLocaleString()}</div><div class="label">Total Deductions</div></div>
-                        <div class="summary-card"><div class="value warning">₨ ${totalAdvance.toLocaleString()}</div><div class="label">Advance Recovery</div></div>
                         <div class="summary-card"><div class="value" style="color:var(--secondary)">₨ ${Math.round(totalNet).toLocaleString()}</div><div class="label">NET PAYROLL</div></div>
                     </div>
                     <div class="adj-section">
@@ -1136,7 +1699,8 @@
                 <div class="payroll-table-container">
                 <table class="payroll-table">
                     <thead><tr>
-                        <th>B-ID</th><th>Employee Name</th><th>Designation</th><th>Department</th>
+                        <th>B-ID</th><th>Employee Name</th><th>Sudo Name</th><th>Designation</th><th>Campaign</th><th>Department</th>
+                        <th>CNIC</th><th>Contact</th><th>Account No.</th><th>Account Title</th><th>Bank</th><th>Appointment</th>
                         <th>Basic Salary</th><th>Punctuality</th><th>Total Salary</th>
                         <th>Per Day</th><th>Days</th><th>Present</th><th>Leave</th><th>Absent</th><th>T.W.Days</th>
                         <th>P.Reward</th><th>Bonus</th><th>TA/DA</th><th>Arrears</th>
@@ -1148,17 +1712,25 @@
                         <th>QA/HR</th><th>Misspunch</th>
                         <th>Advance</th><th>Absent Ded.</th><th>Tax</th>
                         <th class="amount-positive">GROSS</th>
-                        <th>Status</th><th>Action</th>
+                        <th>Remarks</th><th>Comments</th><th>Status</th><th>Action</th>
                      </tr></thead>
                     <tbody>
                         ${(currentPayrollSearchTerm ? payrollData.filter(e => e.name.toLowerCase().includes(currentPayrollSearchTerm.toLowerCase()) || e.id.toLowerCase().includes(currentPayrollSearchTerm.toLowerCase())) : payrollData).map(e => `
                             <tr>
-                                <td class="amount-positive">${e.id}</td>
-                                <td style="text-align:left;"><strong>${e.name}</strong></td>
-                                <td>${e.designation}</td>
-                                <td>${e.department}</td>
+                                <td class="amount-positive">${escapeHtml(e.id)}</td>
+                                <td style="text-align:left;"><strong>${escapeHtml(e.name)}</strong></td>
+                                <td>${escapeHtml(e.meta.sudoName || '—')}</td>
+                                <td>${escapeHtml(e.meta.designation || e.designation || '—')}</td>
+                                <td>${escapeHtml(e.team || '—')}</td>
+                                <td>${escapeHtml(e.department || '—')}</td>
+                                <td>${escapeHtml(e.meta.cnic || e.cnic || '—')}</td>
+                                <td>${escapeHtml(e.contact || '—')}</td>
+                                <td>${escapeHtml(e.meta.accountNo || e.accountNo || '—')}</td>
+                                <td>${escapeHtml(e.meta.accountTitle || e.accountTitle || '—')}</td>
+                                <td>${escapeHtml(e.meta.bankName || e.bankName || '—')}</td>
+                                <td>${escapeHtml(e.appointmentDate || '—')}</td>
                                 <td>₨${e.basicSalary.toLocaleString()}</td>
-                                <td>₨${(e.meta.punctualityEnabled ? PERFECT_ATTENDANCE_BONUS : 0).toLocaleString()}</td>
+                                <td>₨${e.punctualityBonus.toLocaleString()}</td>
                                 <td>₨${e.totalSalary.toLocaleString()}</td>
                                 <td>₨${Math.round(e.perDaySalary).toLocaleString()}</td>
                                 <td>${workingDaysCount}</td>
@@ -1173,7 +1745,7 @@
                                 <td>${e.extraDays}</td>
                                 <td class="${e.extraDayPay>0?'amount-positive':'amount-neutral'}">${e.extraDayPay>0?`+₨${Math.round(e.extraDayPay).toLocaleString()}`:'—'}</td>
                                 <td>${e.late}</td>
-                                <td class="${e.lateDeduction>0?'amount-negative':'amount-neutral'}">${e.lateDeduction>0?`-₨${e.lateDeduction.toLocaleString()}`:'—'}</td>
+                                <td class="${e.lateDeduction>0?'amount-negative':'amount-neutral'}">${e.lateDeduction>0?`-₨${Math.round(e.lateDeduction).toLocaleString()}`:'—'}</td>
                                 <td>${e.halfDayCount}</td>
                                 <td class="${e.halfDayAmount>0?'amount-negative':'amount-neutral'}">${e.halfDayAmount>0?`-₨${Math.round(e.halfDayAmount).toLocaleString()}`:'—'}</td>
                                 <td>${e.sdCount}</td>
@@ -1186,6 +1758,7 @@
                                 <td class="${e.absentDeduction>0?'amount-negative':'amount-neutral'}">${e.absentDeduction>0?`-₨${Math.round(e.absentDeduction).toLocaleString()}`:'—'}</td>
                                 <td class="${e.tax>0?'amount-negative':'amount-neutral'}">${e.tax>0?`-₨${e.tax.toLocaleString()}`:'—'}</td>
                                 <td class="amount-positive" style="font-size:13px;font-weight:800;">₨${Math.round(e.grossSalary).toLocaleString()}</td>
+                                <td>—</td><td>—</td>
                                 <td><span class="${e.statusClass}">${e.status}</span></td>
                                 <td><button class="view-slip-btn" onclick="viewPayrollSlip('${e.id}', event)"><i class="fas fa-receipt"></i></button></td>
                             </tr>
@@ -1429,7 +2002,7 @@
                         <input type="hidden" id="al-emp" value="">
                     </div>
                     <div class="adj-form-grid three">
-                        <div><label class="adj-label">Approved Leaves Count</label><input type="number" class="adj-input" id="al-amt" placeholder="Number of approved leaves"></div>
+                        <div><label class="adj-label">Paid Leave Override (0 or 1)</label><input type="number" class="adj-input" id="al-amt" min="0" max="1" step="1" placeholder="0 to remove, 1 to allow"></div>
                         <div style="display:flex;align-items:flex-end;"><button class="btn btn-success" onclick="setApprovedLeavesFromSearch()"><i class="fas fa-save"></i> Save</button></div>
                     </div>
                 </div>
@@ -1491,10 +2064,10 @@
             if (!searchValue) { showToast('Please search and select an employee first', 'warning'); return; }
             const employee = allData.find(emp => emp.name.toLowerCase() === searchValue.toLowerCase() || emp.id.toLowerCase() === searchValue.toLowerCase());
             if (!employee) { showToast('Employee not found', 'warning'); return; }
-            const amt = parseInt(document.getElementById('al-amt').value) || 0;
+            const amt = Math.min(1, Math.max(0, parseInt(document.getElementById('al-amt').value) || 0));
             payrollAdj.manualLeaves[employee.id] = amt;
             persistAllAdj();
-            showToast(`✅ Approved leaves set for ${employee.name}`, 'success');
+            showToast(`✅ Paid leave override set to ${amt} for ${employee.name}`, 'success');
             searchInput.value = '';
             document.getElementById('al-amt').value = '';
             renderPayrollDashboard();
@@ -1522,7 +2095,7 @@
         }
 
         function renderSettingsTab() {
-            let listHtml = '<div style="overflow-x:auto;"><table class="payroll-table" style="min-width:1100px;"><thead><tr><th>ID</th><th>Name</th><th>Basic Salary</th><th>Punctuality Enabled</th><th>Appointment Date</th><th>CNIC</th><th>Action</th></tr></thead><tbody>';
+            let listHtml = '<div style="overflow-x:auto;"><table class="payroll-table" style="min-width:1200px;"><thead><tr><th>ID</th><th>Name</th><th>Basic Salary</th><th>Punctuality Enabled</th><th>Punctuality Reward (Rs)</th><th>Appointment Date</th><th>CNIC</th><th>Action</th></tr></thead><tbody>';
             const filteredForSettings = currentPayrollSearchTerm ? allData.filter(emp => emp.name.toLowerCase().includes(currentPayrollSearchTerm.toLowerCase()) || emp.id.toLowerCase().includes(currentPayrollSearchTerm.toLowerCase())) : allData;
             filteredForSettings.forEach(emp => {
                 const meta = getEmpMeta(emp.id);
@@ -1531,6 +2104,7 @@
                     <td style="text-align:left;">${emp.name}</td>
                     <td><input type="number" class="adj-input" id="set-bs-${emp.id}" value="${meta.basicSalary}" style="width:120px;"></td>
                     <td><input type="checkbox" id="set-punc-${emp.id}" ${meta.punctualityEnabled ? 'checked' : ''}></td>
+                    <td><input type="number" class="adj-input" id="set-punc-amt-${emp.id}" value="${meta.punctualityAmount ?? PERFECT_ATTENDANCE_BONUS}" style="width:100px;"></td>
                     <td><input type="date" class="adj-input" id="set-app-${emp.id}" value="${emp.appointmentDate || ''}" style="width:150px;"></td>
                     <td><input type="text" class="adj-input" id="set-cnic-${emp.id}" value="${meta.cnic || emp.cnic || ''}" style="width:140px;" placeholder="XXXXX-XXXXXXX-X"></td>
                     <td><button class="btn btn-success" style="padding:6px 12px;font-size:11px;" onclick="saveEmpSettings('${emp.id}')"><i class="fas fa-save"></i> Save</button></td>
@@ -1593,11 +2167,13 @@
         function saveEmpSettings(empId) {
             const bs = parseFloat(document.getElementById(`set-bs-${empId}`).value) || BASE_SALARY;
             const punc = document.getElementById(`set-punc-${empId}`).checked;
+            const puncAmt = parseFloat(document.getElementById(`set-punc-amt-${empId}`).value) || PERFECT_ATTENDANCE_BONUS;
             const appDate = document.getElementById(`set-app-${empId}`).value;
             const cnic = document.getElementById(`set-cnic-${empId}`).value;
             const meta = getEmpMeta(empId);
             meta.basicSalary = bs;
             meta.punctualityEnabled = punc;
+            meta.punctualityAmount = puncAmt;
             meta.cnic = cnic;
             payrollAdj.empMeta[empId] = meta;
             if (appDate) payrollAdj.appointmentDate[empId] = appDate;
@@ -1614,11 +2190,12 @@
 
         function exportPayrollCSV() {
             const payrollData = allData.map(emp => calculatePayrollForEmployee(emp));
-            const headers = ['B-ID','Name','Designation','Department','Branch','Team','CNIC','Basic Salary','Punctuality','Total Salary','Per Day','Working Days','Present','Leave','Absent','T.W.Days','P.Reward','Bonus','TA/DA','Arrears','Extra Days','Extra Pay','Late','Late Ded','HD#','HD Amt','SD#','SD Amt','NCNS#','NCNS Amt','QA/HR','Misspunch#','Misspunch Amt','Advance Ded','Advance Remaining','Absent Ded','Tax','Total Earnings','Total Deductions','GROSS SALARY','Status'];
-            let csv = headers.map(h=>`"${h}"`).join(',') + '\n';
+            const headers = ['B-ID','Employee Name','Sudo Name','Designation','Campaign','Department','CNIC','Contact No.','Account No.','Account Title','Bank Name','Appointment Date','Basic Salary','Punctuality','Total Salary','Salary Per Day','Working Days in Month','Elapsed Working Days','Present','Leave','Absent','Total Working Days','P.Reward','Bonus','TA/DA','Arrears','Extra Days','Extra Day Pay','Late Coming','Late Deduction','Half Day Count','Half Day Amount','SD Count','SD Amount','NCNS Count','NCNS Amount','QA/HR Docs','Misspunch Count','Misspunch Amount','Advance Deduction','Advance Remaining','Absent Deduction','Tax','Total Earnings','Total Deductions','Gross Salary','Remarks','Comments','Status'];
+            const csvCell = value => `"${String(value ?? '').replaceAll('"', '""')}"`;
+            let csv = headers.map(csvCell).join(',') + '\n';
             payrollData.forEach(e => {
-                const row = [e.id, e.name, e.designation, e.department, e.branch, e.team, e.meta.cnic||e.cnic||'', e.basicSalary, e.meta.punctualityEnabled?PERFECT_ATTENDANCE_BONUS:0, e.totalSalary, Math.round(e.perDaySalary), workingDaysCount, e.present, e.adjustedLeaveCount, e.adjustedAbsent, e.totalWorkingDays, e.punctualityAmount, e.bonus, e.tada, e.arrears, e.extraDays, Math.round(e.extraDayPay), e.late, e.lateDeduction, e.halfDayCount, Math.round(e.halfDayAmount), e.sdCount, Math.round(e.sdAmount), e.ncnsCount, e.ncnsAmount, e.qaHrAmount, e.misspunchCount, e.misspunchAmount, e.advanceDeduction, e.advanceRemaining, Math.round(e.absentDeduction), e.tax, Math.round(e.totalEarnings), Math.round(e.totalDeductions), Math.round(e.grossSalary), e.status];
-                csv += row.map(c => `"${c}"`).join(',') + '\n';
+                const row = [e.id, e.name, e.meta.sudoName||'', e.meta.designation||e.designation, e.team, e.department, e.meta.cnic||e.cnic||'', e.contact||'', e.meta.accountNo||e.accountNo||'', e.meta.accountTitle||e.accountTitle||'', e.meta.bankName||e.bankName||'', e.appointmentDate||'', e.basicSalary, e.punctualityBonus, e.totalSalary, Math.round(e.perDaySalary), workingDaysCount, elapsedWorkingDaysCount, e.present, e.adjustedLeaveCount, e.adjustedAbsent, e.totalWorkingDays, e.punctualityAmount, e.bonus, e.tada, e.arrears, e.extraDays, Math.round(e.extraDayPay), e.late, Math.round(e.lateDeduction), e.halfDayCount, Math.round(e.halfDayAmount), e.sdCount, Math.round(e.sdAmount), e.ncnsCount, e.ncnsAmount, e.qaHrAmount, e.misspunchCount, e.misspunchAmount, e.advanceDeduction, e.advanceRemaining, Math.round(e.absentDeduction), e.tax, Math.round(e.totalEarnings), Math.round(e.totalDeductions), Math.round(e.grossSalary), '', '', e.status];
+                csv += row.map(csvCell).join(',') + '\n';
             });
             downloadCSV(csv, `payroll_${currentYear}_${currentMonth}.csv`);
             showToast('✅ Payroll exported', 'success');
@@ -1759,7 +2336,7 @@
                 const checkin = employee.attendance[day];
                 const isPresent = checkin !== '--:--';
                 const isLate = isPresent && isCheckinLate(checkin, day);
-                const hasLeave = employee.leaves.some(l => l.date === `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
+                const hasLeave = employee.paidLeaveDates.includes(`${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
                 let status = 'Absent', statusColor = '#ef4444', statusBg = 'rgba(239,68,68,0.2)', type = 'Working Day';
                 if (isWeekendDay) { type = 'Weekend'; status = isPresent ? 'Present (Weekend)' : 'Weekend'; statusColor = '#a78bfa'; statusBg = 'rgba(139,92,246,0.2)'; }
                 else if (hasLeave) { type = 'Working Day'; status = 'On Leave'; statusColor = '#a78bfa'; statusBg = 'rgba(139,92,246,0.2)'; }
@@ -1819,7 +2396,7 @@
             headers.push('Present Days', 'Absent Days', 'Late Days', 'Leave Days', `Working Days (${workingDaysCount})`);
             let csvContent = headers.map(h => `"${h}"`).join(',') + '\n';
             filtered.forEach(emp => { let row = [emp.id, emp.name, emp.department, emp.designation, emp.branch, emp.team];
-                for (let day = 1; day <= daysInMonth; day++) { let val = emp.attendance[day]; const hasLeave = emp.leaves.some(l => l.date === `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`); if (hasLeave && !isWeekend(currentYear, currentMonth, day)) val = 'LEAVE'; row.push(val); }
+                for (let day = 1; day <= daysInMonth; day++) { let val = emp.attendance[day]; const hasLeave = emp.paidLeaveDates.includes(`${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`); if (hasLeave && !isWeekend(currentYear, currentMonth, day)) val = 'LEAVE'; row.push(val); }
                 row.push(emp.present, emp.absent, emp.late, emp.leave, emp.working_days);
                 csvContent += row.map(cell => `"${cell}"`).join(',') + '\n';
             });
@@ -1839,7 +2416,7 @@
                 const checkin = employee.attendance[day];
                 const isPresent = checkin !== '--:--';
                 const isLate = isPresent && isCheckinLate(checkin, day);
-                const hasLeave = employee.leaves.some(l => l.date === `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
+                const hasLeave = employee.paidLeaveDates.includes(`${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
                 let status = 'Absent', counted = 'Yes', type = 'Working Day';
                 if (isWeekendDay) { type = 'Weekend'; counted = 'No'; status = isPresent ? 'Present (Weekend)' : 'Weekend'; }
                 else if (hasLeave) { status = 'On Leave'; counted = 'Yes (Leave)'; }
@@ -1862,7 +2439,11 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000); 
         }
 
-        function closeModal() { document.getElementById('employeeModal').classList.remove('active'); }
+        function closeModal(modalId) {
+            const id = modalId || 'employeeModal';
+            const m = document.getElementById(id);
+            if (m) m.classList.remove('active');
+        }
 
         function handlePayrollSearch(val) {
             currentPayrollSearchTerm = val;
@@ -1877,10 +2458,11 @@
         document.getElementById('searchInput').addEventListener('keyup', function() { searchTerm = this.value; renderTable(); });
         document.getElementById('departmentFilter').addEventListener('change', function() { currentDepartment = this.value; renderTable(); });
 
-        loadAllAdj();
-        loadEmployeeList();
-        document.addEventListener('DOMContentLoaded', loadAttendanceData);
-        window.onclick = function(event) { if (event.target.classList.contains('modal') && event.target.id !== 'payrollModal') closeModal(); }
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal') && event.target.id !== 'payrollModal') {
+                closeModal(event.target.id);
+            }
+        }
 
         function createParticles() { 
             const container = document.getElementById('particles'); 
@@ -1940,6 +2522,27 @@
         window.setTaxFromSearch = setTaxFromSearch;
         window.closeModal = closeModal;
         window.filterByTeamLead = filterByTeamLead;
+
+        // ── Auto-initialize with current month on page load ───────────────────
+        (function initPage() {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const picker = document.getElementById('monthPicker');
+            // Only override if still showing an old hard-coded value
+            if (picker && picker.value !== `${y}-${m}`) {
+                picker.value = `${y}-${m}`;
+            }
+            loadEmployeeList();
+            loadAttendanceData();
+        })();
+
+        // User Management global bindings
+        window.switchMainView = switchMainView;
+        window.loadFinanceUsers = loadFinanceUsers;
+        window.filterFinanceUsers = filterFinanceUsers;
+        window.openFinanceUserEditor = openFinanceUserEditor;
+        window.saveFinanceUserSettings = saveFinanceUserSettings;
     </script>
     <script src="js/portal-chat-fab.js"></script>
 </body>

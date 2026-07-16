@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Listen for tab changes
-    const salaryNavButtons = document.querySelectorAll('[data-view="salary"]');
+    const salaryNavButtons = document.querySelectorAll('[data-view="payslips"]');
     salaryNavButtons.forEach(btn => {
         btn.addEventListener('click', loadMyPayslips);
     });
