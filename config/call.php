@@ -6,7 +6,7 @@ define('CALL_TIMEOUT_SECONDS', 30);
 define('CALL_HEARTBEAT_TIMEOUT_SECONDS', 15);
 
 // LiveKit Media Server Configuration
-define('LIVEKIT_HOST', 'call.example.com');
+define('LIVEKIT_HOST', 'hrms.balitech.org/livekit');
 define('LIVEKIT_WS_URL', 'wss://' . LIVEKIT_HOST);
 
 // Local Token Service

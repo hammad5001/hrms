@@ -22,3 +22,6 @@ attendance/python-script/venv/
 snapshots/
 call-token-service/.env
 .env
+call-token-service/node_modules/
+*.backup-*
+*.save

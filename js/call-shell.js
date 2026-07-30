@@ -20,7 +20,7 @@
 
     // Load LiveKit SDK from CDN dynamically
     function loadLiveKitSDK(callback) {
-        if (livekitSdkLoaded || window.LiveKit || window.LiveKitClient) {
+        if (livekitSdkLoaded || window.LiveKit || window.LivekitClient) {
             if (callback) callback();
             return;
         }
@@ -320,7 +320,7 @@
     async function initiateLiveKitSession() {
         if (!currentCall || !currentCall.token) return;
 
-        const LkSdk = window.LiveKit || window.LiveKitClient;
+        const LkSdk = window.LiveKit || window.LivekitClient;
         if (!LkSdk) {
             console.error('LiveKit SDK not found globally');
             hangupCall();
@@ -366,7 +366,7 @@
             startCallTimer();
 
             // Render existing participants
-            activeRoom.participants.forEach(function (p) {
+            activeRoom.remoteParticipants.forEach(function (p) {
                 addParticipantCard(p);
             });
 
@@ -379,7 +379,7 @@
 
     // Track Subscription Handlers
     function handleTrackSubscribed(track, participant) {
-        const LkSdk = window.LiveKit || window.LiveKitClient;
+        const LkSdk = window.LiveKit || window.LivekitClient;
         if (LkSdk && track.kind === LkSdk.Track.Kind.Audio) {
             // Attach audio stream
             const el = track.attach();
@@ -401,7 +401,7 @@
     }
 
     function handleTrackUnsubscribed(track, participant) {
-        const LkSdk = window.LiveKit || window.LiveKitClient;
+        const LkSdk = window.LiveKit || window.LivekitClient;
         track.detach().forEach(el => el.remove());
         if (LkSdk && track.kind === LkSdk.Track.Kind.Video) {
             // Restore participant grid
@@ -414,7 +414,7 @@
         if (!mainContainer) return;
         mainContainer.innerHTML = '<div class="bt-call-main-grid" id="btCallMainGrid"></div>';
         if (activeRoom) {
-            activeRoom.participants.forEach(p => addParticipantCard(p));
+            activeRoom.remoteParticipants.forEach(p => addParticipantCard(p));
         }
     }
 
@@ -543,6 +543,15 @@
 
     function handleParticipantLeft(payload) {
         console.log('Participant left:', payload.user_name);
+
+        // Direct 1-to-1 call: close the host side when the other person leaves
+        if (
+            currentCall &&
+            currentCall.role === 'host' &&
+            currentCall.uuid === payload.uuid
+        ) {
+            hangupCall();
+        }
     }
 
     function handleRecipientBusy(payload) {
@@ -594,7 +603,7 @@
         } else {
             // Start sharing
             try {
-                const LkSdk = window.LiveKit || window.LiveKitClient;
+                const LkSdk = window.LiveKit || window.LivekitClient;
                 if (!LkSdk) return;
                 const tracks = await LkSdk.createLocalScreenTracks({ audio: false });
                 localScreenTrack = tracks[0];

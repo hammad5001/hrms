@@ -1,9 +1,29 @@
 // js/call-bridge.js - Chat-side integration bridge for starting RTC calls.
 
 (function () {
+    const allowedCallRoles = ['super_admin', 'admin', 'team_lead'];
+
+    function canStartRtcCall() {
+        if (typeof Chat === 'undefined' || !Chat.me) {
+            return false;
+        }
+
+        const role = String(Chat.me.portal_role || '')
+            .trim()
+            .toLowerCase();
+
+        return allowedCallRoles.includes(role);
+    }
+
     function injectCallButton() {
         const headerActions = document.querySelector('.chat-header-actions');
         if (!headerActions) return;
+
+        if (!canStartRtcCall()) {
+            const existingButton = document.getElementById('btnStartRtcCall');
+            if (existingButton) existingButton.remove();
+            return;
+        }
 
         // Check if button is already injected
         if (document.getElementById('btnStartRtcCall')) return;
@@ -38,10 +58,14 @@
 
     // Monitor conversation selection updates
     setInterval(function () {
-        if (typeof Chat !== 'undefined' && Chat.activeId) {
+        if (
+            typeof Chat !== 'undefined' &&
+            Chat.activeId &&
+            canStartRtcCall()
+        ) {
             injectCallButton();
         } else {
-            // Remove button if no active conversation
+            // Remove button if user cannot call or no conversation is active
             const btn = document.getElementById('btnStartRtcCall');
             if (btn) btn.remove();
         }

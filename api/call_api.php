@@ -63,6 +63,18 @@ try {
             break;
 
         case 'create':
+            $callerRole = strtolower(trim((string)($me['portal_role'] ?? '')));
+            $allowedCallerRoles = ['super_admin', 'admin', 'team_lead'];
+
+            if (!in_array($callerRole, $allowedCallerRoles, true)) {
+                call_json(
+                    false,
+                    null,
+                    'Only Super Admins, Admins and Team Leads can initiate calls',
+                    403
+                );
+            }
+
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                 call_json(false, null, 'Method not allowed', 450);
             }

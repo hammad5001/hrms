@@ -809,10 +809,19 @@ class DailyAttendanceTracker:
         print("2. April 2026")
         print("3. May 2026")
         print("4. June 2026")
-        print("5. Cancel")
-        choice = input("\nSelect option (1-5): ").strip()
+        print("5. July 2026")
+        print("6. August 2026")
+        print("7. September 2026")
+        print("8. Cancel")
+        choice = input("\nSelect option (1-8): ").strip()
         months = {
-            "1": (2026, 3), "2": (2026, 4), "3": (2026, 5), "4": (2026, 6),
+            "1": (2026, 3),
+            "2": (2026, 4),
+            "3": (2026, 5),
+            "4": (2026, 6),
+            "5": (2026, 7),
+            "6": (2026, 8),
+            "7": (2026, 9),
         }
         if choice not in months:
             print("Operation cancelled")
@@ -1187,4 +1196,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()  
+    main()
