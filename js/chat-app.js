@@ -462,7 +462,38 @@ function escapeHtml(s) {
 }
 
 function linkify(text) {
-    return escapeHtml(text).replace(/\n/g, '<br>');
+    let html = escapeHtml(text || '');
+    // Convert markdown bold **text** or *text* to <strong>text</strong>
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*([^\*\s][^\*]*[^\*\s]|[^\*\s])\*/g, '<strong>$1</strong>');
+    return html.replace(/\n/g, '<br>');
+}
+
+function toggleBoldSelection(inputEl) {
+    if (!inputEl) return;
+    const start = inputEl.selectionStart || 0;
+    const end = inputEl.selectionEnd || 0;
+    const val = inputEl.value;
+
+    if (start !== end) {
+        const selected = val.substring(start, end);
+        if (selected.startsWith('**') && selected.endsWith('**') && selected.length >= 4) {
+            const unwrapped = selected.slice(2, -2);
+            inputEl.value = val.substring(0, start) + unwrapped + val.substring(end);
+            inputEl.setSelectionRange(start, start + unwrapped.length);
+        } else {
+            const wrapped = `**${selected}**`;
+            inputEl.value = val.substring(0, start) + wrapped + val.substring(end);
+            inputEl.setSelectionRange(start, start + wrapped.length);
+        }
+    } else {
+        const prefix = val.substring(0, start);
+        const suffix = val.substring(end);
+        inputEl.value = prefix + '****' + suffix;
+        inputEl.setSelectionRange(start + 2, start + 2);
+    }
+    inputEl.focus();
+    inputEl.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 /* ─── Ticks ─────────────────────────────────────────────── */
@@ -700,7 +731,8 @@ function previewText(msg) {
     if (msg.msg_type === 'image') return 'Photo';
     if (msg.msg_type === 'file') return 'Attachment';
     if (msg.is_deleted) return 'Message deleted';
-    return (msg.body || '').slice(0, 60);
+    const cleanBody = (msg.body || '').replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*([^\*]+)\*/g, '$1');
+    return cleanBody.slice(0, 60);
 }
 
 function getFilteredConversations() {
@@ -814,9 +846,7 @@ async function markAllConversationsRead() {
         toast('No unread messages');
         return;
     }
-    await Promise.all(unread.map(c =>
-        chatApi('markRead', { method: 'POST', body: { conversation_id: c.id } })
-    ));
+    await chatApi('markAllRead', { method: 'POST' });
     toast('All conversations marked as read');
     await loadConversations();
 }
@@ -2827,9 +2857,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.target.value = '';
     });
 
+    document.getElementById('btnBold')?.addEventListener('click', () => {
+        toggleBoldSelection(document.getElementById('msgInput'));
+    });
+
     document.getElementById('btnSend').addEventListener('click', sendText);
     const msgInput = document.getElementById('msgInput');
     msgInput.addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+            e.preventDefault();
+            toggleBoldSelection(msgInput);
+            return;
+        }
         if (handleMentionKeydown(e)) return;
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendText(); }
         else notifyTyping();
@@ -3012,6 +3051,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     document.getElementById('confirmEditMsg')?.addEventListener('click', confirmEdit);
     document.getElementById('editMsgInput')?.addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+            e.preventDefault();
+            toggleBoldSelection(document.getElementById('editMsgInput'));
+            return;
+        }
         if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) confirmEdit();
     });
 

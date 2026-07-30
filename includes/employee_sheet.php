@@ -48,27 +48,60 @@ function load_employee_sheet_data(): array {
 }
 
 function merge_employee_db_row(mysqli $conn, array $employees): array {
-    $res = $conn->query("SELECT employee_code, full_name, department, designation, branch FROM employees WHERE is_active = 1");
+    $sql = "
+        SELECT 
+            u.employee_code, 
+            u.full_name, 
+            COALESCE(NULLIF(u.team, ''), '') as team,
+            COALESCE(NULLIF(u.department, ''), '') as department,
+            COALESCE(NULLIF(m.designation, ''), NULLIF(u.designation, ''), '') as designation,
+            COALESCE(NULLIF(m.company_branch, ''), NULLIF(u.company_branch, ''), NULLIF(u.branch, ''), '') as branch
+        FROM users u
+        LEFT JOIN employee_payroll_meta m ON (u.employee_code IS NOT NULL AND u.employee_code != '' AND u.employee_code = m.employee_code)
+        WHERE u.status = 'active' AND u.employee_code IS NOT NULL AND u.employee_code != ''
+    ";
+    $res = $conn->query($sql);
     if ($res) {
         while ($row = $res->fetch_assoc()) {
-            $code = $row['employee_code'];
+            $code = trim($row['employee_code']);
+            if ($code === '') continue;
+            
+            $existing = $employees[$code] ?? [];
+            
+            // Smart merge: database fields override sheet fields IF non-empty; otherwise preserve sheet values
+            $employees[$code] = [
+                'employee_code' => $code,
+                'full_name' => !empty($row['full_name']) ? $row['full_name'] : ($existing['full_name'] ?? ''),
+                'team' => !empty($row['team']) ? $row['team'] : ($existing['team'] ?? ''),
+                'department' => !empty($row['department']) ? $row['department'] : ($existing['department'] ?? ''),
+                'designation' => !empty($row['designation']) ? $row['designation'] : ($existing['designation'] ?? 'Employee'),
+                'branch' => !empty($row['branch']) ? $row['branch'] : ($existing['branch'] ?? 'Main'),
+                'source' => 'users_table',
+            ];
+        }
+    }
+
+    // Check legacy employees table for any extra records
+    $res_emp = $conn->query("SELECT employee_code, full_name, department, designation, branch FROM employees WHERE is_active = 1");
+    if ($res_emp) {
+        while ($row = $res_emp->fetch_assoc()) {
+            $code = trim($row['employee_code']);
+            if ($code === '') continue;
+            $existing = $employees[$code] ?? [];
             if (!isset($employees[$code])) {
                 $employees[$code] = [
                     'employee_code' => $code,
-                    'full_name' => $row['full_name'],
-                    'team' => '',
-                    'department' => $row['department'] ?? '',
-                    'designation' => $row['designation'] ?? 'Employee',
-                    'branch' => $row['branch'] ?? 'Main',
+                    'full_name' => !empty($row['full_name']) ? $row['full_name'] : ($existing['full_name'] ?? ''),
+                    'team' => $existing['team'] ?? '',
+                    'department' => !empty($row['department']) ? $row['department'] : ($existing['department'] ?? ''),
+                    'designation' => !empty($row['designation']) ? $row['designation'] : ($existing['designation'] ?? 'Employee'),
+                    'branch' => !empty($row['branch']) ? $row['branch'] : ($existing['branch'] ?? 'Main'),
                     'source' => 'database',
                 ];
-            } else {
-                if (empty($employees[$code]['full_name'])) {
-                    $employees[$code]['full_name'] = $row['full_name'];
-                }
             }
         }
     }
+
     return $employees;
 }
 

@@ -1050,6 +1050,7 @@
                 <div class="month-selector"><i class="fas fa-calendar-alt"></i><input type="month" id="monthPicker" value="2026-04" onchange="loadAttendanceData()"></div>
                 <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Search by name or ID..."></div>
                 <select id="departmentFilter" class="filter-select"><option value="">All Departments</option></select>
+                <select id="teamFilter" class="filter-select"><option value="">All Teams</option></select>
                 <button class="btn btn-primary" onclick="loadAttendanceData()"><i class="fas fa-sync-alt"></i> Load Data</button>
                 <button class="btn btn-secondary" onclick="exportToCSV()"><i class="fas fa-download"></i> Export CSV</button>
             </div>
@@ -1153,12 +1154,23 @@
             try {
                 const response = await fetch('attendance-api.php?action=getFilterOptions');
                 const data = await response.json();
-                if (data.success && data.data && data.data.departments) {
-                    const deptSelect = document.getElementById('departmentFilter');
-                    deptSelect.innerHTML = '<option value="">All Departments</option>';
-                    data.data.departments.forEach(dept => {
-                        deptSelect.innerHTML += `<option value="${dept}">${dept}</option>`;
-                    });
+                if (data.success && data.data) {
+                    if (data.data.departments) {
+                        const deptSelect = document.getElementById('departmentFilter');
+                        deptSelect.innerHTML = '<option value="">All Departments</option>';
+                        data.data.departments.forEach(dept => {
+                            deptSelect.innerHTML += `<option value="${dept}">${dept}</option>`;
+                        });
+                    }
+                    if (data.data.teams) {
+                        const teamSelect = document.getElementById('teamFilter');
+                        if (teamSelect) {
+                            teamSelect.innerHTML = '<option value="">All Teams</option>';
+                            data.data.teams.forEach(t => {
+                                if (t) teamSelect.innerHTML += `<option value="${t}">${t}</option>`;
+                            });
+                        }
+                    }
                 }
             } catch(e) { console.log('Using fallback'); }
         }
@@ -1274,11 +1286,14 @@
         function renderTable() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const departmentFilter = document.getElementById('departmentFilter').value;
+            const teamSelect = document.getElementById('teamFilter');
+            const teamFilter = teamSelect ? teamSelect.value : '';
             
             let filtered = allData.filter(emp => {
                 const matchSearch = emp.name.toLowerCase().includes(searchTerm) || emp.id.toLowerCase().includes(searchTerm);
                 const matchDept = !departmentFilter || emp.department === departmentFilter;
-                return matchSearch && matchDept;
+                const matchTeam = !teamFilter || emp.team === teamFilter;
+                return matchSearch && matchDept && matchTeam;
             });
             
             let headerHtml = `<tr><th>ID</th><th>Personnel</th><th>Department</th><th>Designation</th><th>Branch</th><th>Team</th>`;
@@ -1672,6 +1687,8 @@
 
         document.getElementById('searchInput').addEventListener('keyup', filterTable);
         document.getElementById('departmentFilter').addEventListener('change', filterTable);
+        const teamFilterEl = document.getElementById('teamFilter');
+        if (teamFilterEl) teamFilterEl.addEventListener('change', filterTable);
         
         function createParticles() {
             const container = document.getElementById('particles');

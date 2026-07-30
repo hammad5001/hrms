@@ -19,737 +19,2328 @@ require_once 'config.php';
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --primary: #f97316; --primary-dark: #ea580c;
-            --primary-glow: rgba(249,115,22,0.4); --primary-glow-strong: rgba(249,115,22,0.6);
-            --secondary: #10b981; --secondary-glow: rgba(16,185,129,0.3);
-            --warning: #f59e0b; --danger: #ef4444; --info: #3b82f6;
-            --purple: #8b5cf6; --pink: #ec4899; --cyan: #06b6d4;
-            --dark: #0a0c15; --darker: #05070f;
-            --glass: rgba(255, 255, 255, 0.07); --glass-border: rgba(255, 255, 255, 0.1);
-            --glass-border-light: rgba(255, 255, 255, 0.15);
-            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            --shadow-glow: 0 0 30px var(--primary-glow);
-            --card-bg: rgba(20, 25, 45, 0.75); --card-bg-solid: #1a1f35;
+            --primary: #f97316;
+            --primary-dark: #ea580c;
+            --primary-glow: rgba(249, 115, 22, 0.25);
+            --secondary: #10b981;
+            --secondary-glow: rgba(16,185,129,0.15);
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --purple: #8b5cf6;
+            
+            --bg-sidebar: #0f1524;
+            --bg-main: #0a0c15;
+            --bg-card: rgba(30, 36, 54, 0.95);
+            --bg-card-hover: rgba(30, 36, 54, 1);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-color: #f3f4f6;
+            --text-muted: #94a3b8;
         }
-        body { font-family: 'Inter', sans-serif; background: radial-gradient(circle at 20% 30%, #0f0c29, #302b63, #24243e); min-height: 100vh; position: relative; overflow-x: hidden; }
-        .animated-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; background: linear-gradient(125deg, #0f0c29 0%, #302b63 50%, #24243e 100%); }
-        .animated-bg::before { content: ''; position: absolute; width: 200%; height: 200%; top: -50%; left: -50%; background: radial-gradient(circle, rgba(249,115,22,0.12) 0%, transparent 70%); animation: slowRotate 30s linear infinite; }
-        @keyframes slowRotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; }
-        .particle { position: absolute; background: rgba(249,115,22,0.25); border-radius: 50%; animation: float linear infinite; }
-        @keyframes float { 0% { transform: translateY(100vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.6; } 90% { opacity: 0.6; } 100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; } }
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
-        ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--primary), var(--primary-dark)); border-radius: 10px; }
-
-        /* ===== LAYOUT ===== */
-        .app-container { max-width: 1600px; margin: 0 auto; padding: 20px 24px; position: relative; z-index: 1; }
-
-        /* ===== HEADER / TOPBAR ===== */
-        .header { background: rgba(15,12,30,0.85); backdrop-filter: blur(30px); border-bottom: 1px solid rgba(249,115,22,0.15); padding: 0 32px; margin-bottom: 28px; border-radius: 0; position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; height: 68px; box-shadow: 0 4px 30px rgba(0,0,0,0.4); }
-        .logo { display: flex; align-items: center; gap: 14px; }
-        .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: white; box-shadow: 0 0 20px var(--primary-glow); }
-        @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 var(--primary-glow); } 50% { box-shadow: 0 0 20px 6px var(--primary-glow); } }
-        .logo-text h1 { font-size: 20px; font-weight: 800; background: linear-gradient(135deg, #fff 40%, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px; }
-        .finance-badge { display: flex; align-items: center; gap: 6px; background: rgba(249,115,22,0.1); padding: 5px 14px; border-radius: 50px; border: 1px solid rgba(249,115,22,0.25); font-size: 11px; font-weight: 600; color: var(--primary); margin-left: 4px; }
-        .nav-bar { display: flex; align-items: center; gap: 2px; }
-        .nav-btn { padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 7px; cursor: pointer; transition: all 0.25s; background: transparent; color: rgba(255,255,255,0.55); border: none; text-decoration: none; white-space: nowrap; }
-        .nav-btn:hover { color: white; background: rgba(255,255,255,0.08); }
-        .nav-btn.active { color: var(--primary); background: rgba(249,115,22,0.1); }
-        .nav-btn.primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border-radius: 8px; box-shadow: 0 4px 14px rgba(249,115,22,0.35); }
-        .nav-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(249,115,22,0.5); }
-        .nav-btn.success { background: linear-gradient(135deg, var(--secondary), #059669); color: white; border-radius: 8px; }
-        .nav-divider { width: 1px; height: 24px; background: rgba(255,255,255,0.1); margin: 0 6px; }
-        .header-right { display: flex; align-items: center; gap: 10px; }
-        .date-time { background: rgba(255,255,255,0.05); padding: 7px 16px; border-radius: 8px; font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.7); display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.07); }
-
-        /* ===== HERO ===== */
-        .hero-section { background: linear-gradient(135deg, rgba(249,115,22,0.1) 0%, rgba(15,12,30,0) 60%), linear-gradient(225deg, rgba(139,92,246,0.12) 0%, transparent 60%); backdrop-filter: blur(20px); border-radius: 24px; padding: 36px 40px; margin-bottom: 24px; border: 1px solid rgba(249,115,22,0.15); position: relative; overflow: hidden; }
-        .hero-section::before { content: ''; position: absolute; top: -60px; right: -60px; width: 280px; height: 280px; background: radial-gradient(circle, rgba(249,115,22,0.18) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
-        .hero-section::after { content: ''; position: absolute; bottom: -40px; left: 30%; width: 200px; height: 200px; background: radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
-        .hero-content { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 30px; }
-        .hero-eyebrow { display: inline-flex; align-items: center; gap: 7px; background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.25); padding: 5px 14px; border-radius: 50px; font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
-        .hero-text h1 { font-size: 44px; font-weight: 900; color: white; margin-bottom: 10px; line-height: 1.1; letter-spacing: -1.5px; }
-        .hero-text h1 span { background: linear-gradient(135deg, var(--primary), #fb923c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero-text p { color: rgba(255,255,255,0.55); display: flex; align-items: center; gap: 8px; font-size: 14px; }
-        .hero-stats { display: flex; gap: 0; background: rgba(0,0,0,0.35); backdrop-filter: blur(10px); border-radius: 20px; border: 1px solid rgba(255,255,255,0.08); overflow: hidden; }
-        .hero-stat { text-align: center; padding: 20px 36px; border-right: 1px solid rgba(255,255,255,0.07); }
-        .hero-stat:last-child { border-right: none; }
-        .hero-stat h3 { font-size: 34px; font-weight: 900; color: white; margin-bottom: 4px; letter-spacing: -1px; }
-        .hero-stat p { font-size: 10px; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 1.5px; }
-
-        /* ===== INFO BANNER ===== */
-        .info-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
-        .info-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); border-radius: 16px; padding: 18px 22px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.07); transition: all 0.3s; gap: 20px; }
-        .info-card:hover { border-color: rgba(249,115,22,0.3); background: rgba(249,115,22,0.04); }
-        .info-card-left { display: flex; align-items: center; gap: 14px; }
-        .info-icon { width: 38px; height: 38px; background: rgba(59,130,246,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #60a5fa; font-size: 15px; flex-shrink: 0; }
-        .info-icon.warning { background: rgba(245,158,11,0.15); color: #f59e0b; }
-        .info-icon.success { background: rgba(16,185,129,0.15); color: #10b981; }
-        .info-text { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.5; }
-        .info-text strong { color: white; font-size: 13px; font-weight: 700; display: block; margin-bottom: 2px; }
-        .info-badges { display: flex; gap: 8px; flex-wrap: wrap; }
-        .info-badge { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-        .info-badge.old { background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
-        .info-badge.new { background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.25); }
-
-        /* ===== STAT CARDS ===== */
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-        .stat-card { background: rgba(255,255,255,0.03); border-radius: 20px; padding: 22px 24px; border: 1px solid rgba(255,255,255,0.07); transition: all 0.35s; position: relative; overflow: hidden; }
-        .stat-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--primary), var(--primary-dark)); transform: scaleX(0); transform-origin: left; transition: transform 0.35s; }
-        .stat-card:hover::after { transform: scaleX(1); }
-        .stat-card:hover { transform: translateY(-4px); border-color: rgba(249,115,22,0.2); background: rgba(249,115,22,0.04); }
-        .stat-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
-        .stat-icon { width: 44px; height: 44px; background: rgba(249,115,22,0.12); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--primary); }
-        .stat-badge { font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
-        .stat-badge.up { background: rgba(16,185,129,0.12); color: var(--secondary); }
-        .stat-badge.down { background: rgba(239,68,68,0.12); color: var(--danger); }
-        .stat-value { font-size: 36px; font-weight: 900; color: white; letter-spacing: -1.5px; line-height: 1; }
-        .stat-label { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 6px; font-weight: 500; }
-        .stat-trend { font-size: 11px; margin-top: 12px; display: flex; align-items: center; gap: 5px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05); }
-        .stat-trend.up { color: var(--secondary); }
-        .stat-trend.down { color: var(--danger); }
-
-        /* ===== CHART CARDS ===== */
-        .charts-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
-        .chart-card { background: rgba(255,255,255,0.03); border-radius: 20px; padding: 24px; border: 1px solid rgba(255,255,255,0.07); transition: all 0.3s; }
-        .chart-card:hover { border-color: rgba(249,115,22,0.2); }
-        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.06); }
-        .chart-header h3 { font-size: 14px; font-weight: 700; color: white; display: flex; align-items: center; gap: 8px; }
-        .chart-header h3 i { color: var(--primary); }
-        .chart-container { height: 250px; position: relative; }
-
-        /* ===== CONTROL PANEL ===== */
-        .control-panel { background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); border-radius: 20px; padding: 20px 24px; margin-bottom: 24px; border: 1px solid rgba(255,255,255,0.07); }
-        .filter-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-        .month-selector { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 9px 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); }
-        .month-selector input { background: transparent; border: none; color: white; font-size: 13px; font-family: 'Inter', sans-serif; }
-        .search-box { flex: 1; min-width: 220px; position: relative; }
-        .search-box i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.4); font-size: 13px; }
-        .search-box input { width: 100%; padding: 10px 16px 10px 40px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; font-size: 13px; color: white; font-family: 'Inter', sans-serif; }
-        .search-box input:focus { outline: none; border-color: var(--primary); }
-        .filter-select { padding: 10px 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; font-size: 13px; color: white; cursor: pointer; min-width: 150px; font-family: 'Inter', sans-serif; }
-        .filter-select option { background: #1a1825; color: #fff; }
-        .btn { padding: 10px 20px; border: none; border-radius: 10px; font-weight: 700; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; transition: all 0.25s; font-family: 'Inter', sans-serif; }
-        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 4px 14px rgba(249,115,22,0.3); }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(249,115,22,0.45); }
-        .btn-secondary { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); }
-        .btn-secondary:hover { background: rgba(255,255,255,0.1); transform: translateY(-1px); }
-        .btn-success { background: linear-gradient(135deg, var(--secondary), #059669); color: white; }
-        .btn-danger { background: linear-gradient(135deg, var(--danger), #dc2626); color: white; }
-        .btn-info { background: linear-gradient(135deg, var(--info), #2563eb); color: white; }
-        .btn-purple { background: linear-gradient(135deg, var(--purple), #7c3aed); color: white; }
-
-        /* ===== TABLE ===== */
-        .table-container { background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); border-radius: 20px; padding: 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.07); }
-        .table-wrapper { overflow-x: auto; border-radius: 16px; max-height: 600px; overflow-y: auto; }
-        .table-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.07); flex-wrap: wrap; gap: 12px; }
-        .table-header h2 { color: white; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-        .month-info { background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.25); padding: 5px 14px; border-radius: 20px; color: var(--primary); font-size: 12px; font-weight: 700; }
-        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
-        th { text-align: left; padding: 12px 14px; background: rgba(249,115,22,0.06); color: rgba(255,255,255,0.5); font-weight: 700; font-size: 11px; position: sticky; top: 0; z-index: 10; text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid rgba(255,255,255,0.06); }
-        td { padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); color: rgba(255,255,255,0.85); font-size: 12px; }
-        tr:hover td { background: rgba(249,115,22,0.03); }
-        .checkin-time { font-family: monospace; font-weight: 600; color: var(--primary); }
-        .weekend-checkin { font-family: monospace; font-weight: 600; color: #a78bfa; }
-        .absent-cell { color: rgba(255,255,255,0.25); font-style: italic; }
-        .summary-badge { font-weight: 700; padding: 3px 10px; border-radius: 20px; font-size: 10px; display: inline-block; letter-spacing: 0.3px; }
-        .summary-present { background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.25); }
-        .summary-late { background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
-        .summary-absent { background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
-        .summary-leave { background: rgba(139,92,246,0.12); color: #a78bfa; border: 1px solid rgba(139,92,246,0.25); }
-        .view-btn { background: rgba(249,115,22,0.1); color: var(--primary); border: 1px solid rgba(249,115,22,0.2); padding: 5px 12px; border-radius: 8px; font-size: 11px; cursor: pointer; transition: all 0.2s; font-weight: 600; }
-        .view-btn:hover { background: var(--primary); color: white; }
-        .payroll-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); z-index: 2000; justify-content: center; align-items: center; }
-        .payroll-modal.active { display: flex; animation: modalFadeIn 0.3s ease; }
-        @keyframes modalFadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        .payroll-modal-content { background: linear-gradient(135deg, #1a1c2c, #0f1119); border-radius: 32px; width: 98%; max-width: 1800px; max-height: 95vh; overflow-y: auto; border: 1px solid var(--glass-border); box-shadow: var(--shadow); }
-        .payroll-modal-header { padding: 24px 32px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, var(--secondary), #059669); border-radius: 32px 32px 0 0; position: sticky; top: 0; z-index: 10; }
-        .payroll-modal-header h2 { color: white; display: flex; align-items: center; gap: 12px; font-size: 24px; }
-        .payroll-modal-close { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.2); color: white; font-size: 20px; transition: all 0.3s; }
-        .payroll-modal-close:hover { background: var(--danger); transform: rotate(90deg); }
-        .payroll-modal-body { padding: 24px 32px; }
-
-        .payroll-tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; background: rgba(255,255,255,0.03); padding: 6px; border-radius: 16px; border: 1px solid var(--glass-border); }
-        .payroll-tab { padding: 10px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; background: transparent; color: rgba(255,255,255,0.6); border: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s; }
-        .payroll-tab:hover { color: white; background: rgba(255,255,255,0.05); }
-        .payroll-tab.active { background: linear-gradient(135deg, var(--secondary), #059669); color: white; box-shadow: 0 4px 15px rgba(16,185,129,0.4); }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .payroll-rules { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-        .rule-card { background: rgba(255,255,255,0.05); border-radius: 16px; padding: 16px; text-align: center; border: 1px solid var(--glass-border); transition: all 0.3s; }
-        .rule-card:hover { transform: translateY(-3px); border-color: var(--secondary); }
-        .rule-icon { width: 42px; height: 42px; margin: 0 auto 10px; background: rgba(16,185,129,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--secondary); }
-        .rule-icon.danger { background: rgba(239,68,68,0.15); color: var(--danger); }
-        .rule-icon.warning { background: rgba(245,158,11,0.15); color: var(--warning); }
-        .rule-icon.info { background: rgba(59,130,246,0.15); color: var(--info); }
-        .rule-icon.purple { background: rgba(139,92,246,0.15); color: var(--purple); }
-        .rule-title { font-size: 12px; font-weight: 700; color: white; margin-bottom: 6px; }
-        .rule-amount { font-size: 16px; font-weight: 800; color: var(--secondary); }
-        .rule-amount.negative { color: var(--danger); }
-        .rule-desc { font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 6px; }
-        .payroll-summary { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-bottom: 24px; }
-        .summary-card { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border-radius: 16px; padding: 16px; border: 1px solid var(--glass-border); text-align: center; }
-        .summary-card .value { font-size: 22px; font-weight: 800; color: var(--secondary); }
-        .summary-card .value.negative { color: var(--danger); }
-        .summary-card .value.warning { color: var(--warning); }
-        .summary-card .value.info { color: var(--info); }
-        .summary-card .label { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .payroll-table-container { overflow-x: auto; margin-top: 20px; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 16px; }
-        .payroll-table { width: 100%; border-collapse: collapse; min-width: 2400px; }
-        .payroll-table th { background: rgba(255,255,255,0.08); padding: 12px 10px; font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.85); white-space: nowrap; text-align: center; border-bottom: 2px solid rgba(16,185,129,0.3); }
-        .payroll-table td { padding: 10px; border-bottom: 1px solid var(--glass-border); font-size: 11px; color: rgba(255,255,255,0.9); white-space: nowrap; text-align: center; }
-        .payroll-table tr:hover td { background: rgba(255,255,255,0.03); }
-        .payroll-table .sticky-col { position: sticky; left: 0; background: #161a2c; z-index: 5; }
-        .amount-positive { color: var(--secondary); font-weight: 600; }
-        .amount-negative { color: var(--danger); font-weight: 600; }
-        .amount-neutral { color: rgba(255,255,255,0.4); }
-        .badge-perfect { background: rgba(16,185,129,0.2); color: #10b981; padding: 4px 10px; border-radius: 20px; font-size: 11px; display: inline-block; }
-        .badge-warning { background: rgba(245,158,11,0.2); color: #f59e0b; padding: 4px 10px; border-radius: 20px; font-size: 11px; display: inline-block; }
-        .badge-danger { background: rgba(239,68,68,0.2); color: #ef4444; padding: 4px 10px; border-radius: 20px; font-size: 11px; display: inline-block; }
-        .view-slip-btn { background: rgba(59,130,246,0.2); color: #60a5fa; border: none; padding: 5px 10px; border-radius: 16px; font-size: 10px; cursor: pointer; transition: all 0.2s; margin: 2px; }
-        .view-slip-btn:hover { background: var(--primary); color: white; }
-        .edit-btn { background: rgba(245,158,11,0.2); color: #f59e0b; border: none; padding: 5px 10px; border-radius: 16px; font-size: 10px; cursor: pointer; margin: 2px; }
-        .edit-btn:hover { background: var(--warning); color: white; }
-
-        .adj-section { background: rgba(255,255,255,0.04); border-radius: 20px; padding: 24px; margin-bottom: 24px; border: 1px solid var(--glass-border); }
-        .adj-section h3 { color: white; font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid var(--glass-border); }
-        .adj-section h3 i { color: var(--secondary); }
-        .adj-form-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 12px; }
-        .adj-form-grid.three { grid-template-columns: repeat(3, 1fr); }
-        .adj-form-grid.two { grid-template-columns: repeat(2, 1fr); }
-        .adj-input { padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 10px; color: white; font-size: 13px; width: 100%; }
-        .adj-input:focus { outline: none; border-color: var(--secondary); }
-        .adj-label { color: rgba(255,255,255,0.7); font-size: 11px; margin-bottom: 4px; display: block; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
-        .adj-list { margin-top: 16px; max-height: 220px; overflow-y: auto; }
-        .adj-item { display: grid; grid-template-columns: 2fr 1.5fr 2fr 1fr 0.5fr; gap: 12px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 10px; margin-bottom: 8px; align-items: center; font-size: 12px; }
-        .adj-item .name { color: white; font-weight: 600; }
-        .adj-item .amt { color: var(--secondary); font-weight: 700; }
-        .adj-item .amt.neg { color: var(--danger); }
-        .adj-item .reason { color: rgba(255,255,255,0.6); font-size: 11px; }
-        .adj-delete { background: rgba(239,68,68,0.2); color: var(--danger); border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
-        .adj-delete:hover { background: var(--danger); color: white; }
-
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(12px); z-index: 1000; overflow-y: auto; padding: 40px 10px; box-sizing: border-box; }
-        .modal.active { display: flex; justify-content: center; align-items: flex-start; }
-        .modal-content { background: linear-gradient(135deg, #1e1b2e, #13112a); border-radius: 28px; width: 90%; max-width: 900px; max-height: none; overflow: visible; border: 1px solid var(--glass-border); box-shadow: var(--shadow); margin-bottom: 40px; }
-        .modal-content > .modal-body { overflow-x: visible; }
-        .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: 28px 28px 0 0; }
-        .modal-header h2 { color: white; display: flex; align-items: center; gap: 10px; font-size: 18px; }
-        .modal-close { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.2); color: white; transition: all 0.3s; }
-        .modal-close:hover { background: var(--danger); transform: rotate(90deg); }
-        .modal-body { padding: 24px; }
-        .loading-state { text-align: center; padding: 60px; }
-        .loading-spinner { width: 40px; height: 40px; border: 3px solid rgba(249,115,22,0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .toast-container { position: fixed; top: 100px; right: 24px; z-index: 3000; }
-        .toast { background: rgba(10,12,21,0.95); backdrop-filter: blur(20px); padding: 12px 20px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; transform: translateX(450px); transition: transform 0.3s; border-left: 3px solid var(--primary); font-size: 12px; color: white; }
-        .toast.show { transform: translateX(0); }
-        .footer { background: var(--card-bg); backdrop-filter: blur(20px); border-radius: 24px; padding: 16px 24px; margin-top: 28px; text-align: center; color: rgba(255,255,255,0.5); font-size: 12px; border: 1px solid var(--glass-border); }
-
-        /* Custom toggle switch */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 48px;
-            height: 24px;
+        
+        /* Global Webkit Scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
         }
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
+        ::-webkit-scrollbar-track {
+            background: #090d16;
         }
-        .slider {
-            position: absolute;
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 20% 30%, #080c16, #0f172a, #090d16);
+            color: var(--text-color);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ===== APP LAYOUT ===== */
+        .app-layout {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            height: 100%;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 50;
+        }
+        .sidebar.collapsed {
+            width: 72px;
+        }
+        .sidebar.collapsed .logo-text,
+        .sidebar.collapsed .user-info,
+        .sidebar.collapsed .nav-section,
+        .sidebar.collapsed .nav-item span,
+        .sidebar.collapsed .sidebar-footer button span {
+            display: none !important;
+        }
+        .sidebar.collapsed .user-profile-widget {
+            justify-content: center;
+            padding: 12px 0;
+        }
+        .sidebar.collapsed .nav-item {
+            justify-content: center;
+            padding: 12px 0;
+        }
+        .sidebar.collapsed .nav-item i {
+            font-size: 18px;
+            margin: 0;
+        }
+        .sidebar.collapsed .btn-sidebar-cta {
+            padding: 12px 0;
+            justify-content: center;
+        }
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+        .logo-text h2 {
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: white;
+        }
+        .logo-text span {
+            font-size: 10px;
+            color: var(--primary);
+            font-weight: 700;
+            letter-spacing: 1px;
+            display: block;
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255,255,255,0.03);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .user-info {
+            min-width: 0;
+        }
+        .user-name {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .user-role {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .nav-section {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin: 16px 12px 8px 12px;
+            text-transform: uppercase;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-decoration: none;
+            background: transparent;
+            border: none;
             cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        .nav-item:hover {
+            color: white;
+            background: rgba(255,255,255,0.04);
+        }
+        .nav-item.active {
+            color: white;
+            background: var(--primary-glow);
+            border-left: 3px solid var(--primary);
+            font-weight: 600;
+        }
+        .nav-item.logout-link:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+        
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+        }
+        .btn-sidebar-cta {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px var(--primary-glow);
+            transition: all 0.2s;
+        }
+        .btn-sidebar-cta:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-main);
+        }
+        
+        .main-header {
+            height: 80px;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .header-title-wrapper h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: white;
+        }
+        .month-info-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+            display: block;
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .month-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.04);
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        .month-selector i {
+            color: var(--primary);
+            font-size: 14px;
+        }
+        .month-selector input {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            outline: none;
+            cursor: pointer;
+        }
+        .date-time {
+            background: rgba(255,255,255,0.04);
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .date-time i {
+            color: var(--primary);
+        }
+
+        /* ===== PANELS CONTAINER ===== */
+        .panels-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+        }
+        .view-panel {
+            display: none;
+        }
+        .view-panel.active {
+            display: block;
+            animation: panelFadeIn 0.25s ease-out;
+        }
+        @keyframes panelFadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== CARDS & GRID ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        .summary-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+        .summary-card:hover {
+            border-color: rgba(249, 115, 22, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+        }
+        .summary-card .card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .summary-card .card-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        .summary-card.accent-orange .card-icon { background: rgba(249, 115, 22, 0.15); color: #f97316; }
+        .summary-card.accent-green .card-icon { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .summary-card.accent-blue .card-icon { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+        .summary-card.accent-purple .card-icon { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+        .summary-card.accent-red .card-icon { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+        .summary-card.accent-amber .card-icon { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+        
+        .summary-card.primary-gradient {
+            background: linear-gradient(135deg, #ea580c, #9a3412);
+            border: none;
+            box-shadow: 0 10px 24px rgba(234, 88, 12, 0.3);
+        }
+        .summary-card.primary-gradient .card-icon {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        .summary-card .value {
+            font-size: 28px;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -0.8px;
+            line-height: 1.1;
+        }
+        .summary-card .label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-top: 8px;
+            font-weight: 700;
+        }
+        .summary-card.primary-gradient .label {
+            color: rgba(255,255,255,0.85);
+        }
+
+        .charts-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        .chart-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .chart-header h3 {
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+        }
+        .chart-container {
+            height: 260px;
+            position: relative;
+        }
+
+        /* ===== CONTROLS ===== */
+        .control-panel {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+        }
+        .filter-row {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .search-box {
+            flex: 1;
+            min-width: 240px;
+            position: relative;
+        }
+        .search-box i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 10px 16px 10px 44px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 13px;
+            color: white;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-box input:focus {
+            border-color: var(--primary);
+        }
+        .filter-select {
+            padding: 10px 16px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 13px;
+            color: white;
+            cursor: pointer;
+            outline: none;
+            font-family: inherit;
+            min-width: 180px;
+        }
+        .filter-select option {
+            background: var(--bg-sidebar);
+            color: white;
+        }
+
+        /* ===== OVERVIEW PREMIUM DASHBOARD CARDS ===== */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .ov-card {
+            position: relative;
+            background: rgba(22, 27, 46, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 18px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: default;
+            overflow: hidden;
+            min-height: 120px;
+        }
+        .ov-card::before {
+            content: '';
+            position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            bottom: 0;
-            background-color: rgba(255, 255, 255, 0.1);
-            transition: .3s;
-            border: 1px solid var(--glass-border);
+            height: 3px;
+            background: var(--card-accent, var(--primary));
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+            opacity: 0.85;
+            transition: opacity 0.3s;
         }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .3s;
+        .ov-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 14px 30px -8px rgba(0, 0, 0, 0.5), 0 0 20px var(--card-glow, rgba(249, 115, 22, 0.15));
+            border-color: rgba(255, 255, 255, 0.18);
         }
-        input:checked + .slider {
-            background-color: var(--primary);
+        .ov-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
         }
-        input:checked + .slider:before {
-            transform: translateX(24px);
+        .ov-card-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
         }
-        .slider.round {
+        .ov-card-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            background: var(--icon-bg, rgba(249, 115, 22, 0.12));
+            color: var(--icon-color, var(--primary));
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .ov-card:hover .ov-card-icon {
+            transform: scale(1.15) rotate(4deg);
+        }
+        .ov-card-value {
+            font-size: 22px;
+            font-weight: 800;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+            white-space: nowrap;
+        }
+        .ov-card-subtext {
+            font-size: 11px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.45);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: color 0.2s;
+        }
+        .ov-card:hover .ov-card-subtext {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .ov-card.card-net { --card-accent: #10b981; --card-glow: rgba(16, 185, 129, 0.25); --icon-bg: rgba(16, 185, 129, 0.15); --icon-color: #10b981; }
+        .ov-card.card-gross { --card-accent: #3b82f6; --card-glow: rgba(59, 130, 246, 0.25); --icon-bg: rgba(59, 130, 246, 0.15); --icon-color: #3b82f6; }
+        .ov-card.card-deductions { --card-accent: #f43f5e; --card-glow: rgba(244, 63, 94, 0.25); --icon-bg: rgba(244, 63, 94, 0.15); --icon-color: #f43f5e; }
+        .ov-card.card-tax { --card-accent: #8b5cf6; --card-glow: rgba(139, 92, 246, 0.25); --icon-bg: rgba(139, 92, 246, 0.15); --icon-color: #8b5cf6; }
+        .ov-card.card-additions { --card-accent: #f97316; --card-glow: rgba(249, 115, 22, 0.25); --icon-bg: rgba(249, 115, 22, 0.15); --icon-color: #f97316; }
+        .ov-card.card-bonus { --card-accent: #f59e0b; --card-glow: rgba(245, 158, 11, 0.25); --icon-bg: rgba(245, 158, 11, 0.15); --icon-color: #f59e0b; }
+        .ov-card.card-pc-approved { --card-accent: #14b8a6; --card-glow: rgba(20, 184, 166, 0.25); --icon-bg: rgba(20, 184, 166, 0.15); --icon-color: #14b8a6; }
+        .ov-card.card-pc-pending { --card-accent: #eab308; --card-glow: rgba(234, 179, 8, 0.25); --icon-bg: rgba(234, 179, 8, 0.15); --icon-color: #eab308; }
+        .ov-card.card-employees { --card-accent: #6366f1; --card-glow: rgba(99, 102, 241, 0.25); --icon-bg: rgba(99, 102, 241, 0.15); --icon-color: #6366f1; }
+        .ov-card.card-paid { --card-accent: #22c55e; --card-glow: rgba(34, 197, 94, 0.25); --icon-bg: rgba(34, 197, 94, 0.15); --icon-color: #22c55e; }
+        .ov-card.card-unpaid { --card-accent: #ef4444; --card-glow: rgba(239, 68, 68, 0.25); --icon-bg: rgba(239, 68, 68, 0.15); --icon-color: #ef4444; }
+
+        /* ===== REMARKS & COMMENTS EDITABLE UI ===== */
+        #payrollTable tr.row-on-hold {
+            background: rgba(239, 68, 68, 0.14) !important;
+            border-left: 4px solid #ef4444 !important;
+        }
+        #payrollTable tr.row-on-hold td {
+            color: #fca5a5 !important;
+        }
+
+        .payroll-remarks-select {
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            outline: none;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+        .payroll-remarks-select.status-ready {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+        .payroll-remarks-select.status-hold {
+            background: rgba(239, 68, 68, 0.25);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.5);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+        }
+        .payroll-remarks-select.status-paid {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        .payroll-remarks-select.status-unpaid {
+            background: rgba(148, 163, 184, 0.15);
+            color: #cbd5e1;
+            border-color: rgba(148, 163, 184, 0.3);
+        }
+        .payroll-remarks-select.status-failed {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            border-color: rgba(245, 158, 11, 0.4);
+        }
+        .payroll-remarks-select option {
+            background: #0f1524;
+            color: #ffffff;
+        }
+
+        .payroll-comment-input {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            color: #ffffff;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 12px;
+            width: 100%;
+            min-width: 130px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .payroll-comment-input:focus {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .payroll-comment-input.comment-required-error {
+            border-color: #ef4444 !important;
+            background: rgba(239, 68, 68, 0.18) !important;
+            color: #fca5a5 !important;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--border-color);
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .btn-success {
+            background: var(--secondary);
+            color: white;
+        }
+        .btn-success:hover {
+            background: #0d9668;
+        }
+
+        /* ===== TABLES ===== */
+        .table-container {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        .table-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .table-header h2 {
+            font-size: 15px;
+            font-weight: 700;
+            color: white;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+            max-height: 620px;
+        }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            text-align: left;
+        }
+        th {
+            padding: 14px 20px;
+            background: #141a2e;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        td {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
+            color: var(--text-color);
+            white-space: nowrap;
+            background: #0f1524;
+        }
+        tr:hover td {
+            background: rgba(255,255,255,0.04);
+        }
+
+        /* Override global dark table styles inside Print/Payslip modal */
+        .att-select {
+            background: #1e293b;
+            color: #f8fafc;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 3px 6px;
+            font-size: 11px;
+            font-weight: 700;
+            outline: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .att-select.code-P { background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: rgba(16, 185, 129, 0.4); }
+        .att-select.code-MP { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: rgba(245, 158, 11, 0.4); }
+        .att-select.code-HD { background: rgba(56, 189, 248, 0.25); color: #38bdf8; border-color: rgba(56, 189, 248, 0.5); }
+        .att-select.code-UNPAID { background: rgba(245, 158, 11, 0.25); color: #f59e0b; border-color: rgba(245, 158, 11, 0.5); }
+        .att-select.code-LEAVE { background: rgba(139, 92, 246, 0.25); color: #c084fc; border-color: rgba(139, 92, 246, 0.5); }
+        .att-select.code-SD { background: rgba(239, 68, 68, 0.2); color: #f87171; border-color: rgba(239, 68, 68, 0.4); }
+        .att-select.code-NCNS { background: rgba(225, 29, 72, 0.3); color: #fda4af; border-color: rgba(225, 29, 72, 0.5); }
+        .att-select.code-BLANK { background: rgba(255, 255, 255, 0.05); color: #94a3b8; border-color: rgba(255, 255, 255, 0.1); }
+        
+        .extra-days-input {
+            width: 55px;
+            background: #1e293b;
+            color: #38bdf8;
+            border: 1px solid #0284c7;
+            border-radius: 6px;
+            padding: 4px 6px;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+            outline: none;
+        }
+
+        #printArea {
+            min-width: 650px;
+            box-sizing: border-box;
+        }
+        #printArea table {
+            border-collapse: collapse !important;
+            width: 100% !important;
+        }
+        #printArea td {
+            background: #ffffff !important;
+            color: #0f172a !important;
+            font-size: 13px !important;
+            padding: 10px 15px !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            white-space: normal !important;
+        }
+        #printArea tr:hover td {
+            background: #ffffff !important;
+        }
+        
+        .payslip-modal-content {
+            width: 92vw !important;
+            max-width: 850px !important;
+            background: #ffffff !important;
+            max-height: 92vh !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+            border-radius: 16px !important;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6) !important;
+        }
+        
+        .payslip-scroll-container {
+            width: 100%;
+            overflow-x: auto !important;
+            overflow-y: auto !important;
+            max-height: calc(92vh - 110px) !important;
+            background: #ffffff;
+            border-radius: 0 0 16px 16px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .payslip-scroll-container::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .payslip-scroll-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .payslip-scroll-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .payslip-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* Sticky columns for Attendance & Payroll Tables */
+        #attendanceTable th:nth-child(1),
+        #attendanceTable td:nth-child(1),
+        #payrollTable th:nth-child(1),
+        #payrollTable td:nth-child(1) {
+            position: sticky;
+            left: 0;
+            z-index: 21;
+            background: #101625;
+            border-right: 1px solid rgba(255,255,255,0.08);
+            min-width: 80px;
+        }
+        #attendanceTable th:nth-child(2),
+        #attendanceTable td:nth-child(2),
+        #payrollTable th:nth-child(2),
+        #payrollTable td:nth-child(2) {
+            position: sticky;
+            left: 80px;
+            z-index: 21;
+            background: #101625;
+            border-right: 2px solid var(--primary-dark);
+            min-width: 220px;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.4);
+        }
+        #attendanceTable th:nth-child(1),
+        #attendanceTable th:nth-child(2),
+        #payrollTable th:nth-child(1),
+        #payrollTable th:nth-child(2) {
+            z-index: 26;
+            background: #161e33;
+        }
+        
+        .highlight-net-salary {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.35)) !important;
+            color: #34d399 !important;
+            font-weight: 800 !important;
+            border: 1px solid rgba(16, 185, 129, 0.4) !important;
+            border-radius: 6px;
+        }
+
+        /* ===== ADJUSTMENTS STYLE ===== */
+        .adj-section {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+        .adj-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .adj-section h3 i {
+            color: var(--primary);
+        }
+        .adj-form-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .adj-form-grid.three {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        .adj-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            display: block;
+        }
+        .adj-input {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: white;
+            font-size: 13px;
+            outline: none;
+            font-family: inherit;
+        }
+        .adj-input:focus {
+            border-color: var(--primary);
+        }
+        .adj-list {
+            margin-top: 24px;
+            max-height: 320px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .adj-item {
+            display: grid;
+            grid-template-columns: 2fr 1.5fr 2fr 1fr 0.5fr;
+            gap: 16px;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            align-items: center;
+            font-size: 12px;
+        }
+        .adj-item .name {
+            font-weight: 600;
+            color: white;
+        }
+        .adj-item .amt {
+            font-weight: 700;
+            color: var(--secondary);
+        }
+        .adj-item .amt.neg {
+            color: var(--danger);
+        }
+        .adj-delete {
+            background: rgba(239,68,68,0.15);
+            color: var(--danger);
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .adj-delete:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* ===== CELL & PUNCH BADGES (SCREENSHOT SPEC) ===== */
+        .checkin-time {
+            font-weight: 700;
+            color: #f97316;
+            font-size: 12px;
+            text-align: center;
+            display: inline-block;
+            line-height: 1.2;
+        }
+        .checkin-time span.am-pm {
+            display: block;
+            font-size: 9px;
+            color: #ea580c;
+            text-transform: uppercase;
+            font-weight: 800;
+        }
+        .checkin-late {
+            font-weight: 700;
+            color: #ef4444;
+            font-size: 12px;
+            text-align: center;
+            display: inline-block;
+            line-height: 1.2;
+        }
+        .checkin-late span.am-pm {
+            display: block;
+            font-size: 9px;
+            color: #dc2626;
+            text-transform: uppercase;
+            font-weight: 800;
+        }
+        .weekend-checkin {
+            font-weight: 600;
+            color: #c084fc;
+            font-size: 11px;
+            text-align: center;
+            display: inline-block;
+        }
+        .absent-cell {
+            color: rgba(255,255,255,0.2);
+            font-size: 11px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        /* Modern Glass Pill Badges */
+        .badge-dept {
+            background: rgba(139, 92, 246, 0.15);
+            color: #c084fc;
+            border: 1px solid rgba(139, 92, 246, 0.35);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .badge-desig {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.35);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .badge-branch {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .badge-team {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        /* ===== STATUS BADGES ===== */
+        .summary-badge {
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            display: inline-block;
+        }
+        .summary-present {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--secondary);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+        }
+        .summary-late {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+        }
+        .summary-absent {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }
+        .summary-leave {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--info);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+        }
+
+        /* ===== MODALS ===== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal.active {
+            display: flex;
+            animation: modalFadeIn 0.25s ease-out;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-content {
+            background: #171822;
             border-radius: 24px;
+            width: 90%;
+            max-width: 900px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
         }
-        .slider.round:before {
-            border-radius: 50%;
+        .modal-header {
+            padding: 20px 28px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.01);
+        }
+        .modal-header h2 {
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+        }
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            color: white;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .modal-close:hover {
+            background: var(--danger);
+        }
+        .modal-body {
+            padding: 28px;
+            overflow-y: auto;
+            flex: 1;
         }
 
-        .slip-pro { background: linear-gradient(135deg, #ffffff, #f8fafc); color: #1e293b; border-radius: 20px; padding: 32px; font-family: 'Inter', sans-serif; }
+        /* ===== PAYSLIP / SLIP STYLING ===== */
+        .slip-pro { background: white; color: #1e293b; border-radius: 16px; padding: 28px; font-family: inherit; }
         .slip-pro * { color: inherit; }
-        .slip-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 20px; border-bottom: 3px solid var(--primary); margin-bottom: 24px; }
-        .slip-company h1 { color: var(--primary); font-size: 26px; font-weight: 800; margin-bottom: 4px; }
+        .slip-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 20px; border-bottom: 3px solid var(--primary); margin-bottom: 20px; }
+        .slip-company h1 { color: var(--primary); font-size: 24px; font-weight: 800; margin-bottom: 4px; }
         .slip-company p { color: #64748b; font-size: 12px; }
-        .slip-meta { text-align: right; font-size: 12px; color: #475569; }
-        .slip-meta strong { color: #1e293b; }
-        .slip-emp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 16px; background: #f1f5f9; border-radius: 12px; margin-bottom: 20px; }
-        .slip-emp-grid div { font-size: 12px; }
+        .slip-meta { text-align: right; font-size: 11px; color: #475569; }
+        .slip-emp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 14px; background: #f1f5f9; border-radius: 10px; margin-bottom: 20px; }
+        .slip-emp-grid div { font-size: 11px; }
         .slip-emp-grid div span { color: #64748b; }
-        .slip-emp-grid div strong { color: #0f172a; display: block; font-size: 13px; }
-        .slip-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
-        .slip-table th { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 10px; font-size: 12px; text-align: left; }
-        .slip-table td { padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 12px; color: #1e293b; }
-        .slip-table .amt { text-align: right; font-weight: 600; font-family: monospace; }
-        .slip-table .pos { color: #059669; }
-        .slip-table .neg { color: #dc2626; }
-        .slip-totals { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
-        .slip-total-card { background: #f8fafc; border-radius: 12px; padding: 16px; border-left: 4px solid var(--secondary); }
+        .slip-emp-grid div strong { color: #0f172a; display: block; font-size: 12px; }
+        .slip-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .slip-table th { background: var(--primary); color: white; padding: 8px 10px; font-size: 11px; }
+        .slip-table td { padding: 8px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px; }
+        .slip-table .amt { text-align: right; font-weight: 600; }
+        .slip-totals { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .slip-total-card { background: #f8fafc; border-radius: 10px; padding: 12px; border-left: 4px solid var(--secondary); }
         .slip-total-card.deduction { border-left-color: var(--danger); }
-        .slip-total-card .lbl { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
-        .slip-total-card .val { font-size: 22px; font-weight: 800; color: #059669; margin-top: 4px; }
+        .slip-total-card .lbl { font-size: 10px; color: #64748b; text-transform: uppercase; }
+        .slip-total-card .val { font-size: 18px; font-weight: 800; color: #059669; }
         .slip-total-card.deduction .val { color: #dc2626; }
-        .slip-net { background: linear-gradient(135deg, #059669, #10b981); color: white; border-radius: 16px; padding: 20px 24px; margin-top: 16px; display: flex; justify-content: space-between; align-items: center; }
-        .slip-net h3 { font-size: 16px; font-weight: 600; }
-        .slip-net .amount { font-size: 32px; font-weight: 800; }
-        .slip-footer { margin-top: 24px; padding-top: 16px; border-top: 1px dashed #cbd5e1; text-align: center; font-size: 11px; color: #64748b; }
-        .slip-actions { display: flex; gap: 10px; justify-content: flex-end; padding: 16px 24px; background: rgba(0,0,0,0.3); border-radius: 0 0 28px 28px; }
+        .slip-net { background: var(--primary); color: white; border-radius: 12px; padding: 16px 20px; margin-top: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .slip-net h3 { font-size: 14px; font-weight: 600; }
+        .slip-net .amount { font-size: 26px; font-weight: 800; }
+        .slip-footer { margin-top: 20px; padding-top: 12px; border-top: 1px dashed #cbd5e1; text-align: center; font-size: 10px; color: #64748b; }
+        .slip-actions { display: flex; gap: 10px; justify-content: flex-end; padding: 16px 28px; background: rgba(0,0,0,0.05); }
 
-        @media (max-width: 1400px) { .payroll-summary { grid-template-columns: repeat(3, 1fr); } }
-        @media (max-width: 1024px) { .payroll-rules { grid-template-columns: repeat(2, 1fr); } .payroll-summary { grid-template-columns: repeat(2, 1fr); } .charts-row { grid-template-columns: 1fr; } .adj-form-grid, .adj-form-grid.three { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 768px) { .stats-grid, .info-cards { grid-template-columns: 1fr; } .payroll-rules, .payroll-summary { grid-template-columns: 1fr; } .hero-stats { flex-wrap: wrap; justify-content: center; gap: 20px; } .filter-row { flex-direction: column; } .adj-form-grid, .adj-form-grid.three, .adj-form-grid.two { grid-template-columns: 1fr; } }
+        /* ===== TOAST NOTIFICATIONS ===== */
+        .toast-container { position: fixed; top: 100px; right: 24px; z-index: 3000; }
+        .toast { background: #171822; padding: 12px 20px; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--border-color); border-left: 4px solid var(--primary); font-size: 12px; color: white; transform: translateX(400px); transition: transform 0.3s; }
+        .toast.show { transform: translateX(0); }
 
-        .modal-form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
-        @media (max-width: 768px) { .modal-form-grid { grid-template-columns: 1fr !important; } }
+        .loading-state { text-align: center; padding: 40px; }
+        .loading-spinner { width: 36px; height: 36px; border: 3px solid rgba(14, 90, 235, 0.1); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ===== FINANCE USER MANAGEMENT PREMIUM STYLES ===== */
-        .fum-container { background: var(--card-bg); backdrop-filter: blur(20px); border-radius: 32px; border: 1px solid var(--glass-border); overflow: hidden; box-shadow: var(--shadow); }
-        .fum-hero { background: linear-gradient(135deg, rgba(249,115,22,0.2), rgba(139,92,246,0.15)); padding: 28px 32px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; position: relative; overflow: hidden; }
-        .fum-hero::before { content: ''; position: absolute; top: -40%; right: -10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(249,115,22,0.15), transparent 70%); border-radius: 50%; pointer-events: none; }
-        .fum-hero-title { position: relative; z-index: 1; }
-        .fum-hero-title h2 { font-size: 24px; font-weight: 800; color: white; display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
-        .fum-hero-title h2 .fum-icon { width: 42px; height: 42px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 4px 15px var(--primary-glow); }
-        .fum-hero-title p { color: rgba(255,255,255,0.6); font-size: 13px; padding-left: 54px; }
-        .fum-hero-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; position: relative; z-index: 1; }
-        .fum-search { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.06); border: 1px solid var(--glass-border); border-radius: 50px; padding: 10px 20px; min-width: 280px; transition: border-color 0.3s; }
-        .fum-search:focus-within { border-color: var(--primary); }
-        .fum-search i { color: rgba(255,255,255,0.4); font-size: 14px; }
-        .fum-search input { background: transparent; border: none; outline: none; color: white; font-size: 14px; flex: 1; font-family: 'Inter', sans-serif; }
-        .fum-search input::placeholder { color: rgba(255,255,255,0.35); }
-        .fum-stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-bottom: 1px solid var(--glass-border); }
-        .fum-stat { padding: 18px 24px; display: flex; align-items: center; gap: 14px; border-right: 1px solid var(--glass-border); transition: background 0.3s; }
-        .fum-stat:last-child { border-right: none; }
-        .fum-stat:hover { background: rgba(255,255,255,0.03); }
-        .fum-stat-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
-        .fum-stat-icon.orange { background: rgba(249,115,22,0.15); color: var(--primary); }
-        .fum-stat-icon.green { background: rgba(16,185,129,0.15); color: var(--secondary); }
-        .fum-stat-icon.blue { background: rgba(59,130,246,0.15); color: var(--info); }
-        .fum-stat-icon.purple { background: rgba(139,92,246,0.15); color: var(--purple); }
-        .fum-stat-text h4 { font-size: 20px; font-weight: 800; color: white; line-height: 1; }
-        .fum-stat-text span { font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; display: block; }
-        .fum-table-wrap { overflow-x: auto; max-height: 560px; overflow-y: auto; }
-        .fum-table { width: 100%; border-collapse: collapse; min-width: 900px; }
-        .fum-table thead { position: sticky; top: 0; z-index: 5; }
-        .fum-table th { padding: 14px 18px; background: rgba(249,115,22,0.08); color: rgba(255,255,255,0.55); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; text-align: left; border-bottom: 1px solid var(--glass-border); white-space: nowrap; }
-        .fum-table th:first-child { padding-left: 24px; }
-        .fum-table th:last-child { text-align: center; padding-right: 24px; }
-        .fum-table td { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; font-size: 13px; color: rgba(255,255,255,0.85); transition: background 0.2s; }
-        .fum-table td:first-child { padding-left: 24px; }
-        .fum-table td:last-child { padding-right: 24px; text-align: center; }
-        .fum-table tr:hover td { background: rgba(249,115,22,0.04); }
-        .fum-table tr:last-child td { border-bottom: none; }
-        .fum-avatar { width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: white; flex-shrink: 0; }
-        .fum-user-cell { display: flex; align-items: center; gap: 12px; }
-        .fum-user-info h5 { font-size: 13px; font-weight: 600; color: white; margin-bottom: 2px; }
-        .fum-user-info span { font-size: 11px; color: rgba(255,255,255,0.45); }
-        .fum-id-badge { display: inline-flex; align-items: center; background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.25); color: var(--primary); padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; font-family: monospace; }
-        .fum-salary { font-weight: 700; font-size: 13px; color: var(--secondary); }
-        .fum-edit-btn { display: inline-flex; align-items: center; gap: 7px; padding: 7px 16px; background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.3); color: var(--primary); border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.25s; white-space: nowrap; }
-        .fum-edit-btn:hover { background: var(--primary); color: white; transform: translateY(-1px); box-shadow: 0 4px 12px var(--primary-glow); }
-        .fum-empty { text-align: center; padding: 60px 20px; }
-        .fum-empty i { font-size: 40px; color: rgba(255,255,255,0.1); margin-bottom: 12px; display: block; }
-        .fum-empty p { color: rgba(255,255,255,0.35); font-size: 14px; }
+        /* Custom toggle switch */
+        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255, 255, 255, 0.1); transition: .3s; border-radius: 22px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(22px); }
 
-        /* ===== EDIT MODAL PREMIUM STYLES ===== */
-        #financeUserEditModal { z-index: 2000; }
-        .fum-modal { max-width: 820px; width: 95%; background: linear-gradient(145deg, #181622, #0f0d1a); border-radius: 28px; border: 1px solid rgba(249,115,22,0.2); box-shadow: 0 30px 80px rgba(0,0,0,0.7); overflow: hidden; margin: auto; }
-        .fum-modal-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); padding: 22px 28px; display: flex; justify-content: space-between; align-items: center; }
-        .fum-modal-header-left { display: flex; align-items: center; gap: 14px; }
-        .fum-modal-avatar { width: 46px; height: 46px; border-radius: 14px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; color: white; }
-        .fum-modal-title h3 { font-size: 17px; font-weight: 700; color: white; }
-        .fum-modal-title p { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 2px; }
-        .fum-modal-close { width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.15); border: none; color: white; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
-        .fum-modal-close:hover { background: rgba(0,0,0,0.3); transform: rotate(90deg); }
-        .fum-modal-body { padding: 24px 28px; overflow-y: auto; max-height: calc(100vh - 200px); }
-        .fum-section-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0 16px; grid-column: 1 / -1; }
-        .fum-section-divider::before, .fum-section-divider::after { content: ''; flex: 1; height: 1px; background: var(--glass-border); }
-        .fum-section-divider span { font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-        .fum-field { display: flex; flex-direction: column; gap: 6px; }
-        .fum-field label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.6px; }
-        .fum-field input, .fum-field select { padding: 11px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; color: white; font-size: 13px; font-family: 'Inter', sans-serif; transition: border-color 0.3s, background 0.3s; width: 100%; }
-        .fum-field input:focus, .fum-field select:focus { outline: none; border-color: var(--primary); background: rgba(249,115,22,0.07); }
-        .fum-field select option { background: #1a1825; color: white; }
-        .fum-identity-grid { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-        .fum-identity-item { min-width: 0; padding: 13px 15px; border-radius: 14px; background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.07); }
-        .fum-identity-item.wide { grid-column: 1 / -1; }
-        .fum-identity-item span { display: block; margin-bottom: 5px; color: rgba(255,255,255,0.42); font-size: 10px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; }
-        .fum-identity-item strong { display: block; overflow: hidden; color: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
-        .fum-policy-note { grid-column: 1 / -1; display: flex; gap: 11px; align-items: flex-start; padding: 13px 15px; border-radius: 14px; color: rgba(255,255,255,.68); background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.2); font-size: 11px; line-height: 1.55; }
-        .fum-policy-note i { margin-top: 2px; color: #60a5fa; }
-        .fum-modal-footer { padding: 18px 28px; border-top: 1px solid var(--glass-border); display: flex; justify-content: flex-end; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); }
-        .fum-toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; grid-column: 1 / -1; }
-        .fum-toggle-row .fum-toggle-info h5 { font-size: 13px; font-weight: 600; color: white; }
-        .fum-toggle-row .fum-toggle-info p { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; }
-        @media (max-width: 620px) { .fum-identity-grid { grid-template-columns: 1fr; } .fum-identity-item.wide { grid-column: auto; } }
-
-        .payroll-tabs { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; overflow-x: auto; }
-        .payroll-tab { padding: 10px 20px; background: var(--glass); border: 1px solid var(--glass-border); color: rgba(255,255,255,0.6); border-radius: 12px; cursor: pointer; transition: all 0.3s; white-space: nowrap; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-        .payroll-tab:hover { background: rgba(255,255,255,0.1); color: white; }
-        .payroll-tab.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 5px 15px var(--primary-glow); }
-        
-        .payroll-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
-        .summary-card { background: var(--card-bg); padding: 20px; border-radius: 20px; border: 1px solid var(--glass-border); text-align: center; }
-        .summary-card .value { font-size: 22px; font-weight: 800; color: white; margin-bottom: 5px; }
-        .summary-card .value.negative { color: var(--danger); }
-        .summary-card .value.warning { color: var(--warning); }
-        .summary-card .value.info { color: var(--info); }
-        .summary-card .label { font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; }
-        
-        .payroll-rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 30px; }
-        .rule-card { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 15px; border: 1px dashed var(--glass-border); display: flex; align-items: center; gap: 12px; }
-        .rule-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: rgba(249,115,22,0.1); color: var(--primary); font-size: 14px; }
-        .rule-icon.warning { background: rgba(245,158,11,0.1); color: var(--warning); }
-        .rule-icon.danger { background: rgba(239,68,68,0.1); color: var(--danger); }
-        .rule-icon.info { background: rgba(59,130,246,0.1); color: var(--info); }
-        .rule-title { font-size: 13px; font-weight: 600; color: white; }
-        .rule-amount { font-size: 12px; font-weight: 700; color: var(--secondary); margin-left: auto; }
-        .rule-amount.negative { color: var(--danger); }
-
-        .payroll-table-container { background: var(--card-bg); border-radius: 15px; border: 1px solid var(--glass-border); overflow: hidden; margin-top: 20px; }
-        .payroll-table { width: 100%; border-collapse: collapse; }
-        .payroll-table th { background: rgba(255,255,255,0.05); padding: 12px 15px; text-align: left; font-size: 12px; color: rgba(255,255,255,0.5); border-bottom: 1px solid var(--glass-border); }
-        .payroll-table td { padding: 12px 15px; font-size: 12px; color: white; border-bottom: 1px solid var(--glass-border); }
-        .payroll-table tr:hover td { background: rgba(255,255,255,0.02); }
-
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        /* Employee Search Results Modal/List */
         .employee-search-results {
             position: absolute;
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            max-height: 300px;
+            background: #1c1d2b;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            max-height: 220px;
             overflow-y: auto;
             width: 100%;
             z-index: 100;
             margin-top: 4px;
         }
         .employee-search-item {
-            padding: 10px 15px;
+            padding: 10px 14px;
             cursor: pointer;
-            border-bottom: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--border-color);
             transition: all 0.2s;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         .employee-search-item:hover {
-            background: rgba(249,115,22,0.15);
+            background: var(--primary-glow);
         }
         .employee-search-item .emp-name {
             font-weight: 600;
             color: white;
+            font-size: 13px;
         }
         .employee-search-item .emp-code {
             font-size: 11px;
-            color: var(--text-muted, #94a3b8);
-        }
-        .search-input-wrapper {
-            position: relative;
+            color: var(--text-muted);
         }
 
-        @media print {
-            body * { visibility: hidden; }
-            #printArea, #printArea * { visibility: visible; }
-            #printArea { position: absolute; left: 0; top: 0; width: 100%; }
-            .slip-actions { display: none !important; }
+        .fum-avatar { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; color: white; }
+        .fum-user-cell { display: flex; align-items: center; gap: 10px; }
+        .fum-user-info h5 { font-size: 13px; font-weight: 600; color: white; }
+        .fum-user-info span { font-size: 11px; color: var(--text-muted); }
+        .fum-id-badge { display: inline-flex; align-items: center; background: rgba(14, 90, 235, 0.12); border: 1px solid rgba(14, 90, 235, 0.25); color: var(--primary); padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; font-family: monospace; }
+        .fum-salary { font-weight: 700; color: var(--secondary); }
+        .fum-edit-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--primary-glow); border: 1px solid rgba(14, 90, 235, 0.3); color: var(--primary); border-radius: 20px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.25s; }
+        .fum-edit-btn:hover { background: var(--primary); color: white; }
+
+        .fum-modal { 
+            max-width: 720px; 
+            width: 95%; 
+            max-height: 92vh; 
+            background: #171822; 
+            border-radius: 20px; 
+            border: 1px solid var(--border-color); 
+            overflow: hidden; 
+            margin: auto; 
+            display: flex; 
+            flex-direction: column; 
         }
+        .fum-modal-header { background: rgba(255,255,255,0.02); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
+        .fum-modal-header-left { display: flex; align-items: center; gap: 12px; }
+        .fum-modal-avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; color: white; }
+        .fum-modal-title h3 { font-size: 15px; font-weight: 700; color: white; }
+        .fum-modal-title p { font-size: 11px; color: var(--text-muted); }
+        .fum-modal-close { width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.05); border: none; color: white; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .fum-modal-close:hover { background: var(--danger); }
+        .fum-modal-body { 
+            padding: 24px; 
+            overflow-y: auto; 
+            flex: 1; 
+            max-height: calc(92vh - 130px);
+        }
+        .fum-modal-body::-webkit-scrollbar {
+            width: 6px;
+        }
+        .fum-modal-body::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .fum-modal-body::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+        }
+        .fum-modal-body::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+        .fum-modal-footer { padding: 16px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; background: rgba(255,255,255,0.01); flex-shrink: 0; }
+        .fum-section-divider { display: flex; align-items: center; gap: 10px; margin: 16px 0; }
+        .fum-section-divider::before, .fum-section-divider::after { content: ''; flex: 1; height: 1px; background: var(--border-color); }
+        .fum-section-divider span { font-size: 10px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .fum-field { display: flex; flex-direction: column; gap: 6px; }
+        .fum-field label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        .fum-field input, .fum-field select { padding: 10px 14px; background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); border-radius: 10px; color: white; font-size: 13px; outline: none; }
+        .fum-field input:focus { border-color: var(--primary); }
+        .fum-identity-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
+        .fum-identity-item { padding: 10px 14px; border-radius: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); }
+        .fum-identity-item span { display: block; color: var(--text-muted); font-size: 9px; font-weight: 700; text-transform: uppercase; }
+        .fum-identity-item strong { display: block; color: white; font-size: 12px; font-weight: 600; margin-top: 2px; }
+        .fum-policy-note { display: flex; gap: 10px; align-items: flex-start; padding: 12px; border-radius: 10px; color: var(--text-muted); background: rgba(14, 90, 235, 0.05); border: 1px solid rgba(14, 90, 235, 0.15); font-size: 11px; line-height: 1.4; }
+        .fum-policy-note i { color: var(--primary); margin-top: 2px; }
+        .fum-modal-footer { padding: 16px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; background: rgba(255,255,255,0.01); }
+        .fum-toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; }
+        .fum-toggle-row h5 { font-size: 12px; font-weight: 600; color: white; }
+        .fum-toggle-row p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+
+        /* ===================================================================
+           PETTY CASH MODULE — Premium UI Styles
+        =================================================================== */
+
+        /* Sub-Tab Navigation */
+        .pc-tabs { display: flex; gap: 6px; margin-bottom: 28px; background: rgba(255,255,255,0.02); padding: 6px; border-radius: 14px; border: 1px solid var(--border-color); width: fit-content; }
+        .pc-tab { padding: 9px 20px; border-radius: 10px; font-size: 12px; font-weight: 600; color: var(--text-muted); background: transparent; border: none; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 7px; font-family: inherit; }
+        .pc-tab:hover { color: white; background: rgba(255,255,255,0.05); }
+        .pc-tab.active { background: var(--primary); color: white; box-shadow: 0 4px 14px var(--primary-glow); }
+        .pc-tab-panel { display: none; }
+        .pc-tab-panel.active { display: block; animation: panelFadeIn 0.2s ease-out; }
+
+        /* Dashboard stat cards */
+        .pc-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 24px; }
+        .pc-stat-card { background: linear-gradient(145deg, rgba(26,29,45,0.7) 0%, rgba(18,20,32,0.85) 100%); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.06); border-radius: 18px; padding: 22px 24px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; min-height: 125px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+        .pc-stat-card::after { content: ''; position: absolute; inset: 0; border-radius: 18px; padding: 1px; background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
+        .pc-stat-card:hover { transform: translateY(-4px); box-shadow: 0 14px 30px -8px rgba(0,0,0,0.4); border-color: rgba(249,115,22,0.3); }
+        
+        .pc-stat-card.hero { background: linear-gradient(135deg, rgba(37,99,235,0.25) 0%, rgba(124,58,237,0.25) 100%); border: 1px solid rgba(99,102,241,0.4); box-shadow: 0 8px 28px rgba(99,102,241,0.15); }
+        .pc-stat-card.hero-pending { background: linear-gradient(135deg, rgba(245,158,11,0.25) 0%, rgba(217,119,6,0.25) 100%); border: 1px solid rgba(245,158,11,0.4); box-shadow: 0 8px 28px rgba(245,158,11,0.15); }
+        
+        .pc-stat-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+        .pc-stat-icon { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: transform 0.2s; }
+        .pc-stat-card:hover .pc-stat-icon { transform: scale(1.08); }
+        
+        .pc-stat-icon.orange { background: rgba(249,115,22,0.15); color: #f97316; box-shadow: inset 0 0 12px rgba(249,115,22,0.1); }
+        .pc-stat-icon.green  { background: rgba(16,185,129,0.15); color: #10b981; box-shadow: inset 0 0 12px rgba(16,185,129,0.1); }
+        .pc-stat-icon.yellow { background: rgba(245,158,11,0.15); color: #f59e0b; box-shadow: inset 0 0 12px rgba(245,158,11,0.1); }
+        .pc-stat-icon.red    { background: rgba(239,68,68,0.15);  color: #ef4444; box-shadow: inset 0 0 12px rgba(239,68,68,0.1); }
+        .pc-stat-icon.blue   { background: rgba(59,130,246,0.15); color: #3b82f6; box-shadow: inset 0 0 12px rgba(59,130,246,0.1); }
+        .pc-stat-icon.purple { background: rgba(139,92,246,0.15); color: #8b5cf6; box-shadow: inset 0 0 12px rgba(139,92,246,0.1); }
+        .pc-stat-icon.hero-icon { background: rgba(59,130,246,0.3); color: #60a5fa; box-shadow: 0 0 15px rgba(59,130,246,0.25); }
+        .pc-stat-icon.hero-pending-icon { background: rgba(245,158,11,0.3); color: #fbbf24; box-shadow: 0 0 15px rgba(245,158,11,0.25); }
+        
+        .pc-stat-value { font-size: 26px; font-weight: 800; color: #ffffff; letter-spacing: -0.6px; line-height: 1.1; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .pc-stat-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 6px; }
+        .pc-stat-card.hero .pc-stat-label { color: rgba(255,255,255,0.8); }
+        .pc-stat-card.hero-pending .pc-stat-label { color: rgba(255,255,255,0.8); }
+
+        /* Charts row */
+        .pc-charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+        .pc-chart-card { background: linear-gradient(145deg, rgba(26,29,45,0.7) 0%, rgba(18,20,32,0.85) 100%); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.06); border-radius: 18px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+        .pc-chart-title { font-size: 13px; font-weight: 700; color: white; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+        .pc-chart-title i { color: var(--primary); }
+        .pc-chart-wrap { height: 220px; position: relative; }
+
+        /* Request Form */
+        .pc-form-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; padding: 32px; margin-bottom: 24px; }
+        .pc-form-title { font-size: 15px; font-weight: 700; color: white; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); }
+        .pc-form-title i { color: var(--primary); }
+        .pc-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+        .pc-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+        .pc-grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+        .pc-field { display: flex; flex-direction: column; gap: 6px; }
+        .pc-label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; }
+        .pc-label span.req { color: var(--primary); margin-left: 2px; }
+        .pc-input, .pc-select, .pc-textarea { width: 100%; padding: 11px 14px; background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); border-radius: 10px; color: white; font-size: 13px; outline: none; font-family: inherit; transition: border-color 0.2s, box-shadow 0.2s; }
+        .pc-input:focus, .pc-select:focus, .pc-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(249,115,22,0.12); }
+        .pc-select option { background: #171822; color: white; }
+        .pc-textarea { resize: vertical; min-height: 80px; }
+
+        /* Upload zone */
+        .pc-upload-zone { border: 2px dashed var(--border-color); border-radius: 14px; padding: 32px 24px; text-align: center; cursor: pointer; transition: all 0.25s; position: relative; background: rgba(255,255,255,0.01); margin-bottom: 18px; }
+        .pc-upload-zone:hover, .pc-upload-zone.dragging { border-color: var(--primary); background: rgba(249,115,22,0.05); }
+        .pc-upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+        .pc-upload-icon { width: 52px; height: 52px; border-radius: 14px; background: rgba(249,115,22,0.12); color: var(--primary); font-size: 22px; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+        .pc-upload-zone h4 { font-size: 14px; font-weight: 700; color: white; margin-bottom: 6px; }
+        .pc-upload-zone p { font-size: 11px; color: var(--text-muted); }
+        .pc-upload-preview { display: none; margin-top: 16px; padding: 14px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); border-radius: 10px; }
+        .pc-upload-preview.show { display: flex; align-items: center; gap: 12px; }
+        .pc-upload-preview-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-color); }
+        .pc-upload-preview-info { flex: 1; }
+        .pc-upload-preview-info strong { display: block; font-size: 12px; font-weight: 600; color: white; }
+        .pc-upload-preview-info span { font-size: 10px; color: var(--text-muted); }
+        .pc-upload-remove { background: rgba(239,68,68,0.15); border: none; color: var(--danger); width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; }
+        .pc-upload-remove:hover { background: var(--danger); color: white; }
+
+        /* Status Badges */
+        .pc-badge { padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+        .pc-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+        .pc-badge-submitted    { background: rgba(59,130,246,0.15);  color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
+        .pc-badge-approved     { background: rgba(16,185,129,0.15);  color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+        .pc-badge-rejected     { background: rgba(239,68,68,0.15);   color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+        .pc-badge-need_correction { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+
+        /* Requests Table */
+        .pc-table-wrap { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; overflow: hidden; margin-bottom: 24px; }
+        .pc-table-head { padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); }
+        .pc-table-head h3 { font-size: 14px; font-weight: 700; color: white; display: flex; align-items: center; gap: 8px; }
+        .pc-table-head h3 i { color: var(--primary); }
+        .pc-table-head-actions { display: flex; gap: 8px; }
+        .pc-tbl-scroll { overflow-x: auto; max-height: 540px; }
+        .pc-tbl { width: 100%; border-collapse: collapse; }
+        .pc-tbl th { padding: 12px 16px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border-color); white-space: nowrap; position: sticky; top: 0; z-index: 5; }
+        .pc-tbl td { padding: 13px 16px; font-size: 12px; color: var(--text-color); border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        .pc-tbl tr:hover td { background: rgba(255,255,255,0.015); }
+        .pc-tbl tr:last-child td { border-bottom: none; }
+        .pc-tbl .amount-cell { font-weight: 700; color: var(--secondary); font-family: monospace; font-size: 13px; }
+        .pc-tbl .locked-row td { opacity: 0.7; }
+
+        /* Action buttons */
+        .pc-action-btn { padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 600; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s; font-family: inherit; }
+        .pc-btn-approve  { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+        .pc-btn-approve:hover { background: var(--secondary); color: white; }
+        .pc-btn-reject   { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+        .pc-btn-reject:hover { background: var(--danger); color: white; }
+        .pc-btn-correction { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+        .pc-btn-correction:hover { background: var(--warning); color: white; }
+        .pc-btn-view  { background: rgba(59,130,246,0.12); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+        .pc-btn-view:hover { background: var(--info); color: white; }
+        .pc-btn-delete { background: rgba(239,68,68,0.08); color: #f87171; border: 1px solid rgba(239,68,68,0.15); }
+        .pc-btn-delete:hover { background: var(--danger); color: white; }
+
+        /* Filters bar */
+        .pc-filters { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 18px 24px; margin-bottom: 20px; }
+        .pc-filters-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+        .pc-filter-input { padding: 9px 13px; background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); border-radius: 9px; color: white; font-size: 12px; outline: none; font-family: inherit; min-width: 140px; }
+        .pc-filter-input:focus { border-color: var(--primary); }
+        .pc-filter-input option { background: #171822; }
+        .pc-filter-search { position: relative; flex: 1; min-width: 200px; }
+        .pc-filter-search i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 12px; }
+        .pc-filter-search input { width: 100%; padding: 9px 13px 9px 36px; background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); border-radius: 9px; color: white; font-size: 12px; outline: none; font-family: inherit; }
+        .pc-filter-search input:focus { border-color: var(--primary); }
+
+        /* Ledger table & breakdown */
+        .pc-ledger-total { margin-top: 1px; padding: 16px 24px; background: rgba(16,185,129,0.08); border-top: 2px solid rgba(16,185,129,0.3); display: flex; justify-content: space-between; align-items: center; }
+        .pc-ledger-total span { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+        .pc-ledger-total strong { font-size: 18px; font-weight: 800; color: var(--secondary); }
+        .pc-ledger-breakdown-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+        .pc-ledger-breakdown-title { font-size: 12px; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+        .pc-ledger-breakdown-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+        .pc-category-summary-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; }
+        .pc-category-summary-item span { font-size: 11px; font-weight: 600; color: var(--text-muted); }
+        .pc-category-summary-item strong { font-size: 13px; font-weight: 800; color: white; font-family: monospace; }
+
+        /* Action Modal */
+        .pc-modal { display: none; position: fixed; top:0; left:0; width:100vw; height:100vh; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 99999; align-items: center; justify-content: center; }
+        .pc-modal.active { display: flex !important; animation: modalFadeIn 0.2s ease-out; }
+        .pc-modal-box { background: #171822; border-radius: 20px; width: 90%; max-width: 480px; border: 1px solid var(--border-color); box-shadow: 0 30px 60px rgba(0,0,0,0.6); overflow: hidden; }
+        .pc-modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .pc-modal-header h3 { font-size: 15px; font-weight: 700; color: white; display: flex; align-items: center; gap: 8px; }
+        .pc-modal-body { padding: 24px; }
+        .pc-modal-footer { padding: 16px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; background: rgba(255,255,255,0.01); }
+        .pc-modal-close-btn { width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.05); border: none; color: white; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .pc-modal-close-btn:hover { background: var(--danger); }
+
+        /* Bill viewer modal */
+        .pc-bill-modal-box { max-width: 800px; max-height: 90vh; display: flex; flex-direction: column; }
+        .pc-bill-viewer { flex: 1; overflow: auto; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 400px; }
+        .pc-bill-viewer img { max-width: 100%; max-height: 65vh; border-radius: 10px; object-fit: contain; }
+        .pc-bill-viewer iframe { width: 100%; height: 65vh; border: none; border-radius: 10px; }
+
+        /* Empty state */
+        .pc-empty { text-align: center; padding: 60px 20px; }
+        .pc-empty-icon { font-size: 48px; color: var(--border-color); margin-bottom: 16px; }
+        .pc-empty h4 { font-size: 15px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; }
+        .pc-empty p { font-size: 12px; color: rgba(148,163,184,0.6); }
+
+        /* Locked badge */
+        .pc-locked-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text-muted); background: rgba(255,255,255,0.04); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border-color); }
+        
+        /* Category pill */
+        .pc-category-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 600; background: rgba(249,115,22,0.1); color: var(--primary); border: 1px solid rgba(249,115,22,0.2); white-space: nowrap; }
+
+        /* Amount input with PKR prefix */
+        .pc-amount-wrapper { position: relative; }
+        .pc-amount-wrapper .pc-currency { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 11px; font-weight: 700; color: var(--primary); pointer-events: none; }
+        .pc-amount-wrapper .pc-input { padding-left: 38px; }
+
+        /* Step indicator for form */
+        .pc-form-section-label { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid rgba(249,115,22,0.2); display: flex; align-items: center; gap: 6px; }
+
+        @media (max-width: 1400px) {
+            .pc-stats-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+        @media (max-width: 1100px) {
+            .pc-stats-grid { grid-template-columns: repeat(3, 1fr); }
+            .pc-charts-row { grid-template-columns: 1fr; }
+            .pc-grid-4 { grid-template-columns: 1fr 1fr; }
+        }
+
     </style>
 </head>
 <body>
-    <div class="animated-bg"></div>
-    <div class="particles" id="particles"></div>
 
-    <div class="app-container">
-        <header class="header">
-            <div class="logo">
-                <div class="logo-icon" style="animation: pulse 3s infinite;"><i class="fas fa-chart-line"></i></div>
-                <div class="logo-text"><h1>BALITECH &middot; FINANCE</h1></div>
-                <div class="finance-badge"><i class="fas fa-coins"></i> Payroll Hub</div>
+    <div class="app-layout">
+        <!-- LEFT SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="logo-text">
+                        <h2>BALITECH</h2>
+                        <span>FINANCE HUB</span>
+                    </div>
+                </div>
+                
+                <div class="user-profile">
+                    <div class="user-avatar" id="sidebarUserAvatar">F</div>
+                    <div class="user-info">
+                        <span class="user-name" id="sidebarUserName"><?php echo htmlspecialchars($_SESSION['full_name'] ?? $_SESSION['username'] ?? 'Finance User'); ?></span>
+                        <span class="user-role">Finance Portal</span>
+                    </div>
+                </div>
             </div>
-            <nav class="nav-bar">
-                <a href="javascript:history.back()" class="nav-btn" title="Back"><i class="fas fa-arrow-left"></i></a>
-                <div class="nav-divider"></div>
-                <button class="nav-btn active" id="btnMainDashboard" onclick="switchMainView('dashboard')"><i class="fas fa-chart-area"></i> Dashboard</button>
-                <button class="nav-btn" id="btnUserManagementView" onclick="switchMainView('usermanagement')"><i class="fas fa-users-cog"></i> Users</button>
-                <div class="nav-divider"></div>
-                <a href="admin-dashboard.html" class="nav-btn"><i class="fas fa-th-large"></i> Portal</a>
-                <a href="profile.php" class="nav-btn"><i class="fas fa-user-circle"></i> Profile</a>
-                <a href="chat-portal.html" class="nav-btn"><i class="fas fa-comments"></i> Chat</a>
-                <div class="nav-divider"></div>
-                <button class="nav-btn success" onclick="openPayrollDashboard()"><i class="fas fa-file-invoice-dollar"></i> Payroll</button>
-                <a href="logout.php" class="nav-btn primary"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">MAIN HUB</div>
+                <button class="nav-item active" data-view="overview" onclick="switchView('overview')">
+                    <i class="fas fa-chart-bar"></i> <span>Overview</span>
+                </button>
+                <button class="nav-item" data-view="attendance" onclick="switchView('attendance')">
+                    <i class="fas fa-calendar-check"></i> <span>Attendance Grid</span>
+                </button>
+                <button class="nav-item" data-view="users" onclick="switchView('users')">
+                    <i class="fas fa-users-cog"></i> <span>Users Settings</span>
+                </button>
+                
+                <div class="nav-section">PAYROLL MODULE</div>
+                <button class="nav-item" data-view="payroll-sheet" onclick="switchView('payroll-sheet')">
+                    <i class="fas fa-file-invoice-dollar"></i> <span>Full Payroll Sheet</span>
+                </button>
+                <button class="nav-item" data-view="bank-format" onclick="switchView('bank-format')">
+                    <i class="fas fa-university"></i> <span>Bank Format</span>
+                </button>
+                <button class="nav-item" data-view="tada" onclick="switchView('tada')">
+                    <i class="fas fa-plane"></i> <span>TA/DA</span>
+                </button>
+                <button class="nav-item" data-view="bonus" onclick="switchView('bonus')">
+                    <i class="fas fa-gift"></i> <span>Bonus</span>
+                </button>
+                <button class="nav-item" data-view="arrears" onclick="switchView('arrears')">
+                    <i class="fas fa-money-bill-wave"></i> <span>Arrears</span>
+                </button>
+                <button class="nav-item" data-view="halfday" onclick="switchView('halfday')">
+                    <i class="fas fa-hourglass-half"></i> <span>Half Day</span>
+                </button>
+                <button class="nav-item" data-view="ncns" onclick="switchView('ncns')">
+                    <i class="fas fa-user-times"></i> <span>NCNS</span>
+                </button>
+                <button class="nav-item" data-view="sd" onclick="switchView('sd')">
+                    <i class="fas fa-bread-slice"></i> <span>SandWich</span>
+                </button>
+                <button class="nav-item" data-view="qahr" onclick="switchView('qahr')">
+                    <i class="fas fa-clipboard-check"></i> <span>QA/HR</span>
+                </button>
+                <button class="nav-item" data-view="advance" onclick="switchView('advance')">
+                    <i class="fas fa-hand-holding-usd"></i> <span>Advance</span>
+                </button>
+                <button class="nav-item" data-view="manual" onclick="switchView('manual')">
+                    <i class="fas fa-sliders-h"></i> <span>Manual Overrides</span>
+                </button>
+                <button class="nav-item" data-view="settings" onclick="switchView('settings')">
+                    <i class="fas fa-cog"></i> <span>Global Settings</span>
+                </button>
+                
+                <div class="nav-section">PETTY CASH</div>
+                <button class="nav-item" data-view="petty-cash" onclick="switchView('petty-cash')">
+                    <i class="fas fa-receipt"></i> <span>Petty Cash</span>
+                </button>
+                
+                <div class="nav-section">PORTAL UTILITIES</div>
+                <a href="admin-dashboard.html" class="nav-item"><i class="fas fa-th-large"></i> <span>Back to Portal</span></a>
+                <a href="profile.php" class="nav-item"><i class="fas fa-user-circle"></i> <span>Profile</span></a>
+                <a href="chat-portal.html" class="nav-item"><i class="fas fa-comments"></i> <span>Chat</span></a>
+                <a href="logout.php" class="nav-item logout-link"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
             </nav>
-            <div class="header-right">
-                <div class="date-time" id="currentDate"><i class="fas fa-clock" style="color: var(--primary);"></i><span>Loading...</span></div>
+            
+            <div class="sidebar-footer">
+                <button class="btn-sidebar-cta" onclick="exportPayrollCSV()">
+                    <i class="fas fa-file-csv"></i> Export Payroll CSV
+                </button>
             </div>
-        </header>
-
-        <div id="mainDashboardContent">
-        <div class="hero-section">
-            <div class="hero-content">
-                <div class="hero-text">
-                    <div class="hero-eyebrow"><i class="fas fa-bolt"></i> Live Analytics</div>
-                    <h1>Payroll <span>Analytics</span></h1>
-                    <p><i class="fas fa-calendar-check" style="color: var(--primary);"></i> Working Days Only (Mon&ndash;Fri) &middot; Real-time Salary Calculations</p>
+        </aside>
+        
+        <!-- MAIN CONTENT PANEL -->
+        <main class="main-content">
+            <!-- HEADER -->
+            <header class="main-header">
+                <div class="header-title-wrapper">
+                    <h1 id="mainViewTitle">Overview</h1>
+                    <span id="monthInfoSub" class="month-info-sub">Loading month information...</span>
                 </div>
-                <div class="hero-stats">
-                    <div class="hero-stat">
-                        <h3 id="totalEmployees">0</h3>
-                        <p>Employees</p>
+                <div class="header-actions">
+                    <div class="month-selector" style="margin-right: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-building" style="color: var(--primary);"></i>
+                        <?php $activeB = get_active_company_branch(); ?>
+                        <select id="headerBranchFilter" onchange="filterBranchChanged()" style="background: transparent; border: none; color: white; font-size: 13px; font-weight: 600; outline: none; cursor: pointer; font-family: inherit;">
+                            <option value="" style="background: #171822; color: white;">All Branches</option>
+                            <option value="Main" <?php echo $activeB === 'main' ? 'selected' : ''; ?> style="background: #171822; color: white;">Main Branch</option>
+                            <option value="Commercial" <?php echo $activeB === 'commercial' ? 'selected' : ''; ?> style="background: #171822; color: white;">Commercial Branch</option>
+                            <option value="workfromhome" <?php echo $activeB === 'workfromhome' ? 'selected' : ''; ?> style="background: #171822; color: white;">Work From Home</option>
+                        </select>
                     </div>
-                    <div class="hero-stat">
-                        <h3 id="totalPresent">0</h3>
-                        <p>Present Days</p>
+                    <div class="month-selector">
+                        <i class="fas fa-calendar-alt"></i>
+                        <input type="month" id="monthPicker" value="<?php echo date('Y-m'); ?>" onchange="loadAttendanceData()">
                     </div>
-                    <div class="hero-stat">
-                        <h3 id="totalLate">0</h3>
-                        <p>Late Arrivals</p>
+                    <div class="date-time" id="currentDate">
+                        <i class="fas fa-clock"></i> <span>Loading...</span>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <div class="info-cards">
-            <div class="info-card">
-                <div class="info-card-left">
-                    <div class="info-icon"><i class="fas fa-calendar-week"></i></div>
-                    <div class="info-text"><strong>Salary Calculation Basis</strong>Working Days Only (Mon-Fri)</div>
-                </div>
-                <div class="info-badges">
-                    <span class="info-badge old">✅ Present</span>
-                    <span class="info-badge old">⚠️ Late</span>
-                    <span class="info-badge new">🌿 Leave</span>
-                </div>
-            </div>
-            <div class="info-card">
-                <div class="info-card-left">
-                    <div class="info-icon warning"><i class="fas fa-clock"></i></div>
-                    <div class="info-text"><strong>6:00 PM Check-in Cutoff</strong>No grace period; a late check-in deducts one day of salary</div>
-                </div>
-                <div class="info-badges">
-                    <span class="info-badge old">✅ 6:00 PM is on time</span>
-                    <span class="info-badge new">⚠️ After 6:00 PM is late</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-card-header">
-                    <div class="stat-icon"><i class="fas fa-users"></i></div>
-                    <span class="stat-badge up"><i class="fas fa-arrow-up"></i> 100%</span>
-                </div>
-                <div class="stat-value" id="statTotal">0</div>
-                <div class="stat-label">Active Personnel</div>
-                <div class="stat-trend up"><i class="fas fa-circle" style="font-size:6px;"></i> Full Capacity</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-card-header">
-                    <div class="stat-icon" style="background: rgba(16,185,129,0.12); color: var(--secondary);"><i class="fas fa-calendar-check"></i></div>
-                    <span class="stat-badge up"><i class="fas fa-chart-line"></i> Live</span>
-                </div>
-                <div class="stat-value" id="statPresent">0</div>
-                <div class="stat-label">Present Days</div>
-                <div class="stat-trend up"><i class="fas fa-circle" style="font-size:6px;"></i> Working Days Only</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-card-header">
-                    <div class="stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning);"><i class="fas fa-clock"></i></div>
-                    <span class="stat-badge down"><i class="fas fa-exclamation"></i> Alert</span>
-                </div>
-                <div class="stat-value" id="statLate">0</div>
-                <div class="stat-label">Late Arrivals</div>
-                <div class="stat-trend down"><i class="fas fa-circle" style="font-size:6px;"></i> Working Days Only</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-card-header">
-                    <div class="stat-icon" style="background: rgba(59,130,246,0.12); color: var(--info);"><i class="fas fa-percent"></i></div>
-                    <span class="stat-badge up"><i class="fas fa-arrow-up"></i> Good</span>
-                </div>
-                <div class="stat-value" id="statRate">0%</div>
-                <div class="stat-label">Attendance Rate</div>
-                <div class="stat-trend up"><i class="fas fa-circle" style="font-size:6px;"></i> Monthly Average</div>
-            </div>
-        </div>
-
-        <div class="charts-row">
-            <div class="chart-card">
-                <div class="chart-header"><h3><i class="fas fa-chart-line"></i> Attendance Trend</h3><span class="stat-trend up">Last 30 days</span></div>
-                <div class="chart-container"><canvas id="attendanceTrendChart"></canvas></div>
-            </div>
-            <div class="chart-card">
-                <div class="chart-header"><h3><i class="fas fa-chart-pie"></i> Department Distribution</h3><span class="stat-trend up">By department</span></div>
-                <div class="chart-container"><canvas id="departmentChart"></canvas></div>
-            </div>
-        </div>
-
-        <div class="control-panel">
-            <div class="filter-row">
-                <div class="month-selector"><i class="fas fa-calendar-alt" style="color: var(--primary);"></i><input type="month" id="monthPicker" value="<?php echo date('Y-m'); ?>" onchange="loadAttendanceData()"></div>
-                <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Search by name or ID..."></div>
-                <select id="departmentFilter" class="filter-select"><option value="">All Departments</option></select>
-                <!-- NEW: Team Lead Filter Dropdown -->
-                <select id="teamLeadFilter" class="filter-select" onchange="filterByTeamLead()">
-                    <option value="">All Employees</option>
-                    <option value="Team Lead">Team Leads Only</option>
-                </select>
-                <button class="btn btn-primary" onclick="loadAttendanceData()"><i class="fas fa-sync-alt"></i> Load Data</button>
-                <button class="btn btn-secondary" onclick="exportToCSV()"><i class="fas fa-download"></i> Export CSV</button>
-                <button class="btn btn-secondary" onclick="openPayrollDashboard()"><i class="fas fa-file-invoice-dollar"></i> Payroll Dashboard</button>
-            </div>
-        </div>
-
-        <div class="table-container">
-            <div class="table-header">
-                <h2><i class="fas fa-table"></i> Monthly Attendance · Check-in Times</h2>
-                <div class="month-info" id="monthInfo"><?php echo date('F Y'); ?></div>
-            </div>
-            <div class="table-wrapper">
-                <table id="attendanceTable">
-                    <thead id="tableHeader"></thead>
-                    <tbody id="tableBody">
-                        <tr><td colspan="10"><div class="loading-state"><div class="loading-spinner"></div><p>Loading attendance data...</p></div></td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        </div> <!-- End of mainDashboardContent -->
-
-        <!-- User Management Content for Finance - PREMIUM REDESIGN -->
-        <div id="userManagementContent" style="display: none; margin-top: 24px;">
-            <div class="fum-container">
-
-                <!-- Header Hero -->
-                <div class="fum-hero">
-                    <div class="fum-hero-title">
-                        <h2>
-                            <span class="fum-icon"><i class="fas fa-users-cog"></i></span>
-                            User Management
-                        </h2>
-                        <p>Configure basic salary &amp; punctuality settings per employee</p>
-                    </div>
-                    <div class="fum-hero-actions">
-                        <div class="fum-search">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="financeUserSearch" placeholder="Search name, ID, dept, email..." onkeyup="filterFinanceUsers()">
+            </header>
+            
+            <!-- SCROLLABLE PANELS CONTAINER -->
+            <div class="panels-container">
+                
+                <!-- 1. OVERVIEW PANEL -->
+                <div class="view-panel active" id="panel-overview">
+                    <div class="overview-grid">
+                        <!-- 1. Final Net Salary -->
+                        <div class="ov-card card-net" id="cardFinalNetSalary" title="Rs 0">
+                            <div class="ov-card-header">
+                                <span class="ov-card-title">Final Net Salary</span>
+                                <div class="ov-card-icon"><i class="fas fa-money-check-dollar"></i></div>
+                            </div>
+                            <div class="ov-card-value" id="statFinalNetSalary">Rs 0</div>
+                            <div class="ov-card-subtext" id="subtextFinalNetSalary"><i class="fas fa-info-circle"></i> Exact: Rs 0</div>
                         </div>
-                        <button class="btn btn-secondary" onclick="loadFinanceUsers()" style="border-radius: 50px;"><i class="fas fa-sync-alt"></i> Refresh</button>
+
+                        <!-- 2. Gross Payroll -->
+                        <div class="ov-card card-gross" id="cardGrossPayroll" title="Rs 0">
+                            <div class="ov-card-header">
+                                <span class="ov-card-title">Gross Payroll</span>
+                                <div class="ov-card-icon"><i class="fas fa-calculator"></i></div>
+                            </div>
+                            <div class="ov-card-value" id="statGrossPayroll">Rs 0</div>
+                            <div class="ov-card-subtext" id="subtextGrossPayroll"><i class="fas fa-info-circle"></i> Exact: Rs 0</div>
+                        </div>
+
+                        <!-- 3. Total Deductions -->
+                        <div class="ov-card card-deductions" id="cardTotalDeductions" title="Rs 0">
+                            <div class="ov-card-header">
+                                <span class="ov-card-title">Total Deductions</span>
+                                <div class="ov-card-icon"><i class="fas fa-receipt"></i></div>
+                            </div>
+                            <div class="ov-card-value" id="statTotalDeductions">Rs 0</div>
+                            <div class="ov-card-subtext" id="subtextTotalDeductions"><i class="fas fa-info-circle"></i> Exact: Rs 0</div>
+                        </div>
+
+                        <!-- 4. Total Tax -->
+                        <div class="ov-card card-tax" id="cardTotalTax" title="Rs 0">
+                            <div class="ov-card-header">
+                                <span class="ov-card-title">Total Tax</span>
+                                <div class="ov-card-icon"><i class="fas fa-building-columns"></i></div>
+                            </div>
+                            <div class="ov-card-value" id="statTotalTax">Rs 0</div>
+                            <div class="ov-card-subtext" id="subtextTotalTax"><i class="fas fa-info-circle"></i> Exact: Rs 0</div>
+                        </div>
+
+                        <!-- 5. Total Additions -->
+                        <div class="ov-card card-additions" id="cardTotalAdditions" title="Rs 0">
+                            <div class="ov-card-header">
+                                <span class="ov-card-title">Total Additions</span>
+                                <div class="ov-card-icon"><i class="fas fa-circle-plus"></i></div>
+                            </div>
+                            <div class="ov-card-value" id="statTotalAdditions">Rs 0</div>
+                            <div class="ov-card-subtext" id="subtextTotalAdditions"><i class="fas fa-info-circle"></i> Exact: Rs 0</div>
+                        </div>
+
+                        <!-- 6. Total Bonus -->
+                        <div class="ov-card card-bonus" id="cardTotalBonus" title="Rs 0">
+                            <div class="ov-card-header">
+                                <span class="ov-card-title">Total Bonus</span>
+                                <div class="ov-card-icon"><i class="fas fa-gift"></i></div>
+                            </div>
+                            <div class="ov-card-value" id="statTotalBonus">Rs 0</div>
+                            <div class="ov-card-subtext" id="subtextTotalBonus"><i class="fas fa-info-circle"></i> Exact: Rs 0</div>
+                        </div>
+
+                        <!-- 7. Approved Petty Cash -->
+                        <div class="ov-card card-pc-approved" id="cardApprovedPettyCash" title="Rs 0">
+                            <div class="ov-card-header">
+                                <span class="ov-card-title">Approved Petty Cash</span>
+                                <div class="ov-card-icon"><i class="fas fa-cash-register"></i></div>
+                            </div>
+                            <div class="ov-card-value" id="statApprovedPettyCash">Rs 0</div>
+                            <div class="ov-card-subtext" id="subtextApprovedPettyCash"><i class="fas fa-info-circle"></i> Exact: Rs 0</div>
+                        </div>
+
+                        <!-- 8. Pending Petty Cash -->
+                        <div class="ov-card card-pc-pending" id="cardPendingPettyCash" title="Rs 0">
+                            <div class="ov-card-header">
+                                <span class="ov-card-title">Pending Petty Cash</span>
+                                <div class="ov-card-icon"><i class="fas fa-clock"></i></div>
+                            </div>
+                            <div class="ov-card-value" id="statPendingPettyCash">Rs 0</div>
+                            <div class="ov-card-subtext" id="subtextPendingPettyCash"><i class="fas fa-info-circle"></i> Exact: Rs 0</div>
+                        </div>
+
+                        <!-- 9. Total Employees -->
+                        <div class="ov-card card-employees" id="cardTotalEmployees">
+                            <div class="ov-card-header">
+                                <span class="ov-card-title">Total Employees</span>
+                                <div class="ov-card-icon"><i class="fas fa-users-viewfinder"></i></div>
+                            </div>
+                            <div class="ov-card-value" id="statTotalEmployees">0</div>
+                            <div class="ov-card-subtext"><i class="fas fa-user-group"></i> Active Personnel</div>
+                        </div>
+
+                        <!-- 10. Paid Employees -->
+                        <div class="ov-card card-paid" id="cardPaidEmployees">
+                            <div class="ov-card-header">
+                                <span class="ov-card-title">Paid Employees</span>
+                                <div class="ov-card-icon"><i class="fas fa-user-check"></i></div>
+                            </div>
+                            <div class="ov-card-value" id="statPaidEmployees">0</div>
+                            <div class="ov-card-subtext"><i class="fas fa-circle-check"></i> Net Salary > 0</div>
+                        </div>
+
+                        <!-- 11. Unpaid Employees -->
+                        <div class="ov-card card-unpaid" id="cardUnpaidEmployees">
+                            <div class="ov-card-header">
+                                <span class="ov-card-title">Unpaid Employees</span>
+                                <div class="ov-card-icon"><i class="fas fa-user-xmark"></i></div>
+                            </div>
+                            <div class="ov-card-value" id="statUnpaidEmployees">0</div>
+                            <div class="ov-card-subtext"><i class="fas fa-circle-xmark"></i> Net Salary = 0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="charts-row">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3><i class="fas fa-chart-line" style="color:var(--primary); margin-right:6px;"></i> Attendance Trend (Last 7 Days)</h3>
+                            </div>
+                            <div class="chart-container"><canvas id="attendanceTrendChart"></canvas></div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3><i class="fas fa-chart-pie" style="color:var(--primary); margin-right:6px;"></i> Department Distribution</h3>
+                            </div>
+                            <div class="chart-container"><canvas id="departmentChart"></canvas></div>
+                        </div>
+                    </div>
+
+                    <div class="charts-row" style="margin-top:20px;">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3><i class="fas fa-hand-holding-usd" style="color:var(--primary); margin-right:6px;"></i> Department Payroll Costs</h3>
+                            </div>
+                            <div class="chart-container"><canvas id="deptPayrollChart"></canvas></div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3><i class="fas fa-balance-scale" style="color:var(--primary); margin-right:6px;"></i> Salary Breakdown</h3>
+                            </div>
+                            <div class="chart-container"><canvas id="salaryBreakdownChart"></canvas></div>
+                        </div>
+                    </div>
+
+                    <div class="chart-card" style="margin-top:20px;">
+                        <div class="chart-header" style="display:flex; justify-content:space-between; align-items:center;">
+                            <h3><i class="fas fa-shield-alt" style="color:var(--primary); margin-right:6px;"></i> Financial Health & Executive Highlights</h3>
+                            <button class="btn btn-primary" onclick="switchView('attendance')"><i class="fas fa-calendar-check"></i> Open Full Attendance Grid</button>
+                        </div>
+                        <div style="padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
+                                <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;"><i class="fas fa-info-circle" style="color: var(--info);"></i> Payroll Processing Status</div>
+                                <div style="font-size: 18px; font-weight: 700; margin-top: 6px; color: #10b981;">Ready for Disbursement</div>
+                                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">All automated deductions & policy checks active</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
+                                <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;"><i class="fas fa-receipt" style="color: var(--warning);"></i> Active Petty Cash Requests</div>
+                                <div style="font-size: 18px; font-weight: 700; margin-top: 6px; color: #f59e0b;" id="overviewPettyCount">Live Monitoring</div>
+                                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Track claims & expense receipts in real-time</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
+                                <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;"><i class="fas fa-user-check" style="color: var(--primary);"></i> Attendance Module Access</div>
+                                <div style="font-size: 18px; font-weight: 700; margin-top: 6px; color: white;">Dedicated Grid View</div>
+                                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Click the button above to view individual daily punches</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Stats Row -->
-                <div class="fum-stat-row" id="fumStatRow">
-                    <div class="fum-stat">
-                        <div class="fum-stat-icon orange"><i class="fas fa-users"></i></div>
-                        <div class="fum-stat-text"><h4 id="fumTotalCount">—</h4><span>Total Employees</span></div>
+                <!-- 2. ATTENDANCE GRID PANEL -->
+                <div class="view-panel" id="panel-attendance">
+                    <div class="control-panel">
+                        <div class="filter-row">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="searchInput" placeholder="Search by name or employee ID...">
+                            </div>
+                            <select id="departmentFilter" class="filter-select">
+                                <option value="">All Departments</option>
+                            </select>
+                            <select id="teamLeadFilter" class="filter-select" onchange="filterByTeamLead()">
+                                <option value="">All Employees</option>
+                                <option value="Team Lead">Team Leads Only</option>
+                            </select>
+                            <button class="btn btn-secondary" onclick="exportToCSV()"><i class="fas fa-download"></i> Export Attendance</button>
+                        </div>
                     </div>
-                    <div class="fum-stat">
-                        <div class="fum-stat-icon green"><i class="fas fa-coins"></i></div>
-                        <div class="fum-stat-text"><h4 id="fumConfigured">—</h4><span>Salary Configured</span></div>
-                    </div>
-                    <div class="fum-stat">
-                        <div class="fum-stat-icon blue"><i class="fas fa-star"></i></div>
-                        <div class="fum-stat-text"><h4 id="fumPunctuality">—</h4><span>Punctuality Eligible</span></div>
-                    </div>
-                    <div class="fum-stat">
-                        <div class="fum-stat-icon purple"><i class="fas fa-chart-line"></i></div>
-                        <div class="fum-stat-text"><h4 id="fumAvgSalary">—</h4><span>Avg. Salary</span></div>
+
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h2><i class="fas fa-table" style="color:var(--primary); margin-right:6px;"></i> Monthly Attendance & Punch Grid</h2>
+                        </div>
+                        <div class="table-wrapper">
+                            <table id="attendanceTable">
+                                <thead id="tableHeader"></thead>
+                                <tbody id="tableBody">
+                                    <tr><td colspan="10"><div class="loading-state"><div class="loading-spinner"></div><p>Loading attendance data...</p></div></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Table -->
-                <div class="fum-table-wrap">
-                    <table class="fum-table" id="financeUsersTable">
-                        <thead>
-                            <tr>
-                                <th>Employee</th>
-                                <th>ID</th>
-                                <th>Email</th>
-                                <th>Department</th>
-                                <th>Designation</th>
-                                <th>Basic Salary</th>
-                                <th style="text-align:center;">Punctuality</th>
-                                <th style="text-align:center;">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="financeUsersTableBody">
-                            <tr><td colspan="8"><div class="fum-empty"><i class="fas fa-users"></i><p>Click User Management to load employees</p></div></td></tr>
-                        </tbody>
-                    </table>
+                <!-- 2. USERS SETTINGS PANEL -->
+                <div class="view-panel" id="panel-users">
+                    <div class="fum-container">
+                        <div class="control-panel" style="margin-bottom: 20px;">
+                            <div class="filter-row" style="justify-content: space-between;">
+                                <div class="search-box" style="flex: 1; max-width: 320px;">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="financeUserSearch" placeholder="Search name, ID, department..." onkeyup="filterFinanceUsers()">
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn btn-success" onclick="openBulkImportModal()"><i class="fas fa-file-csv"></i> Bulk Import CSV</button>
+                                    <button class="btn btn-secondary" onclick="loadFinanceUsers()"><i class="fas fa-sync-alt"></i> Refresh Users</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="table-container">
+                            <div class="table-wrapper">
+                                <table class="fum-table" id="financeUsersTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Employee</th>
+                                            <th>ID</th>
+                                            <th>Email</th>
+                                            <th>Contact No</th>
+                                            <th>Department</th>
+                                            <th>Designation</th>
+                                            <th>Bank Name</th>
+                                            <th>Account No.</th>
+                                            <th>Account Title</th>
+                                            <th>CNIC</th>
+                                            <th>Appointment Date</th>
+                                            <th>Basic Salary</th>
+                                            <th style="text-align:right;">Punctuality Reward</th>
+                                            <th style="text-align:center;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="financeUsersTableBody">
+                                        <tr><td colspan="14"><div class="fum-empty"><p>Loading employees...</p></div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- 3. FULL PAYROLL SHEET PANEL -->
+                <div class="view-panel" id="panel-payroll-sheet">
+                    <div class="loading-state"><div class="loading-spinner"></div><p>Loading payroll sheet...</p></div>
+                </div>
+
+                <!-- 3B. BANK FORMAT PANEL -->
+                <div class="view-panel" id="panel-bank-format">
+                    <div class="loading-state"><div class="loading-spinner"></div><p>Loading bank format...</p></div>
+                </div>
+
+                <!-- 4. TA/DA PANEL -->
+                <div class="view-panel" id="panel-tada">
+                    <div class="loading-state"><div class="loading-spinner"></div><p>Loading TA/DA...</p></div>
+                </div>
+
+                <!-- 5. BONUS PANEL -->
+                <div class="view-panel" id="panel-bonus">
+                    <div class="loading-state"><div class="loading-spinner"></div><p>Loading bonus...</p></div>
+                </div>
+
+                <!-- 6. ARREARS PANEL -->
+                <div class="view-panel" id="panel-arrears">
+                    <div class="loading-state"><div class="loading-spinner"></div><p>Loading arrears...</p></div>
+                </div>
+
+                <!-- 7. HALF DAY PANEL -->
+                <div class="view-panel" id="panel-halfday">
+                    <div class="loading-state"><div class="loading-spinner"></div><p>Loading half day...</p></div>
+                </div>
+
+                <!-- 8. NCNS PANEL -->
+                <div class="view-panel" id="panel-ncns">
+                    <div class="loading-state"><div class="loading-spinner"></div><p>Loading NCNS...</p></div>
+                </div>
+
+                <!-- 9. SANDWICH PANEL -->
+                <div class="view-panel" id="panel-sd">
+                    <div class="loading-state"><div class="loading-spinner"></div><p>Loading Sandwich...</p></div>
+                </div>
+
+                <!-- 10. QA/HR PANEL -->
+                <div class="view-panel" id="panel-qahr">
+                    <div class="loading-state"><div class="loading-spinner"></div><p>Loading QA/HR...</p></div>
+                </div>
+
+                <!-- 11. ADVANCE PANEL -->
+                <div class="view-panel" id="panel-advance">
+                    <div class="loading-state"><div class="loading-spinner"></div><p>Loading advances...</p></div>
+                </div>
+
+                <!-- 12. MANUAL OVERRIDES PANEL -->
+                <div class="view-panel" id="panel-manual">
+                    <div class="loading-state"><div class="loading-spinner"></div><p>Loading manual overrides...</p></div>
+                </div>
+
+                <!-- 13. GLOBAL SETTINGS PANEL -->
+                <div class="view-panel" id="panel-settings">
+                    <div class="loading-state"><div class="loading-spinner"></div><p>Loading settings...</p></div>
+                </div>
+
+                <!-- 14. PETTY CASH PANEL ========================================= -->
+                <div class="view-panel" id="panel-petty-cash">
+
+                    <!-- Sub Tab Nav -->
+                    <div class="pc-tabs">
+                        <button class="pc-tab active" id="pct-dashboard" onclick="PettyCash.switchTab('dashboard')">
+                            <i class="fas fa-chart-bar"></i> Dashboard
+                        </button>
+                        <button class="pc-tab" id="pct-new" onclick="PettyCash.switchTab('new')">
+                            <i class="fas fa-plus-circle"></i> New Request
+                        </button>
+                        <button class="pc-tab" id="pct-requests" onclick="PettyCash.switchTab('requests')">
+                            <i class="fas fa-list-alt"></i> All Requests
+                        </button>
+                        <button class="pc-tab" id="pct-ledger" onclick="PettyCash.switchTab('ledger')">
+                            <i class="fas fa-book"></i> Monthly Ledger
+                        </button>
+                    </div>
+
+                    <!-- ── TAB: DASHBOARD ──────────────────────────────────── -->
+                    <div class="pc-tab-panel active" id="pctp-dashboard">
+                        <!-- Month + Branch filter for dashboard -->
+                        <div style="display:flex; gap:10px; margin-bottom:20px; align-items:center; flex-wrap:wrap;">
+                            <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.04); padding:8px 14px; border-radius:10px; border:1px solid var(--border-color);">
+                                <i class="fas fa-calendar-alt" style="color:var(--primary); font-size:12px;"></i>
+                                <input type="month" id="pcDashMonth" value="" class="pc-filter-input" style="min-width:auto; padding:0; background:transparent; border:none; font-size:13px; font-weight:600;" onchange="PettyCash.loadDashboard()">
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.04); padding:8px 14px; border-radius:10px; border:1px solid var(--border-color);">
+                                <i class="fas fa-building" style="color:var(--primary); font-size:12px;"></i>
+                                <select id="pcDashBranch" class="pc-filter-input" style="min-width:auto; padding:0; background:transparent; border:none; font-size:13px; font-weight:600;" onchange="PettyCash.loadDashboard()">
+                                    <option value="">All Branches</option>
+                                    <option value="main">Main Branch</option>
+                                    <option value="commercial">Commercial Branch</option>
+                                    <option value="workfromhome">Work From Home</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-secondary" onclick="PettyCash.loadDashboard()" style="font-size:11px; padding:8px 14px;">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+
+                        <!-- Stat Cards -->
+                        <div class="pc-stats-grid" id="pcDashStats">
+                            <!-- Rendered by JS -->
+                        </div>
+
+                        <!-- Charts -->
+                        <div class="pc-charts-row">
+                            <div class="pc-chart-card">
+                                <div class="pc-chart-title"><i class="fas fa-chart-bar"></i> Category-Wise Monthly Expenses (Approved)</div>
+                                <div class="pc-chart-wrap"><canvas id="pcCategoryChart"></canvas></div>
+                            </div>
+                            <div class="pc-chart-card">
+                                <div class="pc-chart-title"><i class="fas fa-chart-pie"></i> Branch-Wise Monthly Expenses</div>
+                                <div class="pc-chart-wrap"><canvas id="pcBranchChart"></canvas></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── TAB: NEW REQUEST ──────────────────────────────────── -->
+                    <div class="pc-tab-panel" id="pctp-new">
+                        <div class="pc-form-card">
+                            <div class="pc-form-title">
+                                <i class="fas fa-receipt"></i> New Petty Cash Request
+                                <span style="font-size:11px; font-weight:400; color:var(--text-muted); margin-left:auto;">All <span style="color:var(--primary);">*</span> fields are required</span>
+                            </div>
+
+                            <form id="pcRequestForm" onsubmit="return false;">
+                                <!-- Section 1: Expense Info -->
+                                <div class="pc-form-section-label"><i class="fas fa-info-circle"></i> Expense Details</div>
+                                <div class="pc-grid-4">
+                                    <div class="pc-field">
+                                        <label class="pc-label">Expense Date <span class="req">*</span></label>
+                                        <input type="date" id="pcExpenseDate" class="pc-input" required>
+                                    </div>
+                                    <div class="pc-field">
+                                        <label class="pc-label">Branch <span class="req">*</span></label>
+                                        <select id="pcBranch" class="pc-select" required>
+                                            <option value="">Select Branch</option>
+                                            <option value="main">Main Branch</option>
+                                            <option value="commercial">Commercial Branch</option>
+                                            <option value="workfromhome">Work From Home</option>
+                                        </select>
+                                    </div>
+                                    <div class="pc-field">
+                                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                                            <label class="pc-label">Category <span class="req">*</span></label>
+                                            <button type="button" id="pcToggleCustomCategory" style="background:none; border:none; color:var(--primary); font-size:10px; font-weight:700; cursor:pointer; text-transform:uppercase; padding:0; outline:none;" onclick="PettyCash.toggleCustomCategory()">+ Custom</button>
+                                        </div>
+                                        <select id="pcCategorySelect" class="pc-select" onchange="PettyCash.onCategorySelectChange(this)" required>
+                                            <option value="">Select Category</option>
+                                            <option>Kitchen / Pantry</option>
+                                            <option>Office Supplies</option>
+                                            <option>Cleaning</option>
+                                            <option>Maintenance</option>
+                                            <option>Transport</option>
+                                            <option>Repair</option>
+                                            <option>Internet / Utilities</option>
+                                            <option>Emergency Purchase</option>
+                                            <option value="__CUSTOM__">+ Write Custom Category...</option>
+                                        </select>
+                                        <input type="text" id="pcCustomCategoryInput" class="pc-input" style="display:none; margin-top:6px;" placeholder="Type custom category name...">
+                                    </div>
+                                    <div class="pc-field">
+                                        <label class="pc-label">Amount (PKR) <span class="req">*</span></label>
+                                        <div class="pc-amount-wrapper">
+                                            <span class="pc-currency">₨</span>
+                                            <input type="number" id="pcAmount" class="pc-input" min="1" step="0.01" placeholder="0.00" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="pc-grid-3">
+                                    <div class="pc-field" style="grid-column: span 2;">
+                                        <label class="pc-label">Item Name / Description <span class="req">*</span></label>
+                                        <input type="text" id="pcItemName" class="pc-input" placeholder="e.g. Office Stationery, Tea/Coffee supplies..." required>
+                                    </div>
+                                    <div class="pc-field">
+                                        <label class="pc-label">Vendor / Shop Name</label>
+                                        <input type="text" id="pcVendorName" class="pc-input" placeholder="e.g. Al-Fatah, Metro...">
+                                    </div>
+                                </div>
+
+                                <div class="pc-grid-3">
+                                    <div class="pc-field" style="grid-column: span 2;">
+                                        <label class="pc-label">Detailed Description</label>
+                                        <textarea id="pcDescription" class="pc-textarea" placeholder="Describe the purchase in detail (optional)..."></textarea>
+                                    </div>
+                                    <div class="pc-field">
+                                        <label class="pc-label">Bill / Reference Number <span style="color:var(--text-muted); font-weight:400;">(optional)</span></label>
+                                        <input type="text" id="pcBillNumber" class="pc-input" placeholder="e.g. INV-00123">
+                                    </div>
+                                </div>
+
+                                <!-- Section 2: Requestor -->
+                                <div class="pc-form-section-label" style="margin-top:8px;"><i class="fas fa-user"></i> Submitted By</div>
+                                <div class="pc-grid-2" style="margin-bottom:18px;">
+                                    <div class="pc-field">
+                                        <label class="pc-label">Requested By <span class="req">*</span></label>
+                                        <input type="text" id="pcRequestedBy" class="pc-input" placeholder="Full name of person submitting" required>
+                                    </div>
+                                    <div class="pc-field">
+                                        <label class="pc-label">Remarks</label>
+                                        <input type="text" id="pcRemarks" class="pc-input" placeholder="Any additional notes (optional)...">
+                                    </div>
+                                </div>
+
+                                <!-- Section 3: Bill Upload -->
+                                <div class="pc-form-section-label"><i class="fas fa-paperclip"></i> Bill / Slip Upload <span style="color:var(--primary);">*</span></div>
+                                <div class="pc-upload-zone" id="pcUploadZone">
+                                    <input type="file" id="pcBillFile" accept="image/*,application/pdf" required onchange="PettyCash.onFileSelect(this)">
+                                    <div class="pc-upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                                    <h4>Drop your bill or slip here</h4>
+                                    <p>Supports JPG, PNG, WEBP, PDF &nbsp;•&nbsp; Max 10MB</p>
+                                </div>
+                                <div class="pc-upload-preview" id="pcUploadPreview">
+                                    <img class="pc-upload-preview-thumb" id="pcPreviewThumb" src="" alt="preview">
+                                    <div class="pc-upload-preview-info">
+                                        <strong id="pcPreviewName">filename.jpg</strong>
+                                        <span id="pcPreviewSize">0 KB</span>
+                                    </div>
+                                    <button type="button" class="pc-upload-remove" onclick="PettyCash.clearFile()" title="Remove"><i class="fas fa-times"></i></button>
+                                </div>
+
+                                <!-- Submit -->
+                                <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:24px; padding-top:20px; border-top:1px solid var(--border-color);">
+                                    <button type="button" class="btn btn-secondary" onclick="PettyCash.resetForm()">
+                                        <i class="fas fa-times"></i> Clear Form
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" id="pcSubmitBtn" onclick="PettyCash.submitRequest()">
+                                        <i class="fas fa-paper-plane"></i> Submit Petty Cash Request
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- ── TAB: ALL REQUESTS ──────────────────────────────────── -->
+                    <div class="pc-tab-panel" id="pctp-requests">
+                        <!-- Filters -->
+                        <div class="pc-filters">
+                            <div class="pc-filters-row">
+                                <div class="pc-filter-search">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="pcSearchQ" placeholder="Search item, vendor, requested by..." onkeyup="PettyCash.filterRequests()">
+                                </div>
+                                <select id="pcFilterMonth" class="pc-filter-input" onchange="PettyCash.loadRequests()">
+                                    <option value="">All Months</option>
+                                </select>
+                                <select id="pcFilterBranch" class="pc-filter-input" onchange="PettyCash.loadRequests()">
+                                    <option value="">All Branches</option>
+                                    <option value="main">Main Branch</option>
+                                    <option value="commercial">Commercial Branch</option>
+                                    <option value="workfromhome">Work From Home</option>
+                                </select>
+                                <select id="pcFilterCategory" class="pc-filter-input" onchange="PettyCash.loadRequests()">
+                                    <option value="">All Categories</option>
+                                    <option>Kitchen / Pantry</option>
+                                    <option>Office Supplies</option>
+                                    <option>Cleaning</option>
+                                    <option>Maintenance</option>
+                                    <option>Transport</option>
+                                    <option>Repair</option>
+                                    <option>Internet / Utilities</option>
+                                    <option>Emergency Purchase</option>
+                                    <option>Other</option>
+                                </select>
+                                <select id="pcFilterStatus" class="pc-filter-input" onchange="PettyCash.loadRequests()">
+                                    <option value="">All Statuses</option>
+                                    <option value="submitted">Submitted</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                    <option value="need_correction">Need Correction</option>
+                                </select>
+                                <button class="btn btn-secondary" onclick="PettyCash.loadRequests()" style="font-size:11px; padding:8px 14px; white-space:nowrap;">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </button>
+                                <button class="btn btn-success" onclick="PettyCash.exportCSV()" style="font-size:11px; padding:8px 14px; white-space:nowrap;">
+                                    <i class="fas fa-file-csv"></i> Export CSV
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Requests Table -->
+                        <div class="pc-table-wrap">
+                            <div class="pc-table-head">
+                                <h3><i class="fas fa-list-alt"></i> Petty Cash Requests <span id="pcReqCount" style="font-size:11px; font-weight:500; color:var(--text-muted); margin-left:8px;"></span></h3>
+                                <div class="pc-table-head-actions">
+                                    <button class="btn btn-primary" onclick="PettyCash.switchTab('new')" style="font-size:11px; padding:8px 14px;">
+                                        <i class="fas fa-plus"></i> New Request
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="pc-tbl-scroll">
+                                <table class="pc-tbl" id="pcRequestsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Date</th>
+                                            <th>Item Name</th>
+                                            <th>Category</th>
+                                            <th>Branch</th>
+                                            <th>Vendor</th>
+                                            <th>Amount</th>
+                                            <th>Requested By</th>
+                                            <th>Status</th>
+                                            <th>Action By</th>
+                                            <th style="text-align:center;">Bill</th>
+                                            <th style="text-align:center;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pcRequestsTbody">
+                                        <tr><td colspan="12">
+                                            <div class="loading-state"><div class="loading-spinner"></div><p>Loading requests...</p></div>
+                                        </td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── TAB: LEDGER ──────────────────────────────────── -->
+                    <div class="pc-tab-panel" id="pctp-ledger">
+                        <!-- Ledger Filters -->
+                        <div class="pc-filters" style="margin-bottom:20px;">
+                            <div class="pc-filters-row">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <i class="fas fa-calendar-alt" style="color:var(--primary); font-size:12px;"></i>
+                                    <input type="month" id="pcLedgerMonth" class="pc-filter-input" onchange="PettyCash.loadLedger()">
+                                </div>
+                                <select id="pcLedgerBranch" class="pc-filter-input" onchange="PettyCash.loadLedger()">
+                                    <option value="">All Branches</option>
+                                    <option value="main">Main Branch</option>
+                                    <option value="commercial">Commercial Branch</option>
+                                    <option value="workfromhome">Work From Home</option>
+                                </select>
+                                <button class="btn btn-secondary" onclick="PettyCash.loadLedger()" style="font-size:11px; padding:8px 14px;">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </button>
+                                <button class="btn btn-success" onclick="PettyCash.exportLedgerCSV()" style="font-size:11px; padding:8px 14px;">
+                                    <i class="fas fa-file-csv"></i> Export Ledger
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Category Breakdown Card -->
+                        <div class="pc-ledger-breakdown-card" id="pcLedgerCategoryCard" style="display:none;">
+                            <div class="pc-ledger-breakdown-title">
+                                <i class="fas fa-tags" style="color:var(--primary);"></i> Category-Wise Expense Totals
+                            </div>
+                            <div class="pc-ledger-breakdown-grid" id="pcLedgerCategoryGrid">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Ledger Table -->
+                        <div class="pc-table-wrap">
+                            <div class="pc-table-head">
+                                <h3><i class="fas fa-book"></i> Monthly Petty Cash Ledger <span style="font-size:11px; font-weight:400; color:var(--text-muted); margin-left:6px;">(Approved transactions only)</span></h3>
+                            </div>
+                            <div class="pc-tbl-scroll">
+                                <table class="pc-tbl" id="pcLedgerTable">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Date</th>
+                                            <th>Item Name</th>
+                                            <th>Category</th>
+                                            <th>Branch</th>
+                                            <th>Vendor</th>
+                                            <th>Bill No.</th>
+                                            <th>Requested By</th>
+                                            <th>Approved By</th>
+                                            <th>Approved At</th>
+                                            <th style="text-align:right;">Amount (PKR)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pcLedgerTbody">
+                                        <tr><td colspan="11">
+                                            <div class="loading-state"><div class="loading-spinner"></div><p>Loading ledger...</p></div>
+                                        </td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="pc-ledger-total" id="pcLedgerTotal" style="display:none;">
+                                <span><i class="fas fa-check-circle" style="color:var(--secondary); margin-right:6px;"></i>Total Approved Amount for Month</span>
+                                <strong id="pcLedgerTotalAmt">₨ 0</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                </div><!-- /panel-petty-cash -->
             </div>
-        </div>
-
-        <footer class="footer">
-            <div><span style="color: var(--primary);">⚡ BALITECH NEXUS</span> · Finance Intelligence Hub v5.0</div>
-            <div><i class="fas fa-shield-alt"></i> Working Days Only (Mon-Fri) for Salary Calculation</div>
-        </footer>
+        </main>
     </div>
 
-    <div class="modal" id="payrollModal">
-        <div class="modal-content" style="max-width: 1300px; width: 95%; height: 90vh; display: flex; flex-direction: column;">
-            <div class="modal-header">
-                <h2><i class="fas fa-file-invoice-dollar"></i> Advanced Payroll System · <span id="payrollMonthLabel">March 2026</span></h2>
-                <div style="display:flex;gap:10px;align-items:center;">
-                    <button class="btn btn-secondary" onclick="exportPayrollCSV()" style="padding:8px 16px;font-size:12px;"><i class="fas fa-file-csv"></i> Export Payroll</button>
-                    <button class="btn btn-secondary" onclick="processFullPayroll()" style="padding:8px 16px;font-size:12px;"><i class="fas fa-play"></i> Re-Calculate All</button>
-                    <div class="modal-close" onclick="closePayrollDashboard()">&times;</div>
+    <!-- ══════════════════════════════════════════════════
+         PETTY CASH — ACTION MODAL (Approve/Reject/Correction)
+    ══════════════════════════════════════════════════ -->
+    <div class="pc-modal" id="pcActionModal">
+        <div class="pc-modal-box">
+            <div class="pc-modal-header">
+                <h3 id="pcActionModalTitle"><i class="fas fa-check-circle" style="color:var(--secondary);"></i> Approve Request</h3>
+                <button class="pc-modal-close-btn" onclick="PettyCash.closeActionModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="pc-modal-body">
+                <div id="pcActionRequestInfo" style="padding:12px 14px; background:rgba(255,255,255,0.03); border-radius:10px; border:1px solid var(--border-color); margin-bottom:16px; font-size:12px; color:var(--text-muted); line-height:1.6;"></div>
+                <div class="pc-field">
+                    <label class="pc-label">Remarks / Notes</label>
+                    <textarea id="pcActionRemarks" class="pc-textarea" placeholder="Add any remarks for this action (optional)..." rows="3"></textarea>
                 </div>
             </div>
-            <div class="modal-body" id="payrollModalBody" style="flex:1; overflow-y:auto; padding:30px;">
-                <div class="loading-state"><div class="loading-spinner"></div><p>Calculating payroll...</p></div>
+            <div class="pc-modal-footer">
+                <button class="btn btn-secondary" onclick="PettyCash.closeActionModal()">Cancel</button>
+                <button class="btn" id="pcActionConfirmBtn" onclick="PettyCash.confirmAction()">Confirm</button>
             </div>
         </div>
     </div>
 
+    <!-- ══════════════════════════════════════════════════
+         PETTY CASH — BILL VIEWER MODAL
+    ══════════════════════════════════════════════════ -->
+    <div class="pc-modal" id="pcBillModal">
+        <div class="pc-modal-box pc-bill-modal-box">
+            <div class="pc-modal-header">
+                <h3><i class="fas fa-file-image" style="color:var(--primary);"></i> Bill / Slip Viewer</h3>
+                <button class="pc-modal-close-btn" onclick="PettyCash.closeBillModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="pc-bill-viewer" id="pcBillViewer"></div>
+            <div class="pc-modal-footer">
+                <a id="pcBillDownloadLink" href="#" target="_blank" class="btn btn-secondary"><i class="fas fa-download"></i> Open / Download</a>
+                <button class="btn btn-primary" onclick="PettyCash.closeBillModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DETAILS -->
     <div class="modal" id="employeeModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2><i class="fas fa-user-clock"></i> <span id="modalEmployeeName">Employee</span> - Attendance Details</h2>
+                <h2><i class="fas fa-user-clock" style="color:var(--primary); margin-right:6px;"></i> <span id="modalEmployeeName">Employee</span> - Attendance Details</h2>
                 <div class="modal-close" onclick="closeModal()">&times;</div>
             </div>
-            <div class="modal-body" id="modalBody"><div class="loading-state"><div class="loading-spinner"></div><p>Loading...</p></div></div>
+            <div class="modal-body" id="modalBody"></div>
         </div>
     </div>
 
-    <!-- Edit User Modal for Finance User Management - PREMIUM REDESIGN -->
+    <!-- EDIT USER MODAL -->
     <div class="modal" id="financeUserEditModal">
         <div class="fum-modal">
-
-            <!-- Modal Header -->
             <div class="fum-modal-header">
                 <div class="fum-modal-header-left">
                     <div class="fum-modal-avatar" id="feModalAvatar">?</div>
@@ -760,54 +2351,66 @@ require_once 'config.php';
                 </div>
                 <button class="fum-modal-close" onclick="closeModal('financeUserEditModal')">&times;</button>
             </div>
-
-            <!-- Modal Body -->
             <div class="fum-modal-body">
                 <form id="financeUserEditForm" onsubmit="saveFinanceUserSettings(event)">
                     <div class="modal-form-grid">
                         <input type="hidden" id="fe_employee_code" name="employee_code">
-
-                        <div class="fum-section-divider"><span><i class="fas fa-id-card"></i> Employee Information</span></div>
-                        <div class="fum-identity-grid" aria-label="Read-only employee details">
+                        <div class="fum-section-divider"><span>Employee Info</span></div>
+                        <div class="fum-identity-grid">
                             <div class="fum-identity-item"><span>Biometric ID</span><strong id="fe_view_code">—</strong></div>
-                            <div class="fum-identity-item"><span>Employee Name</span><strong id="fe_view_name">—</strong></div>
-                            <div class="fum-identity-item wide"><span>Email</span><strong id="fe_view_email">—</strong></div>
+                            <div class="fum-identity-item"><span>Name</span><strong id="fe_view_name">—</strong></div>
                             <div class="fum-identity-item"><span>Department</span><strong id="fe_view_department">—</strong></div>
                             <div class="fum-identity-item"><span>Designation</span><strong id="fe_view_designation">—</strong></div>
                         </div>
-
-                        <div class="fum-section-divider"><span><i class="fas fa-coins"></i> Financial Settings</span></div>
-
-                        <div class="fum-field">
-                            <label for="fe_basic_salary">Basic Salary (₨) *</label>
-                            <input type="number" id="fe_basic_salary" name="basic_salary" required min="0" placeholder="e.g. 50000">
-                        </div>
-
-                        <div class="fum-toggle-row">
-                            <div class="fum-toggle-info">
-                                <h5><i class="fas fa-star" style="color: var(--warning); margin-right: 6px;"></i> Punctuality Reward</h5>
-                                <p>Employee will receive a punctuality bonus if eligible</p>
+                        <div class="fum-section-divider"><span>Banking & HR Identity Details</span></div>
+                        <div class="fum-grid-2" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+                            <div class="fum-field">
+                                <label for="fe_bank_name"><i class="fas fa-university" style="color:var(--primary); margin-right:4px;"></i> Bank Name</label>
+                                <input type="text" id="fe_bank_name" name="bank_name" class="pc-input" style="width:100%;" placeholder="e.g. Meezan Bank">
                             </div>
-                            <label class="switch" style="flex-shrink: 0;">
-                                <input type="checkbox" id="fe_punctuality_enabled" name="punctuality_enabled">
-                                <span class="slider round"></span>
-                            </label>
+                            <div class="fum-field">
+                                <label for="fe_account_no"><i class="fas fa-credit-card" style="color:var(--primary); margin-right:4px;"></i> Account Number</label>
+                                <input type="text" id="fe_account_no" name="account_no" class="pc-input" style="width:100%;" placeholder="e.g. 01010101010101">
+                            </div>
+                        </div>
+                        <div class="fum-grid-2" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:14px;">
+                            <div class="fum-field">
+                                <label for="fe_account_title"><i class="fas fa-user-tag" style="color:var(--primary); margin-right:4px;"></i> Account Title</label>
+                                <input type="text" id="fe_account_title" name="account_title" class="pc-input" style="width:100%;" placeholder="e.g. John Doe">
+                            </div>
+                            <div class="fum-field">
+                                <label for="fe_cnic"><i class="fas fa-id-card" style="color:var(--primary); margin-right:4px;"></i> CNIC #</label>
+                                <input type="text" id="fe_cnic" name="cnic" class="pc-input" style="width:100%;" placeholder="XXXXX-XXXXXXX-X">
+                            </div>
+                        </div>
+                        <div class="fum-field" style="margin-top:14px;">
+                            <label for="fe_contact_no"><i class="fas fa-phone" style="color:var(--primary); margin-right:4px;"></i> Contact Number</label>
+                            <input type="text" id="fe_contact_no" name="contact_no" class="pc-input" style="width:100%;" placeholder="0300-1234567">
                         </div>
 
-                        <div class="fum-field">
-                            <label for="fe_punctuality_amount">Punctuality Reward Amount (₨)</label>
-                            <input type="number" id="fe_punctuality_amount" name="punctuality_amount" min="0" placeholder="e.g. 5000">
+                        <div class="fum-section-divider"><span>Financial & Appointment Settings</span></div>
+                        <div class="fum-grid-2" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+                            <div class="fum-field">
+                                <label for="fe_basic_salary">Basic Salary (₨) *</label>
+                                <input type="number" id="fe_basic_salary" name="basic_salary" required min="0" placeholder="0">
+                            </div>
+                            <div class="fum-field">
+                                <label for="fe_punctuality_amount">Punctuality Reward Amount (₨) *</label>
+                                <input type="number" id="fe_punctuality_amount" name="punctuality_amount" min="0" required placeholder="5000">
+                            </div>
                         </div>
-
-                        <div class="fum-policy-note">
+                        <div class="fum-field" style="margin-top:14px;">
+                            <label for="fe_appointment_date"><i class="fas fa-calendar-alt" style="color:var(--primary); margin-right:4px;"></i> Appointment Date (60-day Punctuality & Leave Rule) *</label>
+                            <input type="date" id="fe_appointment_date" name="appointment_date" class="pc-input" style="width:100%;" required>
+                            <p style="font-size:11px; color:var(--text-muted); margin-top:4px;">Punctuality is automatically enabled after completing 60 days from appointment date (allows 1 paid leave/month; <60 days deducts punctuality reward on leave).</p>
+                        </div>
+                        <div class="fum-policy-note" style="margin-top:16px;">
                             <i class="fas fa-shield-alt"></i>
-                            <div>Finance access is limited to salary and punctuality configuration. Employee identity, role, branch, status, and login details remain read-only.</div>
+                            <div>Finance configurations manage Basic Salary, Punctuality Reward Amount, Appointment Date, Banking, CNIC, and Contact details.</div>
                         </div>
                     </div>
                 </form>
             </div>
-
-            <!-- Modal Footer -->
             <div class="fum-modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('financeUserEditModal')">Cancel</button>
                 <button type="submit" form="financeUserEditForm" class="btn btn-primary"><i class="fas fa-save"></i> Save Changes</button>
@@ -815,25 +2418,108 @@ require_once 'config.php';
         </div>
     </div>
 
+    <!-- BULK PAYROLL IMPORT CSV MODAL -->
+    <div class="modal" id="financeBulkImportModal">
+        <div class="fum-modal" style="max-width: 600px;">
+            <div class="fum-modal-header">
+                <div class="fum-modal-header-left">
+                    <div class="fum-modal-avatar" style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3);"><i class="fas fa-file-excel"></i></div>
+                    <div class="fum-modal-title">
+                        <h3>Bulk Import Payroll</h3>
+                        <p>Upload a CSV file to update basic salaries and punctuality settings</p>
+                    </div>
+                </div>
+                <button class="fum-modal-close" onclick="closeModal('financeBulkImportModal')">&times;</button>
+            </div>
+            <div class="fum-modal-body" style="padding: 24px;">
+                <!-- Drag and Drop Zone -->
+                <div id="csvDragZone" style="border: 2px dashed rgba(255,255,255,0.15); border-radius: 12px; padding: 30px; text-align: center; background: rgba(255,255,255,0.02); cursor: pointer; transition: all 0.2s; margin-bottom: 20px;">
+                    <i class="fas fa-cloud-arrow-up" style="font-size: 38px; color: #10b981; margin-bottom: 12px;"></i>
+                    <h4 style="font-size: 14px; margin-bottom: 6px; color: #fff;">Drag & Drop CSV file here</h4>
+                    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 16px;">or click to browse from your device</p>
+                    <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+                    <span id="selectedFileName" style="display: inline-block; font-size: 12px; font-weight: 700; color: #10b981; background: rgba(16,185,129,0.1); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(16,185,129,0.25); display: none;"></span>
+                </div>
+
+                <!-- Template Guidance & Sample Download -->
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; font-size: 12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                        <h5 style="color: #fff; margin: 0; font-size: 12px; font-weight: 700;"><i class="fas fa-circle-info" style="color: var(--primary); margin-right: 4px;"></i> CSV Header Requirements:</h5>
+                        <button type="button" class="btn btn-secondary" onclick="downloadPayrollCSVTemplate()" style="font-size:11px; padding:4px 10px; background:rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3);"><i class="fas fa-download"></i> Download Sample CSV</button>
+                    </div>
+                    <p style="color: var(--text-muted); line-height: 1.4; margin-bottom: 8px;">
+                        Upload a CSV containing salary details and appointment dates:
+                    </p>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px; font-family: monospace; font-size: 11px;">
+                        <span style="background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; color: #fff;">Biometric ID</span>
+                        <span style="background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; color: #fff;">Name</span>
+                        <span style="background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; color: #fff;">Basic Salary</span>
+                        <span style="background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; color: #fff;">Punctuality Amount</span>
+                        <span style="background: rgba(16,185,129,0.2); padding: 2px 6px; border-radius: 4px; color: #34d399; border:1px solid rgba(16,185,129,0.3);">Appointment Date</span>
+                        <span style="background: rgba(59,130,246,0.2); padding: 2px 6px; border-radius: 4px; color: #60a5fa; border:1px solid rgba(59,130,246,0.3);">Bank Name</span>
+                        <span style="background: rgba(59,130,246,0.2); padding: 2px 6px; border-radius: 4px; color: #60a5fa; border:1px solid rgba(59,130,246,0.3);">Account No</span>
+                        <span style="background: rgba(59,130,246,0.2); padding: 2px 6px; border-radius: 4px; color: #60a5fa; border:1px solid rgba(59,130,246,0.3);">Account Title</span>
+                        <span style="background: rgba(245,158,11,0.2); padding: 2px 6px; border-radius: 4px; color: #fbbf24; border:1px solid rgba(245,158,11,0.3);">CNIC</span>
+                        <span style="background: rgba(245,158,11,0.2); padding: 2px 6px; border-radius: 4px; color: #fbbf24; border:1px solid rgba(245,158,11,0.3);">Contact No</span>
+                    </div>
+                </div>
+
+                <!-- Live Result Summary Dashboard -->
+                <div id="importResultDashboard" style="display: none; background: rgba(15,17,30,0.9); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; margin-bottom: 10px;">
+                    <h4 style="font-size: 13px; color: #fff; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 6px;"><i class="fas fa-chart-bar" style="color: #10b981; margin-right: 6px;"></i> Import Processing Summary</h4>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; margin-bottom: 16px;">
+                        <div style="background: rgba(255,255,255,0.03); padding: 8px; border-radius: 8px;">
+                            <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; display: block;">Total Rows</span>
+                            <strong id="resTotalRows" style="font-size: 18px; color: #fff;">0</strong>
+                        </div>
+                        <div style="background: rgba(16,185,129,0.08); padding: 8px; border-radius: 8px; border: 1px solid rgba(16,185,129,0.15);">
+                            <span style="font-size: 10px; color: #10b981; text-transform: uppercase; display: block;">Updated</span>
+                            <strong id="resUpdated" style="font-size: 18px; color: #10b981;">0</strong>
+                        </div>
+                        <div style="background: rgba(245,158,11,0.08); padding: 8px; border-radius: 8px; border: 1px solid rgba(245,158,11,0.15);">
+                            <span style="font-size: 10px; color: #f59e0b; text-transform: uppercase; display: block;">Skipped</span>
+                            <strong id="resSkipped" style="font-size: 18px; color: #f59e0b;">0</strong>
+                        </div>
+                        <div style="background: rgba(239,68,68,0.08); padding: 8px; border-radius: 8px; border: 1px solid rgba(239,68,68,0.15);">
+                            <span style="font-size: 10px; color: #ef4444; text-transform: uppercase; display: block;">Failed</span>
+                            <strong id="resFailed" style="font-size: 18px; color: #ef4444;">0</strong>
+                        </div>
+                    </div>
+                    
+                    <div style="max-height: 150px; overflow-y: auto; font-size: 11px; padding: 4px; border-radius: 6px; background: rgba(0,0,0,0.25);">
+                        <ul id="importDetailsList" style="list-style: none; margin: 0; padding: 0;"></ul>
+                    </div>
+                </div>
+            </div>
+            <div class="fum-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('financeBulkImportModal')">Close</button>
+                <button type="button" class="btn btn-primary" id="btnExecuteImport" onclick="processBulkImportCSV()"><i class="fas fa-upload"></i> Process Import</button>
+            </div>
+        </div>
+    </div>
+
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
-        // ================== EXISTING ATTENDANCE CODE ==================
         const API_BASE = 'attendance/';
         let allData = [];
+        let rawAllData = [];
         let currentYear = 2026;
-        let currentMonth = 3;
+        let currentMonth = 7;
         let daysInMonth = 31;
         let workingDaysCount = 0;
         let elapsedWorkingDaysCount = 0;
         let leaves = {};
         let attendanceTrendChart = null;
         let departmentChart = null;
+        let deptPayrollChart = null;
+        let salaryBreakdownChart = null;
         const PAYROLL_API = 'api/payroll_api.php';
-
-        // ================== FINANCE USER MANAGEMENT SCRIPTS ==================
-        let currentMainView = 'dashboard';
+        let currentPayrollSearchTerm = '';
+        let activeView = 'overview';
         let financeUsersList = [];
+        let selectedPayrollTeam = '';
+        let selectedPayrollQuery = '';
 
         function escapeHtml(value) {
             return String(value ?? '')
@@ -844,259 +2530,77 @@ require_once 'config.php';
                 .replaceAll("'", '&#039;');
         }
 
-        function switchMainView(view) {
-            const dashboardBtn = document.getElementById('btnMainDashboard');
-            const userMgmtBtn = document.getElementById('btnUserManagementView');
-            const dashboardContent = document.getElementById('mainDashboardContent');
-            const userMgmtContent = document.getElementById('userManagementContent');
-
-            if (view === 'usermanagement') {
-                dashboardContent.style.display = 'none';
-                userMgmtContent.style.display = 'block';
-                userMgmtBtn.classList.add('active');
-                if (dashboardBtn) dashboardBtn.classList.remove('active');
+        // ===== SIDEBAR NAVIGATION SWITCHER =====
+        function switchView(view) {
+            activeView = view;
+            
+            // Sidebar buttons
+            document.querySelectorAll('.sidebar-nav .nav-item').forEach(b => b.classList.remove('active'));
+            const activeNav = document.querySelector(`.sidebar-nav .nav-item[data-view="${view}"]`);
+            if (activeNav) activeNav.classList.add('active');
+            
+            // View title
+            const viewTitles = {
+                overview: 'Overview Hub',
+                attendance: 'Monthly Attendance Grid',
+                users: 'Users Settings',
+                'payroll-sheet': 'Complete Payroll Sheet',
+                'bank-format': 'Bank Format Payroll Sheet',
+                tada: 'TA/DA Adjustments',
+                bonus: 'Bonus Adjustments',
+                arrears: 'Arrears Adjustments',
+                halfday: 'Half Day Deductions',
+                ncns: 'NCNS Deductions',
+                sd: 'SandWich Deductions',
+                qahr: 'QA/HR Deductions',
+                advance: 'Advance Salary Management',
+                manual: 'Manual Overrides',
+                settings: 'Global Config',
+                'petty-cash': 'Petty Cash Management'
+            };
+            document.getElementById('mainViewTitle').textContent = viewTitles[view] || 'Finance Hub';
+            
+            // Panels
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            const activePanel = document.getElementById(`panel-${view}`);
+            if (activePanel) activePanel.classList.add('active');
+            
+            // Auto-collapse sidebar for Attendance Grid to maximize full page view
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                if (view === 'attendance') {
+                    sidebar.classList.add('collapsed');
+                } else {
+                    sidebar.classList.remove('collapsed');
+                }
+            }
+            
+            // Run view specific trigger
+            if (view === 'users') {
                 loadFinanceUsers();
-                currentMainView = 'usermanagement';
-            } else {
-                userMgmtContent.style.display = 'none';
-                dashboardContent.style.display = 'block';
-                if (dashboardBtn) dashboardBtn.classList.add('active');
-                userMgmtBtn.classList.remove('active');
-                currentMainView = 'dashboard';
+            } else if (view === 'petty-cash') {
+                if (typeof PettyCash !== 'undefined') PettyCash.init();
+            } else if (view !== 'overview') {
+                renderPayrollDashboardView(view);
             }
         }
 
-        async function loadFinanceUsers() {
-            const tbody = document.getElementById('financeUsersTableBody');
-            tbody.innerHTML = '<tr><td colspan="8"><div class="loading-state"><div class="loading-spinner"></div><p>Loading user list...</p></div></td></tr>';
-            try {
-                const res = await fetch('api/payroll_api.php?action=getFinanceUsers');
-                const data = await res.json();
-                if (data.success && data.data) {
-                    financeUsersList = data.data;
-                    renderFinanceUsersTable(financeUsersList);
-                } else {
-                    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--danger); padding: 20px;">Failed to load: ${data.error || 'Unknown error'}</td></tr>`;
-                }
-            } catch (e) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--danger); padding: 20px;">Error connecting to API.</td></tr>';
-            }
-        }
 
-        function renderFinanceUsersTable(list) {
-            const tbody = document.getElementById('financeUsersTableBody');
-            // Update stat counters
-            const allList = financeUsersList;
-            const configured = allList.filter(u => u.basic_salary > 0).length;
-            const punctual = allList.filter(u => u.punctuality_enabled).length;
-            const avgSalary = allList.length > 0 ? Math.round(allList.reduce((s,u) => s + Number(u.basic_salary||0), 0) / allList.length) : 0;
-            const tc = document.getElementById('fumTotalCount');
-            const cf = document.getElementById('fumConfigured');
-            const pp = document.getElementById('fumPunctuality');
-            const av = document.getElementById('fumAvgSalary');
-            if (tc) tc.textContent = allList.length;
-            if (cf) cf.textContent = configured;
-            if (pp) pp.textContent = punctual;
-            if (av) av.textContent = '₨' + (avgSalary >= 1000 ? Math.round(avgSalary/1000)+'k' : avgSalary);
-
-            if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8"><div class="fum-empty"><i class="fas fa-search"></i><p>No matching employees found</p></div></td></tr>';
-                return;
-            }
-            const avatarColors = ['#f97316','#10b981','#8b5cf6','#3b82f6','#ec4899','#06b6d4','#f59e0b'];
-            tbody.innerHTML = list.map((u) => {
-                const initials = escapeHtml((u.full_name || '?').split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase());
-                const userId = Number(u.id) || 0;
-                const color = avatarColors[userId % avatarColors.length];
-                const salaryFmt = Number(u.basic_salary) > 0 ? '₨ ' + Number(u.basic_salary).toLocaleString() : '<span style="color:rgba(255,255,255,0.3); font-style:italic;">Not set</span>';
-                return `
-                <tr>
-                    <td>
-                        <div class="fum-user-cell">
-                            <div class="fum-avatar" style="background: ${color}22; color: ${color}; border: 1px solid ${color}44;">${initials}</div>
-                            <div class="fum-user-info">
-                                <h5>${escapeHtml(u.full_name || 'Unnamed Employee')}</h5>
-                                <span>Payroll profile</span>
-                            </div>
-                        </div>
-                    </td>
-                    <td><span class="fum-id-badge">${escapeHtml(u.employee_code || '—')}</span></td>
-                    <td style="color: rgba(255,255,255,0.6); font-size:12px;">${u.email ? escapeHtml(u.email) : '<span style="color:rgba(255,255,255,0.25); font-style:italic;">No email</span>'}</td>
-                    <td>${escapeHtml(u.department || '—')}</td>
-                    <td style="color: rgba(255,255,255,0.7);">${escapeHtml(u.designation || '—')}</td>
-                    <td class="fum-salary">${salaryFmt}</td>
-                    <td style="text-align:center;">
-                        <span class="summary-badge ${u.punctuality_enabled ? 'summary-present' : 'summary-absent'}">
-                            ${u.punctuality_enabled ? '✓ Yes' : '✗ No'}
-                        </span>
-                    </td>
-                    <td style="text-align:center;">
-                        <button class="fum-edit-btn" onclick="openFinanceUserEditor(${userId})" aria-label="Edit payroll settings for ${escapeHtml(u.full_name || 'employee')}">
-                            <i class="fas fa-coins"></i> Salary
-                        </button>
-                    </td>
-                </tr>`;
-            }).join('');
-        }
-
-        function filterFinanceUsers() {
-            const query = document.getElementById('financeUserSearch').value.toLowerCase().trim();
-            if (!query) {
-                renderFinanceUsersTable(financeUsersList);
-                return;
-            }
-            const filtered = financeUsersList.filter(u =>
-                (u.employee_code || '').toLowerCase().includes(query) ||
-                (u.full_name || '').toLowerCase().includes(query) ||
-                (u.department || '').toLowerCase().includes(query) ||
-                (u.designation || '').toLowerCase().includes(query) ||
-                (u.email || '').toLowerCase().includes(query)
-            );
-            renderFinanceUsersTable(filtered);
-        }
-
-        function openFinanceUserEditor(userId) {
-            const u = financeUsersList.find(item => Number(item.id) === Number(userId));
-            if (!u) return;
-
-            // Populate avatar & header
-            const initials = (u.full_name || '?').split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase();
-            const avatarEl = document.getElementById('feModalAvatar');
-            const nameEl = document.getElementById('feModalName');
-            const subEl = document.getElementById('feModalSub');
-            if (avatarEl) avatarEl.textContent = initials;
-            if (nameEl) nameEl.textContent = u.full_name || 'Edit Employee';
-            if (subEl) subEl.textContent = (u.designation || '') + (u.department ? ' · ' + u.department : '');
-
-            document.getElementById('fe_employee_code').value = u.employee_code || '';
-            document.getElementById('fe_view_code').textContent = u.employee_code || '—';
-            document.getElementById('fe_view_name').textContent = u.full_name || '—';
-            document.getElementById('fe_view_email').textContent = u.email || '—';
-            document.getElementById('fe_view_department').textContent = u.department || '—';
-            document.getElementById('fe_view_designation').textContent = u.designation || '—';
-            document.getElementById('fe_basic_salary').value = u.basic_salary || '0';
-            document.getElementById('fe_punctuality_enabled').checked = !!u.punctuality_enabled;
-            document.getElementById('fe_punctuality_amount').value = u.punctuality_amount ?? '5000';
-
-            document.getElementById('financeUserEditModal').classList.add('active');
-        }
-
-        async function saveFinanceUserSettings(event) {
-            event.preventDefault();
-
-            const employee_code = document.getElementById('fe_employee_code').value;
-            const salary = parseFloat(document.getElementById('fe_basic_salary').value) || 0;
-            const punctuality = document.getElementById('fe_punctuality_enabled').checked;
-            const punctuality_amount = parseFloat(document.getElementById('fe_punctuality_amount').value) || 0;
-
-            const saveBtn = document.querySelector('button[form="financeUserEditForm"][type="submit"]') || event.target.querySelector('button[type="submit"]');
-            const origHTML = saveBtn ? saveBtn.innerHTML : 'Save Changes';
-            if (saveBtn) {
-                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-                saveBtn.disabled = true;
-            }
-
-            try {
-                const res = await fetch('api/payroll_api.php?action=updateFinanceUser', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        employee_code: employee_code,
-                        basic_salary: salary,
-                        punctuality_enabled: punctuality ? 1 : 0,
-                        punctuality_amount: punctuality_amount
-                    })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    showToast('✅ Payroll settings updated!', 'success');
-                    closeModal('financeUserEditModal');
-                    loadFinanceUsers();
-                } else {
-                    showToast(`❌ Error: ${data.error || 'Failed to save settings'}`, 'error');
-                }
-            } catch (e) {
-                showToast('❌ Connection error.', 'error');
-            } finally {
-                if (saveBtn) {
-                    saveBtn.innerHTML = origHTML;
-                    saveBtn.disabled = false;
-                }
-            }
-        }
-
-        let payrollSaveTimer = null;
-
-        function payrollMonthStr() {
-            return `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
-        }
-
-        // ================== PAYROLL CONSTANTS ==================
-        const BASE_SALARY = 50000;
-        const PERFECT_ATTENDANCE_BONUS = 5000;
-        const CHECKIN_CUTOFF_MINUTES = 18 * 60;
+        // ===== PAYROLL CALCULATIONS =====
+        const BASE_SALARY = 0;
+        const PERFECT_ATTENDANCE_BONUS = 0;
+        const CHECKIN_CUTOFF_MINUTES = 18 * 60; // 6:00 PM
         const NCNS_PENALTY = 5000;
         const MISSPUNCH_DEDUCTION = 1000;
         const PROBATION_DAYS = 60;
         const TAX_RATE = 0;
 
-        // ================== PAYROLL ADJUSTMENTS (DATABASE) ==================
         let payrollAdj = {
             tada: {}, arrears: {}, bonus: {}, halfDay: {}, ncns: {}, sd: {},
             qaHr: {}, misspunch: {}, advance: {}, manualLate: {}, manualPunctuality: {},
-            manualLeaves: {}, tax: {}, appointmentDate: {}, empMeta: {}
+            manualLeaves: {}, tax: {}, appointmentDate: {}, empMeta: {},
+            attendanceOverrides: {}, extraDays: {}
         };
-
-        async function loadAllAdj() {
-            try {
-                const res = await fetch(`${PAYROLL_API}?action=getMonthBundle&month=${payrollMonthStr()}`, { credentials: 'include' });
-                const data = await res.json();
-                if (data.success && data.data) {
-                    const b = data.data.bundle || {};
-                    payrollAdj = {
-                        tada: b.tada || {}, arrears: b.arrears || {}, bonus: b.bonus || {},
-                        halfDay: b.halfDay || {}, ncns: b.ncns || {}, sd: b.sd || {},
-                        qaHr: b.qaHr || {}, misspunch: b.misspunch || {}, advance: b.advance || {},
-                        manualLate: b.manualLate || {}, manualPunctuality: b.manualPunctuality || {},
-                        manualLeaves: b.manualLeaves || {}, tax: b.tax || {},
-                        appointmentDate: b.appointmentDate || {}, empMeta: b.empMeta || {}
-                    };
-                    if (data.data.leaves) {
-                        leaves = data.data.leaves;
-                    }
-                }
-            } catch (e) {
-                console.error('Failed to load payroll from database', e);
-                showToast('Could not load payroll data from server', 'error');
-            }
-        }
-
-        async function persistAllAdjNow() {
-            try {
-                const res = await fetch(`${PAYROLL_API}?action=saveMonthBundle`, {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        month: payrollMonthStr(),
-                        bundle: payrollAdj,
-                        leaves: leaves
-                    })
-                });
-                const data = await res.json();
-                if (!data.success) {
-                    showToast(data.error || 'Failed to save payroll', 'error');
-                }
-            } catch (e) {
-                console.error('Payroll save error', e);
-                showToast('Payroll save failed', 'error');
-            }
-        }
-
-        function persistAllAdj() {
-            clearTimeout(payrollSaveTimer);
-            payrollSaveTimer = setTimeout(() => persistAllAdjNow(), 500);
-        }
 
         function convertTo12Hour(time24h) {
             if (!time24h || time24h === '--:--' || time24h === '---') return '--:--';
@@ -1113,19 +2617,6 @@ require_once 'config.php';
                 }
                 return time24h;
             } catch(e) { return time24h; }
-        }
-
-        async function saveLeaves() {
-            try {
-                await fetch(`${PAYROLL_API}?action=saveLeaves`, {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ leaves: leaves, month: payrollMonthStr() })
-                });
-            } catch (e) {
-                console.error('Leave save error', e);
-            }
         }
 
         function isWeekend(year, month, day) {
@@ -1164,250 +2655,96 @@ require_once 'config.php';
             return (hour * 60 + minute) > CHECKIN_CUTOFF_MINUTES;
         }
 
-        async function loadEmployeeList() {
+        async function loadAllAdj() {
             try {
-                const response = await fetch(API_BASE + 'attendance-api.php?action=getFilterOptions');
-                const data = await response.json();
-                if (data.success && data.data && data.data.departments) {
-                    const deptSelect = document.getElementById('departmentFilter');
-                    deptSelect.innerHTML = '<option value="">All Departments</option>';
-                    data.data.departments.forEach(dept => { deptSelect.innerHTML += `<option value="${dept}">${dept}</option>`; });
-                }
-            } catch(e) { console.log('Using fallback'); }
-        }
-
-        // NEW FUNCTION: Filter by Team Lead
-        function filterByTeamLead() {
-            renderTable();
-        }
-
-        async function loadAttendanceData() {
-            const monthPicker = document.getElementById('monthPicker').value;
-            const [year, month] = monthPicker.split('-');
-            currentYear = parseInt(year);
-            currentMonth = parseInt(month);
-            daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
-            workingDaysCount = getWorkingDaysCount(currentYear, currentMonth);
-            elapsedWorkingDaysCount = getWorkingDaysCount(currentYear, currentMonth, getCalculationEndDay(currentYear, currentMonth));
-
-            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-            const periodLabel = elapsedWorkingDaysCount < workingDaysCount ? ` · ${elapsedWorkingDaysCount} elapsed` : '';
-            document.getElementById('monthInfo').textContent = `${monthNames[currentMonth - 1]} ${currentYear} (${workingDaysCount} Working Days${periodLabel})`;
-
-            const startDate = `${year}-${month.padStart(2,'0')}-01`;
-            const endDate   = `${year}-${month.padStart(2,'0')}-${String(daysInMonth).padStart(2,'0')}`;
-
-            document.getElementById('tableBody').innerHTML = `
-                <tr><td colspan="10">
-                    <div class="loading-state">
-                        <div class="loading-spinner"></div>
-                        <p>Loading ${monthNames[currentMonth-1]} ${currentYear} data&hellip;</p>
-                        <p style="font-size:11px; color:rgba(255,255,255,0.4); margin-top:6px;">Fetching ${daysInMonth} days in parallel &mdash; please wait</p>
-                    </div>
-                </td></tr>`;
-
-            try {
-                // ── Step 1: summary report + adjustments in parallel ─────────────
-                const [summaryResult] = await Promise.all([
-                    fetch(API_BASE + `attendance-api.php?action=getDateRange&start_date=${startDate}&end_date=${endDate}`, { credentials: 'include' }).then(r => r.json()),
-                    loadAllAdj()
-                ]);
-
-                if (!summaryResult.success || !summaryResult.data || !summaryResult.data.report) {
-                    document.getElementById('tableBody').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--danger);"><i class="fas fa-exclamation-circle"></i> No attendance data found for ${monthNames[currentMonth-1]} ${currentYear}</td></tr>`;
-                    showToast('No data found for this month', 'warning');
-                    return;
-                }
-
-                document.getElementById('payrollMonthLabel').textContent = `${monthNames[currentMonth - 1]} ${currentYear}`;
-
-                // ── Step 3: fetch monthly grid in a single call ──────────────────
-                const gridResponse = await fetch(API_BASE + `attendance-api.php?action=getMonthlyGrid&month=${year}-${month.padStart(2,'0')}`, { credentials: 'include' }).then(r => r.json());
-                const dailyCheckins = {};
-                if (gridResponse.success && gridResponse.data && gridResponse.data.grid) {
-                    gridResponse.data.grid.forEach(emp => {
-                        const empId = emp.code;
-                        dailyCheckins[empId] = {};
-                        for (let day = 1; day <= daysInMonth; day++) {
-                            const dateStr = `${year}-${month.padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-                            const rawTime = emp.attendance[day] || '--:--';
-                            dailyCheckins[empId][dateStr] = convertTo12Hour(rawTime);
-                        }
-                    });
-                }
-
-                // ── Step 4: build allData ────────────────────────────────────────
-                allData = summaryResult.data.report.map(emp => {
-                    const dailyTimes = {};
-                    let presentCount = 0, lateCount = 0, leaveCount = 0;
-                    const paidLeaveDates = [];
-                    const empLeaves = leaves[emp.code] || [];
-                    const calculationEndDay = getCalculationEndDay(currentYear, currentMonth);
-
-                    for (let day = 1; day <= daysInMonth; day++) {
-                        const dateStr = `${year}-${month.padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-                        const checkin = dailyCheckins[emp.code] ? dailyCheckins[emp.code][dateStr] : null;
-                        const formattedTime = checkin || '--:--';
-                        dailyTimes[day] = formattedTime;
-                        const isLeaveDay = empLeaves.some(l => l.date === dateStr);
-                        const isWorkingDay = !isWeekend(currentYear, currentMonth, day) && day <= calculationEndDay;
-                        if (isWorkingDay && formattedTime !== '--:--') {
-                            presentCount++;
-                            if (isCheckinLate(formattedTime)) lateCount++;
-                        } else if (isWorkingDay && isLeaveDay && leaveCount < 1) {
-                            leaveCount = 1;
-                            paidLeaveDates.push(dateStr);
-                        }
-                    }
-                    const absent = Math.max(0, elapsedWorkingDaysCount - presentCount - leaveCount);
-                    const attendance_rate = elapsedWorkingDaysCount > 0 ? Math.round((presentCount / elapsedWorkingDaysCount) * 100) : 0;
-
-                    return {
-                        id: emp.code, name: emp.name, department: emp.department || 'General',
-                        designation: emp.designation || 'Employee', branch: emp.branch || 'Main', team: emp.team || 'No Team',
-                        cnic: emp.cnic || '', contact: emp.contact || '', accountNo: emp.account_no || '',
-                        accountTitle: emp.account_title || '', bankName: emp.bank_name || '',
-                        appointmentDate: payrollAdj.appointmentDate[emp.code] || emp.appointment_date || '',
-                        present: presentCount, late: lateCount, absent: absent, leave: leaveCount,
-                        working_days: workingDaysCount, elapsed_working_days: elapsedWorkingDaysCount, attendance_rate: attendance_rate,
-                        attendance: dailyTimes, leaves: empLeaves, paidLeaveDates
+                const res = await fetch(`${PAYROLL_API}?action=getMonthBundle&month=${payrollMonthStr()}`, { credentials: 'include' });
+                const data = await res.json();
+                if (data.success && data.data) {
+                    const b = data.data.bundle || {};
+                    payrollAdj = {
+                        tada: b.tada || {}, arrears: b.arrears || {}, bonus: b.bonus || {},
+                        halfDay: b.halfDay || {}, ncns: b.ncns || {}, sd: b.sd || {},
+                        qaHr: b.qaHr || {}, misspunch: b.misspunch || {}, advance: b.advance || {},
+                        manualLate: b.manualLate || {}, manualPunctuality: b.manualPunctuality || {},
+                        manualLeaves: b.manualLeaves || {}, tax: b.tax || {},
+                        remarks: b.remarks || {}, comments: b.comments || {},
+                        appointmentDate: b.appointmentDate || {}, empMeta: b.empMeta || {},
+                        attendanceOverrides: b.attendanceOverrides || {}, extraDays: b.extraDays || {}
                     };
-                });
-
-                calculateStats();
-                renderTable();
-                updateCharts();
-                showToast(`✅ Loaded ${allData.length} employees for ${monthNames[currentMonth-1]} ${currentYear} (${workingDaysCount} working days)`, 'success');
-
-            } catch (error) {
-                console.error('Load error:', error);
-                document.getElementById('tableBody').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--danger);"><i class="fas fa-exclamation-circle"></i> Failed to load data. Check your connection and try again.</td></tr>`;
-                showToast('Error loading attendance data', 'error');
-            }
-        }
-
-        function calculateStats() {
-            const totalEmployees = allData.length;
-            const totalPresent = allData.reduce((sum, emp) => sum + emp.present, 0);
-            const totalLate = allData.reduce((sum, emp) => sum + emp.late, 0);
-            const avgRate = totalEmployees > 0 ? Math.round(allData.reduce((sum, emp) => sum + emp.attendance_rate, 0) / totalEmployees) : 0;
-            document.getElementById('totalEmployees').textContent = totalEmployees;
-            document.getElementById('totalPresent').textContent = totalPresent.toLocaleString();
-            document.getElementById('totalLate').textContent = totalLate.toLocaleString();
-            document.getElementById('statTotal').textContent = totalEmployees;
-            document.getElementById('statPresent').textContent = totalPresent.toLocaleString();
-            document.getElementById('statLate').textContent = totalLate.toLocaleString();
-            document.getElementById('statRate').textContent = `${avgRate}%`;
-        }
-
-        function getMonthAbbr(month) { return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][month - 1]; }
-        let currentDepartment = 'all';
-        let searchTerm = '';
-
-        function renderTable() {
-            let filtered = allData;
-            
-            // Filter by Department
-            if (currentDepartment && currentDepartment !== 'all' && currentDepartment !== '') {
-                filtered = filtered.filter(e => e.department && e.department.toLowerCase() === currentDepartment.toLowerCase());
-            }
-            
-            // NEW: Filter by Team Lead (checks if designation contains "Team Lead" or "Lead" or specific team lead teams)
-            const teamLeadFilter = document.getElementById('teamLeadFilter').value;
-            if (teamLeadFilter === 'Team Lead') {
-                filtered = filtered.filter(e => {
-                    const designation = (e.designation || '').toLowerCase();
-                    const team = (e.team || '').toLowerCase();
-                    // Check if designation contains 'team lead' or 'lead'
-                    // Or if team is 'Developer Team Lead' or 'Dialer Team Lead' etc.
-                    return designation.includes('team lead') || 
-                           designation.includes('lead') || 
-                           team.includes('team lead') ||
-                           (team === 'developer team' && designation === 'lead') ||
-                           (team === 'dialer team' && designation === 'lead');
-                });
-            }
-            
-            // Filter by Search Term
-            if (searchTerm) {
-                filtered = filtered.filter(e => e.name?.toLowerCase().includes(searchTerm.toLowerCase()) || e.id?.includes(searchTerm) || e.department?.toLowerCase().includes(searchTerm.toLowerCase()));
-            }
-            
-            if (filtered.length === 0) {
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="11"><div class="loading-state"><i class="fas fa-users-slash"></i><p>No personnel found</p></div></td></tr>';
-                return;
-            }
-            let headerHtml = `<tr><th>ID</th><th>Personnel</th><th>Department</th><th>Designation</th><th>Branch</th><th>Team</th>`;
-            for (let day = 1; day <= daysInMonth; day++) {
-                let tooltip = "Late after 6:00 PM — one day salary deducted";
-                if (isWeekend(currentYear, currentMonth, day)) tooltip = "Weekend - Not counted in salary";
-                headerHtml += `<th title="${tooltip}" style="${isWeekend(currentYear, currentMonth, day) ? 'color: #a78bfa;' : ''}">${day} ${getMonthAbbr(currentMonth)}</th>`;
-            }
-            headerHtml += `<th>Present</th><th>Absent</th><th>Late</th><th>Leave</th><th>Actions</th></tr>`;
-            document.getElementById('tableHeader').innerHTML = headerHtml;
-            const tbody = document.getElementById('tableBody');
-            let html = '';
-            filtered.forEach(emp => {
-                const initials = emp.name ? emp.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : '??';
-                html += `<tr onclick="viewEmployeeDetails('${emp.id}', '${emp.name.replace(/'/g, "\\'")}')" style="cursor:pointer;">` +
-                    `<td><span style="font-weight:600;">${emp.id || '---'}</span></td>` +
-                    `<td><div style="display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;background:linear-gradient(135deg, var(--primary), var(--primary-dark));border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:600;">${initials}</div><div><div style="font-weight:600;">${emp.name || 'Unknown'}</div><div style="font-size:11px;color:rgba(255,255,255,0.5);">${emp.id || '---'}</div></div></div></td>` +
-                    `<td><span style="background:linear-gradient(135deg, #667eea, #764ba2);padding:4px 12px;border-radius:20px;font-size:11px;">${emp.department || 'General'}</span></td>` +
-                    `<td><span style="background:linear-gradient(135deg, #8b5cf6, #6d28d9);padding:4px 12px;border-radius:20px;font-size:11px;">${emp.designation || 'Employee'}</span></td>` +
-                    `<td><span style="background:linear-gradient(135deg, #10b981, #059669);padding:4px 12px;border-radius:20px;font-size:11px;">${emp.branch || 'Head Office'}</span></td>` +
-                    `<td><span style="background:linear-gradient(135deg, #f59e0b, #d97706);padding:4px 12px;border-radius:20px;font-size:11px;">${emp.team || 'No Team'}</span></td>`;
-                for (let day = 1; day <= daysInMonth; day++) {
-                    const checkin = emp.attendance[day];
-                    const isPresent = checkin !== '--:--';
-                    const isWeekendDay = isWeekend(currentYear, currentMonth, day);
-                    const hasLeave = emp.paidLeaveDates.includes(`${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
-                    let cellClass = 'absent-cell';
-                    let displayText = checkin;
-                    if (hasLeave && !isWeekendDay) { cellClass = 'weekend-checkin'; displayText = '🌿 Leave'; }
-                    else if (isPresent) { cellClass = isWeekendDay ? 'weekend-checkin' : 'checkin-time'; }
-                    html += `<td class="${cellClass}">${displayText}</td>`;
+                    if (data.data.leaves) {
+                        leaves = data.data.leaves;
+                    }
                 }
-                html += `<td><span class="summary-badge summary-present">${emp.present}</span></td>` +
-                    `<td><span class="summary-badge summary-absent">${emp.absent}</span></td>` +
-                    `<td><span class="summary-badge summary-late">${emp.late}</span></td>` +
-                    `<td><span class="summary-badge summary-leave">${emp.leave}</span></td>` +
-                    `<td><button class="view-btn" onclick="event.stopPropagation();viewEmployeeDetails('${emp.id}', '${emp.name.replace(/'/g, "\\'")}')"><i class="fas fa-eye"></i> View</button></td>` +
-                    `</tr>`;
-            });
-            tbody.innerHTML = html;
-        }
-
-        function updateCharts() {
-            const last7Days = []; const attendanceData = [];
-            for (let i = 6; i >= 0; i--) {
-                const date = new Date(); date.setDate(date.getDate() - i);
-                last7Days.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-                attendanceData.push(Math.floor(Math.random() * 50) + 200);
+            } catch (e) {
+                console.error('Failed to load adjustments', e);
             }
-            if (attendanceTrendChart) attendanceTrendChart.destroy();
-            const ctx1 = document.getElementById('attendanceTrendChart').getContext('2d');
-            attendanceTrendChart = new Chart(ctx1, { type: 'line', data: { labels: last7Days, datasets: [{ label: 'Present Employees', data: attendanceData, borderColor: '#f97316', backgroundColor: 'rgba(249,115,22,0.1)', fill: true, tension: 0.4, pointBackgroundColor: '#f97316', pointBorderColor: 'white', pointRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94a3b8' } } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }, x: { ticks: { color: '#94a3b8' } } } } });
-            const deptMap = new Map();
-            allData.forEach(emp => { deptMap.set(emp.department, (deptMap.get(emp.department) || 0) + 1); });
-            const sortedDepts = Array.from(deptMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 6);
-            if (departmentChart) departmentChart.destroy();
-            const ctx2 = document.getElementById('departmentChart').getContext('2d');
-            departmentChart = new Chart(ctx2, { type: 'doughnut', data: { labels: sortedDepts.map(d => d[0]), datasets: [{ data: sortedDepts.map(d => d[1]), backgroundColor: ['#f97316', '#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', boxWidth: 12, font: { size: 11 } } } }, cutout: '60%' } });
         }
 
-        // ================== ENHANCED PROFESSIONAL PAYROLL CALCULATION ==================
+        function payrollMonthStr() {
+            return `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+        }
+
+        async function persistAllAdjNow() {
+            try {
+                await fetch(`${PAYROLL_API}?action=saveMonthBundle`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        month: payrollMonthStr(),
+                        bundle: payrollAdj,
+                        leaves: leaves
+                    })
+                });
+            } catch (e) {
+                console.error('Save failed', e);
+            }
+        }
+
+        let payrollSaveTimer = null;
+        function persistAllAdj() {
+            clearTimeout(payrollSaveTimer);
+            payrollSaveTimer = setTimeout(() => persistAllAdjNow(), 500);
+        }
+
         function getEmpMeta(empId) {
-            if (!payrollAdj.empMeta[empId]) {
-                payrollAdj.empMeta[empId] = {
-                    basicSalary: BASE_SALARY,
-                    punctualityEnabled: true,
-                    punctualityAmount: PERFECT_ATTENDANCE_BONUS,
-                    sudoName: '',
-                    designation: '',
-                    cnic: ''
+            // First check if a saved override exists in the month bundle for this month
+            if (payrollAdj.empMeta[empId]) {
+                const saved = payrollAdj.empMeta[empId];
+                // If it was saved with dummy salary (50000), update it from the live database
+                if (parseFloat(saved.basicSalary) === 50000 || parseFloat(saved.basicSalary) === 0) {
+                    const dbUser = financeUsersList.find(u => String(u.employee_code) === String(empId) || String(u.id) === String(empId));
+                    if (dbUser) {
+                        saved.basicSalary = parseFloat(dbUser.basic_salary) || 0;
+                        saved.punctualityEnabled = !!parseInt(dbUser.punctuality_enabled);
+                        saved.punctualityAmount = parseFloat(dbUser.punctuality_amount) || 0;
+                    }
+                }
+                return saved;
+            }
+            
+            // Otherwise check the database settings loaded from API
+            const dbUser = financeUsersList.find(u => String(u.employee_code) === String(empId) || String(u.id) === String(empId));
+            if (dbUser) {
+                return {
+                    basicSalary: parseFloat(dbUser.basic_salary) || 0,
+                    punctualityEnabled: !!parseInt(dbUser.punctuality_enabled),
+                    punctualityAmount: parseFloat(dbUser.punctuality_amount) || 0,
+                    sudoName: dbUser.full_name || '',
+                    designation: dbUser.designation || '',
+                    cnic: dbUser.cnic || '',
+                    bankName: dbUser.bank_name || '',
+                    accountNo: dbUser.account_no || '',
+                    accountTitle: dbUser.account_title || ''
                 };
             }
-            return payrollAdj.empMeta[empId];
+
+            return {
+                basicSalary: 0,
+                punctualityEnabled: false,
+                punctualityAmount: 0,
+                sudoName: '', designation: '', cnic: '', bankName: '', accountNo: '', accountTitle: ''
+            };
         }
 
         function sumAdjustments(empId, adjType) {
@@ -1452,34 +2789,68 @@ require_once 'config.php';
             const totalWorkingDays = emp.present + adjustedLeaveCount;
             const payrollMonthComplete = elapsedWorkingDaysCount >= workingDaysCount;
 
+            // Punctuality Reward Rule based on 60-Day Tenure:
+            // 1. If appointment date is 60+ days old, allow up to 1 leave and still award punctuality (more than 1 leave removes it).
+            // 2. If appointment date is under 60 days, even 1 leave removes punctuality (0 leaves required).
+            let tenureDays = 0;
+            let isTenure60Plus = false;
+            if (emp.appointmentDate) {
+                try {
+                    const apptDate = new Date(emp.appointmentDate);
+                    if (!Number.isNaN(apptDate.getTime())) {
+                        const calculationEndDay = getCalculationEndDay(currentYear, currentMonth);
+                        const calcDate = new Date(currentYear, currentMonth - 1, calculationEndDay || 1);
+                        tenureDays = Math.floor((calcDate - apptDate) / (1000 * 60 * 60 * 24));
+                        if (tenureDays >= 60) {
+                            isTenure60Plus = true;
+                        }
+                    }
+                } catch (e) {
+                    isTenure60Plus = false;
+                }
+            }
+
             let punctualityQualified = false;
             let punctualityAmount = 0;
             const manualPunc = payrollAdj.manualPunctuality[emp.id];
             if (manualPunc !== undefined) {
                 punctualityAmount = parseFloat(manualPunc) || 0;
                 punctualityQualified = punctualityAmount > 0;
-            } else if (meta.punctualityEnabled && payrollMonthComplete && totalWorkingDays === workingDaysCount && emp.late === 0) {
-                punctualityQualified = true;
-                punctualityAmount = punctualityBonus;
+            } else if (meta.punctualityEnabled && payrollMonthComplete && emp.late === 0 && adjustedAbsent === 0) {
+                const leaveAllowancePermitted = isTenure60Plus ? (adjustedLeaveCount <= 1) : (adjustedLeaveCount === 0);
+                if (leaveAllowancePermitted && totalWorkingDays === workingDaysCount) {
+                    punctualityQualified = true;
+                    punctualityAmount = punctualityBonus;
+                }
             }
 
-            let lateDeduction = emp.late * perDaySalary;
+            // Late Coming Logic:
+            // 1. Each late coming is 300 PKR.
+            // 2. Up to 3 late comings are allowed without monetary deduction (only punctuality is lost if > 0).
+            // 3. If late > 3, ALL late comings are deducted (e.g. 4 late comings = 4 * 300 = 1200 PKR).
+            const LATE_RATE_PER_DAY = 300;
+            let lateDeduction = 0;
+            if (emp.late > 3) {
+                lateDeduction = emp.late * LATE_RATE_PER_DAY;
+            }
             const manualLate = parseFloat(payrollAdj.manualLate[emp.id] || 0);
             if (manualLate > 0) lateDeduction = manualLate;
 
             const tada = sumAdjustments(emp.id, 'tada');
             const bonus = sumAdjustments(emp.id, 'bonus');
             const arrears = sumAdjustments(emp.id, 'arrears');
-            let extraDays = Math.max(0, emp.present - workingDaysCount);
+            let extraDays = (emp.extraDays !== undefined ? parseFloat(emp.extraDays) : Math.max(0, emp.present - workingDaysCount)) || 0;
             let extraDayPay = extraDays * perDaySalary;
-            const halfDayCount = countAdjustments(emp.id, 'halfDay');
+            const halfDayCount = countAdjustments(emp.id, 'halfDay') + (emp.overrideHdCount || 0);
             const halfDayAmount = halfDayCount * (perDaySalary / 2);
-            const ncnsCount = countAdjustments(emp.id, 'ncns');
+            const unpaidCount = (emp.overrideUnpaidCount || 0);
+            const unpaidDeduction = unpaidCount * perDaySalary;
+            const ncnsCount = countAdjustments(emp.id, 'ncns') + (emp.overrideNcnsCount || 0);
             const ncnsAmount = ncnsCount * NCNS_PENALTY;
-            const sdCount = countAdjustments(emp.id, 'sd');
+            const sdCount = countAdjustments(emp.id, 'sd') + (emp.overrideSdCount || 0);
             const sdAmount = sdCount * (perDaySalary * 2);
             const qaHrAmount = sumAdjustments(emp.id, 'qaHr');
-            const misspunchCount = countAdjustments(emp.id, 'misspunch');
+            const misspunchCount = countAdjustments(emp.id, 'misspunch') + (emp.overrideMpCount || 0);
             const misspunchAmount = misspunchCount * MISSPUNCH_DEDUCTION;
             
             const advanceData = payrollAdj.advance[emp.id];
@@ -1498,11 +2869,44 @@ require_once 'config.php';
             }
 
             const absentDeduction = adjustedAbsent * perDaySalary;
-            const tax = parseFloat(payrollAdj.tax[emp.id] || 0);
+
+            // Calculations Order:
+            // 1. Add all valid additions to totalEarnings
+            // 2. Subtract every non-tax deduction once to get subNetSalary (SUB Net Salary)
             const earningsBase = totalWorkingDays * perDaySalary;
-            const totalEarnings = earningsBase + punctualityAmount + bonus + tada + arrears + extraDayPay;
-            const totalDeductions = lateDeduction + halfDayAmount + ncnsAmount + sdAmount + qaHrAmount + misspunchAmount + advanceDeduction + tax;
-            const grossSalary = totalEarnings - totalDeductions;
+            const totalAdditions = punctualityAmount + bonus + tada + arrears + extraDayPay;
+            const totalEarnings = earningsBase + totalAdditions;
+
+            const nonTaxDeductions = absentDeduction + lateDeduction + halfDayAmount + ncnsAmount + sdAmount + qaHrAmount + misspunchAmount + advanceDeduction + unpaidDeduction;
+            const subNetSalary = Math.max(0, totalEarnings - nonTaxDeductions);
+
+            // 3. Tax Calculation: Annual Taxable Salary = SUB Net Salary x 12 using Pakistan salaried tax slabs FY 2026-2027
+            let tax = parseFloat(payrollAdj.tax[emp.id] || 0);
+            if (tax === 0) {
+                const annualIncome = subNetSalary * 12;
+                let annualTax = 0;
+                if (annualIncome <= 600000) {
+                    annualTax = 0;
+                } else if (annualIncome <= 1200000) {
+                    annualTax = (annualIncome - 600000) * 0.01;
+                } else if (annualIncome <= 2200000) {
+                    annualTax = 6000 + (annualIncome - 1200000) * 0.11;
+                } else if (annualIncome <= 3200000) {
+                    annualTax = 116000 + (annualIncome - 2200000) * 0.20;
+                } else if (annualIncome <= 4100000) {
+                    annualTax = 316000 + (annualIncome - 3200000) * 0.25;
+                } else if (annualIncome <= 5600000) {
+                    annualTax = 541000 + (annualIncome - 4100000) * 0.29;
+                } else if (annualIncome <= 7000000) {
+                    annualTax = 976000 + (annualIncome - 5600000) * 0.32;
+                } else {
+                    annualTax = 1424000 + (annualIncome - 7000000) * 0.35;
+                }
+                tax = Math.round(annualTax / 12);
+            }
+
+            const totalDeductions = nonTaxDeductions + tax;
+            const finalNetSalary = Math.max(0, subNetSalary - tax);
 
             let status = 'Good', statusClass = 'badge-perfect';
             if (!payrollMonthComplete && adjustedAbsent === 0 && emp.late === 0) { status = 'Accruing'; statusClass = 'badge-perfect'; }
@@ -1510,101 +2914,532 @@ require_once 'config.php';
             else if (adjustedAbsent > 2) { status = 'Critical'; statusClass = 'badge-danger'; }
             else if (emp.late > 0 || adjustedAbsent > 0) { status = 'Warning'; statusClass = 'badge-warning'; }
 
+            const remarks = (payrollAdj.remarks && payrollAdj.remarks[emp.id]) || 'Ready for Payment';
+            const comments = (payrollAdj.comments && payrollAdj.comments[emp.id]) || '';
+
             return {
                 ...emp,
                 meta, basicSalary, punctualityBonus, totalSalary, perDaySalary,
                 approvedLeaves: adjustedLeaveCount, adjustedLeaveCount, adjustedAbsent, totalWorkingDays,
-                rawAbsence, payrollMonthComplete,
+                rawAbsence, payrollMonthComplete, tenureDays, isTenure60Plus,
                 punctualityQualified, punctualityAmount,
                 lateDeduction, tada, bonus, arrears, extraDays, extraDayPay,
-                halfDayCount, halfDayAmount, ncnsCount, ncnsAmount, sdCount, sdAmount,
+                halfDayCount, halfDayAmount, unpaidCount, unpaidDeduction, ncnsCount, ncnsAmount, sdCount, sdAmount,
                 qaHrAmount, misspunchCount, misspunchAmount,
-                advanceDeduction, advanceRemaining, absentDeduction, tax,
-                totalEarnings, totalDeductions, grossSalary: Math.max(grossSalary, 0),
-                netSalary: Math.max(grossSalary, 0),
+                advanceDeduction, advanceRemaining, absentDeduction, nonTaxDeductions, tax,
+                totalAdditions, totalEarnings, totalDeductions,
+                subNetSalary, finalNetSalary,
+                grossSalary: subNetSalary,
+                netSalary: finalNetSalary,
+                remarks, comments,
                 status, statusClass
             };
         }
 
-        // ================== SEARCH FUNCTION FOR PAYROLL ==================
-        let currentPayrollSearchTerm = '';
-        let employeeSearchResults = [];
-        let activeSearchInputId = null;
+        // ===== LOAD SYSTEM ATTENDANCE DATA =====
+        async function loadAttendanceData() {
+            const monthPicker = document.getElementById('monthPicker').value;
+            const [year, month] = monthPicker.split('-');
+            currentYear = parseInt(year);
+            currentMonth = parseInt(month);
+            daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+            workingDaysCount = getWorkingDaysCount(currentYear, currentMonth);
+            elapsedWorkingDaysCount = getWorkingDaysCount(currentYear, currentMonth, getCalculationEndDay(currentYear, currentMonth));
 
-        function renderEmployeeSearchResults(inputId, searchValue) {
-            const inputWrapper = document.getElementById(inputId)?.closest('.search-input-wrapper');
-            if (!inputWrapper) return;
-            
-            // Remove existing results
-            const existingResults = inputWrapper.querySelector('.employee-search-results');
-            if (existingResults) existingResults.remove();
-            
-            if (!searchValue || searchValue.length < 1) return;
-            
-            const filtered = allData.filter(emp => 
-                emp.name.toLowerCase().includes(searchValue.toLowerCase()) || 
-                emp.id.toLowerCase().includes(searchValue.toLowerCase())
-            ).slice(0, 10);
-            
-            if (filtered.length === 0) return;
-            
-            const resultsDiv = document.createElement('div');
-            resultsDiv.className = 'employee-search-results';
-            
-            filtered.forEach(emp => {
-                const item = document.createElement('div');
-                item.className = 'employee-search-item';
-                item.innerHTML = `
-                    <div>
-                        <div class="emp-name">${emp.name}</div>
-                        <div class="emp-code">ID: ${emp.id} | ${emp.department || 'General'}</div>
-                    </div>
-                    <i class="fas fa-chevron-right" style="color: var(--primary); font-size: 12px;"></i>
-                `;
-                item.onclick = () => {
-                    document.getElementById(inputId).value = emp.id;
-                    resultsDiv.remove();
-                    // Auto-select the employee in the adjustment
-                    if (inputId.includes('-emp-search')) {
-                        const type = inputId.replace('-emp-search', '');
-                        const selectField = document.getElementById(`adj-emp-${type}`);
-                        if (selectField) {
-                            selectField.value = emp.id;
-                            selectField.dispatchEvent(new Event('change'));
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const periodLabel = elapsedWorkingDaysCount < workingDaysCount ? ` · ${elapsedWorkingDaysCount} elapsed` : '';
+            document.getElementById('monthInfoSub').textContent = `${monthNames[currentMonth - 1]} ${currentYear} (${workingDaysCount} Working Days${periodLabel})`;
+
+            const startDate = `${year}-${month.padStart(2,'0')}-01`;
+            const endDate   = `${year}-${month.padStart(2,'0')}-${String(daysInMonth).padStart(2,'0')}`;
+
+            document.getElementById('tableBody').innerHTML = `
+                <tr><td colspan="10"><div class="loading-state"><div class="loading-spinner"></div><p>Calculating live data...</p></div></td></tr>`;
+
+            try {
+                try {
+                    const uRes = await fetch('api/payroll_api.php?action=getFinanceUsers');
+                    const uData = await uRes.json();
+                    if (uData.success && uData.data) {
+                        financeUsersList = uData.data;
+                    }
+                } catch(ue) {
+                    console.error('Failed to pre-load finance users', ue);
+                }
+
+                const [summaryResult] = await Promise.all([
+                    fetch(API_BASE + `attendance-api.php?action=getDateRange&start_date=${startDate}&end_date=${endDate}`, { credentials: 'include' }).then(r => r.json()),
+                    loadAllAdj()
+                ]);
+
+                if (!summaryResult.success || !summaryResult.data || !summaryResult.data.report) {
+                    document.getElementById('tableBody').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--danger);"><i class="fas fa-exclamation-circle"></i> No attendance records for ${monthNames[currentMonth-1]} ${currentYear}</td></tr>`;
+                    return;
+                }
+
+                const gridResponse = await fetch(API_BASE + `attendance-api.php?action=getMonthlyGrid&month=${year}-${month.padStart(2,'0')}`, { credentials: 'include' }).then(r => r.json());
+                const dailyCheckins = {};
+                if (gridResponse.success && gridResponse.data && gridResponse.data.grid) {
+                    gridResponse.data.grid.forEach(emp => {
+                        const empId = emp.code;
+                        dailyCheckins[empId] = {};
+                        for (let day = 1; day <= daysInMonth; day++) {
+                            const dateStr = `${year}-${month.padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                            dailyCheckins[empId][dateStr] = convertTo12Hour(emp.attendance[day] || '--:--');
+                        }
+                    });
+                }
+
+                rawAllData = summaryResult.data.report.map(emp => {
+                    const dailyTimes = {};
+                    const dailyCodes = {};
+                    let presentCount = 0, lateCount = 0, leaveCount = 0;
+                    let overrideMpCount = 0, overrideSdCount = 0, overrideNcnsCount = 0, overrideAbsentCount = 0;
+                    const paidLeaveDates = [];
+                    const empLeaves = leaves[emp.code] || [];
+                    const calculationEndDay = getCalculationEndDay(currentYear, currentMonth);
+                    const empOverrides = (payrollAdj.attendanceOverrides && payrollAdj.attendanceOverrides[emp.code]) || {};
+
+                    for (let day = 1; day <= daysInMonth; day++) {
+                        const dateStr = `${year}-${month.padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                        const checkin = dailyCheckins[emp.code] ? dailyCheckins[emp.code][dateStr] : null;
+                        const formattedTime = checkin || '--:--';
+                        dailyTimes[day] = formattedTime;
+
+                        const overrideCode = empOverrides[dateStr];
+                        if (overrideCode !== undefined && overrideCode !== null) {
+                            dailyCodes[day] = overrideCode;
+                            const codeUpper = String(overrideCode).toUpperCase();
+                            if (codeUpper === 'P') {
+                                presentCount++;
+                            } else if (codeUpper === 'MP') {
+                                presentCount++;
+                                overrideMpCount++;
+                            } else if (codeUpper === 'SD') {
+                                overrideAbsentCount++;
+                                overrideSdCount++;
+                            } else if (codeUpper === 'NCNS') {
+                                overrideAbsentCount++;
+                                overrideNcnsCount++;
+                            } else if (codeUpper === '') {
+                                overrideAbsentCount++;
+                            }
+                        } else {
+                            const isLeaveDay = empLeaves.some(l => l.date === dateStr);
+                            const isWorkingDay = !isWeekend(currentYear, currentMonth, day) && day <= calculationEndDay;
+                            if (isWorkingDay && formattedTime !== '--:--') {
+                                presentCount++;
+                                if (isCheckinLate(formattedTime)) lateCount++;
+                                dailyCodes[day] = 'P';
+                            } else if (isWorkingDay && isLeaveDay && leaveCount < 1) {
+                                leaveCount = 1;
+                                paidLeaveDates.push(dateStr);
+                                dailyCodes[day] = 'Leave';
+                            } else {
+                                dailyCodes[day] = '';
+                            }
                         }
                     }
-                };
-                resultsDiv.appendChild(item);
-            });
-            
-            inputWrapper.style.position = 'relative';
-            inputWrapper.appendChild(resultsDiv);
+                    const absent = Math.max(0, elapsedWorkingDaysCount - presentCount - leaveCount) + overrideAbsentCount;
+                    const attendance_rate = elapsedWorkingDaysCount > 0 ? Math.round((presentCount / elapsedWorkingDaysCount) * 100) : 0;
+                    const savedExtraDays = payrollAdj.extraDays && payrollAdj.extraDays[emp.code] !== undefined ? parseFloat(payrollAdj.extraDays[emp.code]) : 0;
+
+                    return {
+                        id: emp.code, name: emp.name, department: emp.department || 'General',
+                        designation: emp.designation || 'Employee', branch: emp.branch || 'Main', team: emp.team || 'No Team',
+                        cnic: emp.cnic || '', contact: emp.contact || '', accountNo: emp.account_no || '',
+                        accountTitle: emp.account_title || '', bankName: emp.bank_name || '',
+                        appointmentDate: payrollAdj.appointmentDate[emp.code] || emp.appointment_date || '',
+                        present: presentCount, late: lateCount, absent: absent, leave: leaveCount,
+                        overrideMpCount, overrideSdCount, overrideNcnsCount, extraDays: savedExtraDays,
+                        working_days: workingDaysCount, elapsed_working_days: elapsedWorkingDaysCount, attendance_rate: attendance_rate,
+                        attendance: dailyTimes, attendanceCodes: dailyCodes, leaves: empLeaves, paidLeaveDates
+                    };
+                });
+
+                applyBranchFilter();
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('tableBody').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--danger);">Failed to calculate data.</td></tr>`;
+            }
         }
 
-        async function openPayrollDashboard() {
-            const modal = document.getElementById('payrollModal');
-            const body = document.getElementById('payrollModalBody');
-            modal.classList.add('active');
-            body.innerHTML = '<div class="loading-state"><div class="loading-spinner"></div><p>Calculating professional payroll...</p></div>';
-            if (allData.length === 0) {
-                await loadAttendanceData();
+        function applyBranchFilter() {
+            const branch = document.getElementById('headerBranchFilter').value;
+            if (!branch) {
+                allData = [...rawAllData];
             } else {
-                await loadAllAdj();
+                allData = rawAllData.filter(emp => emp.branch && emp.branch.toLowerCase() === branch.toLowerCase());
             }
-            renderPayrollDashboard();
+
+            calculateStats();
+            renderTable();
+            updateCharts();
+            
+            // If active view is payroll panel, render it
+            if (activeView !== 'overview' && activeView !== 'users') {
+                renderPayrollDashboardView(activeView);
+            }
         }
 
-        function renderPayrollDashboard() {
-            const body = document.getElementById('payrollModalBody');
-            let dataToProcess = allData;
-            if (currentPayrollSearchTerm) {
-                dataToProcess = allData.filter(emp => 
-                    emp.name.toLowerCase().includes(currentPayrollSearchTerm.toLowerCase()) || 
-                    emp.id.toLowerCase().includes(currentPayrollSearchTerm.toLowerCase())
-                );
+        async function filterBranchChanged() {
+            const selectEl = document.getElementById('headerBranchFilter');
+            const branch = selectEl.value;
+            const normBranch = branch ? branch.toLowerCase() : 'main';
+            
+            try {
+                const res = await fetch(`api/payroll_api.php?action=switchBranch&branch=${normBranch}`);
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`Active branch switched to ${selectEl.options[selectEl.selectedIndex].text}`, 'success');
+                    await initPage();
+                } else {
+                    showToast('Failed to switch branch: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch(e) {
+                console.error(e);
+                showToast('Error connecting to switch branch API', 'error');
             }
-            const payrollData = dataToProcess.map(emp => calculatePayrollForEmployee(emp));
+        }
 
+        function formatCompactCurrency(amount) {
+            const num = Math.abs(parseFloat(amount) || 0);
+            const sign = (parseFloat(amount) || 0) < 0 ? '-' : '';
+            if (num >= 1000000000) {
+                return `${sign}Rs ${(num / 1000000000).toFixed(1).replace(/\.0$/, '')} Billion`;
+            } else if (num >= 1000000) {
+                return `${sign}Rs ${(num / 1000000).toFixed(1).replace(/\.0$/, '')} Million`;
+            } else if (num >= 1000) {
+                return `${sign}Rs ${(num / 1000).toFixed(1).replace(/\.0$/, '')} Thousand`;
+            } else {
+                return `${sign}Rs ${Math.round(num).toLocaleString('en-PK')}`;
+            }
+        }
+
+        function formatExactCurrency(amount) {
+            return 'Rs ' + Math.round(parseFloat(amount) || 0).toLocaleString('en-PK');
+        }
+
+        let pettyCashOverviewSummary = { approvedAmount: 0, pendingAmount: 0 };
+
+        async function fetchOverviewPettyCash() {
+            try {
+                const month = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+                const res = await fetch(`api/petty_cash_api.php?action=getDashboard&month=${encodeURIComponent(month)}`);
+                const data = await res.json();
+                if (data.success && data.data && data.data.stats) {
+                    pettyCashOverviewSummary.approvedAmount = parseFloat(data.data.stats.approved_amount) || 0;
+                    pettyCashOverviewSummary.pendingAmount = parseFloat(data.data.stats.pending_amount) || 0;
+                    updateOverviewPettyCards();
+                }
+            } catch(e) {}
+        }
+
+        function updateOverviewPettyCards() {
+            const setAmountCard = (valueId, cardId, subId, amount) => {
+                const valEl = document.getElementById(valueId);
+                const cardEl = document.getElementById(cardId);
+                const subEl = document.getElementById(subId);
+                if (valEl) valEl.textContent = formatCompactCurrency(amount);
+                if (cardEl) cardEl.title = formatExactCurrency(amount);
+                if (subEl) subEl.innerHTML = `<i class="fas fa-info-circle"></i> Exact: ${formatExactCurrency(amount)}`;
+            };
+
+            setAmountCard('statApprovedPettyCash', 'cardApprovedPettyCash', 'subtextApprovedPettyCash', pettyCashOverviewSummary.approvedAmount);
+            setAmountCard('statPendingPettyCash', 'cardPendingPettyCash', 'subtextPendingPettyCash', pettyCashOverviewSummary.pendingAmount);
+        }
+
+        function calculateStats() {
+            const payrollData = allData.map(emp => calculatePayrollForEmployee(emp));
+            
+            const totalFinalNet = payrollData.reduce((s, e) => s + (e.finalNetSalary || 0), 0);
+            const totalGross = payrollData.reduce((s, e) => s + (e.totalEarnings || 0), 0);
+            const totalDeductions = payrollData.reduce((s, e) => s + (e.totalDeductions || 0), 0);
+            const totalTax = payrollData.reduce((s, e) => s + (e.tax || 0), 0);
+            const totalAdditions = payrollData.reduce((s, e) => s + (e.totalAdditions || 0), 0);
+            const totalBonus = payrollData.reduce((s, e) => s + (e.bonus || 0), 0);
+
+            const paidEmployees = payrollData.filter(e => (e.finalNetSalary || 0) > 0).length;
+            const unpaidEmployees = payrollData.length - paidEmployees;
+
+            const setAmountCard = (valueId, cardId, subId, amount) => {
+                const valEl = document.getElementById(valueId);
+                const cardEl = document.getElementById(cardId);
+                const subEl = document.getElementById(subId);
+                if (valEl) valEl.textContent = formatCompactCurrency(amount);
+                if (cardEl) cardEl.title = formatExactCurrency(amount);
+                if (subEl) subEl.innerHTML = `<i class="fas fa-info-circle"></i> Exact: ${formatExactCurrency(amount)}`;
+            };
+
+            setAmountCard('statFinalNetSalary', 'cardFinalNetSalary', 'subtextFinalNetSalary', totalFinalNet);
+            setAmountCard('statGrossPayroll', 'cardGrossPayroll', 'subtextGrossPayroll', totalGross);
+            setAmountCard('statTotalDeductions', 'cardTotalDeductions', 'subtextTotalDeductions', totalDeductions);
+            setAmountCard('statTotalTax', 'cardTotalTax', 'subtextTotalTax', totalTax);
+            setAmountCard('statTotalAdditions', 'cardTotalAdditions', 'subtextTotalAdditions', totalAdditions);
+            setAmountCard('statTotalBonus', 'cardTotalBonus', 'subtextTotalBonus', totalBonus);
+
+            updateOverviewPettyCards();
+
+            const totEmpEl = document.getElementById('statTotalEmployees');
+            if (totEmpEl) totEmpEl.textContent = allData.length.toLocaleString();
+
+            const paidEmpEl = document.getElementById('statPaidEmployees');
+            if (paidEmpEl) paidEmpEl.textContent = paidEmployees.toLocaleString();
+
+            const unpaidEmpEl = document.getElementById('statUnpaidEmployees');
+            if (unpaidEmpEl) unpaidEmpEl.textContent = unpaidEmployees.toLocaleString();
+
+            fetchOverviewPettyCash();
+        }
+
+        function renderTable() {
+            let filtered = allData;
+            const deptFilter = document.getElementById('departmentFilter').value;
+            if (deptFilter) {
+                filtered = filtered.filter(e => e.department && e.department.toLowerCase() === deptFilter.toLowerCase());
+            }
+            const tlFilter = document.getElementById('teamLeadFilter').value;
+            if (tlFilter === 'Team Lead') {
+                filtered = filtered.filter(e => {
+                    const desig = (e.designation || '').toLowerCase();
+                    const team = (e.team || '').toLowerCase();
+                    return desig.includes('team lead') || desig.includes('lead') || team.includes('team lead');
+                });
+            }
+            const search = document.getElementById('searchInput').value.toLowerCase().trim();
+            if (search) {
+                filtered = filtered.filter(e => e.name.toLowerCase().includes(search) || e.id.includes(search));
+            }
+
+            if (filtered.length === 0) {
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="11"><div class="loading-state"><p>No personnel found</p></div></td></tr>';
+                return;
+            }
+
+            let headerHtml = `<tr><th>ID</th><th>PERSONNEL</th><th>DEPARTMENT</th><th>DESIGNATION</th><th>BRANCH</th><th>TEAM</th>`;
+            for (let day = 1; day <= daysInMonth; day++) {
+                const monthAbbr = getMonthAbbr(currentMonth).toUpperCase();
+                const isWk = isWeekend(currentYear, currentMonth, day);
+                headerHtml += `<th style="text-align:center; padding:8px 6px; ${isWk ? 'color: #c084fc;' : ''}"><div style="font-size:13px; font-weight:700;">${day}</div><div style="font-size:9px; font-weight:800; letter-spacing:1px; margin-top:2px; ${isWk ? 'color:#a78bfa;' : 'color:var(--text-muted);'}">${monthAbbr}</div></th>`;
+            }
+            headerHtml += `<th>Present</th><th>Absent</th><th>Late</th><th>Leave</th><th>Extra Days</th><th>Actions</th></tr>`;
+            document.getElementById('tableHeader').innerHTML = headerHtml;
+
+            document.getElementById('tableBody').innerHTML = filtered.map(emp => {
+                const initials = emp.name ? emp.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : '??';
+                let rowHtml = `<tr>` +
+                    `<td><span style="font-weight:700; color:white;">${emp.id}</span></td>` +
+                    `<td><div style="display:flex;align-items:center;gap:10px;"><div style="width:34px;height:34px;background:#ea580c;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:12px;box-shadow: 0 2px 8px rgba(234,88,12,0.4);">${initials}</div><div><div style="font-weight:700; color:white; font-size:13px;">${emp.name}</div><div style="font-size:11px;color:var(--text-muted);">${emp.id}</div></div></div></td>` +
+                    `<td><span class="badge-dept">${emp.department || 'General'}</span></td>` +
+                    `<td><span class="badge-desig">${emp.designation || 'Employee'}</span></td>` +
+                    `<td><span class="badge-branch">${emp.branch || 'Main'}</span></td>` +
+                    `<td><span class="badge-team">${emp.team || 'No Team'}</span></td>`;
+                
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dateStr = `${currentYear}-${String(currentMonth).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                    const currentCode = (emp.attendanceCodes && emp.attendanceCodes[day] !== undefined) ? emp.attendanceCodes[day] : '';
+                    const clsKey = currentCode ? currentCode.toUpperCase() : 'BLANK';
+                    const checkinTime = (emp.attendance && emp.attendance[day]) ? emp.attendance[day] : '--:--';
+                    const hasCheckin = checkinTime !== '--:--';
+                    
+                    const timeBadge = `<div style="font-size:10px; font-weight:700; color:${hasCheckin ? '#38bdf8' : 'rgba(255,255,255,0.25)'}; margin-bottom:3px; letter-spacing:0.3px;">${checkinTime}</div>`;
+
+                    const selectHtml = `<select class="att-select code-${clsKey}" onchange="updateAttendanceCell('${emp.id}', '${dateStr}', this.value)" onclick="event.stopPropagation();">
+                        <option value="P" ${currentCode === 'P' ? 'selected' : ''}>P</option>
+                        <option value="MP" ${currentCode === 'MP' ? 'selected' : ''}>MP</option>
+                        <option value="HD" ${currentCode === 'HD' ? 'selected' : ''}>HD</option>
+                        <option value="UNPAID" ${currentCode === 'UNPAID' ? 'selected' : ''}>Unpaid</option>
+                        <option value="LEAVE" ${currentCode === 'LEAVE' ? 'selected' : ''}>Leave</option>
+                        <option value="SD" ${currentCode === 'SD' ? 'selected' : ''}>SD</option>
+                        <option value="NCNS" ${currentCode === 'NCNS' ? 'selected' : ''}>NCNS</option>
+                        <option value="" ${currentCode === '' ? 'selected' : ''}>Absent (Blank)</option>
+                    </select>`;
+
+                    rowHtml += `<td style="text-align:center; padding:6px 4px; vertical-align:middle;"><div style="display:flex; flex-direction:column; align-items:center; justify-content:center;">${timeBadge}${selectHtml}</div></td>`;
+                }
+
+                const extraDaysVal = emp.extraDays || 0;
+                rowHtml += `<td><span class="summary-badge summary-present">${emp.present}</span></td>` +
+                    `<td><span class="summary-badge summary-absent">${emp.absent}</span></td>` +
+                    `<td><span class="summary-badge summary-late">${emp.late}</span></td>` +
+                    `<td><span class="summary-badge summary-leave">${emp.leave}</span></td>` +
+                    `<td><input type="number" min="0" step="0.5" class="extra-days-input" value="${extraDaysVal}" onchange="updateExtraDays('${emp.id}', this.value)" onclick="event.stopPropagation();"></td>` +
+                    `<td><button class="view-btn" onclick="event.stopPropagation();viewEmployeeDetails('${emp.id}', '${emp.name.replace(/'/g, "\\'")}')"><i class="fas fa-eye"></i></button></td>` +
+                    `</tr>`;
+                return rowHtml;
+            }).join('');
+        }
+
+        function updateAttendanceCell(empId, dateStr, codeVal) {
+            if (!payrollAdj.attendanceOverrides) payrollAdj.attendanceOverrides = {};
+            if (!payrollAdj.attendanceOverrides[empId]) payrollAdj.attendanceOverrides[empId] = {};
+            payrollAdj.attendanceOverrides[empId][dateStr] = codeVal;
+            persistAllAdj();
+
+            // Recalculate and re-render
+            const emp = rawAllData.find(e => e.id === empId);
+            if (emp) {
+                const daysInM = new Date(currentYear, currentMonth, 0).getDate();
+                let presentCount = 0, overrideMpCount = 0, overrideSdCount = 0, overrideNcnsCount = 0, overrideAbsentCount = 0, leaveCount = 0;
+                let overrideUnpaidCount = 0, overrideHdCount = 0, overrideLeaveCount = 0;
+                const empLeaves = leaves[empId] || [];
+                const calculationEndDay = getCalculationEndDay(currentYear, currentMonth);
+                const empOverrides = payrollAdj.attendanceOverrides[empId] || {};
+
+                for (let day = 1; day <= daysInM; day++) {
+                    const dStr = `${currentYear}-${String(currentMonth).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                    const code = empOverrides[dStr];
+                    if (code !== undefined && code !== null) {
+                        emp.attendanceCodes[day] = code;
+                        const codeUpper = String(code).toUpperCase();
+                        if (codeUpper === 'P') presentCount++;
+                        else if (codeUpper === 'MP') { presentCount++; overrideMpCount++; }
+                        else if (codeUpper === 'UNPAID') { presentCount++; overrideUnpaidCount++; }
+                        else if (codeUpper === 'HD') { presentCount += 0.5; overrideHdCount++; }
+                        else if (codeUpper === 'LEAVE') { leaveCount++; overrideLeaveCount++; }
+                        else if (codeUpper === 'SD') { overrideAbsentCount++; overrideSdCount++; }
+                        else if (codeUpper === 'NCNS') { overrideAbsentCount++; overrideNcnsCount++; }
+                        else if (codeUpper === '') overrideAbsentCount++;
+                    } else {
+                        const formattedTime = emp.attendance[day] || '--:--';
+                        const isLeaveDay = empLeaves.some(l => l.date === dStr);
+                        const isWorkingDay = !isWeekend(currentYear, currentMonth, day) && day <= calculationEndDay;
+                        if (isWorkingDay && formattedTime !== '--:--') {
+                            presentCount++;
+                            emp.attendanceCodes[day] = 'P';
+                        } else if (isWorkingDay && isLeaveDay && leaveCount < 1) {
+                            leaveCount = 1;
+                            emp.attendanceCodes[day] = 'Leave';
+                        } else {
+                            emp.attendanceCodes[day] = '';
+                        }
+                    }
+                }
+                emp.present = presentCount;
+                emp.overrideMpCount = overrideMpCount;
+                emp.overrideSdCount = overrideSdCount;
+                emp.overrideNcnsCount = overrideNcnsCount;
+                emp.overrideUnpaidCount = overrideUnpaidCount;
+                emp.overrideHdCount = overrideHdCount;
+                emp.overrideLeaveCount = overrideLeaveCount;
+                emp.leave = leaveCount;
+                emp.absent = Math.max(0, elapsedWorkingDaysCount - Math.floor(presentCount) - leaveCount) + overrideAbsentCount;
+            }
+
+            calculateStats();
+            renderTable();
+            showToast('✅ Attendance code updated', 'success');
+        }
+
+        function updateExtraDays(empId, val) {
+            if (!payrollAdj.extraDays) payrollAdj.extraDays = {};
+            const num = Math.max(0, parseFloat(val) || 0);
+            payrollAdj.extraDays[empId] = num;
+            persistAllAdj();
+
+            const emp = rawAllData.find(e => e.id === empId);
+            if (emp) emp.extraDays = num;
+
+            calculateStats();
+            renderTable();
+            showToast('✅ Extra Days updated', 'success');
+        }
+
+        window.updateAttendanceCell = updateAttendanceCell;
+        window.updateExtraDays = updateExtraDays;
+
+        function getMonthAbbr(month) { return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][month - 1]; }
+
+        function updateCharts() {
+            const last7Days = []; const attendanceData = [];
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(); date.setDate(date.getDate() - i);
+                last7Days.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                attendanceData.push(Math.floor(Math.random() * 50) + 1200);
+            }
+            if (attendanceTrendChart) attendanceTrendChart.destroy();
+            const ctx1 = document.getElementById('attendanceTrendChart').getContext('2d');
+            attendanceTrendChart = new Chart(ctx1, { type: 'line', data: { labels: last7Days, datasets: [{ label: 'Present Employees', data: attendanceData, borderColor: '#f97316', backgroundColor: 'rgba(249, 115, 22, 0.05)', fill: true, tension: 0.4, pointBackgroundColor: '#f97316', pointBorderColor: 'white', pointRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#9ca3af' } } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af' } }, x: { ticks: { color: '#9ca3af' } } } } });
+            
+            const deptMap = new Map();
+            allData.forEach(emp => { deptMap.set(emp.department, (deptMap.get(emp.department) || 0) + 1); });
+            const sortedDepts = Array.from(deptMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 6);
+            if (departmentChart) departmentChart.destroy();
+            const ctx2 = document.getElementById('departmentChart').getContext('2d');
+            departmentChart = new Chart(ctx2, { type: 'doughnut', data: { labels: sortedDepts.map(d => d[0]), datasets: [{ data: sortedDepts.map(d => d[1]), backgroundColor: ['#f97316', '#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#9ca3af', boxWidth: 10, font: { size: 10 } } } }, cutout: '70%' } });
+
+            // 1. Calculate Department payroll costs
+            const payrollData = allData.map(emp => calculatePayrollForEmployee(emp));
+            const deptCostMap = new Map();
+            payrollData.forEach(p => {
+                const dept = p.department || 'General';
+                deptCostMap.set(dept, (deptCostMap.get(dept) || 0) + p.grossSalary);
+            });
+            const sortedDeptCosts = Array.from(deptCostMap.entries()).sort((a,b) => b[1] - a[1]).slice(0, 6);
+            
+            if (deptPayrollChart) deptPayrollChart.destroy();
+            const ctx3 = document.getElementById('deptPayrollChart').getContext('2d');
+            deptPayrollChart = new Chart(ctx3, {
+                type: 'bar',
+                data: {
+                    labels: sortedDeptCosts.map(d => d[0]),
+                    datasets: [{
+                        label: 'Gross Payroll Costs (₨)',
+                        data: sortedDeptCosts.map(d => Math.round(d[1])),
+                        backgroundColor: '#f97316',
+                        borderColor: '#ea580c',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af' } },
+                        x: { ticks: { color: '#9ca3af' } }
+                    }
+                }
+            });
+
+            // 2. Calculate Salary Breakdown (Basic vs Allowances vs Deductions)
+            const sumBasic = payrollData.reduce((s, e) => s + e.basicSalary, 0);
+            const sumAllowances = payrollData.reduce((s, e) => s + (e.bonus + e.tada + e.arrears + e.extraDayPay + e.punctualityAmount), 0);
+            const sumDeductions = payrollData.reduce((s, e) => s + e.totalDeductions, 0);
+
+            if (salaryBreakdownChart) salaryBreakdownChart.destroy();
+            const ctx4 = document.getElementById('salaryBreakdownChart').getContext('2d');
+            salaryBreakdownChart = new Chart(ctx4, {
+                type: 'pie',
+                data: {
+                    labels: ['Basic Salaries', 'Allowances & Bonuses', 'Active Deductions'],
+                    datasets: [{
+                        data: [Math.round(sumBasic), Math.round(sumAllowances), Math.round(sumDeductions)],
+                        backgroundColor: ['#10b981', '#3b82f6', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#9ca3af', boxWidth: 10, font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ===== RENDER INLINE PAYROLL MODULE VIEWS =====
+        function renderPayrollDashboardView(view) {
+            const panel = document.getElementById(`panel-${view}`);
+            if (!panel) return;
+
+            const payrollData = allData.map(emp => calculatePayrollForEmployee(emp));
             const totalGross = payrollData.reduce((s, e) => s + e.totalSalary, 0);
             const totalEarnings = payrollData.reduce((s, e) => s + e.totalEarnings, 0);
             const totalDeductionsSum = payrollData.reduce((s, e) => s + e.totalDeductions, 0);
@@ -1613,158 +3448,953 @@ require_once 'config.php';
             const totalBonusAmt = payrollData.reduce((s, e) => s + e.bonus, 0);
             const totalArrears = payrollData.reduce((s, e) => s + e.arrears, 0);
             const totalAdvance = payrollData.reduce((s, e) => s + e.advanceDeduction, 0);
-            const totalDailyAccrued = payrollData.reduce((s, e) => s + (e.present * e.perDaySalary), 0);
-            const totalPaidLeaveAccrued = payrollData.reduce((s, e) => s + (e.adjustedLeaveCount * e.perDaySalary), 0);
 
-            body.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; gap:20px; flex-wrap:wrap;">
-                    <div class="payroll-tabs" style="margin-bottom:0; border-bottom:none;">
-                        <button class="payroll-tab active" data-tab="overview" onclick="switchPayrollTab('overview')"><i class="fas fa-chart-bar"></i> Overview</button>
-                        <button class="payroll-tab" data-tab="payroll-table" onclick="switchPayrollTab('payroll-table')"><i class="fas fa-table"></i> Full Payroll Sheet</button>
-                        <button class="payroll-tab" data-tab="tada" onclick="switchPayrollTab('tada')"><i class="fas fa-plane"></i> TA/DA</button>
-                        <button class="payroll-tab" data-tab="bonus" onclick="switchPayrollTab('bonus')"><i class="fas fa-gift"></i> Bonus</button>
-                        <button class="payroll-tab" data-tab="arrears" onclick="switchPayrollTab('arrears')"><i class="fas fa-money-bill-wave"></i> Arrears</button>
-                        <button class="payroll-tab" data-tab="halfday" onclick="switchPayrollTab('halfday')"><i class="fas fa-hourglass-half"></i> Half Day</button>
-                        <button class="payroll-tab" data-tab="ncns" onclick="switchPayrollTab('ncns')"><i class="fas fa-user-times"></i> NCNS</button>
-                        <button class="payroll-tab" data-tab="sd" onclick="switchPayrollTab('sd')"><i class="fas fa-bread-slice"></i> SandWich</button>
-                        <button class="payroll-tab" data-tab="qahr" onclick="switchPayrollTab('qahr')"><i class="fas fa-clipboard-check"></i> QA/HR</button>
-                        <button class="payroll-tab" data-tab="advance" onclick="switchPayrollTab('advance')"><i class="fas fa-hand-holding-usd"></i> Advance</button>
-                        <button class="payroll-tab" data-tab="manual" onclick="switchPayrollTab('manual')"><i class="fas fa-sliders-h"></i> Manual</button>
-                        <button class="payroll-tab" data-tab="settings" onclick="switchPayrollTab('settings')"><i class="fas fa-cog"></i> Settings</button>
-                    </div>
-                    <div class="search-box" style="flex:1; max-width:300px; margin:0; position:relative;">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="payrollSearchInput" placeholder="Search by name or employee ID..." value="${currentPayrollSearchTerm}" 
-                            onkeyup="handlePayrollSearch(this.value)">
-                    </div>
-                </div>
-
-                <div class="tab-content active" id="tab-overview">
-                    <div class="payroll-rules">
-                        <div class="rule-card"><div class="rule-icon"><i class="fas fa-star"></i></div><div class="rule-title">Punctuality Reward</div><div class="rule-amount">Configured per employee</div><div class="rule-desc">Full month, no late arrivals</div></div>
-                        <div class="rule-card"><div class="rule-icon warning"><i class="fas fa-clock"></i></div><div class="rule-title">6:00 PM Cutoff</div><div class="rule-amount negative">-1 day salary</div><div class="rule-desc">Any check-in after 6:00 PM; no grace</div></div>
-                        <div class="rule-card"><div class="rule-icon info"><i class="fas fa-calendar-check"></i></div><div class="rule-title">Paid Leave</div><div class="rule-amount">Maximum 1 day</div><div class="rule-desc">Auto after 60-day probation or manual approval</div></div>
-                        <div class="rule-card"><div class="rule-icon purple"><i class="fas fa-calendar-week"></i></div><div class="rule-title">Working Week</div><div class="rule-amount">Monday–Friday</div><div class="rule-desc">Saturday and Sunday are excluded</div></div>
-                        <div class="rule-card"><div class="rule-icon danger"><i class="fas fa-user-slash"></i></div><div class="rule-title">NCNS Penalty</div><div class="rule-amount negative">-₨ ${NCNS_PENALTY.toLocaleString()}</div><div class="rule-desc">No Call No Show / day</div></div>
-                        <div class="rule-card"><div class="rule-icon info"><i class="fas fa-bread-slice"></i></div><div class="rule-title">SandWich (SD)</div><div class="rule-amount negative">-Per Day × 2</div><div class="rule-desc">Per SD occurrence</div></div>
-                        <div class="rule-card"><div class="rule-icon warning"><i class="fas fa-hourglass-half"></i></div><div class="rule-title">Half Day</div><div class="rule-amount negative">-Per Day ÷ 2</div><div class="rule-desc">Approved by admin</div></div>
-                        <div class="rule-card"><div class="rule-icon purple"><i class="fas fa-fingerprint"></i></div><div class="rule-title">Misspunch</div><div class="rule-amount negative">-₨ ${MISSPUNCH_DEDUCTION.toLocaleString()}</div><div class="rule-desc">Per missed punch</div></div>
-                        <div class="rule-card"><div class="rule-icon"><i class="fas fa-plane"></i></div><div class="rule-title">TA/DA</div><div class="rule-amount">+Variable</div><div class="rule-desc">Travel allowance</div></div>
-                        <div class="rule-card"><div class="rule-icon info"><i class="fas fa-hand-holding-usd"></i></div><div class="rule-title">Advance Salary</div><div class="rule-amount negative">-Per Month Plan</div><div class="rule-desc">Auto-deducted</div></div>
-                    </div>
-                    <div class="payroll-summary">
-                        <div class="summary-card"><div class="value info">${payrollData.length}</div><div class="label">Employees</div></div>
-                        <div class="summary-card"><div class="value">₨ ${Math.round(totalDailyAccrued).toLocaleString()}</div><div class="label">Present-Day Salary Accrued</div></div>
-                        <div class="summary-card"><div class="value info">₨ ${Math.round(totalPaidLeaveAccrued).toLocaleString()}</div><div class="label">Paid Leave Accrued</div></div>
-                        <div class="summary-card"><div class="value">₨ ${totalGross.toLocaleString()}</div><div class="label">Monthly Contract Value</div></div>
-                        <div class="summary-card"><div class="value negative">₨ ${totalDeductionsSum.toLocaleString()}</div><div class="label">Total Deductions</div></div>
-                        <div class="summary-card"><div class="value" style="color:var(--secondary)">₨ ${Math.round(totalNet).toLocaleString()}</div><div class="label">NET PAYROLL</div></div>
-                    </div>
-                    <div class="adj-section">
-                        <h3><i class="fas fa-info-circle"></i> Quick Statistics</h3>
-                        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
-                            <div style="background:rgba(16,185,129,0.1);padding:14px;border-radius:12px;border:1px solid rgba(16,185,129,0.3);"><div style="color:#10b981;font-weight:700;font-size:20px;">₨ ${totalTada.toLocaleString()}</div><div style="color:rgba(255,255,255,0.6);font-size:11px;margin-top:4px;">Total TA/DA Disbursed</div></div>
-                            <div style="background:rgba(139,92,246,0.1);padding:14px;border-radius:12px;border:1px solid rgba(139,92,246,0.3);"><div style="color:#a78bfa;font-weight:700;font-size:20px;">₨ ${totalBonusAmt.toLocaleString()}</div><div style="color:rgba(255,255,255,0.6);font-size:11px;margin-top:4px;">Total Bonuses</div></div>
-                            <div style="background:rgba(59,130,246,0.1);padding:14px;border-radius:12px;border:1px solid rgba(59,130,246,0.3);"><div style="color:#60a5fa;font-weight:700;font-size:20px;">₨ ${totalArrears.toLocaleString()}</div><div style="color:rgba(255,255,255,0.6);font-size:11px;margin-top:4px;">Total Arrears Cleared</div></div>
-                            <div style="background:rgba(245,158,11,0.1);padding:14px;border-radius:12px;border:1px solid rgba(245,158,11,0.3);"><div style="color:#f59e0b;font-weight:700;font-size:20px;">${payrollData.filter(e=>e.punctualityQualified).length} / ${payrollData.length}</div><div style="color:rgba(255,255,255,0.6);font-size:11px;margin-top:4px;">Punctuality Qualified</div></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-content" id="tab-payroll-table">
-                    ${renderFullPayrollTable(payrollData)}
-                </div>
-
-                <div class="tab-content" id="tab-tada">${renderAdjustmentTab('tada', 'TA/DA (Travel Allowance)', 'fa-plane', 'positive')}</div>
-                <div class="tab-content" id="tab-bonus">${renderAdjustmentTab('bonus', 'Bonus', 'fa-gift', 'positive')}</div>
-                <div class="tab-content" id="tab-arrears">${renderAdjustmentTab('arrears', 'Arrears', 'fa-money-bill-wave', 'positive')}</div>
-                <div class="tab-content" id="tab-halfday">${renderAdjustmentTab('halfDay', 'Half Day', 'fa-hourglass-half', 'negative', true)}</div>
-                <div class="tab-content" id="tab-ncns">${renderAdjustmentTab('ncns', 'NCNS (No Call No Show)', 'fa-user-times', 'negative', true)}</div>
-                <div class="tab-content" id="tab-sd">${renderAdjustmentTab('sd', 'SandWich (SD)', 'fa-bread-slice', 'negative', true)}</div>
-                <div class="tab-content" id="tab-qahr">${renderAdjustmentTab('qaHr', 'QA/HR Docs', 'fa-clipboard-check', 'negative')}</div>
-                <div class="tab-content" id="tab-misspunch">${renderAdjustmentTab('misspunch', 'Misspunch / Manual Attendance', 'fa-fingerprint', 'negative', true)}</div>
-                <div class="tab-content" id="tab-advance">${renderAdvanceTab()}</div>
-                <div class="tab-content" id="tab-manual">${renderManualTab()}</div>
-                <div class="tab-content" id="tab-settings">${renderSettingsTab()}</div>
-            `;
-            showToast(`✅ Payroll calculated for ${payrollData.length} employees`, 'success');
+            if (view === 'payroll-sheet') {
+                panel.innerHTML = renderFullPayrollTable(payrollData);
+            } else if (view === 'bank-format') {
+                panel.innerHTML = renderBankFormatView(payrollData);
+            } else if (view === 'tada') {
+                panel.innerHTML = renderAdjustmentTab('tada', 'TA/DA (Travel Allowance)', 'fa-plane', 'positive');
+            } else if (view === 'bonus') {
+                panel.innerHTML = renderAdjustmentTab('bonus', 'Bonus', 'fa-gift', 'positive');
+            } else if (view === 'arrears') {
+                panel.innerHTML = renderAdjustmentTab('arrears', 'Arrears', 'fa-money-bill-wave', 'positive');
+            } else if (view === 'halfday') {
+                panel.innerHTML = renderAdjustmentTab('halfDay', 'Half Day', 'fa-hourglass-half', 'negative', true);
+            } else if (view === 'ncns') {
+                panel.innerHTML = renderAdjustmentTab('ncns', 'NCNS (No Call No Show)', 'fa-user-times', 'negative', true);
+            } else if (view === 'sd') {
+                panel.innerHTML = renderAdjustmentTab('sd', 'SandWich (SD)', 'fa-bread-slice', 'negative', true);
+            } else if (view === 'qahr') {
+                panel.innerHTML = renderAdjustmentTab('qaHr', 'QA/HR Docs', 'fa-clipboard-check', 'negative');
+            } else if (view === 'advance') {
+                panel.innerHTML = renderAdvanceTab();
+            } else if (view === 'manual') {
+                panel.innerHTML = renderManualTab();
+            } else if (view === 'settings') {
+                panel.innerHTML = renderSettingsTab();
+            }
         }
 
-        function renderFullPayrollTable(payrollData) {
+        // ===== BANK FORMAT SALARY FILE GENERATOR MODULE =====
+        let bankFormatState = {
+            sourceBank: '',
+            transferType: '',
+            txDate: new Date().toISOString().split('T')[0],
+            validRecords: [],
+            invalidRecords: [],
+            bankDb: [],
+            bankMappings: {},
+            companyAccounts: {},
+            isLoaded: false
+        };
+
+        async function loadBankFormatMetadata() {
+            if (bankFormatState.isLoaded) return;
+            try {
+                const res = await fetch('api/payroll_api.php?action=getBankCodeMappings');
+                const data = await res.json();
+                if (data.success && data.data) {
+                    bankFormatState.bankDb = data.data.banks || [];
+                    bankFormatState.bankMappings = data.data.mappings || {};
+                    bankFormatState.companyAccounts = data.data.companyAccounts || {};
+                    bankFormatState.isLoaded = true;
+                }
+            } catch (e) {
+                console.error('Failed to load bank metadata', e);
+            }
+        }
+
+        function resolveCanonicalBank(bankNameText) {
+            if (!bankNameText || !bankFormatState.bankDb.length) return null;
+            const str = String(bankNameText).toLowerCase().trim();
+            if (!str) return null;
+
+            // Direct normalization aliases
+            if (str.includes('askari')) return bankFormatState.bankDb.find(b => b.norm.includes('askari'));
+            if (str.includes('alfalah')) return bankFormatState.bankDb.find(b => b.norm.includes('alfalah'));
+            if (str.includes('meezan')) return bankFormatState.bankDb.find(b => b.norm.includes('meezan'));
+            if (str.includes('hbl') || str.includes('habib bank limited')) return bankFormatState.bankDb.find(b => b.norm === 'hbl');
+            if (str.includes('ubl') || str.includes('united bank')) return bankFormatState.bankDb.find(b => b.norm === 'ubl');
+            if (str.includes('abl') || str.includes('allied bank')) return bankFormatState.bankDb.find(b => b.norm === 'abl');
+            if (str.includes('mcb')) return bankFormatState.bankDb.find(b => b.norm === 'mcb');
+            if (str.includes('faysal')) return bankFormatState.bankDb.find(b => b.norm.includes('faysal'));
+            if (str.includes('al habib')) return bankFormatState.bankDb.find(b => b.norm === 'bank al habib');
+            if (str.includes('standard chartered') || str.includes('scb')) return bankFormatState.bankDb.find(b => b.norm.includes('standard chartered'));
+            if (str.includes('js bank')) return bankFormatState.bankDb.find(b => b.norm.includes('js bank'));
+            if (str.includes('dubai islamic') || str.includes('dib')) return bankFormatState.bankDb.find(b => b.norm.includes('dubai islamic'));
+            if (str.includes('bankislami')) return bankFormatState.bankDb.find(b => b.norm.includes('bankislami'));
+            if (str.includes('soneri')) return bankFormatState.bankDb.find(b => b.norm.includes('soneri'));
+            if (str.includes('habib metro')) return bankFormatState.bankDb.find(b => b.norm.includes('habib metro'));
+            if (str.includes('nbp') || str.includes('national bank')) return bankFormatState.bankDb.find(b => b.norm === 'nbp');
+            if (str.includes('bop') || str.includes('punjab')) return bankFormatState.bankDb.find(b => b.norm === 'bop');
+            if (str.includes('summit')) return bankFormatState.bankDb.find(b => b.norm.includes('summit'));
+            if (str.includes('al baraka')) return bankFormatState.bankDb.find(b => b.norm.includes('al baraka'));
+            if (str.includes('samba')) return bankFormatState.bankDb.find(b => b.norm.includes('samba'));
+            if (str.includes('silkbank')) return bankFormatState.bankDb.find(b => b.norm.includes('silkbank'));
+            if (str.includes('fwbl') || str.includes('women bank')) return bankFormatState.bankDb.find(b => b.norm === 'fwbl');
+            if (str.includes('jazzcash') || str.includes('mobilink')) return bankFormatState.bankDb.find(b => b.norm.includes('jazzcash'));
+            if (str.includes('easypaisa') || str.includes('telenor')) return bankFormatState.bankDb.find(b => b.norm.includes('easypaisa'));
+            if (str.includes('nayapay')) return bankFormatState.bankDb.find(b => b.norm.includes('nayapay'));
+            if (str.includes('sadapay')) return bankFormatState.bankDb.find(b => b.norm.includes('sadapay'));
+
+            // Exact or substring match fallback
+            return bankFormatState.bankDb.find(b => str.includes(b.norm) || b.norm.includes(str)) || null;
+        }
+
+        function generateUniqueTxRef(empId, sourceBank, month, year) {
+            const mAbbr = getMonthAbbr(month).toUpperCase();
+            const yShort = String(year).slice(-2);
+            const prefix = sourceBank === 'ASKARI' ? 'ASK' : 'ALF';
+            return `${mAbbr}${yShort}${prefix}${empId}`;
+        }
+
+        function onBankFormatSourceChanged(val) {
+            bankFormatState.sourceBank = val;
+            bankFormatState.transferType = '';
+            const typeSelect = document.getElementById('bfTransferType');
+            if (typeSelect) {
+                if (!val) {
+                    typeSelect.disabled = true;
+                    typeSelect.innerHTML = '<option value="">Select Source Bank First</option>';
+                } else {
+                    typeSelect.disabled = false;
+                    if (val === 'ASKARI') {
+                        typeSelect.innerHTML = `
+                            <option value="">Select Transfer Type</option>
+                            <option value="FT">FT (Askari to Askari Bank)</option>
+                            <option value="IBFT">IBFT (Askari to Other Banks)</option>
+                        `;
+                    } else if (val === 'ALFALAH') {
+                        typeSelect.innerHTML = `
+                            <option value="">Select Transfer Type</option>
+                            <option value="FT">FT (Bank Alfalah IFT)</option>
+                            <option value="IBFT">IBFT (Bank Alfalah IBFT)</option>
+                        `;
+                    }
+                }
+            }
+        }
+
+        function renderBankFormatView(payrollData) {
+            loadBankFormatMetadata();
+            const monthName = getMonthAbbr(currentMonth).toUpperCase() + ' ' + currentYear;
+            const headerBranchEl = document.getElementById('headerBranchFilter');
+            const branchLabel = headerBranchEl ? headerBranchEl.options[headerBranchEl.selectedIndex].text : 'All Branches';
+
+            const exportBtnText = bankFormatState.sourceBank && bankFormatState.transferType
+                ? `Export ${bankFormatState.sourceBank === 'ASKARI' ? 'Askari' : 'Bank Alfalah'} ${bankFormatState.transferType} File`
+                : 'Export Bank File';
+
             return `
-                <div class="adj-section" style="margin-bottom:16px;">
-                    <h3><i class="fas fa-table"></i> Complete Payroll Sheet (All Fields)</h3>
-                    <p style="color:rgba(255,255,255,0.6);font-size:12px;">Showing comprehensive payroll calculation matching HRM specifications. Scroll horizontally for all columns.</p>
+                <div class="adj-section" style="margin-bottom:20px; background:linear-gradient(145deg, rgba(15,23,42,0.7), rgba(30,41,59,0.5)); backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,0.08); border-radius:20px; padding:28px; box-shadow:0 20px 50px rgba(0,0,0,0.4);">
+                    <!-- Header Bar -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:24px; padding-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.08);">
+                        <div style="display:flex; align-items:center; gap:16px;">
+                            <div style="width:48px; height:48px; border-radius:14px; background:linear-gradient(135deg, rgba(249,115,22,0.25), rgba(59,130,246,0.25)); border:1px solid rgba(249,115,22,0.4); display:flex; align-items:center; justify-content:center; box-shadow:0 8px 20px rgba(249,115,22,0.2);">
+                                <i class="fas fa-university" style="font-size:22px; color:#f97316;"></i>
+                            </div>
+                            <div>
+                                <h2 style="font-size:20px; font-weight:800; color:white; margin:0; letter-spacing:-0.3px;">
+                                    FT & IBFT Salary Bank File Generator
+                                </h2>
+                                <span style="font-size:12px; color:var(--text-muted); font-weight:500;">Generate official Askari & Bank Alfalah salary transfer files</span>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <span style="font-size:11px; font-weight:700; background:rgba(249,115,22,0.15); color:var(--primary); border:1px solid rgba(249,115,22,0.3); padding:6px 14px; border-radius:20px; box-shadow:0 4px 12px rgba(249,115,22,0.15);"><i class="far fa-calendar-alt"></i> ${monthName}</span>
+                            <span style="font-size:11px; font-weight:700; background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3); padding:6px 14px; border-radius:20px; box-shadow:0 4px 12px rgba(59,130,246,0.15);"><i class="fas fa-building"></i> ${escapeHtml(branchLabel)}</span>
+                        </div>
+                    </div>
+
+                    <!-- Step Cards Selection Grid -->
+                    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:18px; margin-bottom:24px;">
+                        <div style="background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:18px; transition:all 0.3s ease;">
+                            <label style="font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:8px;">
+                                <i class="fas fa-landmark" style="color:#f97316; margin-right:6px;"></i> STEP 1: SOURCE BANK <span style="color:var(--danger)">*</span>
+                            </label>
+                            <select id="bfSourceBank" onchange="onBankFormatSourceChanged(this.value)" style="width:100%; background:rgba(15,23,42,0.8); border:1px solid rgba(255,255,255,0.15); color:white; font-weight:600; font-size:13px; padding:12px 14px; border-radius:12px; outline:none; transition:all 0.3s ease;">
+                                <option value="">Select Source Bank</option>
+                                <option value="ASKARI" ${bankFormatState.sourceBank === 'ASKARI' ? 'selected' : ''}>Askari Bank</option>
+                                <option value="ALFALAH" ${bankFormatState.sourceBank === 'ALFALAH' ? 'selected' : ''}>Bank Alfalah</option>
+                            </select>
+                        </div>
+
+                        <div style="background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:18px; transition:all 0.3s ease;">
+                            <label style="font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:8px;">
+                                <i class="fas fa-exchange-alt" style="color:#38bdf8; margin-right:6px;"></i> STEP 2: TRANSFER TYPE <span style="color:var(--danger)">*</span>
+                            </label>
+                            <select id="bfTransferType" ${!bankFormatState.sourceBank ? 'disabled' : ''} style="width:100%; background:rgba(15,23,42,0.8); border:1px solid rgba(255,255,255,0.15); color:white; font-weight:600; font-size:13px; padding:12px 14px; border-radius:12px; outline:none; transition:all 0.3s ease;">
+                                ${!bankFormatState.sourceBank ? '<option value="">Select Source Bank First</option>' : ''}
+                                ${bankFormatState.sourceBank === 'ASKARI' ? `
+                                    <option value="">Select Transfer Type</option>
+                                    <option value="FT" ${bankFormatState.transferType === 'FT' ? 'selected' : ''}>FT (Askari to Askari Bank)</option>
+                                    <option value="IBFT" ${bankFormatState.transferType === 'IBFT' ? 'selected' : ''}>IBFT (Askari to Other Banks)</option>
+                                ` : ''}
+                                ${bankFormatState.sourceBank === 'ALFALAH' ? `
+                                    <option value="">Select Transfer Type</option>
+                                    <option value="FT" ${bankFormatState.transferType === 'FT' ? 'selected' : ''}>FT (Bank Alfalah IFT)</option>
+                                    <option value="IBFT" ${bankFormatState.transferType === 'IBFT' ? 'selected' : ''}>IBFT (Bank Alfalah IBFT)</option>
+                                ` : ''}
+                            </select>
+                        </div>
+
+                        <div style="background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:18px; transition:all 0.3s ease;">
+                            <label style="font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:8px;">
+                                <i class="far fa-calendar-check" style="color:#34d399; margin-right:6px;"></i> STEP 3: TRANSACTION DATE <span style="color:var(--danger)">*</span>
+                            </label>
+                            <input type="date" id="bfTxDate" value="${bankFormatState.txDate}" style="width:100%; background:rgba(15,23,42,0.8); border:1px solid rgba(255,255,255,0.15); color:white; font-weight:600; font-size:13px; padding:12px 14px; border-radius:12px; outline:none; transition:all 0.3s ease;">
+                        </div>
+                    </div>
+
+                    <!-- Modern Action Buttons -->
+                    <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:28px;">
+                        <button onclick="generateBankFormatPreview()" style="background:linear-gradient(135deg, #f97316 0%, #ea580c 100%); color:white; font-weight:700; font-size:13px; border:none; border-radius:12px; padding:12px 24px; cursor:pointer; box-shadow:0 6px 20px rgba(249,115,22,0.35); transition:all 0.25s ease; display:inline-flex; align-items:center; gap:8px;">
+                            <i class="fas fa-bolt"></i> Generate Preview
+                        </button>
+                        <button id="btnExportBankFile" ${!bankFormatState.validRecords.length ? 'disabled style="opacity:0.4; cursor:not-allowed; background:rgba(255,255,255,0.1); color:#94a3b8; border:none; border-radius:12px; padding:12px 24px; font-weight:700; font-size:13px;"' : 'style="background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:white; font-weight:700; font-size:13px; border:none; border-radius:12px; padding:12px 24px; cursor:pointer; box-shadow:0 6px 20px rgba(16,185,129,0.35); transition:all 0.25s ease; display:inline-flex; align-items:center; gap:8px;"'} onclick="exportBankFormatFile()">
+                            <i class="fas fa-file-excel"></i> ${exportBtnText}
+                        </button>
+                        <button onclick="resetBankFormatModule()" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#cbd5e1; font-weight:600; font-size:13px; border-radius:12px; padding:12px 20px; cursor:pointer; transition:all 0.25s ease; display:inline-flex; align-items:center; gap:8px;">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                    </div>
+
+                    <!-- Advanced Summary Metric Cards -->
+                    <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:16px; margin-bottom:28px;">
+                        <div style="background:linear-gradient(145deg, rgba(30,41,59,0.7), rgba(15,23,42,0.7)); border:1px solid rgba(255,255,255,0.08); border-top:3px solid #3b82f6; border-radius:16px; padding:20px; position:relative; overflow:hidden;">
+                            <i class="fas fa-users" style="position:absolute; right:-10px; bottom:-10px; font-size:64px; color:rgba(59,130,246,0.08);"></i>
+                            <div style="font-size:11px; color:#94a3b8; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Eligible Employees</div>
+                            <div style="font-size:26px; font-weight:800; color:white; margin-top:6px; font-family:monospace;">${payrollData.length}</div>
+                        </div>
+
+                        <div style="background:linear-gradient(145deg, rgba(16,185,129,0.1), rgba(15,23,42,0.7)); border:1px solid rgba(16,185,129,0.3); border-top:3px solid #10b981; border-radius:16px; padding:20px; position:relative; overflow:hidden;">
+                            <i class="fas fa-check-circle" style="position:absolute; right:-10px; bottom:-10px; font-size:64px; color:rgba(16,185,129,0.08);"></i>
+                            <div style="font-size:11px; color:#34d399; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Valid Records</div>
+                            <div style="font-size:26px; font-weight:800; color:#34d399; margin-top:6px; font-family:monospace;">${bankFormatState.validRecords.length}</div>
+                        </div>
+
+                        <div style="background:linear-gradient(145deg, rgba(239,68,68,0.1), rgba(15,23,42,0.7)); border:1px solid rgba(239,68,68,0.3); border-top:3px solid #ef4444; border-radius:16px; padding:20px; position:relative; overflow:hidden;">
+                            <i class="fas fa-exclamation-triangle" style="position:absolute; right:-10px; bottom:-10px; font-size:64px; color:rgba(239,68,68,0.08);"></i>
+                            <div style="font-size:11px; color:#f87171; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Excluded / Invalid</div>
+                            <div style="font-size:26px; font-weight:800; color:#f87171; margin-top:6px; font-family:monospace;">${bankFormatState.invalidRecords.length}</div>
+                        </div>
+
+                        <div style="background:linear-gradient(145deg, rgba(249,115,22,0.1), rgba(15,23,42,0.7)); border:1px solid rgba(249,115,22,0.3); border-top:3px solid #f97316; border-radius:16px; padding:20px; position:relative; overflow:hidden;">
+                            <i class="fas fa-vault" style="position:absolute; right:-10px; bottom:-10px; font-size:64px; color:rgba(249,115,22,0.08);"></i>
+                            <div style="font-size:11px; color:var(--primary); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Total Transfer Amount</div>
+                            <div style="font-size:24px; font-weight:800; color:var(--primary); margin-top:6px; font-family:monospace;">₨ ${bankFormatState.validRecords.reduce((sum, r) => sum + r.finalNetSalary, 0).toLocaleString()}</div>
+                        </div>
+                    </div>
+
+                    <!-- Preview Tables Section -->
+                    ${renderBankFormatTables()}
                 </div>
-                <div class="payroll-table-container">
-                <table class="payroll-table">
+            `;
+        }
+
+        function renderBankFormatTables() {
+            if (!bankFormatState.validRecords.length && !bankFormatState.invalidRecords.length) {
+                return '<div style="text-align:center; padding:50px 20px; color:#94a3b8; background:rgba(15,23,42,0.4); border-radius:16px; border:1px dashed rgba(255,255,255,0.1);"><i class="fas fa-sparkles" style="font-size:28px; color:#f97316; margin-bottom:12px; display:block;"></i> Select Source Bank & Transfer Type above, then click <strong style="color:white;">Generate Preview</strong> to process records.</div>';
+            }
+
+            let validTableHtml = '';
+            if (bankFormatState.validRecords.length > 0) {
+                validTableHtml = `
+                    <div class="table-container" style="margin-bottom:28px; border-radius:16px; overflow:hidden; border:1px solid rgba(16,185,129,0.3); background:rgba(15,23,42,0.8);">
+                        <div class="table-header" style="background:rgba(16,185,129,0.08); padding:16px 20px; border-bottom:1px solid rgba(16,185,129,0.2);">
+                            <h2 style="font-size:15px; font-weight:700; color:#34d399; margin:0; display:flex; align-items:center; gap:8px;">
+                                <i class="fas fa-check-circle"></i> Valid Bank Transfer Records (${bankFormatState.validRecords.length})
+                            </h2>
+                        </div>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Biometric ID</th>
+                                        <th>Employee Name</th>
+                                        <th>Source Bank</th>
+                                        <th>Destination Bank</th>
+                                        <th>Bank Code</th>
+                                        <th>Type</th>
+                                        <th>Account Number / IBAN</th>
+                                        <th>Final Net Salary</th>
+                                        <th>Unique Ref</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${bankFormatState.validRecords.map(r => `
+                                        <tr>
+                                            <td><strong style="font-family:monospace; color:white;">${escapeHtml(r.employeeId)}</strong></td>
+                                            <td><strong style="color:#f8fafc;">${escapeHtml(r.employeeName)}</strong></td>
+                                            <td><span class="badge-branch">${escapeHtml(r.sourceBank)}</span></td>
+                                            <td><span class="badge-dept">${escapeHtml(r.destBankName)}</span></td>
+                                            <td><span style="font-family:monospace; font-weight:700; color:#38bdf8; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); padding:4px 10px; border-radius:8px; box-shadow:0 2px 8px rgba(56,189,248,0.15);">${escapeHtml(r.destBankCode || '—')}</span></td>
+                                            <td><span class="badge-desig">${escapeHtml(r.transferType)}</span></td>
+                                            <td><span style="font-family:monospace; color:#cbd5e1;">${escapeHtml(r.accountNo)}</span></td>
+                                            <td><strong style="color:#34d399; font-family:monospace; font-size:14px;">₨ ${r.finalNetSalary.toLocaleString()}</strong></td>
+                                            <td><span style="font-family:monospace; font-size:11px; font-weight:700; color:#fbbf24; background:rgba(251,191,36,0.12); border:1px solid rgba(251,191,36,0.3); padding:4px 10px; border-radius:8px;">${escapeHtml(r.uniqueRef)}</span></td>
+                                            <td><span style="font-size:11px; font-weight:700; background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); padding:4px 12px; border-radius:20px; display:inline-flex; align-items:center; gap:6px;"><span style="width:6px; height:6px; border-radius:50%; background:#34d399; box-shadow:0 0 8px #34d399;"></span> Valid</span></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            let invalidTableHtml = '';
+            if (bankFormatState.invalidRecords.length > 0) {
+                invalidTableHtml = `
+                    <div class="table-container" style="border-radius:16px; overflow:hidden; border:1px solid rgba(239,68,68,0.3); background:rgba(15,23,42,0.8);">
+                        <div class="table-header" style="background:rgba(239,68,68,0.08); padding:16px 20px; border-bottom:1px solid rgba(239,68,68,0.2);">
+                            <h2 style="font-size:15px; font-weight:700; color:#f87171; margin:0; display:flex; align-items:center; gap:8px;">
+                                <i class="fas fa-exclamation-triangle"></i> Excluded / Invalid Records (${bankFormatState.invalidRecords.length})
+                            </h2>
+                        </div>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Employee ID</th>
+                                        <th>Employee Name</th>
+                                        <th>Destination Bank</th>
+                                        <th>Account Number</th>
+                                        <th>Net Salary</th>
+                                        <th>Error Reason</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${bankFormatState.invalidRecords.map(r => `
+                                        <tr>
+                                            <td><strong style="font-family:monospace; color:white;">${escapeHtml(r.employeeId)}</strong></td>
+                                            <td>${escapeHtml(r.employeeName)}</td>
+                                            <td>${escapeHtml(r.destBankName || 'Not Set')}</td>
+                                            <td><span style="font-family:monospace;">${escapeHtml(r.accountNo || 'Not Set')}</span></td>
+                                            <td>₨ ${(r.finalNetSalary || 0).toLocaleString()}</td>
+                                            <td><span style="color:#f87171; font-weight:700; font-size:12px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); padding:4px 10px; border-radius:8px; display:inline-block;">⚠️ ${escapeHtml(r.errorReason)}</span></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return validTableHtml + invalidTableHtml;
+        }
+
+        async function generateBankFormatPreview() {
+            await loadBankFormatMetadata();
+            const sourceSelect = document.getElementById('bfSourceBank');
+            const typeSelect = document.getElementById('bfTransferType');
+            const txDateInput = document.getElementById('bfTxDate');
+
+            const sourceBank = sourceSelect ? sourceSelect.value : '';
+            const transferType = typeSelect ? typeSelect.value : '';
+            const txDate = txDateInput ? txDateInput.value : '';
+
+            if (!sourceBank) { showToast('Select Source Bank first', 'warning'); return; }
+            if (!transferType) { showToast('Select Transfer Type first', 'warning'); return; }
+            if (!txDate) { showToast('Select Transaction Date', 'warning'); return; }
+
+            bankFormatState.sourceBank = sourceBank;
+            bankFormatState.transferType = transferType;
+            bankFormatState.txDate = txDate;
+            bankFormatState.validRecords = [];
+            bankFormatState.invalidRecords = [];
+
+            const payrollData = allData.map(emp => calculatePayrollForEmployee(emp));
+            const seenTxRefs = new Set();
+
+            payrollData.forEach(emp => {
+                const empRemarks = emp.remarks || (payrollAdj.remarks && payrollAdj.remarks[emp.id]) || 'Ready for Payment';
+                if (empRemarks === 'Hold') {
+                    return;
+                }
+
+                const meta = getEmpMeta(emp.id);
+                const dbUser = financeUsersList.find(u => String(u.employee_code) === String(emp.id) || String(u.id) === String(emp.id));
+
+                const employeeId = String(emp.id || '').trim();
+                const employeeName = String(emp.name || '').trim();
+                const accountTitle = String(meta.accountTitle || emp.account_title || emp.accountTitle || dbUser?.account_title || '').trim();
+                const accountNo = String(meta.accountNo || emp.account_no || emp.accountNo || dbUser?.account_no || '').trim();
+                const cnic = String(meta.cnic || emp.cnic || dbUser?.cnic || '').trim();
+                const rawBankName = String(meta.bankName || emp.bank_name || emp.bankName || dbUser?.bank_name || '').trim();
+                const contactNo = String(emp.phone || emp.contact_no || '03000000000').trim();
+                const finalNetSalary = Math.round(emp.finalNetSalary);
+
+                let errorReason = '';
+
+                // Mandatory Validation Rules
+                if (!employeeId) {
+                    errorReason = 'Missing Biometric ID';
+                } else if (!rawBankName) {
+                    errorReason = 'Missing Destination Bank Name in User Settings';
+                } else if (!accountTitle) {
+                    errorReason = 'Missing Account Title in User Settings';
+                } else if (!accountNo) {
+                    errorReason = 'Missing Account Number / IBAN in User Settings';
+                } else if (!finalNetSalary || finalNetSalary <= 0) {
+                    errorReason = 'Final Net Salary is zero or negative';
+                }
+
+                if (errorReason) {
+                    bankFormatState.invalidRecords.push({
+                        employeeId, employeeName, destBankName: rawBankName, accountNo, finalNetSalary, errorReason
+                    });
+                    return;
+                }
+
+                // Resolve Canonical Bank
+                const canonicalBank = resolveCanonicalBank(rawBankName);
+                if (!canonicalBank) {
+                    bankFormatState.invalidRecords.push({
+                        employeeId, employeeName, destBankName: rawBankName, accountNo, finalNetSalary,
+                        errorReason: `Unrecognized destination bank "${rawBankName}"`
+                    });
+                    return;
+                }
+
+                const bankId = canonicalBank.id;
+                const destBankName = canonicalBank.name;
+                const isAskariBank = canonicalBank.norm.includes('askari');
+                const isAlfalahBank = canonicalBank.norm.includes('alfalah');
+
+                // FT vs IBFT Classification Check
+                if (sourceBank === 'ASKARI') {
+                    if (transferType === 'FT' && !isAskariBank) {
+                        bankFormatState.invalidRecords.push({
+                            employeeId, employeeName, destBankName, accountNo, finalNetSalary,
+                            errorReason: 'Askari FT requires Askari Bank destination account'
+                        });
+                        return;
+                    }
+                    if (transferType === 'IBFT' && isAskariBank) {
+                        bankFormatState.invalidRecords.push({
+                            employeeId, employeeName, destBankName, accountNo, finalNetSalary,
+                            errorReason: 'Askari destination account belongs in Askari FT file, not IBFT'
+                        });
+                        return;
+                    }
+                } else if (sourceBank === 'ALFALAH') {
+                    if (transferType === 'FT' && !isAlfalahBank) {
+                        bankFormatState.invalidRecords.push({
+                            employeeId, employeeName, destBankName, accountNo, finalNetSalary,
+                            errorReason: 'Bank Alfalah FT (IFT) requires Bank Alfalah destination account'
+                        });
+                        return;
+                    }
+                    if (transferType === 'IBFT' && isAlfalahBank) {
+                        bankFormatState.invalidRecords.push({
+                            employeeId, employeeName, destBankName, accountNo, finalNetSalary,
+                            errorReason: 'Bank Alfalah destination account belongs in Alfalah FT (IFT) file, not IBFT'
+                        });
+                        return;
+                    }
+                }
+
+                // Destination Bank Code Lookup
+                const bankCodeMap = (bankFormatState.bankMappings[sourceBank] || {});
+                const destBankCode = bankCodeMap[bankId] || '';
+
+                if (!destBankCode && transferType === 'IBFT') {
+                    bankFormatState.invalidRecords.push({
+                        employeeId, employeeName, destBankName, accountNo, finalNetSalary,
+                        errorReason: sourceBank === 'ASKARI' ? 'Askari/1Link bank code not found' : `Bank code mapping not found for ${destBankName} under ${sourceBank}`
+                    });
+                    return;
+                }
+
+                // Additional Format Field Rules
+                if (sourceBank === 'ALFALAH' && transferType === 'IBFT' && !cnic) {
+                    bankFormatState.invalidRecords.push({
+                        employeeId, employeeName, destBankName, accountNo, finalNetSalary,
+                        errorReason: 'CNIC required for Bank Alfalah IBFT export'
+                    });
+                    return;
+                }
+
+                const uniqueRef = generateUniqueTxRef(employeeId, sourceBank, currentMonth, currentYear);
+                if (seenTxRefs.has(uniqueRef)) {
+                    bankFormatState.invalidRecords.push({
+                        employeeId, employeeName, destBankName, accountNo, finalNetSalary,
+                        errorReason: `Duplicate transaction reference "${uniqueRef}"`
+                    });
+                    return;
+                }
+                seenTxRefs.add(uniqueRef);
+
+                bankFormatState.validRecords.push({
+                    employeeId,
+                    employeeName,
+                    accountTitle,
+                    accountNo,
+                    cnic,
+                    contactNo,
+                    finalNetSalary,
+                    sourceBank,
+                    transferType,
+                    bankId,
+                    destBankName,
+                    destBankCode,
+                    uniqueRef
+                });
+            });
+
+            // Re-render view with updated preview tables and metrics
+            if (activeView === 'bank-format') {
+                renderPayrollDashboardView('bank-format');
+            }
+            showToast(`✅ Generated preview: ${bankFormatState.validRecords.length} valid records`, 'success');
+        }
+
+        function resetBankFormatModule() {
+            bankFormatState.sourceBank = '';
+            bankFormatState.transferType = '';
+            bankFormatState.txDate = new Date().toISOString().split('T')[0];
+            bankFormatState.validRecords = [];
+            bankFormatState.invalidRecords = [];
+            if (activeView === 'bank-format') {
+                renderPayrollDashboardView('bank-format');
+            }
+        }
+
+        async function exportBankFormatFile() {
+            if (!bankFormatState.validRecords.length) {
+                showToast('No valid records to export', 'warning');
+                return;
+            }
+
+            const confirmMsg = `Confirm Export:\n\n` +
+                `• Source Bank: ${bankFormatState.sourceBank}\n` +
+                `• Transfer Type: ${bankFormatState.transferType}\n` +
+                `• Valid Records: ${bankFormatState.validRecords.length}\n` +
+                `• Excluded Invalid Records: ${bankFormatState.invalidRecords.length}\n` +
+                `• Total Transfer Amount: ₨ ${bankFormatState.validRecords.reduce((s, r) => s + r.finalNetSalary, 0).toLocaleString()}\n\n` +
+                `Proceed with downloading official XLSX file?`;
+
+            if (!confirm(confirmMsg)) return;
+
+            const monthAbbr = getMonthAbbr(currentMonth).toUpperCase();
+            const yearStr = currentYear;
+            let filename = '';
+            let headers = [];
+            let rows = [];
+
+            const companyDebitAcc = (bankFormatState.companyAccounts[bankFormatState.sourceBank] || '01801006543210');
+
+            if (bankFormatState.sourceBank === 'ASKARI') {
+                filename = `Askari_${bankFormatState.transferType}_${monthAbbr}_${yearStr}.xlsx`;
+                headers = [
+                    'S.No',
+                    'Transaction Date',
+                    'Beneficiary Bank Code',
+                    'Beneficiary Bank Name',
+                    'Beneficiary Name',
+                    'Beneficiary Account No',
+                    'Amount',
+                    'Product Type Code',
+                    'ReferenceField1',
+                    'ReferenceField2',
+                    'ReferenceField3',
+                    'BeneficiaryMobile',
+                    'BeneSMS'
+                ];
+
+                const fullMonthName = new Date(currentYear, currentMonth - 1, 1).toLocaleString('en-US', { month: 'long' });
+                rows = bankFormatState.validRecords.map((r, idx) => [
+                    idx + 1,
+                    bankFormatState.txDate,
+                    bankFormatState.transferType === 'FT' ? '104' : (r.destBankCode || '104'),
+                    bankFormatState.transferType === 'FT' ? 'Askari Bank Limited' : r.destBankName,
+                    r.accountTitle,
+                    r.accountNo,
+                    r.finalNetSalary,
+                    r.transferType,
+                    r.uniqueRef,
+                    'Salary',
+                    `FMO ${fullMonthName} ${yearStr}`,
+                    r.contactNo || '03000000000',
+                    'Your Salary has been credited in your salary account'
+                ]);
+
+            } else if (bankFormatState.sourceBank === 'ALFALAH') {
+                if (bankFormatState.transferType === 'FT') {
+                    filename = `Alfalah_FT_${monthAbbr}_${yearStr}.xlsx`;
+                    headers = [
+                        'Employee/Beneficiary Name',
+                        'Company Debit Account',
+                        'Final Net Salary',
+                        'Employee Bank Alfalah Account/IBAN',
+                        'Transaction Reference',
+                        'Salary Narration'
+                    ];
+
+                    rows = bankFormatState.validRecords.map(r => [
+                        r.accountTitle,
+                        companyDebitAcc,
+                        r.finalNetSalary,
+                        r.accountNo,
+                        r.uniqueRef,
+                        `Salary ${monthAbbr} ${yearStr}`
+                    ]);
+
+                } else if (bankFormatState.transferType === 'IBFT') {
+                    filename = `Alfalah_IBFT_${monthAbbr}_${yearStr}.xlsx`;
+                    headers = [
+                        'Destination Bank Code',
+                        'Employee Account Number/IBAN',
+                        'Employee/Beneficiary Name',
+                        'Transaction Reference',
+                        'Final Net Salary',
+                        'Identification Type',
+                        'Employee CNIC',
+                        'Purpose/Transaction Code',
+                        'Company Debit Account'
+                    ];
+
+                    rows = bankFormatState.validRecords.map(r => [
+                        r.destBankCode,
+                        r.accountNo,
+                        r.accountTitle,
+                        r.uniqueRef,
+                        r.finalNetSalary,
+                        'CNIC',
+                        r.cnic,
+                        '030',
+                        companyDebitAcc
+                    ]);
+                }
+            }
+
+            try {
+                showToast('⏳ Generating official bank XLSX file...', 'info');
+                const res = await fetch('api/payroll_api.php?action=exportBankXlsx', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename, headers, rows })
+                });
+
+                if (!res.ok) {
+                    showToast('Failed to generate export file', 'danger');
+                    return;
+                }
+
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+
+                showToast(`✅ Downloaded ${filename}`, 'success');
+            } catch (e) {
+                console.error(e);
+                showToast('Error exporting bank file', 'danger');
+            }
+        }
+
+        function filterPayrollByTeam(team) {
+            selectedPayrollTeam = team;
+            if (activeView === 'payroll-sheet') {
+                renderPayrollDashboardView('payroll-sheet');
+            }
+        }
+        window.filterPayrollByTeam = filterPayrollByTeam;
+
+        function filterPayrollSearch(query) {
+            selectedPayrollQuery = (query || '').trim().toLowerCase();
+            if (activeView === 'payroll-sheet') {
+                renderPayrollDashboardView('payroll-sheet');
+                const searchInput = document.getElementById('payrollSearchInput');
+                if (searchInput) {
+                    searchInput.focus();
+                    searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
+                }
+            }
+        }
+        window.filterPayrollSearch = filterPayrollSearch;
+
+        function getRemarksSelectClass(status) {
+            switch (status) {
+                case 'Ready for Payment': return 'status-ready';
+                case 'Hold': return 'status-hold';
+                case 'Paid': return 'status-paid';
+                case 'Unpaid': return 'status-unpaid';
+                case 'Failed': return 'status-failed';
+                default: return 'status-ready';
+            }
+        }
+
+        function updatePayrollRemarks(empId, newStatus) {
+            if (!payrollAdj.remarks) payrollAdj.remarks = {};
+            payrollAdj.remarks[empId] = newStatus;
+
+            const rowEl = document.getElementById(`payroll-row-${empId}`);
+            const commentInput = document.getElementById(`comment-input-${empId}`);
+            const selectEl = document.getElementById(`remarks-select-${empId}`);
+
+            if (newStatus === 'Hold') {
+                if (rowEl) rowEl.classList.add('row-on-hold');
+                const currentComment = (payrollAdj.comments && payrollAdj.comments[empId]) || '';
+                if (!currentComment.trim()) {
+                    if (commentInput) {
+                        commentInput.classList.add('comment-required-error');
+                        commentInput.placeholder = 'Comment required for Hold!';
+                        commentInput.focus();
+                    }
+                    showToast('⚠️ Comment is required when setting an employee on Hold', 'warning');
+                }
+            } else {
+                if (rowEl) rowEl.classList.remove('row-on-hold');
+                if (commentInput) {
+                    commentInput.classList.remove('comment-required-error');
+                    commentInput.placeholder = 'Add comment...';
+                }
+            }
+
+            if (selectEl) {
+                selectEl.className = 'payroll-remarks-select ' + getRemarksSelectClass(newStatus);
+            }
+
+            persistAllAdj();
+            showToast(`Remarks updated to "${newStatus}"`, 'info');
+        }
+        window.updatePayrollRemarks = updatePayrollRemarks;
+
+        function onPayrollCommentInput(empId, val) {
+            if (!payrollAdj.comments) payrollAdj.comments = {};
+            payrollAdj.comments[empId] = val;
+            const currentRemarks = (payrollAdj.remarks && payrollAdj.remarks[empId]) || 'Ready for Payment';
+            const commentInput = document.getElementById(`comment-input-${empId}`);
+            if (currentRemarks === 'Hold' && val.trim()) {
+                if (commentInput) commentInput.classList.remove('comment-required-error');
+            }
+        }
+        window.onPayrollCommentInput = onPayrollCommentInput;
+
+        function updatePayrollComment(empId, val) {
+            if (!payrollAdj.comments) payrollAdj.comments = {};
+            payrollAdj.comments[empId] = val;
+            const currentRemarks = (payrollAdj.remarks && payrollAdj.remarks[empId]) || 'Ready for Payment';
+            const commentInput = document.getElementById(`comment-input-${empId}`);
+
+            if (currentRemarks === 'Hold' && !val.trim()) {
+                if (commentInput) {
+                    commentInput.classList.add('comment-required-error');
+                    commentInput.focus();
+                }
+                showToast('⚠️ Comment is required for employees on Hold status', 'warning');
+            } else if (commentInput) {
+                commentInput.classList.remove('comment-required-error');
+            }
+
+            persistAllAdj();
+        }
+        window.updatePayrollComment = updatePayrollComment;
+
+        function renderFullPayrollTable(payrollData) {
+            const fmtTxt = val => escapeHtml(val !== undefined && val !== null && String(val).trim() !== '' ? String(val) : '—');
+            const fmtAmt = val => '₨ ' + (parseFloat(val) || 0).toLocaleString();
+            const fmtCnt = val => parseInt(val) || 0;
+
+            // Extract unique teams from current branch employee dataset
+            const branchTeams = Array.from(new Set(allData.map(e => (e.team || '').trim()).filter(t => t !== '' && t.toLowerCase() !== 'no team'))).sort();
+            if (allData.some(e => !e.team || (e.team || '').trim().toLowerCase() === 'no team')) {
+                branchTeams.push('No Team');
+            }
+
+            // Filter payroll data by selected team and search query (Name or Biometric ID)
+            let displayPayrollData = payrollData;
+            if (selectedPayrollTeam) {
+                displayPayrollData = displayPayrollData.filter(e => {
+                    const empTeam = (e.team || 'No Team').trim().toLowerCase();
+                    return empTeam === selectedPayrollTeam.trim().toLowerCase();
+                });
+            }
+            if (selectedPayrollQuery) {
+                displayPayrollData = displayPayrollData.filter(e => {
+                    const name = (e.name || '').toLowerCase();
+                    const id = (e.id || '').toLowerCase();
+                    const sudo = (e.meta ? (e.meta.sudoName || e.meta.sudo_name || '') : '').toLowerCase();
+                    return name.includes(selectedPayrollQuery) || id.includes(selectedPayrollQuery) || sudo.includes(selectedPayrollQuery);
+                });
+            }
+
+            const headerBranchEl = document.getElementById('headerBranchFilter');
+            const activeBranchLabel = headerBranchEl ? headerBranchEl.options[headerBranchEl.selectedIndex].text : 'All Branches';
+
+            return `
+                <div class="adj-section" style="margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                    <h3><i class="fas fa-table"></i> Complete Payroll Sheet</h3>
+                    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                        <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.04); border:1px solid var(--border-color); padding:6px 14px; border-radius:10px;">
+                            <i class="fas fa-search" style="color:var(--primary); font-size:13px;"></i>
+                            <input type="text" id="payrollSearchInput" value="${escapeHtml(selectedPayrollQuery)}" oninput="filterPayrollSearch(this.value)" placeholder="Search Name or B-ID..." style="background:transparent; border:none; color:white; font-size:13px; outline:none; width:180px;">
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.04); border:1px solid var(--border-color); padding:6px 14px; border-radius:10px;">
+                            <i class="fas fa-users-cog" style="color:var(--primary); font-size:13px;"></i>
+                            <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Team Filter (${escapeHtml(activeBranchLabel)}):</label>
+                            <select id="payrollTeamFilter" class="filter-select" onchange="filterPayrollByTeam(this.value)" style="background:transparent; border:none; color:white; font-weight:600; font-size:13px; outline:none; cursor:pointer;">
+                                <option value="" style="background:#0f1524;">All Teams (${displayPayrollData.length} Personnel)</option>
+                                ${branchTeams.map(t => `<option value="${escapeHtml(t)}" ${selectedPayrollTeam === t ? 'selected' : ''} style="background:#0f1524;">${escapeHtml(t)}</option>`).join('')}
+                            </select>
+                        </div>
+                        <button class="btn btn-secondary" onclick="exportBankTransferCSV()" style="padding: 8px 16px; font-size:12px; background:rgba(255,255,255,0.05); border:1px solid var(--border-color); color:white;"><i class="fas fa-university"></i> Export Bank Transfer CSV</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                <div class="table-wrapper">
+                <table id="payrollTable">
                     <thead><tr>
-                        <th>B-ID</th><th>Employee Name</th><th>Sudo Name</th><th>Designation</th><th>Campaign</th><th>Department</th>
-                        <th>CNIC</th><th>Contact</th><th>Account No.</th><th>Account Title</th><th>Bank</th><th>Appointment</th>
-                        <th>Basic Salary</th><th>Punctuality</th><th>Total Salary</th>
-                        <th>Per Day</th><th>Days</th><th>Present</th><th>Leave</th><th>Absent</th><th>T.W.Days</th>
-                        <th>P.Reward</th><th>Bonus</th><th>TA/DA</th><th>Arrears</th>
-                        <th>Extra Days</th><th>Extra Pay</th>
-                        <th>Late</th><th>Late Ded.</th>
-                        <th>HD#</th><th>HD Amt</th>
-                        <th>SD#</th><th>SD Amt</th>
-                        <th>NCNS#</th><th>NCNS Amt</th>
-                        <th>QA/HR</th><th>Misspunch</th>
-                        <th>Advance</th><th>Absent Ded.</th><th>Tax</th>
-                        <th class="amount-positive">GROSS</th>
-                        <th>Remarks</th><th>Comments</th><th>Status</th><th>Action</th>
+                        <th>B-ID</th>
+                        <th>Employees Name</th>
+                        <th>Sudo Names</th>
+                        <th>Designation</th>
+                        <th>Campaign</th>
+                        <th>CNIC#</th>
+                        <th>Contact No.</th>
+                        <th>Account Nos</th>
+                        <th>Account Title</th>
+                        <th>Bank Name</th>
+                        <th>Appointment Date</th>
+                        <th>Basic Salary</th>
+                        <th>Punctuality</th>
+                        <th>Total Salary</th>
+                        <th>Salary Per Day</th>
+                        <th>Num of Days</th>
+                        <th>Present</th>
+                        <th>Leave</th>
+                        <th>Absent</th>
+                        <th>Total No of W.Days</th>
+                        <th>Punch Reward</th>
+                        <th>Bonus</th>
+                        <th>TA/DA</th>
+                        <th>Arrears</th>
+                        <th>Extra Day</th>
+                        <th>Extra Day Pay</th>
+                        <th>Late Coming</th>
+                        <th>Late Coming Deduction</th>
+                        <th>HD</th>
+                        <th>HD Deduction</th>
+                        <th>SD</th>
+                        <th>SD Deduction</th>
+                        <th>NCNS</th>
+                        <th>NCNS Deduction</th>
+                        <th>Unpaid Days</th>
+                        <th>Unpaid Deduction</th>
+                        <th>Docs</th>
+                        <th>Missed Punchin</th>
+                        <th>Missed Punchin Deduction</th>
+                        <th>Transport Deduction</th>
+                        <th>Advance Salary</th>
+                        <th>Absent Deduction</th>
+                        <th>Total Addition</th>
+                        <th>Gross Salary</th>
+                        <th>Total Deduction Ept Tax</th>
+                        <th>SUB - Net Salary</th>
+                        <th>Tax</th>
+                        <th style="color:#34d399; font-weight:800;">Final Net Salary</th>
+                        <th>Remarks</th>
+                        <th>Comments</th>
+                        <th>Action</th>
                      </tr></thead>
-                    <tbody>
-                        ${(currentPayrollSearchTerm ? payrollData.filter(e => e.name.toLowerCase().includes(currentPayrollSearchTerm.toLowerCase()) || e.id.toLowerCase().includes(currentPayrollSearchTerm.toLowerCase())) : payrollData).map(e => `
-                            <tr>
-                                <td class="amount-positive">${escapeHtml(e.id)}</td>
-                                <td style="text-align:left;"><strong>${escapeHtml(e.name)}</strong></td>
-                                <td>${escapeHtml(e.meta.sudoName || '—')}</td>
-                                <td>${escapeHtml(e.meta.designation || e.designation || '—')}</td>
-                                <td>${escapeHtml(e.team || '—')}</td>
-                                <td>${escapeHtml(e.department || '—')}</td>
-                                <td>${escapeHtml(e.meta.cnic || e.cnic || '—')}</td>
-                                <td>${escapeHtml(e.contact || '—')}</td>
-                                <td>${escapeHtml(e.meta.accountNo || e.accountNo || '—')}</td>
-                                <td>${escapeHtml(e.meta.accountTitle || e.accountTitle || '—')}</td>
-                                <td>${escapeHtml(e.meta.bankName || e.bankName || '—')}</td>
-                                <td>${escapeHtml(e.appointmentDate || '—')}</td>
-                                <td>₨${e.basicSalary.toLocaleString()}</td>
-                                <td>₨${e.punctualityBonus.toLocaleString()}</td>
-                                <td>₨${e.totalSalary.toLocaleString()}</td>
-                                <td>₨${Math.round(e.perDaySalary).toLocaleString()}</td>
-                                <td>${workingDaysCount}</td>
-                                <td class="amount-positive">${e.present}</td>
-                                <td>${e.adjustedLeaveCount}</td>
-                                <td class="${e.adjustedAbsent>0?'amount-negative':''}">${e.adjustedAbsent}</td>
-                                <td>${e.totalWorkingDays}</td>
-                                <td class="${e.punctualityAmount>0?'amount-positive':'amount-neutral'}">${e.punctualityAmount>0?`+₨${e.punctualityAmount.toLocaleString()}`:'—'}</td>
-                                <td class="${e.bonus>0?'amount-positive':'amount-neutral'}">${e.bonus>0?`+₨${e.bonus.toLocaleString()}`:'—'}</td>
-                                <td class="${e.tada>0?'amount-positive':'amount-neutral'}">${e.tada>0?`+₨${e.tada.toLocaleString()}`:'—'}</td>
-                                <td class="${e.arrears>0?'amount-positive':'amount-neutral'}">${e.arrears>0?`+₨${e.arrears.toLocaleString()}`:'—'}</td>
-                                <td>${e.extraDays}</td>
-                                <td class="${e.extraDayPay>0?'amount-positive':'amount-neutral'}">${e.extraDayPay>0?`+₨${Math.round(e.extraDayPay).toLocaleString()}`:'—'}</td>
-                                <td>${e.late}</td>
-                                <td class="${e.lateDeduction>0?'amount-negative':'amount-neutral'}">${e.lateDeduction>0?`-₨${Math.round(e.lateDeduction).toLocaleString()}`:'—'}</td>
-                                <td>${e.halfDayCount}</td>
-                                <td class="${e.halfDayAmount>0?'amount-negative':'amount-neutral'}">${e.halfDayAmount>0?`-₨${Math.round(e.halfDayAmount).toLocaleString()}`:'—'}</td>
-                                <td>${e.sdCount}</td>
-                                <td class="${e.sdAmount>0?'amount-negative':'amount-neutral'}">${e.sdAmount>0?`-₨${Math.round(e.sdAmount).toLocaleString()}`:'—'}</td>
-                                <td>${e.ncnsCount}</td>
-                                <td class="${e.ncnsAmount>0?'amount-negative':'amount-neutral'}">${e.ncnsAmount>0?`-₨${e.ncnsAmount.toLocaleString()}`:'—'}</td>
-                                <td class="${e.qaHrAmount>0?'amount-negative':'amount-neutral'}">${e.qaHrAmount>0?`-₨${e.qaHrAmount.toLocaleString()}`:'—'}</td>
-                                <td class="${e.misspunchAmount>0?'amount-negative':'amount-neutral'}">${e.misspunchAmount>0?`-₨${e.misspunchAmount.toLocaleString()}`:'—'}</td>
-                                <td class="${e.advanceDeduction>0?'amount-negative':'amount-neutral'}">${e.advanceDeduction>0?`-₨${e.advanceDeduction.toLocaleString()}`:'—'}</td>
-                                <td class="${e.absentDeduction>0?'amount-negative':'amount-neutral'}">${e.absentDeduction>0?`-₨${Math.round(e.absentDeduction).toLocaleString()}`:'—'}</td>
-                                <td class="${e.tax>0?'amount-negative':'amount-neutral'}">${e.tax>0?`-₨${e.tax.toLocaleString()}`:'—'}</td>
-                                <td class="amount-positive" style="font-size:13px;font-weight:800;">₨${Math.round(e.grossSalary).toLocaleString()}</td>
-                                <td>—</td><td>—</td>
-                                <td><span class="${e.statusClass}">${e.status}</span></td>
-                                <td><button class="view-slip-btn" onclick="viewPayrollSlip('${e.id}', event)"><i class="fas fa-receipt"></i></button></td>
+                     <tbody>
+                        ${displayPayrollData.map(e => {
+                            const sudoName = e.meta ? (e.meta.sudoName || e.meta.sudo_name || '') : '';
+                            const desig = e.meta ? (e.meta.designation || e.designation || '') : (e.designation || '');
+                            const cnic = e.meta ? (e.meta.cnic || '') : '';
+                            const campaign = e.department || e.campaign || '';
+                            const finalNet = Math.round(e.finalNetSalary);
+                            const totalDedExceptTax = Math.round(e.nonTaxDeductions);
+                            const empRemarks = e.remarks || (payrollAdj.remarks && payrollAdj.remarks[e.id]) || 'Ready for Payment';
+                            const empComments = e.comments || (payrollAdj.comments && payrollAdj.comments[e.id]) || '';
+                            const isHold = empRemarks === 'Hold';
+                            const selectClass = getRemarksSelectClass(empRemarks);
+
+                            return `
+                            <tr class="${isHold ? 'row-on-hold' : ''}" id="payroll-row-${e.id}">
+                                <td>${fmtTxt(e.id)}</td>
+                                <td><strong>${fmtTxt(e.name)}</strong></td>
+                                <td>${fmtTxt(sudoName)}</td>
+                                <td>${fmtTxt(desig)}</td>
+                                <td>${fmtTxt(campaign)}</td>
+                                <td>${fmtTxt(cnic)}</td>
+                                <td>${fmtTxt(e.phone || e.contact_no)}</td>
+                                <td>${fmtTxt(e.account_no)}</td>
+                                <td>${fmtTxt(e.account_title)}</td>
+                                <td>${fmtTxt(e.bank_name)}</td>
+                                <td>${fmtTxt(e.appointmentDate)}</td>
+                                <td>${fmtAmt(e.basicSalary)}</td>
+                                <td>${fmtAmt(e.punctualityBonus)}</td>
+                                <td>${fmtAmt(e.totalSalary)}</td>
+                                <td>${fmtAmt(Math.round(e.perDaySalary))}</td>
+                                <td>${fmtCnt(workingDaysCount)}</td>
+                                <td>${fmtCnt(e.present)}</td>
+                                <td>${fmtCnt(e.adjustedLeaveCount)}</td>
+                                <td>${fmtCnt(e.adjustedAbsent)}</td>
+                                <td>${fmtCnt(e.totalWorkingDays)}</td>
+                                <td>${fmtAmt(e.punctualityAmount)}</td>
+                                <td>${fmtAmt(e.bonus)}</td>
+                                <td>${fmtAmt(e.tada)}</td>
+                                <td>${fmtAmt(e.arrears)}</td>
+                                <td>${fmtCnt(e.extraDays)}</td>
+                                <td>${fmtAmt(Math.round(e.extraDayPay))}</td>
+                                <td>${fmtCnt(e.late)}</td>
+                                <td>${fmtAmt(Math.round(e.lateDeduction))}</td>
+                                <td>${fmtCnt(e.halfDayCount)}</td>
+                                <td>${fmtAmt(Math.round(e.halfDayAmount))}</td>
+                                <td>${fmtCnt(e.sdCount)}</td>
+                                <td>${fmtAmt(Math.round(e.sdAmount))}</td>
+                                <td>${fmtCnt(e.ncnsCount)}</td>
+                                <td>${fmtAmt(e.ncnsAmount)}</td>
+                                <td>${fmtCnt(e.unpaidCount || 0)}</td>
+                                <td>${fmtAmt(Math.round(e.unpaidDeduction || 0))}</td>
+                                <td>${fmtAmt(e.qaHrAmount)}</td>
+                                <td>${fmtCnt(e.misspunchCount)}</td>
+                                <td>${fmtAmt(e.misspunchAmount)}</td>
+                                <td>${fmtAmt(0)}</td>
+                                <td>${fmtAmt(e.advanceDeduction)}</td>
+                                <td>${fmtAmt(Math.round(e.absentDeduction))}</td>
+                                <td>${fmtAmt(Math.round(e.totalAdditions))}</td>
+                                <td>${fmtAmt(Math.round(e.totalEarnings))}</td>
+                                <td>${fmtAmt(totalDedExceptTax)}</td>
+                                <td>${fmtAmt(Math.round(e.subNetSalary))}</td>
+                                <td>${fmtAmt(e.tax)}</td>
+                                <td class="highlight-net-salary">${fmtAmt(finalNet)}</td>
+                                <td>
+                                    <select class="payroll-remarks-select ${selectClass}" id="remarks-select-${e.id}" onchange="updatePayrollRemarks('${e.id}', this.value)">
+                                        <option value="Ready for Payment" ${empRemarks === 'Ready for Payment' ? 'selected' : ''}>Ready for Payment</option>
+                                        <option value="Hold" ${empRemarks === 'Hold' ? 'selected' : ''}>Hold</option>
+                                        <option value="Paid" ${empRemarks === 'Paid' ? 'selected' : ''}>Paid</option>
+                                        <option value="Unpaid" ${empRemarks === 'Unpaid' ? 'selected' : ''}>Unpaid</option>
+                                        <option value="Failed" ${empRemarks === 'Failed' ? 'selected' : ''}>Failed</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" 
+                                           class="payroll-comment-input ${isHold && !empComments.trim() ? 'comment-required-error' : ''}" 
+                                           id="comment-input-${e.id}"
+                                           value="${escapeHtml(empComments)}" 
+                                           placeholder="${isHold ? 'Comment required...' : 'Add comment...'}" 
+                                           onchange="updatePayrollComment('${e.id}', this.value)" 
+                                           oninput="onPayrollCommentInput('${e.id}', this.value)">
+                                </td>
+                                <td><button class="fum-edit-btn" onclick="viewPayrollSlip('${e.id}', event)"><i class="fas fa-receipt"></i> Slip</button></td>
                             </tr>
-                        `).join('')}
-                    </tbody>
+                            `;
+                        }).join('')}
+                     </tbody>
                 </table>
+                </div>
                 </div>
             `;
         }
@@ -1773,112 +4403,124 @@ require_once 'config.php';
             const items = payrollAdj[type];
             let listHtml = '';
             let total = 0; let totalCount = 0;
-            let filteredList = allData;
-            if (currentPayrollSearchTerm) {
-                filteredList = filteredList.filter(emp => emp.name.toLowerCase().includes(currentPayrollSearchTerm.toLowerCase()) || emp.id.toLowerCase().includes(currentPayrollSearchTerm.toLowerCase()));
-            }
-
-            filteredList.forEach(emp => {
+            allData.forEach(emp => {
                 const arr = items[emp.id] || [];
                 arr.forEach((it, idx) => {
                     totalCount++;
-                    total += parseFloat(it.amount) || 0;
+                    const amtVal = parseFloat(it.amount) || 0;
+                    total += amtVal;
+                    const isNeg = amtVal < 0 || sign === 'negative';
+                    const displayAmt = Math.abs(amtVal).toLocaleString();
+                    const signSymbol = amtVal < 0 ? '-' : (sign === 'negative' ? '-' : '+');
+                    const badgeText = amtVal < 0 ? ' <span style="font-size:10px; background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3); padding:1px 6px; border-radius:8px; margin-left:6px;">Deduction</span>' : '';
+
                     listHtml += `<div class="adj-item">
-                        <div class="name">${emp.name} <span style="color:rgba(255,255,255,0.4);font-size:10px;">(${emp.id})</span></div>
-                        <div class="amt ${sign==='negative'?'neg':''}">${sign==='negative'?'-':'+'}₨ ${(parseFloat(it.amount)||0).toLocaleString()}</div>
-                        <div class="reason">${it.reason || '—'} ${it.date ? `<br><span style="color:#60a5fa;">📅 ${it.date}</span>` : ''} ${it.team ? `<br><span style="color:#a78bfa;">👥 ${it.team}</span>` : ''}</div>
-                        <div style="color:rgba(255,255,255,0.4);font-size:10px;">${it.addedAt ? new Date(it.addedAt).toLocaleDateString() : ''}</div>
+                        <div class="name">${emp.name} <span style="color:var(--text-muted);font-size:10px;">(${emp.id})</span>${badgeText}</div>
+                        <div class="amt ${isNeg ? 'neg' : ''}">${signSymbol}₨ ${displayAmt}</div>
+                        <div class="reason">${it.reason || '—'} ${it.date ? `<span style="color:#3b82f6;margin-left:12px;">📅 ${it.date}</span>` : ''}</div>
+                        <div style="color:var(--text-muted);font-size:10px;">${it.addedAt ? new Date(it.addedAt).toLocaleDateString() : ''}</div>
                         <button class="adj-delete" onclick="deleteAdjItem('${type}','${emp.id}',${idx})"><i class="fas fa-trash"></i></button>
                     </div>`;
                 });
             });
-            if (!listHtml) listHtml = '<div style="text-align:center;padding:30px;color:rgba(255,255,255,0.4);">No records yet</div>';
-
-            const perItemAmount = isPerDay ? (type === 'ncns' ? `₨${NCNS_PENALTY}` : type === 'misspunch' ? `₨${MISSPUNCH_DEDUCTION}` : 'Auto-calc') : 'Custom';
+            if (!listHtml) listHtml = '<div style="text-align:center;padding:30px;color:var(--text-muted);">No records found.</div>';
 
             return `
                 <div class="adj-section">
-                    <h3><i class="fas ${icon}"></i> ${label} ${isPerDay ? `<span style="color:rgba(255,255,255,0.5);font-size:12px;font-weight:400;">· Auto Amount: ${perItemAmount}</span>` : ''}</h3>
-                    <div class="adj-form-grid ${isPerDay ? '' : 'three'}">
+                    <h3><i class="fas ${icon}"></i> ${label}</h3>
+                    <div class="adj-form-grid">
                         <div class="search-input-wrapper">
                             <label class="adj-label">Search Employee</label>
-                            <input type="text" class="adj-input" id="${type}-emp-search" placeholder="Type name or employee ID..." 
+                            <input type="text" class="adj-input" id="${type}-emp-search" placeholder="Type name or ID..." 
                                 onkeyup="renderEmployeeSearchResults('${type}-emp-search', this.value)">
                         </div>
-                        <div style="display:none;">
-                            <input type="hidden" id="adj-emp-${type}" value="">
-                        </div>
+                        ${['tada', 'bonus', 'arrears'].includes(type) ? `
+                        <div>
+                            <label class="adj-label">Entry Mode</label>
+                            <select class="adj-input" id="adj-mode-${type}" style="background:rgba(255,255,255,0.06); color:white; font-weight:600; outline:none;">
+                                <option value="addition" style="background:#0f1524; color:#34d399;">➕ Addition (+ Allowance)</option>
+                                <option value="deduction" style="background:#0f1524; color:#f87171;">➖ Deduction (- Salary Penalty)</option>
+                            </select>
+                        </div>` : ''}
                         ${isPerDay ? `<div><label class="adj-label">Date</label><input type="date" class="adj-input" id="adj-date-${type}" value="${currentYear}-${String(currentMonth).padStart(2,'0')}-01"></div>` : ''}
-                        ${!isPerDay || ['halfDay','sd'].includes(type) ? `<div><label class="adj-label">Amount ${isPerDay && (type==='ncns'||type==='misspunch') ? '(Auto)' : ''}</label>
-                            <input type="number" class="adj-input" id="adj-amt-${type}" placeholder="${isPerDay && (type==='ncns'||type==='misspunch') ? 'Auto-calculated' : 'Enter amount'}" ${isPerDay && (type==='ncns'||type==='misspunch') ? 'disabled' : ''}></div>` : ''}
-                        ${type==='tada'||type==='bonus'||type==='arrears'||type==='qaHr'||type==='halfDay'||type==='ncns'||type==='sd'||type==='misspunch' ? `<div><label class="adj-label">Team (Optional)</label><input type="text" class="adj-input" id="adj-team-${type}" placeholder="Team name"></div>` : ''}
-                        <div style="grid-column:span 2;"><label class="adj-label">Reason / Description</label><input type="text" class="adj-input" id="adj-reason-${type}" placeholder="Enter reason..."></div>
+                        ${!isPerDay || ['halfDay','sd'].includes(type) ? `<div><label class="adj-label">Amount</label>
+                            <input type="number" class="adj-input" id="adj-amt-${type}" placeholder="Enter amount"></div>` : ''}
+                        <div><label class="adj-label">Reason / Comments</label><input type="text" class="adj-input" id="adj-reason-${type}" placeholder="Comments..."></div>
                     </div>
-                    <button class="btn btn-success" onclick="addAdjItemFromSearch('${type}',${isPerDay})"><i class="fas fa-plus"></i> Add ${label}</button>
-                    <div style="margin-top:20px;padding:14px;background:rgba(0,0,0,0.3);border-radius:12px;display:flex;justify-content:space-between;align-items:center;">
-                        <div style="color:rgba(255,255,255,0.7);font-size:12px;">Total Records: <strong style="color:white;">${totalCount}</strong></div>
-                        <div style="color:rgba(255,255,255,0.7);font-size:12px;">Total Amount: <strong style="color:${sign==='negative'?'#ef4444':'#10b981'};">${sign==='negative'?'-':'+'}₨ ${total.toLocaleString()}</strong></div>
+                    <button class="btn btn-primary" onclick="addAdjItemFromSearch('${type}',${isPerDay})"><i class="fas fa-plus"></i> Add Entry</button>
+                    <button class="btn btn-secondary" onclick="triggerCSVUpload('${type}')" style="margin-left:8px; background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--border-color);"><i class="fas fa-file-upload"></i> Bulk Upload CSV</button>
+                    <a href="#" onclick="downloadCSVTemplate('${type}', ${isPerDay}); return false;" style="margin-left:12px; font-size:12px; color: var(--primary); text-decoration: none; display: inline-block; vertical-align: middle;"><i class="fas fa-download"></i> Template</a>
+                    <input type="file" id="csv-file-input-${type}" style="display:none;" accept=".csv" onchange="handleCSVFileSelected(event, '${type}', ${isPerDay})">
+                    
+                    <div style="margin-top:24px;padding:16px;background:rgba(255,255,255,0.02);border:1px solid var(--border-color);border-radius:12px;display:flex;justify-content:space-between;">
+                        <div style="font-size:12px;color:var(--text-muted)">Records: <strong style="color:white;">${totalCount}</strong></div>
+                        <div style="font-size:12px;color:var(--text-muted)">Net Total: <strong style="color:${total < 0 || sign==='negative'?'var(--danger)':'var(--secondary)'};">${total < 0 ? '-' : (sign==='negative'?'-':'+')}₨ ${Math.abs(total).toLocaleString()}</strong></div>
                     </div>
-                    <div class="adj-list" style="margin-top:16px;">${listHtml}</div>
+                    <div class="adj-list">${listHtml}</div>
                 </div>
             `;
+        }
+
+        function renderEmployeeSearchResults(inputId, searchValue) {
+            const inputWrapper = document.getElementById(inputId)?.closest('.search-input-wrapper');
+            if (!inputWrapper) return;
+            const existingResults = inputWrapper.querySelector('.employee-search-results');
+            if (existingResults) existingResults.remove();
+            if (!searchValue || searchValue.length < 1) return;
+            const filtered = allData.filter(emp => 
+                emp.name.toLowerCase().includes(searchValue.toLowerCase()) || emp.id.includes(searchValue)
+            ).slice(0, 5);
+            if (filtered.length === 0) return;
+            const resultsDiv = document.createElement('div');
+            resultsDiv.className = 'employee-search-results';
+            filtered.forEach(emp => {
+                const item = document.createElement('div');
+                item.className = 'employee-search-item';
+                item.innerHTML = `<div><div class="emp-name">${emp.name}</div><div class="emp-code">ID: ${emp.id}</div></div><i class="fas fa-plus-circle" style="color:var(--primary)"></i>`;
+                item.onclick = () => {
+                    document.getElementById(inputId).value = emp.id;
+                    resultsDiv.remove();
+                };
+                resultsDiv.appendChild(item);
+            });
+            inputWrapper.appendChild(resultsDiv);
         }
 
         function addAdjItemFromSearch(type, isPerDay) {
             const searchInput = document.getElementById(`${type}-emp-search`);
             const searchValue = searchInput?.value.trim();
-            if (!searchValue) {
-                showToast('Please search and select an employee first', 'warning');
-                return;
-            }
+            const employee = allData.find(emp => emp.id === searchValue || emp.name.toLowerCase() === searchValue.toLowerCase());
+            if (!employee) { showToast('Select an employee first', 'warning'); return; }
             
-            // Find employee by name or ID
-            const employee = allData.find(emp => 
-                emp.name.toLowerCase() === searchValue.toLowerCase() || 
-                emp.id.toLowerCase() === searchValue.toLowerCase()
-            );
-            
-            if (!employee) {
-                showToast('Employee not found. Please select from search results.', 'warning');
-                return;
-            }
-            
-            const empId = employee.id;
             const reason = document.getElementById(`adj-reason-${type}`)?.value || '';
-            const team = document.getElementById(`adj-team-${type}`)?.value || '';
             const dateInput = document.getElementById(`adj-date-${type}`);
             const date = dateInput ? dateInput.value : '';
             const amtInput = document.getElementById(`adj-amt-${type}`);
             let amount = amtInput ? parseFloat(amtInput.value) || 0 : 0;
             
+            const modeInput = document.getElementById(`adj-mode-${type}`);
+            if (modeInput && modeInput.value === 'deduction') {
+                amount = -Math.abs(amount);
+            }
+
             if (type === 'ncns') amount = NCNS_PENALTY;
             else if (type === 'misspunch') amount = MISSPUNCH_DEDUCTION;
-            else if (type === 'halfDay' || type === 'sd') {
-                amount = amount || 0;
-            }
-            
-            if (!isPerDay && amount === 0 && !['halfDay','sd'].includes(type)) { 
-                showToast('Please enter amount', 'warning'); 
-                return; 
-            }
-            
-            if (!payrollAdj[type][empId]) payrollAdj[type][empId] = [];
-            payrollAdj[type][empId].push({ amount, reason, team, date, addedAt: new Date().toISOString() });
+
+            if (!payrollAdj[type][employee.id]) payrollAdj[type][employee.id] = [];
+            payrollAdj[type][employee.id].push({ amount, reason, date, addedAt: new Date().toISOString() });
             persistAllAdj();
-            showToast(`✅ ${type.toUpperCase()} added for ${employee.name}`, 'success');
-            
-            // Clear form
-            if (searchInput) searchInput.value = '';
-            if (reason) document.getElementById(`adj-reason-${type}`).value = '';
-            if (team) document.getElementById(`adj-team-${type}`).value = '';
-            if (amtInput && !['ncns','misspunch'].includes(type)) amtInput.value = '';
-            
-            renderPayrollDashboard();
-            switchPayrollTab(type === 'halfDay' ? 'halfday' : type === 'qaHr' ? 'qahr' : type);
-            
-            // Remove search results
-            const resultsDiv = document.querySelector(`#${type}-emp-search`).closest('.search-input-wrapper')?.querySelector('.employee-search-results');
-            if (resultsDiv) resultsDiv.remove();
+            showToast(`✅ Entry added for ${employee.name}`, 'success');
+            loadAttendanceData();
+        }
+
+        // Keep standard helper functions ...
+        function deleteAdjItem(type, empId, idx) {
+            if (!confirm('Confirm delete?')) return;
+            payrollAdj[type][empId].splice(idx, 1);
+            if (payrollAdj[type][empId].length === 0) delete payrollAdj[type][empId];
+            persistAllAdj();
+            showToast('✅ Entry deleted', 'success');
+            loadAttendanceData();
         }
 
         function renderAdvanceTab() {
@@ -1888,34 +4530,34 @@ require_once 'config.php';
                 if (adv) {
                     const remaining = (parseFloat(adv.total)||0) - (parseFloat(adv.paid)||0);
                     listHtml += `<div class="adj-item" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr 0.5fr;">
-                        <div class="name">${emp.name} <span style="color:rgba(255,255,255,0.4);font-size:10px;">(${emp.id})</span></div>
-                        <div>Total: <strong style="color:#60a5fa;">₨${(parseFloat(adv.total)||0).toLocaleString()}</strong></div>
-                        <div>Per Month: <strong style="color:#f59e0b;">₨${(parseFloat(adv.perMonth)||0).toLocaleString()}</strong></div>
-                        <div>Paid: <strong style="color:#10b981;">₨${(parseFloat(adv.paid)||0).toLocaleString()}</strong></div>
-                        <div>Remaining: <strong style="color:${remaining>0?'#ef4444':'#10b981'};">₨${remaining.toLocaleString()}</strong></div>
+                        <div class="name">${emp.name} <span style="color:var(--text-muted)">(${emp.id})</span></div>
+                        <div>Total: ₨${(parseFloat(adv.total)||0).toLocaleString()}</div>
+                        <div>Monthly: ₨${(parseFloat(adv.perMonth)||0).toLocaleString()}</div>
+                        <div>Paid: ₨${(parseFloat(adv.paid)||0).toLocaleString()}</div>
+                        <div style="color:var(--danger)">Remaining: ₨${remaining.toLocaleString()}</div>
                         <button class="adj-delete" onclick="deleteAdvance('${emp.id}')"><i class="fas fa-trash"></i></button>
                     </div>`;
                 }
             });
-            if (!listHtml) listHtml = '<div style="text-align:center;padding:30px;color:rgba(255,255,255,0.4);">No advance records</div>';
-            
+            if (!listHtml) listHtml = '<div style="text-align:center;padding:30px;color:var(--text-muted);">No advance records.</div>';
             return `
                 <div class="adj-section">
                     <h3><i class="fas fa-hand-holding-usd"></i> Advance Salary Management</h3>
-                    <p style="color:rgba(255,255,255,0.6);font-size:12px;margin-bottom:16px;">Set total advance amount and monthly deduction. System will auto-deduct each month until cleared.</p>
-                    <div class="search-input-wrapper" style="margin-bottom:15px;">
-                        <label class="adj-label">Search Employee</label>
-                        <input type="text" class="adj-input" id="adv-emp-search" placeholder="Type name or employee ID..." 
-                            onkeyup="renderEmployeeSearchResults('adv-emp-search', this.value)">
-                        <input type="hidden" id="adv-emp" value="">
-                    </div>
                     <div class="adj-form-grid">
+                        <div class="search-input-wrapper">
+                            <label class="adj-label">Search Employee</label>
+                            <input type="text" class="adj-input" id="adv-emp-search" placeholder="Type name or ID..." onkeyup="renderEmployeeSearchResults('adv-emp-search', this.value)">
+                        </div>
                         <div><label class="adj-label">Total Advance Amount</label><input type="number" class="adj-input" id="adv-total" placeholder="e.g. 50000"></div>
-                        <div><label class="adj-label">Per Month Deduction</label><input type="number" class="adj-input" id="adv-perMonth" placeholder="e.g. 5000"></div>
-                        <div><label class="adj-label">Already Paid (optional)</label><input type="number" class="adj-input" id="adv-paid" value="0"></div>
+                        <div><label class="adj-label">Monthly Deduction</label><input type="number" class="adj-input" id="adv-perMonth" placeholder="e.g. 5000"></div>
+                        <div><label class="adj-label">Paid So Far</label><input type="number" class="adj-input" id="adv-paid" value="0"></div>
                     </div>
-                    <button class="btn btn-success" onclick="addAdvanceFromSearch()"><i class="fas fa-plus"></i> Set Advance</button>
-                    <div class="adj-list" style="margin-top:16px;">${listHtml}</div>
+                    <button class="btn btn-primary" onclick="addAdvanceFromSearch()"><i class="fas fa-plus"></i> Set Advance</button>
+                    <button class="btn btn-secondary" onclick="triggerCSVUpload('advance')" style="margin-left:8px; background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--border-color);"><i class="fas fa-file-upload"></i> Bulk Upload CSV</button>
+                    <a href="#" onclick="downloadCSVTemplate('advance'); return false;" style="margin-left:12px; font-size:12px; color: var(--primary); text-decoration: none; display: inline-block; vertical-align: middle;"><i class="fas fa-download"></i> Template</a>
+                    <input type="file" id="csv-file-input-advance" style="display:none;" accept=".csv" onchange="handleCSVFileSelected(event, 'advance')">
+                    
+                    <div class="adj-list">${listHtml}</div>
                 </div>
             `;
         }
@@ -1923,511 +4565,398 @@ require_once 'config.php';
         function addAdvanceFromSearch() {
             const searchInput = document.getElementById('adv-emp-search');
             const searchValue = searchInput?.value.trim();
-            if (!searchValue) {
-                showToast('Please search and select an employee first', 'warning');
-                return;
-            }
-            
-            const employee = allData.find(emp => 
-                emp.name.toLowerCase() === searchValue.toLowerCase() || 
-                emp.id.toLowerCase() === searchValue.toLowerCase()
-            );
-            
-            if (!employee) {
-                showToast('Employee not found. Please select from search results.', 'warning');
-                return;
-            }
-            
-            const empId = employee.id;
+            const employee = allData.find(emp => emp.id === searchValue || emp.name.toLowerCase() === searchValue.toLowerCase());
+            if (!employee) { showToast('Select an employee first', 'warning'); return; }
             const total = parseFloat(document.getElementById('adv-total').value) || 0;
             const perMonth = parseFloat(document.getElementById('adv-perMonth').value) || 0;
             const paid = parseFloat(document.getElementById('adv-paid').value) || 0;
-            
-            if (total <= 0 || perMonth <= 0) { 
-                showToast('Fill all required fields', 'warning'); 
-                return; 
-            }
-            
-            payrollAdj.advance[empId] = { total, perMonth, paid, skipMonths: [], addedAt: new Date().toISOString() };
+            if (total <= 0 || perMonth <= 0) { showToast('Invalid amounts', 'warning'); return; }
+            payrollAdj.advance[employee.id] = { total, perMonth, paid, skipMonths: [], addedAt: new Date().toISOString() };
             persistAllAdj();
-            showToast(`✅ Advance set for ${employee.name}`, 'success');
-            
-            // Clear form
-            searchInput.value = '';
-            document.getElementById('adv-total').value = '';
-            document.getElementById('adv-perMonth').value = '';
-            document.getElementById('adv-paid').value = '0';
-            
-            renderPayrollDashboard();
-            switchPayrollTab('advance');
-            
-            const resultsDiv = document.querySelector('#adv-emp-search')?.closest('.search-input-wrapper')?.querySelector('.employee-search-results');
-            if (resultsDiv) resultsDiv.remove();
+            showToast(`✅ Advance setup complete for ${employee.name}`, 'success');
+            loadAttendanceData();
+        }
+
+        function deleteAdvance(empId) {
+            if (!confirm('Confirm delete?')) return;
+            delete payrollAdj.advance[empId];
+            persistAllAdj();
+            showToast('✅ Advance deleted', 'success');
+            loadAttendanceData();
         }
 
         function renderManualTab() {
             return `
                 <div class="adj-section">
-                    <h3><i class="fas fa-sliders-h"></i> Manual Late Coming Deduction</h3>
-                    <div class="search-input-wrapper" style="margin-bottom:15px;">
-                        <label class="adj-label">Search Employee</label>
-                        <input type="text" class="adj-input" id="ml-emp-search" placeholder="Type name or employee ID..." 
-                            onkeyup="renderEmployeeSearchResults('ml-emp-search', this.value)">
-                        <input type="hidden" id="ml-emp" value="">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                        <h3>Manual Adjustments Overrides</h3>
+                        <button class="btn btn-secondary" onclick="showTaxSlabsInfoModal()" style="font-size:11px; padding:6px 12px; background:rgba(255,255,255,0.05); border:1px solid var(--border-color); color:white;"><i class="fas fa-info-circle"></i> FBR Tax Slabs 2026-27 Info</button>
                     </div>
-                    <div class="adj-form-grid three">
-                        <div><label class="adj-label">Manual Late Deduction Amount</label><input type="number" class="adj-input" id="ml-amt" placeholder="Override amount"></div>
-                        <div style="display:flex;align-items:flex-end;"><button class="btn btn-success" onclick="setManualLateFromSearch()"><i class="fas fa-save"></i> Save</button></div>
+                    <div class="adj-form-grid">
+                        <div class="search-input-wrapper">
+                            <label class="adj-label">Search Employee</label>
+                            <input type="text" class="adj-input" id="ml-emp-search" placeholder="Type name or ID..." onkeyup="renderEmployeeSearchResults('ml-emp-search', this.value)">
+                        </div>
+                        <div><label class="adj-label">Late Deduction Override (₨)</label><input type="number" class="adj-input" id="ml-amt" placeholder="e.g. 1500"></div>
+                        <div><label class="adj-label">Manual Tax Override (₨)</label><input type="number" class="adj-input" id="ml-tax" placeholder="e.g. 2000"></div>
                     </div>
-                </div>
-                <div class="adj-section">
-                    <h3><i class="fas fa-star"></i> Manual Punctuality Override</h3>
-                    <div class="search-input-wrapper" style="margin-bottom:15px;">
-                        <label class="adj-label">Search Employee</label>
-                        <input type="text" class="adj-input" id="mp-emp-search" placeholder="Type name or employee ID..." 
-                            onkeyup="renderEmployeeSearchResults('mp-emp-search', this.value)">
-                        <input type="hidden" id="mp-emp" value="">
-                    </div>
-                    <div class="adj-form-grid three">
-                        <div><label class="adj-label">Punctuality Amount (0 to remove)</label><input type="number" class="adj-input" id="mp-amt"></div>
-                        <div style="display:flex;align-items:flex-end;"><button class="btn btn-success" onclick="setManualPunctualityFromSearch()"><i class="fas fa-save"></i> Save</button></div>
-                    </div>
-                </div>
-                <div class="adj-section">
-                    <h3><i class="fas fa-leaf"></i> Approved Leaves Override</h3>
-                    <div class="search-input-wrapper" style="margin-bottom:15px;">
-                        <label class="adj-label">Search Employee</label>
-                        <input type="text" class="adj-input" id="al-emp-search" placeholder="Type name or employee ID..." 
-                            onkeyup="renderEmployeeSearchResults('al-emp-search', this.value)">
-                        <input type="hidden" id="al-emp" value="">
-                    </div>
-                    <div class="adj-form-grid three">
-                        <div><label class="adj-label">Paid Leave Override (0 or 1)</label><input type="number" class="adj-input" id="al-amt" min="0" max="1" step="1" placeholder="0 to remove, 1 to allow"></div>
-                        <div style="display:flex;align-items:flex-end;"><button class="btn btn-success" onclick="setApprovedLeavesFromSearch()"><i class="fas fa-save"></i> Save</button></div>
-                    </div>
-                </div>
-                <div class="adj-section">
-                    <h3><i class="fas fa-receipt"></i> Tax Adjustment</h3>
-                    <div class="search-input-wrapper" style="margin-bottom:15px;">
-                        <label class="adj-label">Search Employee</label>
-                        <input type="text" class="adj-input" id="tx-emp-search" placeholder="Type name or employee ID..." 
-                            onkeyup="renderEmployeeSearchResults('tx-emp-search', this.value)">
-                        <input type="hidden" id="tx-emp" value="">
-                    </div>
-                    <div class="adj-form-grid three">
-                        <div><label class="adj-label">Tax Amount</label><input type="number" class="adj-input" id="tx-amt"></div>
-                        <div style="display:flex;align-items:flex-end;"><button class="btn btn-success" onclick="setTaxFromSearch()"><i class="fas fa-save"></i> Save</button></div>
-                    </div>
+                    <button class="btn btn-primary" onclick="saveManualOverridesFromSearch()"><i class="fas fa-save"></i> Save Overrides</button>
+                    <button class="btn btn-secondary" onclick="triggerCSVUpload('manualLate')" style="margin-left:8px; background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--border-color);"><i class="fas fa-file-upload"></i> Bulk Upload CSV</button>
+                    <a href="#" onclick="downloadCSVTemplate('manualLate'); return false;" style="margin-left:12px; font-size:12px; color: var(--primary); text-decoration: none; display: inline-block; vertical-align: middle;"><i class="fas fa-download"></i> Template</a>
+                    <input type="file" id="csv-file-input-manualLate" style="display:none;" accept=".csv" onchange="handleCSVFileSelected(event, 'manualLate')">
                 </div>
             `;
         }
 
-        function setManualLateFromSearch() {
+        function saveManualOverridesFromSearch() {
             const searchInput = document.getElementById('ml-emp-search');
             const searchValue = searchInput?.value.trim();
-            if (!searchValue) { showToast('Please search and select an employee first', 'warning'); return; }
-            const employee = allData.find(emp => emp.name.toLowerCase() === searchValue.toLowerCase() || emp.id.toLowerCase() === searchValue.toLowerCase());
-            if (!employee) { showToast('Employee not found', 'warning'); return; }
+            const employee = allData.find(emp => emp.id === searchValue || emp.name.toLowerCase() === searchValue.toLowerCase());
+            if (!employee) { showToast('Select employee first', 'warning'); return; }
+            
             const amt = parseFloat(document.getElementById('ml-amt').value) || 0;
-            payrollAdj.manualLate[employee.id] = amt;
+            const taxAmt = parseFloat(document.getElementById('ml-tax').value) || 0;
+            
+            if (amt > 0) payrollAdj.manualLate[employee.id] = amt;
+            if (taxAmt > 0) payrollAdj.tax[employee.id] = taxAmt;
+            
             persistAllAdj();
-            showToast(`✅ Manual late set for ${employee.name}`, 'success');
-            searchInput.value = '';
-            document.getElementById('ml-amt').value = '';
-            renderPayrollDashboard();
-            switchPayrollTab('manual');
-            const resultsDiv = document.querySelector('#ml-emp-search')?.closest('.search-input-wrapper')?.querySelector('.employee-search-results');
-            if (resultsDiv) resultsDiv.remove();
-        }
-
-        function setManualPunctualityFromSearch() {
-            const searchInput = document.getElementById('mp-emp-search');
-            const searchValue = searchInput?.value.trim();
-            if (!searchValue) { showToast('Please search and select an employee first', 'warning'); return; }
-            const employee = allData.find(emp => emp.name.toLowerCase() === searchValue.toLowerCase() || emp.id.toLowerCase() === searchValue.toLowerCase());
-            if (!employee) { showToast('Employee not found', 'warning'); return; }
-            const amt = parseFloat(document.getElementById('mp-amt').value) || 0;
-            payrollAdj.manualPunctuality[employee.id] = amt;
-            persistAllAdj();
-            showToast(`✅ Punctuality override set for ${employee.name}`, 'success');
-            searchInput.value = '';
-            document.getElementById('mp-amt').value = '';
-            renderPayrollDashboard();
-            switchPayrollTab('manual');
-            const resultsDiv = document.querySelector('#mp-emp-search')?.closest('.search-input-wrapper')?.querySelector('.employee-search-results');
-            if (resultsDiv) resultsDiv.remove();
-        }
-
-        function setApprovedLeavesFromSearch() {
-            const searchInput = document.getElementById('al-emp-search');
-            const searchValue = searchInput?.value.trim();
-            if (!searchValue) { showToast('Please search and select an employee first', 'warning'); return; }
-            const employee = allData.find(emp => emp.name.toLowerCase() === searchValue.toLowerCase() || emp.id.toLowerCase() === searchValue.toLowerCase());
-            if (!employee) { showToast('Employee not found', 'warning'); return; }
-            const amt = Math.min(1, Math.max(0, parseInt(document.getElementById('al-amt').value) || 0));
-            payrollAdj.manualLeaves[employee.id] = amt;
-            persistAllAdj();
-            showToast(`✅ Paid leave override set to ${amt} for ${employee.name}`, 'success');
-            searchInput.value = '';
-            document.getElementById('al-amt').value = '';
-            renderPayrollDashboard();
-            switchPayrollTab('manual');
-            const resultsDiv = document.querySelector('#al-emp-search')?.closest('.search-input-wrapper')?.querySelector('.employee-search-results');
-            if (resultsDiv) resultsDiv.remove();
-        }
-
-        function setTaxFromSearch() {
-            const searchInput = document.getElementById('tx-emp-search');
-            const searchValue = searchInput?.value.trim();
-            if (!searchValue) { showToast('Please search and select an employee first', 'warning'); return; }
-            const employee = allData.find(emp => emp.name.toLowerCase() === searchValue.toLowerCase() || emp.id.toLowerCase() === searchValue.toLowerCase());
-            if (!employee) { showToast('Employee not found', 'warning'); return; }
-            const amt = parseFloat(document.getElementById('tx-amt').value) || 0;
-            payrollAdj.tax[employee.id] = amt;
-            persistAllAdj();
-            showToast(`✅ Tax saved for ${employee.name}`, 'success');
-            searchInput.value = '';
-            document.getElementById('tx-amt').value = '';
-            renderPayrollDashboard();
-            switchPayrollTab('manual');
-            const resultsDiv = document.querySelector('#tx-emp-search')?.closest('.search-input-wrapper')?.querySelector('.employee-search-results');
-            if (resultsDiv) resultsDiv.remove();
+            showToast('✅ Overrides saved successfully', 'success');
+            loadAttendanceData();
         }
 
         function renderSettingsTab() {
-            let listHtml = '<div style="overflow-x:auto;"><table class="payroll-table" style="min-width:1200px;"><thead><tr><th>ID</th><th>Name</th><th>Basic Salary</th><th>Punctuality Enabled</th><th>Punctuality Reward (Rs)</th><th>Appointment Date</th><th>CNIC</th><th>Action</th></tr></thead><tbody>';
-            const filteredForSettings = currentPayrollSearchTerm ? allData.filter(emp => emp.name.toLowerCase().includes(currentPayrollSearchTerm.toLowerCase()) || emp.id.toLowerCase().includes(currentPayrollSearchTerm.toLowerCase())) : allData;
-            filteredForSettings.forEach(emp => {
+            let listHtml = '<table><thead><tr><th>ID</th><th>Name</th><th>Basic Salary</th><th>Punctuality Eligible</th><th>Punctuality Bonus (₨)</th><th>Action</th></tr></thead><tbody>';
+            allData.forEach(emp => {
                 const meta = getEmpMeta(emp.id);
                 listHtml += `<tr>
                     <td>${emp.id}</td>
-                    <td style="text-align:left;">${emp.name}</td>
-                    <td><input type="number" class="adj-input" id="set-bs-${emp.id}" value="${meta.basicSalary}" style="width:120px;"></td>
+                    <td><strong>${emp.name}</strong></td>
+                    <td><input type="number" class="adj-input" id="set-bs-${emp.id}" value="${meta.basicSalary}" style="width:140px;"></td>
                     <td><input type="checkbox" id="set-punc-${emp.id}" ${meta.punctualityEnabled ? 'checked' : ''}></td>
-                    <td><input type="number" class="adj-input" id="set-punc-amt-${emp.id}" value="${meta.punctualityAmount ?? PERFECT_ATTENDANCE_BONUS}" style="width:100px;"></td>
-                    <td><input type="date" class="adj-input" id="set-app-${emp.id}" value="${emp.appointmentDate || ''}" style="width:150px;"></td>
-                    <td><input type="text" class="adj-input" id="set-cnic-${emp.id}" value="${meta.cnic || emp.cnic || ''}" style="width:140px;" placeholder="XXXXX-XXXXXXX-X"></td>
-                    <td><button class="btn btn-success" style="padding:6px 12px;font-size:11px;" onclick="saveEmpSettings('${emp.id}')"><i class="fas fa-save"></i> Save</button></td>
+                    <td><input type="number" class="adj-input" id="set-punc-amt-${emp.id}" value="${meta.punctualityAmount ?? PERFECT_ATTENDANCE_BONUS}" style="width:120px;"></td>
+                    <td><button class="btn btn-success" style="padding:6px 12px; font-size:11px;" onclick="saveEmpSettings('${emp.id}')"><i class="fas fa-save"></i> Save</button></td>
                 </tr>`;
             });
-            listHtml += '</tbody></table></div>';
+            listHtml += '</tbody></table>';
             return `
                 <div class="adj-section">
-                    <h3><i class="fas fa-cog"></i> Employee Settings · Basic Salary, Punctuality, Appointment Date</h3>
-                    <p style="color:rgba(255,255,255,0.6);font-size:12px;margin-bottom:16px;">Configure each employee's base salary, punctuality eligibility, and appointment date. Probation period: ${PROBATION_DAYS} days.</p>
-                    <div class="search-box" style="margin-bottom:15px; max-width:300px;">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="settingsSearchInput" placeholder="Filter employees..." value="${currentPayrollSearchTerm}" 
-                            onkeyup="filterSettingsTab(this.value)">
-                    </div>
-                    ${listHtml}
+                    <h3>Employee Settings Config</h3>
+                    <div class="table-container">${listHtml}</div>
                 </div>
             `;
         }
-
-        function filterSettingsTab(val) {
-            currentPayrollSearchTerm = val;
-            renderPayrollDashboard();
-            switchPayrollTab('settings');
-        }
-
-        function switchPayrollTab(tabName) {
-            document.querySelectorAll('.payroll-tab').forEach(b => b.classList.remove('active'));
-            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            const tabContent = document.getElementById(`tab-${tabName}`);
-            if (tabContent) tabContent.classList.add('active');
-        }
-
-        function deleteAdjItem(type, empId, idx) {
-            if (!confirm('Delete this record?')) return;
-            payrollAdj[type][empId].splice(idx, 1);
-            if (payrollAdj[type][empId].length === 0) delete payrollAdj[type][empId];
-            persistAllAdj();
-            showToast('✅ Deleted', 'success');
-            renderPayrollDashboard();
-            switchPayrollTab(type === 'halfDay' ? 'halfday' : type === 'qaHr' ? 'qahr' : type);
-        }
-
-        function addAdvance() { addAdvanceFromSearch(); }
-        function deleteAdvance(empId) {
-            if (!confirm('Delete this advance record?')) return;
-            delete payrollAdj.advance[empId];
-            persistAllAdj();
-            showToast('✅ Deleted', 'success');
-            renderPayrollDashboard();
-            switchPayrollTab('advance');
-        }
-
-        function setManualLate() { setManualLateFromSearch(); }
-        function setManualPunctuality() { setManualPunctualityFromSearch(); }
-        function setApprovedLeaves() { setApprovedLeavesFromSearch(); }
-        function setTax() { setTaxFromSearch(); }
 
         function saveEmpSettings(empId) {
             const bs = parseFloat(document.getElementById(`set-bs-${empId}`).value) || BASE_SALARY;
             const punc = document.getElementById(`set-punc-${empId}`).checked;
             const puncAmt = parseFloat(document.getElementById(`set-punc-amt-${empId}`).value) || PERFECT_ATTENDANCE_BONUS;
-            const appDate = document.getElementById(`set-app-${empId}`).value;
-            const cnic = document.getElementById(`set-cnic-${empId}`).value;
             const meta = getEmpMeta(empId);
             meta.basicSalary = bs;
             meta.punctualityEnabled = punc;
             meta.punctualityAmount = puncAmt;
-            meta.cnic = cnic;
             payrollAdj.empMeta[empId] = meta;
-            if (appDate) payrollAdj.appointmentDate[empId] = appDate;
             persistAllAdj();
-            const emp = allData.find(e => e.id === empId);
-            if (emp && appDate) emp.appointmentDate = appDate;
-            showToast('✅ Settings saved', 'success');
+            showToast('✅ Employee settings saved', 'success');
+            loadAttendanceData();
         }
 
-        function processFullPayroll() {
-            renderPayrollDashboard();
-            showToast('✅ Payroll re-calculated', 'success');
-        }
-
+        // ===== EXPORTS =====
         function exportPayrollCSV() {
             const payrollData = allData.map(emp => calculatePayrollForEmployee(emp));
-            const headers = ['B-ID','Employee Name','Sudo Name','Designation','Campaign','Department','CNIC','Contact No.','Account No.','Account Title','Bank Name','Appointment Date','Basic Salary','Punctuality','Total Salary','Salary Per Day','Working Days in Month','Elapsed Working Days','Present','Leave','Absent','Total Working Days','P.Reward','Bonus','TA/DA','Arrears','Extra Days','Extra Day Pay','Late Coming','Late Deduction','Half Day Count','Half Day Amount','SD Count','SD Amount','NCNS Count','NCNS Amount','QA/HR Docs','Misspunch Count','Misspunch Amount','Advance Deduction','Advance Remaining','Absent Deduction','Tax','Total Earnings','Total Deductions','Gross Salary','Remarks','Comments','Status'];
+            const headers = ['ID','Name','Designation','Basic Salary','Punctuality Bonus','Total Salary','Per Day Salary','Working Days','Presents','Leaves','Absents','Gross Salary','Status'];
             const csvCell = value => `"${String(value ?? '').replaceAll('"', '""')}"`;
             let csv = headers.map(csvCell).join(',') + '\n';
             payrollData.forEach(e => {
-                const row = [e.id, e.name, e.meta.sudoName||'', e.meta.designation||e.designation, e.team, e.department, e.meta.cnic||e.cnic||'', e.contact||'', e.meta.accountNo||e.accountNo||'', e.meta.accountTitle||e.accountTitle||'', e.meta.bankName||e.bankName||'', e.appointmentDate||'', e.basicSalary, e.punctualityBonus, e.totalSalary, Math.round(e.perDaySalary), workingDaysCount, elapsedWorkingDaysCount, e.present, e.adjustedLeaveCount, e.adjustedAbsent, e.totalWorkingDays, e.punctualityAmount, e.bonus, e.tada, e.arrears, e.extraDays, Math.round(e.extraDayPay), e.late, Math.round(e.lateDeduction), e.halfDayCount, Math.round(e.halfDayAmount), e.sdCount, Math.round(e.sdAmount), e.ncnsCount, e.ncnsAmount, e.qaHrAmount, e.misspunchCount, e.misspunchAmount, e.advanceDeduction, e.advanceRemaining, Math.round(e.absentDeduction), e.tax, Math.round(e.totalEarnings), Math.round(e.totalDeductions), Math.round(e.grossSalary), '', '', e.status];
+                const row = [e.id, e.name, e.designation, e.basicSalary, e.punctualityBonus, e.totalSalary, Math.round(e.perDaySalary), workingDaysCount, e.present, e.adjustedLeaveCount, e.adjustedAbsent, Math.round(e.grossSalary), e.status];
                 csv += row.map(csvCell).join(',') + '\n';
             });
             downloadCSV(csv, `payroll_${currentYear}_${currentMonth}.csv`);
-            showToast('✅ Payroll exported', 'success');
+            showToast('✅ Payroll exported successfully', 'success');
         }
 
+        function exportBankTransferCSV() {
+            const payrollData = allData.map(emp => calculatePayrollForEmployee(emp));
+            const headers = ['Employee Code', 'Employee Name', 'Bank Name', 'Account Title', 'Account Number', 'Net Salary Payable (PKR)'];
+            const csvCell = value => `"${String(value ?? '').replaceAll('"', '""')}"`;
+            let csv = headers.map(csvCell).join(',') + '\n';
+            payrollData.forEach(e => {
+                const empRemarks = e.remarks || (payrollAdj.remarks && payrollAdj.remarks[e.id]) || 'Ready for Payment';
+                if (empRemarks === 'Hold') {
+                    return;
+                }
+                const row = [
+                    e.id, 
+                    e.name, 
+                    e.bankName || 'Not Set', 
+                    e.accountTitle || 'Not Set', 
+                    e.accountNo || 'Not Set', 
+                    Math.round(e.finalNetSalary)
+                ];
+                csv += row.map(csvCell).join(',') + '\n';
+            });
+            downloadCSV(csv, `bank_transfer_${currentYear}_${currentMonth}.csv`);
+            showToast('✅ Bank transfer sheet exported successfully', 'success');
+        }
+
+        function showTaxSlabsInfoModal() {
+            let modal = document.getElementById('taxSlabsModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'taxSlabsModal';
+                modal.className = 'modal';
+                document.body.appendChild(modal);
+            }
+            
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 600px; color: var(--text-color);">
+                    <div class="modal-header">
+                        <h2>FBR Salary Tax Slabs (2026-27)</h2>
+                        <div class="modal-close" onclick="document.getElementById('taxSlabsModal').classList.remove('active')">&times;</div>
+                    </div>
+                    <div class="modal-body" style="padding: 20px;">
+                        <p style="margin-bottom: 16px; font-size:13px; color:var(--text-muted);">
+                            This progressive tax slab calculation is automatically applied to the annual taxable income (Base Salary × 12). The monthly tax is deduced as Annual Tax ÷ 12.
+                        </p>
+                        <table style="width:100%; border-collapse:collapse; font-size:12px;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--border-color); text-align: left;">
+                                    <th style="padding: 8px;">Annual Taxable Income (PKR)</th>
+                                    <th style="padding: 8px;">Formula for Annual Tax</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
+                                    <td style="padding: 8px;">Up to 600,000</td>
+                                    <td style="padding: 8px; color: var(--secondary);">0 (No Tax)</td>
+                                </tr>
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
+                                    <td style="padding: 8px;">600,001 – 1,200,000</td>
+                                    <td style="padding: 8px;">(Income - 600k) × 1%</td>
+                                </tr>
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
+                                    <td style="padding: 8px;">1,200,001 – 2,200,000</td>
+                                    <td style="padding: 8px;">6,000 + (Income - 1.2M) × 11%</td>
+                                </tr>
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
+                                    <td style="padding: 8px;">2,200,001 – 3,200,000</td>
+                                    <td style="padding: 8px;">116,000 + (Income - 2.2M) × 20%</td>
+                                </tr>
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
+                                    <td style="padding: 8px;">3,200,001 – 4,100,000</td>
+                                    <td style="padding: 8px;">316,000 + (Income - 3.2M) × 25%</td>
+                                </tr>
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
+                                    <td style="padding: 8px;">4,100,001 – 5,600,000</td>
+                                    <td style="padding: 8px;">541,000 + (Income - 4.1M) × 29%</td>
+                                </tr>
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
+                                    <td style="padding: 8px;">5,600,001 – 7,000,000</td>
+                                    <td style="padding: 8px;">976,000 + (Income - 5.6M) × 32%</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px;">Above 7,000,000</td>
+                                    <td style="padding: 8px;">1,424,000 + (Income - 7.0M) × 35%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer" style="padding:15px; text-align:right;">
+                        <button class="btn btn-primary" onclick="document.getElementById('taxSlabsModal').classList.remove('active')">Dismiss</button>
+                    </div>
+                </div>
+            `;
+            modal.classList.add('active');
+        }
+
+        function exportToCSV() {
+            let headers = ['ID', 'Personnel', 'Department', 'Designation', 'Branch', 'Team'];
+            for (let day = 1; day <= daysInMonth; day++) headers.push(`${day} ${getMonthAbbr(currentMonth)}`);
+            headers.push('Present Days', 'Absent Days', 'Late Days', 'Leave Days');
+            let csvContent = headers.map(h => `"${h}"`).join(',') + '\n';
+            allData.forEach(emp => { 
+                let row = [emp.id, emp.name, emp.department, emp.designation, emp.branch, emp.team];
+                for (let day = 1; day <= daysInMonth; day++) { 
+                    row.push(emp.attendance[day]); 
+                }
+                row.push(emp.present, emp.absent, emp.late, emp.leave);
+                csvContent += row.map(cell => `"${cell}"`).join(',') + '\n';
+            });
+            downloadCSV(csvContent, `attendance_${currentYear}_${currentMonth}.csv`);
+            showToast(`✅ Exported successfully`, 'success');
+        }
+
+        function downloadCSV(content, filename) { const blob = new Blob(["\uFEFF" + content], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url); }
         function viewPayrollSlip(employeeId, event) {
             if (event) event.stopPropagation();
             const employee = allData.find(e => e.id === employeeId);
             if (!employee) return;
             const e = calculatePayrollForEmployee(employee);
-            const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            const formatMoney = val => '₨ ' + Math.round(val || 0).toLocaleString();
+
+            const finalNetSalary = Math.round(e.netSalary - e.tax);
+            const totalDeductionsAll = Math.round(e.totalDeductions + e.absentDeduction);
 
             const slipHtml = `
-                <div id="printArea">
-                <div class="slip-pro">
-                    <div class="slip-header">
-                        <div class="slip-company">
-                            <h1><i class="fas fa-bolt"></i> BALITECH PVT LTD</h1>
-                            <p>Finance Intelligence Hub · Professional Payroll System</p>
-                            <p style="margin-top:6px;">📍 Head Office · Karachi, Pakistan</p>
+                <div id="printArea" style="position: relative; overflow: hidden; padding: 40px; background: #ffffff; color: #0f172a; font-family: 'Plus Jakarta Sans', sans-serif;">
+                    
+                    <!-- Watermark -->
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.03; pointer-events: none; z-index: 1;">
+                        <img src="assets/images/balitech-logo.png" style="width: 450px; filter: grayscale(100%);">
+                    </div>
+
+                    <!-- Header -->
+                    <div style="background: #0f172a; color: white; padding: 25px 30px; border-radius: 16px 16px 0 0; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 2;">
+                        <div>
+                            <h2 style="margin: 0; font-size: 26px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: white;">BALITECH</h2>
+                            <p style="margin: 4px 0 0 0; color: #94a3b8; font-size: 14px; font-weight: 500;">Monthly Salary Slip</p>
                         </div>
-                        <div class="slip-meta">
-                            <div><strong>Pay Slip · ${monthNames[currentMonth-1]} ${currentYear}</strong></div>
-                            <div>Slip ID: PSL-${employee.id}-${currentYear}${String(currentMonth).padStart(2,'0')}</div>
-                            <div>Generated: ${new Date().toLocaleDateString('en-GB')}</div>
-                            <div>Pay Period: 01-${daysInMonth} ${monthNames[currentMonth-1]} ${currentYear}</div>
+                        <div style="background: white; color: #0f172a; padding: 8px 16px; border-radius: 30px; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                            MONTH: ${['January','February','March','April','May','June','July','August','September','October','November','December'][currentMonth-1].toUpperCase()}, ${currentYear}
                         </div>
                     </div>
 
-                    <div class="slip-emp-grid">
-                        <div><span>Employee ID</span><strong>${employee.id}</strong></div>
-                        <div><span>Employee Name</span><strong>${employee.name}</strong></div>
-                        <div><span>Designation</span><strong>${employee.designation}</strong></div>
-                        <div><span>Department</span><strong>${employee.department}</strong></div>
-                        <div><span>Branch</span><strong>${employee.branch}</strong></div>
-                        <div><span>Team</span><strong>${employee.team}</strong></div>
-                        <div><span>CNIC</span><strong>${e.meta.cnic || employee.cnic || '—'}</strong></div>
-                        <div><span>Bank Account</span><strong>${employee.accountNo || '—'}</strong></div>
-                        <div><span>Bank Name</span><strong>${employee.bankName || '—'}</strong></div>
-                        <div><span>Appointment Date</span><strong>${employee.appointmentDate || '—'}</strong></div>
-                        <div><span>Working Days</span><strong>${workingDaysCount} days</strong></div>
-                        <div><span>Per Day Salary</span><strong>₨ ${Math.round(e.perDaySalary).toLocaleString()}</strong></div>
+                    <!-- Employee Quick Info -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: #f8fafc; padding: 20px; border-radius: 0 0 16px 16px; border: 1px solid #e2e8f0; border-top: none; margin-bottom: 30px; position: relative; z-index: 2;">
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 5px;">Employee Name</span>
+                            <span style="font-size: 18px; font-weight: 700; color: #0f172a;">${employee.name} (${employee.id})</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; text-align: right;">
+                            <span style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 5px;">Department / Designation</span>
+                            <span style="font-size: 18px; font-weight: 700; color: #0f172a;">${employee.department || '—'} / ${employee.designation || '—'}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Salary & Attendance Summary -->
+                    <div style="margin-bottom: 30px; position: relative; z-index: 2;">
+                        <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Salary & Attendance Summary</h3>
+                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; font-size: 13px;">
+                            <tbody>
+                                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="text-align:left; padding:8px 15px; color:#1e293b !important;">Basic Salary</td><td style="text-align:right; padding:8px 15px; font-weight:700; color:#0f172a !important;">${formatMoney(e.basicSalary)}</td></tr>
+                                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="text-align:left; padding:8px 15px; color:#1e293b !important;">Punctuality Amount</td><td style="text-align:right; padding:8px 15px; font-weight:700; color:#0f172a !important;">${formatMoney(e.punctualityBonus)}</td></tr>
+                                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="text-align:left; padding:8px 15px; color:#1e293b !important;">Present Days</td><td style="text-align:right; padding:8px 15px; font-weight:700; color:#0f172a !important;">${e.present}</td></tr>
+                                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="text-align:left; padding:8px 15px; color:#1e293b !important;">Absent Days</td><td style="text-align:right; padding:8px 15px; font-weight:700; color:#0f172a !important;">${e.adjustedAbsent}</td></tr>
+                                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="text-align:left; padding:8px 15px; color:#1e293b !important;">Paid Leave</td><td style="text-align:right; padding:8px 15px; font-weight:700; color:#0f172a !important;">${e.adjustedLeaveCount}</td></tr>
+                                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="text-align:left; padding:8px 15px; color:#1e293b !important;">Half Day count</td><td style="text-align:right; padding:8px 15px; font-weight:700; color:#0f172a !important;">${e.halfDayCount}</td></tr>
+                                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="text-align:left; padding:8px 15px; color:#1e293b !important;">No. of NCNS</td><td style="text-align:right; padding:8px 15px; font-weight:700; color:#0f172a !important;">${e.ncnsCount}</td></tr>
+                                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="text-align:left; padding:8px 15px; color:#1e293b !important;">No. of Sandwich Docks</td><td style="text-align:right; padding:8px 15px; font-weight:700; color:#0f172a !important;">${e.sdCount}</td></tr>
+                                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="text-align:left; padding:8px 15px; color:#1e293b !important;">No. of Late Arrivals</td><td style="text-align:right; padding:8px 15px; font-weight:700; color:#0f172a !important;">${e.late}</td></tr>
+                                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="text-align:left; padding:8px 15px; color:#1e293b !important;">Arrears / Bonus / Allowances</td><td style="text-align:right; padding:8px 15px; font-weight:700; color:#0f172a !important;">${formatMoney(e.arrears + e.bonus + e.tada + e.punctualityAmount)}</td></tr>
+                                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="text-align:left; padding:8px 15px; color:#1e293b !important;">Extra Day Pay</td><td style="text-align:right; padding:8px 15px; font-weight:700; color:#0f172a !important;">${formatMoney(e.extraDayPay)}</td></tr>
+                                <tr style="border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #0f172a; background: #f8fafc; border-top: 2px solid #cbd5e1;"><td style="text-align:left; padding:10px 15px; color:#0f172a !important;">Total Earnings / Gross Salary</td><td style="text-align:right; padding:10px 15px; font-weight:700; color:#0f172a !important;">${formatMoney(e.totalEarnings)}</td></tr>
+                            </tbody>
+                        </table>
                     </div>
 
-                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;">
-                        <div style="background:#dcfce7;padding:10px;border-radius:8px;text-align:center;"><div style="font-size:20px;font-weight:800;color:#059669;">${e.present}</div><div style="font-size:10px;color:#475569;">Present</div></div>
-                        <div style="background:#fef3c7;padding:10px;border-radius:8px;text-align:center;"><div style="font-size:20px;font-weight:800;color:#d97706;">${e.late}</div><div style="font-size:10px;color:#475569;">Late</div></div>
-                        <div style="background:#fee2e2;padding:10px;border-radius:8px;text-align:center;"><div style="font-size:20px;font-weight:800;color:#dc2626;">${e.adjustedAbsent}</div><div style="font-size:10px;color:#475569;">Absent</div></div>
-                        <div style="background:#ede9fe;padding:10px;border-radius:8px;text-align:center;"><div style="font-size:20px;font-weight:800;color:#7c3aed;">${e.adjustedLeaveCount}</div><div style="font-size:10px;color:#475569;">Leave</div></div>
+                    <!-- Specified Deductions -->
+                    <div style="margin-bottom: 30px; position: relative; z-index: 2;">
+                        <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Specified Deductions</h3>
+                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; font-size: 13px;">
+                            <tbody>
+                                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="text-align:left; padding:8px 15px; color:#1e293b !important;">Absenteeism Deduction</td><td style="text-align:right; padding:8px 15px; font-weight:700; color:#0f172a !important;">${formatMoney(e.absentDeduction)}</td></tr>
+                                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="text-align:left; padding:8px 15px; color:#1e293b !important;">Late Coming Dock</td><td style="text-align:right; padding:8px 15px; font-weight:700; color:#0f172a !important;">${formatMoney(e.lateDeduction)}</td></tr>
+                                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="text-align:left; padding:8px 15px; color:#1e293b !important;">Half Day Deduction</td><td style="text-align:right; padding:8px 15px; font-weight:700; color:#0f172a !important;">${formatMoney(e.halfDayAmount)}</td></tr>
+                                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="text-align:left; padding:8px 15px; color:#1e293b !important;">Sandwich Dock Deduction</td><td style="text-align:right; padding:8px 15px; font-weight:700; color:#0f172a !important;">${formatMoney(e.sdAmount)}</td></tr>
+                                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="text-align:left; padding:8px 15px; color:#1e293b !important;">NCNS Deduction</td><td style="text-align:right; padding:8px 15px; font-weight:700; color:#0f172a !important;">${formatMoney(e.ncnsAmount)}</td></tr>
+                                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="text-align:left; padding:8px 15px; color:#1e293b !important;">QA / HR Deduction</td><td style="text-align:right; padding:8px 15px; font-weight:700; color:#0f172a !important;">${formatMoney(e.qaHrAmount)}</td></tr>
+                                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="text-align:left; padding:8px 15px; color:#1e293b !important;">Misspunch Deduction</td><td style="text-align:right; padding:8px 15px; font-weight:700; color:#0f172a !important;">${formatMoney(e.misspunchAmount)}</td></tr>
+                                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="text-align:left; padding:8px 15px; color:#1e293b !important;">Tax Deduction</td><td style="text-align:right; padding:8px 15px; font-weight:700; color:#0f172a !important;">${formatMoney(e.tax)}</td></tr>
+                                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="text-align:left; padding:8px 15px; color:#1e293b !important;">Advance Salary Deduction</td><td style="text-align:right; padding:8px 15px; font-weight:700; color:#0f172a !important;">${formatMoney(e.advanceDeduction)}</td></tr>
+                            </tbody>
+                        </table>
                     </div>
 
-                    <table class="slip-table">
-                        <thead><tr><th colspan="2"><i class="fas fa-plus-circle"></i> EARNINGS</th><th colspan="2"><i class="fas fa-minus-circle"></i> DEDUCTIONS</th></tr></thead>
-                        <tbody>
-                            <tr><td>Basic Salary</td><td class="amt">₨ ${e.basicSalary.toLocaleString()}</td><td>Late Coming (${employee.late})</td><td class="amt neg">${e.lateDeduction>0?'-₨ '+e.lateDeduction.toLocaleString():'—'}</td></tr>
-                            <tr><td>Punctuality Bonus</td><td class="amt pos">${e.punctualityAmount>0?'+₨ '+e.punctualityAmount.toLocaleString():'—'}</td><td>Half Day (${e.halfDayCount})</td><td class="amt neg">${e.halfDayAmount>0?'-₨ '+Math.round(e.halfDayAmount).toLocaleString():'—'}</td></tr>
-                            <tr><td>Working Days Pay (${e.totalWorkingDays} × ₨${Math.round(e.perDaySalary).toLocaleString()})</td><td class="amt">₨ ${Math.round(e.totalWorkingDays * e.perDaySalary).toLocaleString()}</td><td>SandWich SD (${e.sdCount})</td><td class="amt neg">${e.sdAmount>0?'-₨ '+Math.round(e.sdAmount).toLocaleString():'—'}</td></tr>
-                            <tr><td>Bonus</td><td class="amt pos">${e.bonus>0?'+₨ '+e.bonus.toLocaleString():'—'}</td><td>NCNS (${e.ncnsCount})</td><td class="amt neg">${e.ncnsAmount>0?'-₨ '+e.ncnsAmount.toLocaleString():'—'}</td></tr>
-                            <tr><td>TA/DA</td><td class="amt pos">${e.tada>0?'+₨ '+e.tada.toLocaleString():'—'}</td><td>QA/HR Docs</td><td class="amt neg">${e.qaHrAmount>0?'-₨ '+e.qaHrAmount.toLocaleString():'—'}</td></tr>
-                            <tr><td>Arrears</td><td class="amt pos">${e.arrears>0?'+₨ '+e.arrears.toLocaleString():'—'}</td><td>Misspunch (${e.misspunchCount})</td><td class="amt neg">${e.misspunchAmount>0?'-₨ '+e.misspunchAmount.toLocaleString():'—'}</td></tr>
-                            <tr><td>Extra Day Pay (${e.extraDays})</td><td class="amt pos">${e.extraDayPay>0?'+₨ '+Math.round(e.extraDayPay).toLocaleString():'—'}</td><td>Advance Salary</td><td class="amt neg">${e.advanceDeduction>0?'-₨ '+e.advanceDeduction.toLocaleString():'—'}</td></tr>
-                            <tr><td></td><td></td><td>Absent Deduction (${e.adjustedAbsent})</td><td class="amt neg">${e.absentDeduction>0?'-₨ '+Math.round(e.absentDeduction).toLocaleString():'—'}</td></tr>
-                            <tr><td></td><td></td><td>Tax</td><td class="amt neg">${e.tax>0?'-₨ '+e.tax.toLocaleString():'—'}</td></tr>
-                        </tbody>
-                    </table>
-
-                    <div class="slip-totals">
-                        <div class="slip-total-card"><div class="lbl">Total Earnings</div><div class="val">₨ ${Math.round(e.totalEarnings).toLocaleString()}</div></div>
-                        <div class="slip-total-card deduction"><div class="lbl">Total Deductions</div><div class="val">₨ ${Math.round(e.totalDeductions).toLocaleString()}</div></div>
+                    <!-- Highlight Boxes -->
+                    <div style="background: #f8fafc; border-radius: 12px; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border: 1px solid #e2e8f0; position: relative; z-index: 2;">
+                        <span style="font-size: 16px; font-weight: 700; color: #334155;">Total Deduction</span>
+                        <span style="font-size: 20px; font-weight: 800; color: #ef4444;">${formatMoney(totalDeductionsAll)}</span>
                     </div>
 
-                    <div class="slip-net">
-                        <h3><i class="fas fa-wallet"></i> NET SALARY (GROSS)</h3>
-                        <div class="amount">₨ ${Math.round(e.grossSalary).toLocaleString()}</div>
+                    <div style="background: #f0fdf4; border-radius: 12px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #bbf7d0; position: relative; z-index: 2; margin-bottom: 25px;">
+                        <span style="font-size: 18px; font-weight: 700; color: #166534;">Net Payable Salary</span>
+                        <span style="font-size: 24px; font-weight: 800; color: #15803d;">${formatMoney(finalNetSalary)}</span>
                     </div>
 
-                    ${e.advanceRemaining > 0 ? `<div style="margin-top:12px;padding:10px;background:#fef3c7;border-radius:8px;font-size:11px;color:#92400e;"><strong>⚠️ Advance Salary Remaining:</strong> ₨ ${e.advanceRemaining.toLocaleString()} will be deducted in upcoming months.</div>` : ''}
-
-                    <div class="slip-footer">
-                        <div><i class="fas fa-check-circle"></i> This is a computer-generated payslip and does not require signature.</div>
-                        <div style="margin-top:6px;">For payroll queries, contact HR Department · BALITECH PVT LTD © ${currentYear}</div>
+                    <!-- Note Footer -->
+                    <div style="font-size: 11px; color: #64748b; line-height: 1.6; text-align: justify; border-top: 1px solid #e2e8f0; padding-top: 15px; position: relative; z-index: 2;">
+                        <strong>Note:</strong> Traveling allowance and transport deduction apply only for females where approved/applicable. NCNS, sandwich dock, late arrival, misthumb, half day, and paid leave counts are shown in the summary; deduction amounts are listed separately below as per policy.
                     </div>
-                </div>
                 </div>
             `;
 
             const slipModal = document.createElement('div');
             slipModal.className = 'modal active';
-            slipModal.innerHTML = `<div class="modal-content" style="max-width:900px;background:#fff;">
-                <div class="modal-header" style="background:linear-gradient(135deg,#10b981,#059669);">
-                    <h2><i class="fas fa-file-invoice"></i> Payroll Slip - ${employee.name}</h2>
-                    <div class="modal-close" onclick="this.closest('.modal').remove()">&times;</div>
+            slipModal.innerHTML = `<div class="modal-content payslip-modal-content">
+                <div class="modal-header" style="background:#f1f5f9; border-bottom:1px solid #cbd5e1; flex-shrink:0;">
+                    <h2 style="color:#0f172a;"><i class="fas fa-file-invoice"></i> Payslip - ${employee.name}</h2>
+                    <div class="modal-close" style="color:#0f172a;" onclick="this.closest('.modal').remove()">&times;</div>
                 </div>
-                <div class="modal-body" style="padding:0;background:#fff;">${slipHtml}</div>
-                <div class="slip-actions">
-                    <button class="btn btn-info" onclick="window.print()"><i class="fas fa-print"></i> Print Slip</button>
-                    <button class="btn btn-success" onclick="downloadSlipAsHTML('${employee.id}')"><i class="fas fa-download"></i> Download HTML</button>
+                <div class="modal-body payslip-scroll-container" style="padding:0; background:#fff; flex:1;">${slipHtml}</div>
+                <div class="slip-actions" style="flex-shrink:0; border-top:1px solid #cbd5e1;">
+                    <button class="btn btn-secondary" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+                    <button class="btn btn-primary" onclick="this.closest('.modal').remove()">Close</button>
                 </div>
             </div>`;
             document.body.appendChild(slipModal);
         }
-
-        function downloadSlipAsHTML(empId) {
-            const printArea = document.getElementById('printArea');
-            if (!printArea) return;
-            const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Payslip ${empId}</title><style>body{font-family:Arial;background:#f1f5f9;padding:20px;} ${document.querySelector('style').textContent}</style></head><body>${printArea.outerHTML}</body></html>`;
-            const blob = new Blob([html], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = `payslip_${empId}_${currentYear}_${currentMonth}.html`; a.click();
-            URL.revokeObjectURL(url);
-            showToast('✅ Payslip downloaded', 'success');
-        }
-
-        function closePayrollDashboard() { document.getElementById('payrollModal').classList.remove('active'); }
 
         function viewEmployeeDetails(employeeId, employeeName) {
             const modal = document.getElementById('employeeModal');
             const modalBody = document.getElementById('modalBody');
             const modalName = document.getElementById('modalEmployeeName');
             const employee = allData.find(e => e.id === employeeId);
-            if (!employee) { modalBody.innerHTML = '<div style="text-align:center;padding:40px;color:#f87171;">Employee not found</div>'; modal.classList.add('active'); return; }
+            if (!employee) return;
+
             modalName.textContent = employeeName;
             modal.classList.add('active');
+
             const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-            let leavesHtml = employee.leaves && employee.leaves.length > 0 ? employee.leaves.map(leave => `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:rgba(255,255,255,0.03);border-radius:10px;margin-bottom:8px;"><div><div>📅 ${new Date(leave.date).toLocaleDateString()}</div><div style="font-size:11px;color:rgba(255,255,255,0.5);">${leave.reason || 'No reason provided'}</div></div><span style="background:rgba(139,92,246,0.2);color:#a78bfa;padding:4px 10px;border-radius:20px;font-size:11px;">${leave.type || 'Casual Leave'}</span><button onclick="deleteLeave('${employeeId}', '${leave.date}', event)" style="background:rgba(239,68,68,0.2);color:#ef4444;border:none;padding:5px 10px;border-radius:8px;cursor:pointer;"><i class="fas fa-trash"></i></button></div>`).join('') : '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.5);">No leaves recorded</div>';
-            let tableHtml = `<div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:24px;margin-bottom:24px;"><div style="display:flex;align-items:center;gap:20px;margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.1);"><div style="width:80px;height:80px;background:linear-gradient(135deg,#f97316,#ea580c);border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:36px;color:white;"><i class="fas fa-user"></i></div><div><h3 style="color:white;font-size:24px;">${employee.name}</h3><p><i class="fas fa-id-card"></i> Employee ID: ${employee.id}</p><p><i class="fas fa-building"></i> ${employee.department} · ${employee.designation}</p></div></div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;"><div style="background:rgba(255,255,255,0.03);border-radius:16px;padding:16px;"><div style="color:rgba(255,255,255,0.5);font-size:11px;">Branch</div><div style="color:white;font-weight:600;">${employee.branch}</div></div><div style="background:rgba(255,255,255,0.03);border-radius:16px;padding:16px;"><div style="color:rgba(255,255,255,0.5);font-size:11px;">Team</div><div style="color:white;font-weight:600;">${employee.team}</div></div><div style="background:rgba(255,255,255,0.03);border-radius:16px;padding:16px;"><div style="color:rgba(255,255,255,0.5);font-size:11px;">Working Days</div><div style="color:white;font-weight:600;">${employee.working_days}</div></div></div>
-            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:24px;"><div style="background:rgba(255,255,255,0.05);border-radius:16px;padding:16px;text-align:center;"><div style="font-size:28px;font-weight:800;color:#10b981;">${employee.present}</div><div style="font-size:11px;color:rgba(255,255,255,0.6);">Present Days</div></div><div style="background:rgba(255,255,255,0.05);border-radius:16px;padding:16px;text-align:center;"><div style="font-size:28px;font-weight:800;color:#ef4444;">${employee.absent}</div><div style="font-size:11px;color:rgba(255,255,255,0.6);">Absent Days</div></div><div style="background:rgba(255,255,255,0.05);border-radius:16px;padding:16px;text-align:center;"><div style="font-size:28px;font-weight:800;color:#f59e0b;">${employee.late}</div><div style="font-size:11px;color:rgba(255,255,255,0.6);">Late Days</div></div><div style="background:rgba(255,255,255,0.05);border-radius:16px;padding:16px;text-align:center;"><div style="font-size:28px;font-weight:800;color:#a78bfa;">${employee.leave}</div><div style="font-size:11px;color:rgba(255,255,255,0.6);">Leave Days</div></div><div style="background:rgba(255,255,255,0.05);border-radius:16px;padding:16px;text-align:center;"><div style="font-size:28px;font-weight:800;color:#3b82f6;">${employee.working_days}</div><div style="font-size:11px;color:rgba(255,255,255,0.6);">Total Days</div></div></div></div>
-            <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:24px;margin-bottom:24px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;"><h4 style="color:white;"><i class="fas fa-umbrella-beach"></i> Leave Management</h4><button onclick="toggleLeaveForm('${employeeId}')" style="background:linear-gradient(135deg,#f97316,#ea580c);color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;"><i class="fas fa-plus"></i> Add Leave</button></div>
-            <div id="leaveForm-${employeeId}" style="display:none;margin-bottom:20px;padding:20px;background:rgba(255,255,255,0.03);border-radius:16px;"><div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px;"><div><label style="color:white;font-size:13px;">Leave Date</label><input type="date" id="leaveDate-${employeeId}" style="width:100%;padding:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:white;"></div><div><label style="color:white;font-size:13px;">Leave Type</label><select id="leaveType-${employeeId}" style="width:100%;padding:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:white;"><option value="Casual Leave">Casual Leave</option><option value="Sick Leave">Sick Leave</option><option value="Annual Leave">Annual Leave</option><option value="Unpaid Leave">Unpaid Leave</option></select></div></div><div><label style="color:white;font-size:13px;">Reason (Optional)</label><input type="text" id="leaveReason-${employeeId}" placeholder="Enter reason..." style="width:100%;padding:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:white;"></div><button onclick="addLeave('${employeeId}')" style="margin-top:15px;width:100%;padding:10px;background:#10b981;color:white;border:none;border-radius:10px;cursor:pointer;"><i class="fas fa-save"></i> Save Leave</button></div>
-            <div id="leaveList-${employeeId}">${leavesHtml}</div></div>
-            <div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="padding:12px;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);font-size:12px;">Date</th><th style="padding:12px;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);font-size:12px;">Day</th><th style="padding:12px;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);font-size:12px;">Check In</th><th style="padding:12px;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);font-size:12px;">Type</th><th style="padding:12px;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);font-size:12px;">Status</th></thead><tbody>`;
+            let leavesHtml = employee.leaves && employee.leaves.length > 0 ? employee.leaves.map(leave => `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:rgba(255,255,255,0.03);border-radius:10px;margin-bottom:8px;"><div><div>📅 ${new Date(leave.date).toLocaleDateString()}</div><div style="font-size:11px;color:var(--text-muted);">${leave.reason}</div></div><span class="summary-badge summary-leave">${leave.type}</span></div>`).join('') : '<div style="text-align:center;padding:20px;color:var(--text-muted);">No leaves recorded</div>';
+
+            let tableHtml = `
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
+                <div style="background:rgba(255,255,255,0.03);padding:12px;border-radius:10px;text-align:center;"><div style="font-size:18px;font-weight:700;color:var(--secondary);">${employee.present}</div><div style="font-size:10px;color:var(--text-muted)">Present</div></div>
+                <div style="background:rgba(255,255,255,0.03);padding:12px;border-radius:10px;text-align:center;"><div style="font-size:18px;font-weight:700;color:var(--danger);">${employee.absent}</div><div style="font-size:10px;color:var(--text-muted)">Absent</div></div>
+                <div style="background:rgba(255,255,255,0.03);padding:12px;border-radius:10px;text-align:center;"><div style="font-size:18px;font-weight:700;color:var(--warning);">${employee.late}</div><div style="font-size:10px;color:var(--text-muted)">Late</div></div>
+                <div style="background:rgba(255,255,255,0.03);padding:12px;border-radius:10px;text-align:center;"><div style="font-size:18px;font-weight:700;color:var(--info);">${employee.leave}</div><div style="font-size:10px;color:var(--text-muted)">Leave</div></div>
+            </div>
+            
+            <div style="margin-bottom:20px;">
+                <h4 style="font-size:13px;color:white;margin-bottom:12px;">Leaves History</h4>
+                <div>${leavesHtml}</div>
+            </div>
+            
+            <div class="table-container">
+            <div class="table-wrapper">
+            <table>
+                <thead><tr><th>Date</th><th>Day</th><th>Check In</th><th>Status</th></tr></thead>
+                <tbody>`;
             for (let day = 1; day <= daysInMonth; day++) {
                 const date = new Date(currentYear, currentMonth - 1, day);
                 const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
                 const isWeekendDay = isWeekend(currentYear, currentMonth, day);
                 const checkin = employee.attendance[day];
                 const isPresent = checkin !== '--:--';
-                const isLate = isPresent && isCheckinLate(checkin, day);
+                const isLate = isPresent && isCheckinLate(checkin);
                 const hasLeave = employee.paidLeaveDates.includes(`${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
-                let status = 'Absent', statusColor = '#ef4444', statusBg = 'rgba(239,68,68,0.2)', type = 'Working Day';
-                if (isWeekendDay) { type = 'Weekend'; status = isPresent ? 'Present (Weekend)' : 'Weekend'; statusColor = '#a78bfa'; statusBg = 'rgba(139,92,246,0.2)'; }
-                else if (hasLeave) { type = 'Working Day'; status = 'On Leave'; statusColor = '#a78bfa'; statusBg = 'rgba(139,92,246,0.2)'; }
-                else if (isPresent) { status = isLate ? 'Late' : 'Present'; statusColor = isLate ? '#f59e0b' : '#10b981'; statusBg = isLate ? 'rgba(245,158,11,0.2)' : 'rgba(16,185,129,0.2)'; }
-                tableHtml += `<tr><td style="padding:10px;">${day} ${monthNames[currentMonth - 1]}</td><td style="padding:10px;">${dayName}</td><td style="padding:10px;${isPresent ? 'color:#f97316;font-weight:600;' : 'color:rgba(255,255,255,0.4);'}">${checkin}</td><td style="padding:10px;${isWeekendDay ? 'color:#a78bfa;' : ''}">${type}</td><td style="padding:10px;"><span style="background:${statusBg};color:${statusColor};padding:4px 10px;border-radius:20px;font-size:11px;">${status}</span></td></tr>`;
+                let status = 'Absent', statusClass = 'summary-absent';
+                if (isWeekendDay) { status = isPresent ? 'Present (Weekend)' : 'Weekend'; statusClass = 'summary-leave'; }
+                else if (hasLeave) { status = 'On Leave'; statusClass = 'summary-leave'; }
+                else if (isPresent) { status = isLate ? 'Late' : 'Present'; statusClass = isLate ? 'summary-late' : 'summary-present'; }
+                tableHtml += `<tr><td>${day} ${getMonthAbbr(currentMonth)}</td><td>${dayName}</td><td>${checkin}</td><td><span class="summary-badge ${statusClass}">${status}</span></td></tr>`;
             }
-            tableHtml += `</tbody></table></div><div style="margin-top:20px;text-align:right;display:flex;gap:10px;justify-content:flex-end;"><button class="btn btn-success" onclick="viewPayrollSlip('${employeeId}')"><i class="fas fa-receipt"></i> View Payslip</button><button class="btn btn-secondary" onclick="exportEmployeeAttendance('${employeeId}', '${employeeName.replace(/'/g, "\\'")}')"><i class="fas fa-download"></i> Download Report</button></div>`;
+            tableHtml += `</tbody></table></div></div>`;
             modalBody.innerHTML = tableHtml;
         }
 
-        function toggleLeaveForm(employeeId) { const form = document.getElementById(`leaveForm-${employeeId}`); if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none'; }
-
-        function addLeave(employeeId) {
-            const dateInput = document.getElementById(`leaveDate-${employeeId}`);
-            const typeSelect = document.getElementById(`leaveType-${employeeId}`);
-            const reasonInput = document.getElementById(`leaveReason-${employeeId}`);
-            if (!dateInput.value) { showToast('Please select a date', 'warning'); return; }
-            const leaveDate = dateInput.value;
-            const [year, month, day] = leaveDate.split('-');
-            if (isWeekend(parseInt(year), parseInt(month), parseInt(day))) { showToast('Cannot add leave on weekends', 'warning'); return; }
-            if (!leaves[employeeId]) leaves[employeeId] = [];
-            if (leaves[employeeId].find(l => l.date === leaveDate)) { showToast('Leave already exists', 'warning'); return; }
-            leaves[employeeId].push({ date: leaveDate, type: typeSelect.value, reason: reasonInput.value || 'No reason provided', addedAt: new Date().toISOString() });
-            leaves[employeeId].sort((a, b) => new Date(a.date) - new Date(b.date));
-            saveLeaves();
-            showToast('✅ Leave added', 'success');
-            toggleLeaveForm(employeeId);
-            loadAttendanceData();
-            closeModal();
-            setTimeout(() => viewEmployeeDetails(employeeId, document.getElementById('modalEmployeeName').textContent), 500);
+        function closeModal(id = 'employeeModal') {
+            document.getElementById(id)?.classList.remove('active');
         }
 
-        function deleteLeave(employeeId, leaveDate, event) {
-            event.stopPropagation();
-            if (confirm('Delete this leave?')) {
-                if (leaves[employeeId]) { leaves[employeeId] = leaves[employeeId].filter(l => l.date !== leaveDate); if (leaves[employeeId].length === 0) delete leaves[employeeId]; saveLeaves(); showToast('✅ Deleted', 'success'); loadAttendanceData(); closeModal(); setTimeout(() => viewEmployeeDetails(employeeId, document.getElementById('modalEmployeeName').textContent), 500); }
-            }
+        function filterByTeamLead() {
+            renderTable();
         }
-
-        function exportToCSV() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const departmentFilter = document.getElementById('departmentFilter').value;
-            const teamLeadFilter = document.getElementById('teamLeadFilter').value;
-            let filtered = allData.filter(emp => { 
-                const matchSearch = emp.name.toLowerCase().includes(searchTerm) || emp.id.toLowerCase().includes(searchTerm); 
-                const matchDept = !departmentFilter || emp.department === departmentFilter;
-                let matchTeamLead = true;
-                if (teamLeadFilter === 'Team Lead') {
-                    const designation = (emp.designation || '').toLowerCase();
-                    const team = (emp.team || '').toLowerCase();
-                    matchTeamLead = designation.includes('team lead') || designation.includes('lead') || team.includes('team lead') || (team === 'developer team' && designation === 'lead') || (team === 'dialer team' && designation === 'lead');
-                }
-                return matchSearch && matchDept && matchTeamLead; 
-            });
-            let headers = ['ID', 'Personnel', 'Department', 'Designation', 'Branch', 'Team'];
-            for (let day = 1; day <= daysInMonth; day++) headers.push(`${day} ${getMonthAbbr(currentMonth)}`);
-            headers.push('Present Days', 'Absent Days', 'Late Days', 'Leave Days', `Working Days (${workingDaysCount})`);
-            let csvContent = headers.map(h => `"${h}"`).join(',') + '\n';
-            filtered.forEach(emp => { let row = [emp.id, emp.name, emp.department, emp.designation, emp.branch, emp.team];
-                for (let day = 1; day <= daysInMonth; day++) { let val = emp.attendance[day]; const hasLeave = emp.paidLeaveDates.includes(`${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`); if (hasLeave && !isWeekend(currentYear, currentMonth, day)) val = 'LEAVE'; row.push(val); }
-                row.push(emp.present, emp.absent, emp.late, emp.leave, emp.working_days);
-                csvContent += row.map(cell => `"${cell}"`).join(',') + '\n';
-            });
-            downloadCSV(csvContent, `attendance_${currentYear}_${currentMonth}.csv`);
-            showToast(`✅ Exported ${filtered.length} employees`, 'success');
-        }
-
-        function exportEmployeeAttendance(employeeId, employeeName) {
-            const employee = allData.find(e => e.id === employeeId);
-            if (!employee) return;
-            const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-            let csvContent = `"Employee Attendance Report"\n"Employee ID","${employee.id}"\n"Employee Name","${employee.name}"\n"Department","${employee.department}"\n"Designation","${employee.designation}"\n"Branch","${employee.branch}"\n"Team","${employee.team}"\n"Period","${monthNames[currentMonth - 1]} ${currentYear}"\n"Working Days","${employee.working_days}"\n"Present","${employee.present}"\n"Late","${employee.late}"\n"Absent","${employee.absent}"\n"Leave","${employee.leave}"\n"Rate","${employee.attendance_rate}%"\n\n"Date","Day","Type","Check In","Status","Counted"\n`;
-            for (let day = 1; day <= daysInMonth; day++) {
-                const date = new Date(currentYear, currentMonth - 1, day);
-                const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-                const isWeekendDay = isWeekend(currentYear, currentMonth, day);
-                const checkin = employee.attendance[day];
-                const isPresent = checkin !== '--:--';
-                const isLate = isPresent && isCheckinLate(checkin, day);
-                const hasLeave = employee.paidLeaveDates.includes(`${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
-                let status = 'Absent', counted = 'Yes', type = 'Working Day';
-                if (isWeekendDay) { type = 'Weekend'; counted = 'No'; status = isPresent ? 'Present (Weekend)' : 'Weekend'; }
-                else if (hasLeave) { status = 'On Leave'; counted = 'Yes (Leave)'; }
-                else if (isPresent) { status = isLate ? 'Late' : 'Present'; }
-                csvContent += `"${day} ${monthNames[currentMonth - 1]}","${dayName}","${type}","${checkin}","${status}","${counted}"\n`;
-            }
-            downloadCSV(csvContent, `employee_${employeeId}_${currentYear}_${currentMonth}.csv`);
-            showToast(`✅ Downloaded ${employeeName}`, 'success');
-        }
-
-        function downloadCSV(content, filename) { const blob = new Blob(["\uFEFF" + content], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url); }
 
         function showToast(message, type) { 
             const container = document.getElementById('toastContainer'); 
@@ -2439,111 +4968,1240 @@ require_once 'config.php';
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000); 
         }
 
-        function closeModal(modalId) {
-            const id = modalId || 'employeeModal';
-            const m = document.getElementById(id);
-            if (m) m.classList.remove('active');
-        }
-
-        function handlePayrollSearch(val) {
-            currentPayrollSearchTerm = val;
-            renderPayrollDashboard();
-        }
-
-        function closePayrollDashboard() { 
-            document.getElementById('payrollModal').classList.remove('active'); 
-            currentPayrollSearchTerm = '';
-        }
-
-        document.getElementById('searchInput').addEventListener('keyup', function() { searchTerm = this.value; renderTable(); });
-        document.getElementById('departmentFilter').addEventListener('change', function() { currentDepartment = this.value; renderTable(); });
-
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal') && event.target.id !== 'payrollModal') {
-                closeModal(event.target.id);
-            }
-        }
-
-        function createParticles() { 
-            const container = document.getElementById('particles'); 
-            for (let i = 0; i < 50; i++) { 
-                const particle = document.createElement('div'); 
-                particle.classList.add('particle'); 
-                const size = Math.random() * 4 + 2; 
-                particle.style.width = size + 'px'; 
-                particle.style.height = size + 'px'; 
-                particle.style.left = Math.random() * 100 + '%'; 
-                particle.style.animationDuration = Math.random() * 10 + 10 + 's'; 
-                particle.style.animationDelay = Math.random() * 5 + 's'; 
-                container.appendChild(particle); 
-            } 
-        }
-        createParticles();
-
         function updateDateTime() { 
             const now = new Date(); 
-            document.getElementById('currentDate').innerHTML = `<i class="fas fa-calendar-alt"></i> ${now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}`; 
+            document.getElementById('currentDate').querySelector('span').textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }); 
         }
+
+        document.getElementById('searchInput').addEventListener('keyup', function() { renderTable(); });
+        document.getElementById('departmentFilter').addEventListener('change', function() { renderTable(); });
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
+
+        // Initialize
         updateDateTime();
         setInterval(updateDateTime, 1000);
+        
+        async function initPage() {
+            await loadEmployeeList();
+            await loadAttendanceData();
+        }
+        
+        async function loadEmployeeList() {
+            try {
+                const response = await fetch(API_BASE + 'attendance-api.php?action=getFilterOptions');
+                const data = await response.json();
+                if (data.success && data.data && data.data.departments) {
+                    const deptSelect = document.getElementById('departmentFilter');
+                    deptSelect.innerHTML = '<option value="">All Departments</option>';
+                    data.data.departments.forEach(dept => { deptSelect.innerHTML += `<option value="${dept}">${dept}</option>`; });
+                }
+            } catch(e) { console.log('Filter load fallback'); }
+        }
 
-        // Make functions global for onclick
-        window.openPayrollDashboard = openPayrollDashboard;
-        window.renderPayrollDashboard = renderPayrollDashboard;
-        window.switchPayrollTab = switchPayrollTab;
-        window.renderEmployeeSearchResults = renderEmployeeSearchResults;
-        window.addAdjItemFromSearch = addAdjItemFromSearch;
-        window.deleteAdjItem = deleteAdjItem;
-        window.addAdvance = addAdvance;
-        window.deleteAdvance = deleteAdvance;
-        window.setManualLate = setManualLate;
-        window.setManualPunctuality = setManualPunctuality;
-        window.setApprovedLeaves = setApprovedLeaves;
-        window.setTax = setTax;
-        window.saveEmpSettings = saveEmpSettings;
-        window.processFullPayroll = processFullPayroll;
-        window.exportPayrollCSV = exportPayrollCSV;
-        window.viewPayrollSlip = viewPayrollSlip;
-        window.downloadSlipAsHTML = downloadSlipAsHTML;
-        window.closePayrollDashboard = closePayrollDashboard;
-        window.viewEmployeeDetails = viewEmployeeDetails;
-        window.addLeave = addLeave;
-        window.toggleLeaveForm = toggleLeaveForm;
-        window.deleteLeave = deleteLeave;
-        window.exportToCSV = exportToCSV;
-        window.exportEmployeeAttendance = exportEmployeeAttendance;
-        window.loadAttendanceData = loadAttendanceData;
-        window.handlePayrollSearch = handlePayrollSearch;
-        window.filterSettingsTab = filterSettingsTab;
-        window.addAdvanceFromSearch = addAdvanceFromSearch;
-        window.setManualLateFromSearch = setManualLateFromSearch;
-        window.setManualPunctualityFromSearch = setManualPunctualityFromSearch;
-        window.setApprovedLeavesFromSearch = setApprovedLeavesFromSearch;
-        window.setTaxFromSearch = setTaxFromSearch;
-        window.closeModal = closeModal;
-        window.filterByTeamLead = filterByTeamLead;
+        function downloadPayrollCSVTemplate() {
+            const csvContent = "Biometric ID,Name,Basic Salary,Punctuality Amount,Appointment Date,Bank Name,Account No,Account Title,CNIC,Contact No\n101,John Doe,55000,5000,2026-05-01,Meezan Bank,01020304050607,John Doe,12345-6789012-3,03001234567\n102,Jane Smith,60000,5000,2026-06-15,Bank Alfalah,98765432109876,Jane Smith,35202-1234567-8,03219876543\n";
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "payroll_users_import_template.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
 
-        // ── Auto-initialize with current month on page load ───────────────────
-        (function initPage() {
-            const now = new Date();
-            const y = now.getFullYear();
-            const m = String(now.getMonth() + 1).padStart(2, '0');
-            const picker = document.getElementById('monthPicker');
-            // Only override if still showing an old hard-coded value
-            if (picker && picker.value !== `${y}-${m}`) {
-                picker.value = `${y}-${m}`;
+        // ===== BULK CSV IMPORT SYSTEM =====
+        function downloadCSVTemplate(type, isPerDay) {
+            let csvContent = "";
+            if (type === 'advance') {
+                csvContent = "BiometricID,Total,PerMonth,Paid\n1012,50000,5000,0\n";
+            } else if (type === 'manualLate') {
+                csvContent = "BiometricID,Amount\n1012,1500\n";
+            } else if (isPerDay) {
+                if (['halfDay','sd','ncns','misspunch'].includes(type)) {
+                    csvContent = "BiometricID,Date,Description\n1012,2026-07-15,Reason here\n";
+                } else {
+                    csvContent = "BiometricID,Amount,Date,Description\n1012,2500,2026-07-15,Reason here\n";
+                }
+            } else {
+                csvContent = "BiometricID,Amount,Description\n1012,5000,Reason here\n";
             }
-            loadEmployeeList();
-            loadAttendanceData();
-        })();
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `template_${type}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
 
-        // User Management global bindings
-        window.switchMainView = switchMainView;
-        window.loadFinanceUsers = loadFinanceUsers;
-        window.filterFinanceUsers = filterFinanceUsers;
-        window.openFinanceUserEditor = openFinanceUserEditor;
-        window.saveFinanceUserSettings = saveFinanceUserSettings;
+        function triggerCSVUpload(type) {
+            const input = document.getElementById(`csv-file-input-${type}`);
+            if (input) {
+                input.value = "";
+                input.click();
+            }
+        }
+
+        async function handleCSVFileSelected(event, type, isPerDay) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                processCSVData(text, type, isPerDay);
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSVText(text) {
+            const lines = [];
+            let row = [""];
+            let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const nextChar = text[i+1];
+                if (char === '"') {
+                    if (inQuotes && nextChar === '"') {
+                        row[row.length - 1] += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    row.push("");
+                } else if ((char === '\r' || char === '\n') && !inQuotes) {
+                    if (char === '\r' && nextChar === '\n') {
+                        i++;
+                    }
+                    lines.push(row);
+                    row = [""];
+                } else {
+                    row[row.length - 1] += char;
+                }
+            }
+            if (row.length > 1 || row[0] !== "") {
+                lines.push(row);
+            }
+            return lines;
+        }
+
+        function processCSVData(text, type, isPerDay) {
+            const parsedLines = parseCSVText(text);
+            if (parsedLines.length < 2) {
+                showToast("CSV file is empty or missing headers", "error");
+                return;
+            }
+            
+            const headers = parsedLines[0].map(h => h.trim().toLowerCase());
+            const rows = parsedLines.slice(1);
+            
+            const bidIdx = headers.findIndex(h => h.includes("biometric") || h === "id" || h === "code");
+            const amtIdx = headers.findIndex(h => h.includes("amount") || h === "amt");
+            const dateIdx = headers.findIndex(h => h.includes("date"));
+            const descIdx = headers.findIndex(h => h.includes("description") || h.includes("reason") || h === "comments");
+            const totalIdx = headers.findIndex(h === "total");
+            const perMonthIdx = headers.findIndex(h.includes("permonth") || h.includes("per_month"));
+            const paidIdx = headers.findIndex(h === "paid");
+
+            if (bidIdx === -1) {
+                showToast("Missing 'BiometricID' header in CSV", "error");
+                return;
+            }
+
+            const importQueue = [];
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                if (row.length === 1 && row[0] === "") continue;
+                const rawBid = row[bidIdx] ? row[bidIdx].trim() : "";
+                if (!rawBid) continue;
+                
+                const employee = allData.find(emp => String(emp.id) === String(rawBid));
+                const empName = employee ? employee.name : "Unknown Employee (Invalid Biometric ID)";
+                const isValid = !!employee;
+                
+                let amount = 0;
+                let date = "";
+                let description = "";
+                let total = 0;
+                let perMonth = 0;
+                let paid = 0;
+                
+                if (type === 'advance') {
+                    total = totalIdx !== -1 && row[totalIdx] ? parseFloat(row[totalIdx]) || 0 : 0;
+                    perMonth = perMonthIdx !== -1 && row[perMonthIdx] ? parseFloat(row[perMonthIdx]) || 0 : 0;
+                    paid = paidIdx !== -1 && row[paidIdx] ? parseFloat(row[paidIdx]) || 0 : 0;
+                    description = descIdx !== -1 && row[descIdx] ? row[descIdx].trim() : "Bulk Advance";
+                } else if (type === 'manualLate') {
+                    amount = amtIdx !== -1 && row[amtIdx] ? parseFloat(row[amtIdx]) || 0 : 0;
+                } else {
+                    if (amtIdx !== -1 && row[amtIdx]) {
+                        amount = parseFloat(row[amtIdx]) || 0;
+                    } else if (type === 'ncns') {
+                        amount = NCNS_PENALTY;
+                    } else if (type === 'misspunch') {
+                        amount = MISSPUNCH_DEDUCTION;
+                    }
+                    date = dateIdx !== -1 && row[dateIdx] ? row[dateIdx].trim() : `${currentYear}-${String(currentMonth).padStart(2,'0')}-01`;
+                    description = descIdx !== -1 && row[descIdx] ? row[descIdx].trim() : "Bulk Adjustment";
+                }
+
+                importQueue.push({
+                    biometricId: rawBid,
+                    employeeName: empName,
+                    amount,
+                    date,
+                    description,
+                    total,
+                    perMonth,
+                    paid,
+                    isValid
+                });
+            }
+
+            if (importQueue.length === 0) {
+                showToast("No valid rows found to import", "warning");
+                return;
+            }
+
+            showCSVPreviewModal(importQueue, type, isPerDay);
+        }
+
+        function showCSVPreviewModal(queue, type, isPerDay) {
+            window.pendingCSVQueue = queue.filter(r => r.isValid);
+            let modal = document.getElementById('csvPreviewModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'csvPreviewModal';
+                modal.className = 'modal';
+                document.body.appendChild(modal);
+            }
+            const validCount = window.pendingCSVQueue.length;
+            const invalidCount = queue.length - validCount;
+            let tableRows = queue.map(r => `
+                <tr style="${r.isValid ? '' : 'background: rgba(239, 68, 68, 0.1); color: var(--danger);'}">
+                    <td style="padding: 8px;">${r.isValid ? '✅' : '❌'}</td>
+                    <td style="padding: 8px;"><strong>${escapeHtml(r.biometricId)}</strong></td>
+                    <td style="padding: 8px;">${escapeHtml(r.employeeName)}</td>
+                    ${type === 'advance' ? `
+                        <td style="padding: 8px;">₨${r.total.toLocaleString()}</td>
+                        <td style="padding: 8px;">₨${r.perMonth.toLocaleString()}</td>
+                        <td style="padding: 8px;">₨${r.paid.toLocaleString()}</td>
+                    ` : `
+                        <td style="padding: 8px;">${type === 'manualLate' ? `₨${r.amount.toLocaleString()}` : (['halfDay','sd','ncns','misspunch'].includes(type) ? '—' : `₨${r.amount.toLocaleString()}`)}</td>
+                        <td style="padding: 8px;">${escapeHtml(r.date || '—')}</td>
+                        <td style="padding: 8px;">${escapeHtml(r.description || '—')}</td>
+                    `}
+                </tr>
+            `).join('');
+
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 800px; max-height: 80vh; display: flex; flex-direction: column;">
+                    <div class="modal-header">
+                        <h2>Confirm CSV Import (${type.toUpperCase()})</h2>
+                        <div class="modal-close" onclick="closeCSVPreviewModal()">&times;</div>
+                    </div>
+                    <div style="padding: 16px 24px; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border-color); display: flex; gap: 20px;">
+                        <div>Total Rows: <strong>${queue.length}</strong></div>
+                        <div style="color: var(--secondary);">Valid: <strong>${validCount}</strong></div>
+                        <div style="color: var(--danger);">Invalid/Warning: <strong>${invalidCount}</strong></div>
+                    </div>
+                    <div style="flex: 1; overflow-y: auto; padding: 20px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--border-color); text-align: left;">
+                                    <th style="padding: 8px;">Status</th>
+                                    <th style="padding: 8px;">Biometric ID</th>
+                                    <th style="padding: 8px;">Name</th>
+                                    ${type === 'advance' ? `
+                                        <th style="padding: 8px;">Total</th>
+                                        <th style="padding: 8px;">Per Month</th>
+                                        <th style="padding: 8px;">Paid</th>
+                                    ` : `
+                                        <th style="padding: 8px;">Amount</th>
+                                        <th style="padding: 8px;">Date</th>
+                                        <th style="padding: 8px;">Description</th>
+                                    `}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tableRows}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid var(--border-color); text-align: right; display: flex; justify-content: flex-end; gap: 12px;">
+                        <button class="btn btn-secondary" onclick="closeCSVPreviewModal()">Cancel</button>
+                        <button class="btn btn-primary" onclick="confirmCSVImport('${type}')" ${validCount === 0 ? 'disabled' : ''}>
+                            <i class="fas fa-file-import"></i> Import ${validCount} Entries
+                        </button>
+                    </div>
+                </div>
+            `;
+            modal.classList.add('active');
+        }
+
+        function closeCSVPreviewModal() {
+            const modal = document.getElementById('csvPreviewModal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function confirmCSVImport(type) {
+            const queue = window.pendingCSVQueue || [];
+            if (queue.length === 0) return;
+            queue.forEach(r => {
+                if (type === 'advance') {
+                    payrollAdj.advance[r.biometricId] = {
+                        total: r.total,
+                        perMonth: r.perMonth,
+                        paid: r.paid,
+                        skipMonths: [],
+                        addedAt: new Date().toISOString()
+                    };
+                } else if (type === 'manualLate') {
+                    payrollAdj.manualLate[r.biometricId] = r.amount;
+                } else {
+                    if (!payrollAdj[type][r.biometricId]) {
+                        payrollAdj[type][r.biometricId] = [];
+                    }
+                    payrollAdj[type][r.biometricId].push({
+                        amount: r.amount,
+                        reason: r.description,
+                        date: r.date,
+                        addedAt: new Date().toISOString()
+                    });
+                }
+            });
+            persistAllAdj();
+            showToast(`✅ Successfully imported ${queue.length} entries!`, 'success');
+            closeCSVPreviewModal();
+            loadAttendanceData();
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // USER MANAGEMENT (FINANCE USER SETTINGS) MODULE
+        // ═══════════════════════════════════════════════════════════════════
+        let financeUsersData = [];
+
+        async function loadFinanceUsers() {
+            const tbody = document.getElementById('financeUsersTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '<tr><td colspan="9"><div class="fum-empty"><div class="loading-spinner"></div><p style="margin-top:10px;">Loading users...</p></div></td></tr>';
+            try {
+                const res = await fetch('api/payroll_api.php?action=getFinanceUsers');
+                const data = await res.json();
+                if (data.success && data.data) {
+                    financeUsersData = data.data;
+                    renderFinanceUsersTable(financeUsersData);
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="9"><div class="fum-empty"><p style="color:var(--danger);">Failed to load employees.</p></div></td></tr>';
+                }
+            } catch(e) {
+                console.error(e);
+                tbody.innerHTML = '<tr><td colspan="9"><div class="fum-empty"><p style="color:var(--danger);">Connection error loading employees.</p></div></td></tr>';
+            }
+        }
+
+        function renderFinanceUsersTable(users) {
+            const tbody = document.getElementById('financeUsersTableBody');
+            if (!tbody) return;
+            if (!users || users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9"><div class="fum-empty"><p>No employees found.</p></div></td></tr>';
+                return;
+            }
+            tbody.innerHTML = users.map(u => {
+                const initials = u.full_name ? u.full_name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : '??';
+                const apptStr = u.appointment_date ? u.appointment_date : '<span style="color:var(--text-muted); font-style:italic;">Not set</span>';
+                
+                // Calculate 60-day eligibility indicator badge
+                let apptBadge = apptStr;
+                if (u.appointment_date) {
+                    const appt = new Date(u.appointment_date);
+                    const now = new Date();
+                    const diffDays = Math.floor((now - appt) / (1000 * 60 * 60 * 24));
+                    if (diffDays >= 60) {
+                        apptBadge = `<span>${u.appointment_date}</span> <span style="font-size:10px; background:rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3); padding:2px 6px; border-radius:10px; margin-left:4px;">>= 60 Days</span>`;
+                    } else {
+                        apptBadge = `<span>${u.appointment_date}</span> <span style="font-size:10px; background:rgba(245,158,11,0.15); color:#f59e0b; border:1px solid rgba(245,158,11,0.3); padding:2px 6px; border-radius:10px; margin-left:4px;">${diffDays} Days (<60)</span>`;
+                    }
+                }
+
+                return `
+                    <tr>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <div style="width:34px;height:34px;background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.3);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:12px;">${initials}</div>
+                                <div><strong style="color:#fff;">${escapeHtml(u.full_name)}</strong></div>
+                            </div>
+                        </td>
+                        <td><span style="font-weight:700; font-family:monospace;">${escapeHtml(u.employee_code)}</span></td>
+                        <td><span style="color:var(--text-muted); font-size:12px;">${escapeHtml(u.email || '—')}</span></td>
+                        <td><span style="color:#38bdf8; font-size:12px; font-weight:600;">${escapeHtml(u.contact_no || '—')}</span></td>
+                        <td><span style="background:rgba(255,255,255,0.04); border:1px solid var(--border-color); padding:3px 8px; border-radius:12px; font-size:11px;">${escapeHtml(u.department || 'General')}</span></td>
+                        <td><span style="background:rgba(99,102,241,0.12); border:1px solid rgba(99,102,241,0.3); color:#818cf8; padding:3px 8px; border-radius:12px; font-size:11px;">${escapeHtml(u.designation || 'Staff')}</span></td>
+                        <td><span style="color:#f8fafc; font-size:12px;">${escapeHtml(u.bank_name || '—')}</span></td>
+                        <td><span style="font-family:monospace; color:#34d399; font-size:12px;">${escapeHtml(u.account_no || '—')}</span></td>
+                        <td><span style="color:#cbd5e1; font-size:12px;">${escapeHtml(u.account_title || '—')}</span></td>
+                        <td><span style="font-family:monospace; color:#fbbf24; font-size:12px;">${escapeHtml(u.cnic || '—')}</span></td>
+                        <td>${apptBadge}</td>
+                        <td style="font-weight:700; color:#fff;">₨${Number(u.basic_salary).toLocaleString()}</td>
+                        <td style="text-align:right; font-weight:700; color:#10b981;">₨${Number(u.punctuality_amount).toLocaleString()}</td>
+                        <td style="text-align:center;">
+                            <button class="btn btn-secondary" onclick="openFinanceUserEditModal('${u.employee_code}')" style="padding:5px 12px; font-size:11px; background:rgba(249,115,22,0.15); color:var(--primary); border:1px solid rgba(249,115,22,0.3);"><i class="fas fa-edit"></i> Edit</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterFinanceUsers() {
+            const query = (document.getElementById('financeUserSearch').value || '').toLowerCase().trim();
+            if (!query) {
+                renderFinanceUsersTable(financeUsersData);
+                return;
+            }
+            const filtered = financeUsersData.filter(u => 
+                (u.full_name || '').toLowerCase().includes(query) ||
+                (u.employee_code || '').toLowerCase().includes(query) ||
+                (u.department || '').toLowerCase().includes(query) ||
+                (u.designation || '').toLowerCase().includes(query) ||
+                (u.bank_name || '').toLowerCase().includes(query) ||
+                (u.account_no || '').toLowerCase().includes(query) ||
+                (u.account_title || '').toLowerCase().includes(query) ||
+                (u.cnic || '').toLowerCase().includes(query) ||
+                (u.contact_no || '').toLowerCase().includes(query)
+            );
+            renderFinanceUsersTable(filtered);
+        }
+
+        function openFinanceUserEditModal(empCode) {
+            const u = financeUsersData.find(user => String(user.employee_code) === String(empCode));
+            if (!u) return;
+
+            document.getElementById('fe_employee_code').value = u.employee_code;
+            document.getElementById('fe_view_code').textContent = u.employee_code;
+            document.getElementById('fe_view_name').textContent = u.full_name;
+            document.getElementById('fe_view_department').textContent = u.department || '—';
+            document.getElementById('fe_view_designation').textContent = u.designation || '—';
+            document.getElementById('fe_basic_salary').value = u.basic_salary || 50000;
+            document.getElementById('fe_punctuality_amount').value = u.punctuality_amount || 5000;
+            document.getElementById('fe_appointment_date').value = u.appointment_date || '';
+
+            document.getElementById('fe_bank_name').value = u.bank_name || '';
+            document.getElementById('fe_account_no').value = u.account_no || '';
+            document.getElementById('fe_account_title').value = u.account_title || '';
+            document.getElementById('fe_cnic').value = u.cnic || '';
+            document.getElementById('fe_contact_no').value = u.contact_no || '';
+
+            document.getElementById('feModalName').textContent = u.full_name;
+            document.getElementById('feModalAvatar').textContent = u.full_name ? u.full_name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : '??';
+
+            document.getElementById('financeUserEditModal').classList.add('active');
+        }
+
+        async function saveFinanceUserSettings(event) {
+            event.preventDefault();
+            const empCode = document.getElementById('fe_employee_code').value;
+            const salary = document.getElementById('fe_basic_salary').value;
+            const puncAmt = document.getElementById('fe_punctuality_amount').value;
+            const apptDate = document.getElementById('fe_appointment_date').value;
+
+            const bankName = document.getElementById('fe_bank_name').value;
+            const accountNo = document.getElementById('fe_account_no').value;
+            const accountTitle = document.getElementById('fe_account_title').value;
+            const cnicVal = document.getElementById('fe_cnic').value;
+            const contactNo = document.getElementById('fe_contact_no').value;
+
+            try {
+                const res = await fetch('api/payroll_api.php?action=updateFinanceUser', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        employee_code: empCode,
+                        basic_salary: parseFloat(salary),
+                        punctuality_enabled: 1,
+                        punctuality_amount: parseFloat(puncAmt),
+                        appointment_date: apptDate,
+                        bank_name: bankName,
+                        account_no: accountNo,
+                        account_title: accountTitle,
+                        cnic: cnicVal,
+                        contact_no: contactNo
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('✅ Employee settings updated successfully!', 'success');
+                    closeModal('financeUserEditModal');
+                    await loadFinanceUsers();
+                    await initPage();
+                } else {
+                    showToast('❌ ' + (data.error || 'Failed to save settings'), 'error');
+                }
+            } catch(e) {
+                console.error(e);
+                showToast('❌ Connection error saving settings', 'error');
+            }
+        }
+
+        function openBulkImportModal() {
+            const fileInput = document.getElementById('csvFileInput');
+            if (fileInput) fileInput.value = '';
+            const fileNameSpan = document.getElementById('selectedFileName');
+            if (fileNameSpan) { fileNameSpan.style.display = 'none'; fileNameSpan.textContent = ''; }
+            const dash = document.getElementById('importResultDashboard');
+            if (dash) dash.style.display = 'none';
+
+            const dragZone = document.getElementById('csvDragZone');
+            if (dragZone && !dragZone.dataset.bound) {
+                dragZone.dataset.bound = 'true';
+                dragZone.addEventListener('click', () => fileInput.click());
+                dragZone.addEventListener('dragover', (e) => { e.preventDefault(); dragZone.style.borderColor = '#10b981'; });
+                dragZone.addEventListener('dragleave', () => { dragZone.style.borderColor = 'rgba(255,255,255,0.15)'; });
+                dragZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dragZone.style.borderColor = 'rgba(255,255,255,0.15)';
+                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        fileInput.files = e.dataTransfer.files;
+                        handleBulkCSVFileChange();
+                    }
+                });
+            }
+
+            if (fileInput && !fileInput.dataset.bound) {
+                fileInput.dataset.bound = 'true';
+                fileInput.addEventListener('change', handleBulkCSVFileChange);
+            }
+
+            document.getElementById('financeBulkImportModal').classList.add('active');
+        }
+
+        function handleBulkCSVFileChange() {
+            const fileInput = document.getElementById('csvFileInput');
+            const fileNameSpan = document.getElementById('selectedFileName');
+            if (fileInput.files && fileInput.files[0]) {
+                fileNameSpan.textContent = '📄 ' + fileInput.files[0].name;
+                fileNameSpan.style.display = 'inline-block';
+            }
+        }
+
+        async function processBulkImportCSV() {
+            const fileInput = document.getElementById('csvFileInput');
+            if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+                showToast('Please select a CSV file first', 'warning');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('csv_file', fileInput.files[0]);
+
+            const dash = document.getElementById('importResultDashboard');
+            if (dash) dash.style.display = 'none';
+
+            try {
+                const res = await fetch('api/payroll_api.php?action=importPayrollCSV', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success && data.data) {
+                    const info = data.data;
+                    document.getElementById('resTotalRows').textContent = info.total_rows || 0;
+                    document.getElementById('resUpdated').textContent = info.updated_count || 0;
+                    document.getElementById('resSkipped').textContent = info.skipped_count || 0;
+                    document.getElementById('resFailed').textContent = info.failed_count || 0;
+
+                    const list = document.getElementById('importDetailsList');
+                    list.innerHTML = '';
+                    (info.updated || []).forEach(u => {
+                        list.innerHTML += `<li style="color:#10b981; margin-bottom:4px;">✅ Employee ID ${u.code} (${u.name}): Basic ₨${Number(u.salary).toLocaleString()} | Appt: ${u.appointment_date}</li>`;
+                    });
+                    (info.skipped || []).forEach(s => {
+                        list.innerHTML += `<li style="color:#f59e0b; margin-bottom:4px;">⚠️ Row ${s.row} (ID: ${s.code || 'N/A'}): ${s.reason}</li>`;
+                    });
+                    (info.failed || []).forEach(f => {
+                        list.innerHTML += `<li style="color:#ef4444; margin-bottom:4px;">❌ Row ${f.row} (ID: ${f.code || 'N/A'}): ${f.reason}</li>`;
+                    });
+
+                    if (dash) dash.style.display = 'block';
+                    showToast('✅ Bulk payroll CSV processed successfully!', 'success');
+                    await loadFinanceUsers();
+                    await initPage();
+                } else {
+                    showToast('❌ ' + (data.error || 'Failed to process CSV'), 'error');
+                }
+            } catch(e) {
+                console.error(e);
+                showToast('❌ Connection error uploading CSV', 'error');
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // PETTY CASH MODULE — JavaScript
+        // ═══════════════════════════════════════════════════════════════════
+        const PettyCash = (() => {
+            const API = 'api/petty_cash_api.php';
+            let _allRequests = [];
+            let _pendingAction = null;
+            let _pcCategoryChart = null;
+            let _pcBranchChart = null;
+
+            function fmt(n) {
+                return '\u20a8 ' + Number(n || 0).toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+            function fmtDate(d) {
+                if (!d) return '\u2014';
+                const dt = new Date(d);
+                return dt.toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
+            }
+            function fmtBranch(b) {
+                const m = { main: 'Main Branch', commercial: 'Commercial', workfromhome: 'Work From Home' };
+                return m[b] || b || '\u2014';
+            }
+            function statusBadge(s) {
+                const map = {
+                    submitted:       '<span class="pc-badge pc-badge-submitted">Submitted</span>',
+                    approved:        '<span class="pc-badge pc-badge-approved">Approved</span>',
+                    rejected:        '<span class="pc-badge pc-badge-rejected">Rejected</span>',
+                    need_correction: '<span class="pc-badge pc-badge-need_correction">Needs Correction</span>',
+                };
+                return map[s] || `<span class="pc-badge">${s}</span>`;
+            }
+            function isLocked(s) { return s === 'approved' || s === 'rejected'; }
+            function fileSz(bytes) {
+                if (bytes < 1024) return bytes + ' B';
+                if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+                return (bytes / 1048576).toFixed(1) + ' MB';
+            }
+
+            function init() {
+                const nowMonth = new Date().toISOString().slice(0, 7);
+                const dashMonth = document.getElementById('pcDashMonth');
+                if (dashMonth && !dashMonth.value) dashMonth.value = nowMonth;
+                const ledgerMonth = document.getElementById('pcLedgerMonth');
+                if (ledgerMonth && !ledgerMonth.value) ledgerMonth.value = nowMonth;
+
+                const fMonth = document.getElementById('pcFilterMonth');
+                if (fMonth && fMonth.options.length === 1) {
+                    const now = new Date();
+                    for (let i = 0; i < 12; i++) {
+                        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                        const val = d.toISOString().slice(0, 7);
+                        const opt = document.createElement('option');
+                        opt.value = val;
+                        opt.textContent = d.toLocaleDateString('en-PK', { year: 'numeric', month: 'long' });
+                        fMonth.appendChild(opt);
+                    }
+                }
+
+                const reqBy = document.getElementById('pcRequestedBy');
+                if (reqBy && !reqBy.value) {
+                    const nameEl = document.getElementById('sidebarUserName');
+                    if (nameEl) reqBy.value = nameEl.textContent.trim();
+                }
+                const dateEl = document.getElementById('pcExpenseDate');
+                if (dateEl && !dateEl.value) dateEl.value = new Date().toISOString().slice(0, 10);
+
+                const zone = document.getElementById('pcUploadZone');
+                if (zone) {
+                    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragging'); });
+                    zone.addEventListener('dragleave', () => zone.classList.remove('dragging'));
+                    zone.addEventListener('drop', e => {
+                        e.preventDefault();
+                        zone.classList.remove('dragging');
+                        const fi = document.getElementById('pcBillFile');
+                        if (e.dataTransfer.files.length) {
+                            const dt = new DataTransfer();
+                            dt.items.add(e.dataTransfer.files[0]);
+                            fi.files = dt.files;
+                            onFileSelect(fi);
+                        }
+                    });
+                }
+                loadCategories();
+                loadDashboard();
+            }
+
+            function switchTab(tab) {
+                document.querySelectorAll('.pc-tab').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.pc-tab-panel').forEach(p => p.classList.remove('active'));
+                const btn = document.getElementById(`pct-${tab}`);
+                const panel = document.getElementById(`pctp-${tab}`);
+                if (btn) btn.classList.add('active');
+                if (panel) panel.classList.add('active');
+                if (tab === 'requests') loadRequests();
+                if (tab === 'ledger') loadLedger();
+                if (tab === 'dashboard') loadDashboard();
+            }
+
+            async function loadDashboard() {
+                const month  = document.getElementById('pcDashMonth')?.value  || new Date().toISOString().slice(0, 7);
+                const branch = document.getElementById('pcDashBranch')?.value || '';
+                try {
+                    const res  = await fetch(`${API}?action=getDashboard&month=${encodeURIComponent(month)}&branch=${encodeURIComponent(branch)}`);
+                    const data = await res.json();
+                    if (data.success) renderDashboard(data.data);
+                } catch(e) { console.error('PC dashboard error:', e); }
+            }
+
+            function renderDashboard({ stats, categoryData, branchData }) {
+                const grid = document.getElementById('pcDashStats');
+                if (!grid) return;
+                grid.innerHTML = `
+                    <div class="pc-stat-card hero">
+                        <div class="pc-stat-card-header">
+                            <div class="pc-stat-icon hero-icon"><i class="fas fa-wallet"></i></div>
+                            <span class="pc-badge pc-badge-approved">Live Sync</span>
+                        </div>
+                        <div>
+                            <div class="pc-stat-value">${fmt(stats.approved_amount)}</div>
+                            <div class="pc-stat-label">Total Approved Amount</div>
+                        </div>
+                    </div>
+                    <div class="pc-stat-card hero-pending">
+                        <div class="pc-stat-card-header">
+                            <div class="pc-stat-icon hero-pending-icon"><i class="fas fa-hourglass-half"></i></div>
+                            <span class="pc-badge pc-badge-need_correction">${stats.pending} Pending</span>
+                        </div>
+                        <div>
+                            <div class="pc-stat-value">${fmt(stats.pending_amount)}</div>
+                            <div class="pc-stat-label">Pending Disbursement</div>
+                        </div>
+                    </div>
+                    <div class="pc-stat-card">
+                        <div class="pc-stat-card-header">
+                            <div class="pc-stat-icon blue"><i class="fas fa-inbox"></i></div>
+                        </div>
+                        <div>
+                            <div class="pc-stat-value">${stats.total_submitted}</div>
+                            <div class="pc-stat-label">Total Requests</div>
+                        </div>
+                    </div>
+                    <div class="pc-stat-card">
+                        <div class="pc-stat-card-header">
+                            <div class="pc-stat-icon green"><i class="fas fa-check-circle"></i></div>
+                        </div>
+                        <div>
+                            <div class="pc-stat-value">${stats.approved}</div>
+                            <div class="pc-stat-label">Approved Requests</div>
+                        </div>
+                    </div>
+                    <div class="pc-stat-card">
+                        <div class="pc-stat-card-header">
+                            <div class="pc-stat-icon yellow"><i class="fas fa-clock"></i></div>
+                        </div>
+                        <div>
+                            <div class="pc-stat-value">${stats.pending}</div>
+                            <div class="pc-stat-label">Pending Review</div>
+                        </div>
+                    </div>
+                    <div class="pc-stat-card">
+                        <div class="pc-stat-card-header">
+                            <div class="pc-stat-icon red"><i class="fas fa-times-circle"></i></div>
+                        </div>
+                        <div>
+                            <div class="pc-stat-value">${stats.rejected}</div>
+                            <div class="pc-stat-label">Rejected Requests</div>
+                        </div>
+                    </div>
+                    <div class="pc-stat-card">
+                        <div class="pc-stat-card-header">
+                            <div class="pc-stat-icon orange"><i class="fas fa-exclamation-triangle"></i></div>
+                        </div>
+                        <div>
+                            <div class="pc-stat-value">${stats.need_correction}</div>
+                            <div class="pc-stat-label">Need Correction</div>
+                        </div>
+                    </div>
+                `;
+                renderCategoryChart(categoryData);
+                renderBranchChart(branchData);
+            }
+
+            function renderCategoryChart(data) {
+                const canvas = document.getElementById('pcCategoryChart');
+                if (!canvas) return;
+                if (_pcCategoryChart) { _pcCategoryChart.destroy(); _pcCategoryChart = null; }
+                const container = canvas.parentElement;
+                
+                const existingEmpty = container.querySelector('.pc-empty-overlay');
+                if (existingEmpty) existingEmpty.remove();
+                canvas.style.display = 'block';
+
+                if (!data || data.length === 0) {
+                    canvas.style.display = 'none';
+                    const overlay = document.createElement('div');
+                    overlay.className = 'pc-empty pc-empty-overlay';
+                    overlay.style.padding = '30px 20px';
+                    overlay.innerHTML = `<div class="pc-empty-icon"><i class="fas fa-chart-bar"></i></div><h4>No Data Available</h4><p>No approved expenses recorded for this month.</p>`;
+                    container.appendChild(overlay);
+                    return;
+                }
+
+                const ctx = canvas.getContext('2d');
+                const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+                gradient.addColorStop(0, 'rgba(249, 115, 22, 0.85)');
+                gradient.addColorStop(1, 'rgba(249, 115, 22, 0.15)');
+
+                _pcCategoryChart = new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: data.map(d => d.label),
+                        datasets: [{
+                            data: data.map(d => d.value),
+                            backgroundColor: gradient,
+                            borderColor: '#f97316',
+                            borderWidth: 2,
+                            borderRadius: 10,
+                            borderSkipped: false,
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { ticks: { color: '#94a3b8', font: { size: 11, weight: '600' } }, grid: { display: false } },
+                            y: { ticks: { color: '#94a3b8', font: { size: 10 }, callback: v => '\u20a8'+Number(v).toLocaleString() }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                        }
+                    }
+                });
+            }
+
+            function renderBranchChart(data) {
+                const canvas = document.getElementById('pcBranchChart');
+                if (!canvas) return;
+                if (_pcBranchChart) { _pcBranchChart.destroy(); _pcBranchChart = null; }
+                const container = canvas.parentElement;
+
+                // Clear any pre-existing empty overlay
+                const existingEmpty = container.querySelector('.pc-empty-overlay');
+                if (existingEmpty) existingEmpty.remove();
+                canvas.style.display = 'block';
+
+                if (!data || data.length === 0) {
+                    canvas.style.display = 'none';
+                    const overlay = document.createElement('div');
+                    overlay.className = 'pc-empty pc-empty-overlay';
+                    overlay.style.padding = '30px 20px';
+                    overlay.innerHTML = `<div class="pc-empty-icon"><i class="fas fa-chart-pie"></i></div><h4>No Data Available</h4><p>No approved expenses recorded for this month.</p>`;
+                    container.appendChild(overlay);
+                    return;
+                }
+                _pcBranchChart = new Chart(canvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.map(d => d.label),
+                        datasets: [{ data: data.map(d => d.value), backgroundColor: ['rgba(249,115,22,0.8)','rgba(16,185,129,0.8)','rgba(59,130,246,0.8)'], borderColor: ['#f97316','#10b981','#3b82f6'], borderWidth: 2, hoverOffset: 8 }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false, cutout: '65%',
+                        plugins: {
+                            legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 14, font: { size: 11 } } },
+                            tooltip: { callbacks: { label: ctx => ` \u20a8 ${Number(ctx.parsed).toLocaleString('en-PK', { minimumFractionDigits: 2 })}` } }
+                        }
+                    }
+                });
+            }
+
+            async function loadRequests() {
+                const tbody = document.getElementById('pcRequestsTbody');
+                if (!tbody) return;
+                tbody.innerHTML = `<tr><td colspan="12"><div class="loading-state"><div class="loading-spinner"></div><p>Loading...</p></div></td></tr>`;
+                const month    = encodeURIComponent(document.getElementById('pcFilterMonth')?.value    || '');
+                const branch   = encodeURIComponent(document.getElementById('pcFilterBranch')?.value   || '');
+                const category = encodeURIComponent(document.getElementById('pcFilterCategory')?.value || '');
+                const status   = encodeURIComponent(document.getElementById('pcFilterStatus')?.value   || '');
+                try {
+                    const res = await fetch(`${API}?action=getRequests&month=${month}&branch=${branch}&category=${category}&status=${status}`);
+                    const data = await res.json();
+                    if (!data.success) { tbody.innerHTML = `<tr><td colspan="12"><div class="pc-empty"><div class="pc-empty-icon"><i class="fas fa-exclamation-circle"></i></div><h4>Error loading data</h4></div></td></tr>`; return; }
+                    _allRequests = data.data || [];
+                    renderRequestsTable(_allRequests);
+                } catch(e) {
+                    tbody.innerHTML = `<tr><td colspan="12"><div class="pc-empty"><div class="pc-empty-icon"><i class="fas fa-wifi"></i></div><h4>Connection Error</h4></div></td></tr>`;
+                }
+            }
+
+            function filterRequests() {
+                const q = (document.getElementById('pcSearchQ')?.value || '').toLowerCase().trim();
+                const filtered = q === '' ? _allRequests : _allRequests.filter(r =>
+                    (r.item_name||'').toLowerCase().includes(q) ||
+                    (r.vendor_name||'').toLowerCase().includes(q) ||
+                    (r.requested_by||'').toLowerCase().includes(q) ||
+                    (r.category||'').toLowerCase().includes(q) ||
+                    (r.bill_number||'').toLowerCase().includes(q)
+                );
+                renderRequestsTable(filtered);
+            }
+
+            function renderRequestsTable(rows) {
+                const tbody = document.getElementById('pcRequestsTbody');
+                const count = document.getElementById('pcReqCount');
+                if (!tbody) return;
+                if (count) count.textContent = `\u2014 ${rows.length} record${rows.length !== 1 ? 's' : ''}`;
+                if (rows.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="12"><div class="pc-empty"><div class="pc-empty-icon"><i class="fas fa-receipt"></i></div><h4>No requests found</h4><p>Adjust your filters or submit a new request.</p></div></td></tr>`;
+                    return;
+                }
+                tbody.innerHTML = rows.map((r) => {
+                    const locked = isLocked(r.status);
+                    const safeName = (r.item_name || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                    const acts = locked
+                        ? `<span class="pc-locked-tag"><i class="fas fa-lock"></i> Locked</span>`
+                        : `<button class="pc-action-btn pc-btn-approve" title="Approve" onclick="PettyCash.openActionModal(${r.id},'approved','${safeName}',${r.amount})"><i class="fas fa-check"></i></button>
+                           <button class="pc-action-btn pc-btn-correction" title="Need Correction" onclick="PettyCash.openActionModal(${r.id},'need_correction','${safeName}',${r.amount})"><i class="fas fa-edit"></i></button>
+                           <button class="pc-action-btn pc-btn-reject" title="Reject" onclick="PettyCash.openActionModal(${r.id},'rejected','${safeName}',${r.amount})"><i class="fas fa-times"></i></button>
+                           <button class="pc-action-btn pc-btn-delete" title="Delete" onclick="PettyCash.deleteRequest(${r.id})"><i class="fas fa-trash"></i></button>`;
+                    const billBtn = r.bill_file_path
+                        ? `<button class="pc-action-btn pc-btn-view" title="View Bill" onclick="PettyCash.viewBill('${r.bill_file_path}')"><i class="fas fa-eye"></i></button>`
+                        : `<span style="color:var(--text-muted);font-size:10px;">\u2014</span>`;
+                    return `<tr>
+                        <td style="color:var(--text-muted);font-size:11px;">#${r.id}</td>
+                        <td style="white-space:nowrap;">${fmtDate(r.expense_date)}</td>
+                        <td style="font-weight:600;color:white;max-width:160px;overflow:hidden;text-overflow:ellipsis;" title="${escapeHtml(r.item_name)}">${escapeHtml(r.item_name)}</td>
+                        <td><span class="pc-category-pill">${escapeHtml(r.category)}</span></td>
+                        <td style="white-space:nowrap;">${fmtBranch(r.branch)}</td>
+                        <td style="color:var(--text-muted);">${escapeHtml(r.vendor_name||'\u2014')}</td>
+                        <td class="amount-cell">${fmt(r.amount)}</td>
+                        <td style="white-space:nowrap;">${escapeHtml(r.requested_by)}</td>
+                        <td>${statusBadge(r.status)}</td>
+                        <td style="font-size:11px;color:var(--text-muted);">${r.action_by?escapeHtml(r.action_by):'\u2014'}</td>
+                        <td style="text-align:center;">${billBtn}</td>
+                        <td style="text-align:center;white-space:nowrap;"><div style="display:flex;gap:4px;justify-content:center;">${acts}</div></td>
+                    </tr>`;
+                }).join('');
+            }
+
+            async function loadLedger() {
+                const tbody = document.getElementById('pcLedgerTbody');
+                const totalDiv = document.getElementById('pcLedgerTotal');
+                const catCard = document.getElementById('pcLedgerCategoryCard');
+                const catGrid = document.getElementById('pcLedgerCategoryGrid');
+                if (!tbody) return;
+
+                tbody.innerHTML = `<tr><td colspan="11"><div class="loading-state"><div class="loading-spinner"></div><p>Loading ledger...</p></div></td></tr>`;
+                if (totalDiv) totalDiv.style.display = 'none';
+                if (catCard) catCard.style.display = 'none';
+
+                const month  = encodeURIComponent(document.getElementById('pcLedgerMonth')?.value  || new Date().toISOString().slice(0,7));
+                const branch = encodeURIComponent(document.getElementById('pcLedgerBranch')?.value || '');
+                try {
+                    const res = await fetch(`${API}?action=getLedger&month=${month}&branch=${branch}`);
+                    const data = await res.json();
+                    if (!data.success) return;
+                    const { rows, total, categoryBreakdown } = data.data;
+                    if (!rows || rows.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="11"><div class="pc-empty"><div class="pc-empty-icon"><i class="fas fa-book"></i></div><h4>No approved expenses</h4><p>No approved petty cash for this month and branch.</p></div></td></tr>`;
+                        return;
+                    }
+                    tbody.innerHTML = rows.map((r, i) => `
+                        <tr>
+                            <td style="color:var(--text-muted);font-size:11px;">${i+1}</td>
+                            <td style="white-space:nowrap;">${fmtDate(r.expense_date)}</td>
+                            <td style="font-weight:600;color:white;">${escapeHtml(r.item_name)}</td>
+                            <td><span class="pc-category-pill">${escapeHtml(r.category)}</span></td>
+                            <td>${fmtBranch(r.branch)}</td>
+                            <td style="color:var(--text-muted);">${escapeHtml(r.vendor_name||'\u2014')}</td>
+                            <td style="color:var(--text-muted);font-size:11px;font-family:monospace;">${escapeHtml(r.bill_number||'\u2014')}</td>
+                            <td>${escapeHtml(r.requested_by)}</td>
+                            <td style="color:var(--secondary);font-weight:600;">${escapeHtml(r.action_by||'\u2014')}</td>
+                            <td style="font-size:11px;color:var(--text-muted);">${r.action_at?fmtDate(r.action_at):'\u2014'}</td>
+                            <td class="amount-cell" style="text-align:right;">${fmt(r.amount)}</td>
+                        </tr>
+                    `).join('');
+
+                    // Render category breakdown grid
+                    if (categoryBreakdown && categoryBreakdown.length > 0 && catGrid && catCard) {
+                        catGrid.innerHTML = categoryBreakdown.map(item => `
+                            <div class="pc-category-summary-item">
+                                <span><i class="fas fa-tag" style="color:var(--primary); margin-right:6px;"></i>${escapeHtml(item.category)}</span>
+                                <strong>${fmt(item.total)}</strong>
+                            </div>
+                        `).join('');
+                        catCard.style.display = 'block';
+                    }
+
+                    if (totalDiv) {
+                        totalDiv.style.display = 'flex';
+                        document.getElementById('pcLedgerTotalAmt').textContent = fmt(total);
+                    }
+                } catch(e) {
+                    tbody.innerHTML = `<tr><td colspan="11"><div class="pc-empty"><div class="pc-empty-icon"><i class="fas fa-wifi"></i></div><h4>Connection Error</h4></div></td></tr>`;
+                }
+            }
+
+            function onFileSelect(input) {
+                const file = input.files[0];
+                if (!file) return;
+                const preview = document.getElementById('pcUploadPreview');
+                const thumb   = document.getElementById('pcPreviewThumb');
+                document.getElementById('pcPreviewName').textContent = file.name;
+                document.getElementById('pcPreviewSize').textContent = fileSz(file.size);
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = e => { thumb.src = e.target.result; thumb.style.display = 'block'; };
+                    reader.readAsDataURL(file);
+                } else {
+                    thumb.style.display = 'none'; thumb.src = '';
+                }
+                preview.classList.add('show');
+            }
+
+            function clearFile() {
+                document.getElementById('pcBillFile').value = '';
+                document.getElementById('pcUploadPreview').classList.remove('show');
+                document.getElementById('pcPreviewThumb').src = '';
+            }
+
+            async function loadCategories() {
+                try {
+                    const res = await fetch(`${API}?action=getCategories`);
+                    const data = await res.json();
+                    if (!data.success || !data.data) return;
+                    
+                    const select = document.getElementById('pcCategorySelect');
+                    const filterSelect = document.getElementById('pcFilterCategory');
+                    if (!select) return;
+
+                    const curVal = select.value;
+                    let html = '<option value="">Select Category</option>';
+                    data.data.forEach(cat => {
+                        html += `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`;
+                    });
+                    html += '<option value="__CUSTOM__">+ Write Custom Category...</option>';
+                    select.innerHTML = html;
+                    if (curVal && curVal !== '__CUSTOM__') select.value = curVal;
+
+                    if (filterSelect) {
+                        const curFVal = filterSelect.value;
+                        let fHtml = '<option value="">All Categories</option>';
+                        data.data.forEach(cat => {
+                            fHtml += `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`;
+                        });
+                        filterSelect.innerHTML = fHtml;
+                        if (curFVal) filterSelect.value = curFVal;
+                    }
+                } catch (e) {
+                    console.error('Error loading categories:', e);
+                }
+            }
+
+            function toggleCustomCategory(forceCustom = false) {
+                const select = document.getElementById('pcCategorySelect');
+                const input = document.getElementById('pcCustomCategoryInput');
+                const btn = document.getElementById('pcToggleCustomCategory');
+                if (!select || !input) return;
+
+                if (forceCustom || input.style.display === 'none') {
+                    select.style.display = 'none';
+                    select.removeAttribute('required');
+                    input.style.display = 'block';
+                    input.setAttribute('required', 'required');
+                    input.focus();
+                    if (btn) btn.textContent = '← Select Existing';
+                } else {
+                    input.style.display = 'none';
+                    input.removeAttribute('required');
+                    input.value = '';
+                    select.style.display = 'block';
+                    select.setAttribute('required', 'required');
+                    select.value = '';
+                    if (btn) btn.textContent = '+ Custom';
+                }
+            }
+
+            function onCategorySelectChange(select) {
+                if (select.value === '__CUSTOM__') {
+                    toggleCustomCategory(true);
+                }
+            }
+
+            async function submitRequest() {
+                const btn = document.getElementById('pcSubmitBtn');
+                
+                // Handle Category value from dropdown or custom input
+                let categoryVal = '';
+                const selectEl = document.getElementById('pcCategorySelect');
+                const customInputEl = document.getElementById('pcCustomCategoryInput');
+                if (customInputEl && customInputEl.style.display !== 'none') {
+                    categoryVal = customInputEl.value.trim();
+                } else if (selectEl) {
+                    categoryVal = selectEl.value.trim();
+                }
+
+                const fields = {
+                    expense_date: document.getElementById('pcExpenseDate')?.value,
+                    branch:       document.getElementById('pcBranch')?.value,
+                    category:     categoryVal,
+                    item_name:    document.getElementById('pcItemName')?.value?.trim(),
+                    amount:       document.getElementById('pcAmount')?.value,
+                    requested_by: document.getElementById('pcRequestedBy')?.value?.trim(),
+                };
+                for (const [k, v] of Object.entries(fields)) {
+                    if (!v) { showToast(`\u26a0\ufe0f Please fill in: ${k.replace(/_/g,' ')}`, 'error'); return; }
+                }
+                const fileInput = document.getElementById('pcBillFile');
+                if (!fileInput.files[0]) { showToast('\u26a0\ufe0f Bill/slip upload is required', 'error'); return; }
+                const fd = new FormData();
+                Object.entries(fields).forEach(([k,v]) => fd.append(k, v));
+                fd.append('description', document.getElementById('pcDescription')?.value || '');
+                fd.append('vendor_name', document.getElementById('pcVendorName')?.value  || '');
+                fd.append('bill_number', document.getElementById('pcBillNumber')?.value  || '');
+                fd.append('remarks',     document.getElementById('pcRemarks')?.value     || '');
+                fd.append('bill_file',   fileInput.files[0]);
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+                try {
+                    const res  = await fetch(`${API}?action=submitRequest`, { method: 'POST', body: fd });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast('\u2705 Petty Cash request submitted successfully!', 'success');
+                        resetForm();
+                        await loadCategories();
+                        loadDashboard();
+                        switchTab('requests');
+                    } else {
+                        showToast('\u274c ' + (data.message || 'Submission failed'), 'error');
+                    }
+                } catch(e) {
+                    showToast('\u274c Connection error. Please try again.', 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Petty Cash Request';
+                }
+            }
+
+            function resetForm() {
+                document.getElementById('pcRequestForm')?.reset();
+                clearFile();
+                toggleCustomCategory(false);
+                const dateEl = document.getElementById('pcExpenseDate');
+                if (dateEl) dateEl.value = new Date().toISOString().slice(0, 10);
+                const nameEl = document.getElementById('sidebarUserName');
+                const reqBy  = document.getElementById('pcRequestedBy');
+                if (reqBy && nameEl) reqBy.value = nameEl.textContent.trim();
+            }
+
+            function openActionModal(id, action, itemName, amount) {
+                _pendingAction = { id, action };
+                const modal      = document.getElementById('pcActionModal');
+                const title      = document.getElementById('pcActionModalTitle');
+                const info       = document.getElementById('pcActionRequestInfo');
+                const confirmBtn = document.getElementById('pcActionConfirmBtn');
+                document.getElementById('pcActionRemarks').value = '';
+                const config = {
+                    approved:        { icon:'fa-check-circle', color:'var(--secondary)', label:'Approve Request',    cls:'btn-success', txt:'<i class="fas fa-check"></i> Approve' },
+                    rejected:        { icon:'fa-times-circle', color:'var(--danger)',    label:'Reject Request',     cls:'btn-danger',  txt:'<i class="fas fa-times"></i> Reject' },
+                    need_correction: { icon:'fa-edit',         color:'var(--warning)',   label:'Request Correction', cls:'btn-warning', txt:'<i class="fas fa-edit"></i> Mark for Correction' },
+                };
+                const cfg = config[action] || config.approved;
+                title.innerHTML = `<i class="fas ${cfg.icon}" style="color:${cfg.color};"></i> ${cfg.label}`;
+                info.innerHTML  = `<strong style="color:white;display:block;margin-bottom:4px;">${escapeHtml(itemName)}</strong>Amount: <strong style="color:var(--secondary);">${fmt(amount)}</strong>`;
+                confirmBtn.className = `btn ${cfg.cls}`;
+                confirmBtn.innerHTML = cfg.txt;
+                modal.classList.add('active');
+            }
+
+            function closeActionModal() {
+                document.getElementById('pcActionModal')?.classList.remove('active');
+                _pendingAction = null;
+            }
+
+            async function confirmAction() {
+                if (!_pendingAction) return;
+                const { id, action } = _pendingAction;
+                const remarks = document.getElementById('pcActionRemarks')?.value || '';
+                try {
+                    const res  = await fetch(`${API}?action=updateAction`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id, action, remarks }),
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast(`\u2705 Request ${action.replace('_',' ')} successfully!`, 'success');
+                        closeActionModal();
+                        loadRequests();
+                        loadDashboard();
+                    } else {
+                        showToast('\u274c ' + (data.message || 'Action failed'), 'error');
+                    }
+                } catch(e) { showToast('\u274c Connection error', 'error'); }
+            }
+
+            async function deleteRequest(id) {
+                if (!confirm('Delete this request? This cannot be undone.')) return;
+                try {
+                    const res  = await fetch(`${API}?action=deleteRequest`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id }),
+                    });
+                    const data = await res.json();
+                    if (data.success) { showToast('\u2705 Request deleted.', 'success'); loadRequests(); loadDashboard(); }
+                    else showToast('\u274c ' + (data.message || 'Delete failed'), 'error');
+                } catch(e) { showToast('\u274c Connection error', 'error'); }
+            }
+
+            function viewBill(filePath) {
+                const modal  = document.getElementById('pcBillModal');
+                const viewer = document.getElementById('pcBillViewer');
+                const dlLink = document.getElementById('pcBillDownloadLink');
+                const isPDF  = filePath.toLowerCase().endsWith('.pdf');
+                dlLink.href  = filePath;
+                viewer.innerHTML = isPDF
+                    ? `<iframe src="${filePath}" style="width:100%;height:65vh;border:none;border-radius:10px;"></iframe>`
+                    : `<img src="${filePath}" alt="Bill" style="max-width:100%;max-height:65vh;border-radius:10px;object-fit:contain;" onerror="this.outerHTML='<div style=\'color:var(--text-muted);text-align:center;padding:40px\'><i class=\'fas fa-image\' style=\'font-size:48px;display:block;margin-bottom:12px\'></i>Cannot display image</div>'">`;
+                modal.classList.add('active');
+            }
+
+            function closeBillModal() {
+                document.getElementById('pcBillModal')?.classList.remove('active');
+                document.getElementById('pcBillViewer').innerHTML = '';
+            }
+
+            function exportCSV() {
+                const month    = document.getElementById('pcFilterMonth')?.value    || '';
+                const branch   = document.getElementById('pcFilterBranch')?.value   || '';
+                const category = document.getElementById('pcFilterCategory')?.value || '';
+                const status   = document.getElementById('pcFilterStatus')?.value   || '';
+                window.open(`${API}?action=exportCSV&month=${encodeURIComponent(month)}&branch=${encodeURIComponent(branch)}&category=${encodeURIComponent(category)}&status=${encodeURIComponent(status)}`, '_blank');
+            }
+
+            function exportLedgerCSV() {
+                const month  = document.getElementById('pcLedgerMonth')?.value  || '';
+                const branch = document.getElementById('pcLedgerBranch')?.value || '';
+                window.open(`${API}?action=exportCSV&month=${encodeURIComponent(month)}&branch=${encodeURIComponent(branch)}&status=approved`, '_blank');
+            }
+
+            // Extend modal button styles dynamically
+            (() => {
+                const s = document.createElement('style');
+                s.textContent = '.btn-danger{background:var(--danger);color:white;}.btn-danger:hover{background:#dc2626;}.btn-warning{background:var(--warning);color:#0f172a;}.btn-warning:hover{background:#d97706;}';
+                document.head.appendChild(s);
+            })();
+
+            return {
+                init, switchTab,
+                loadDashboard, loadRequests, loadLedger, loadCategories,
+                filterRequests,
+                onFileSelect, clearFile, resetForm, submitRequest,
+                toggleCustomCategory, onCategorySelectChange,
+                openActionModal, closeActionModal, confirmAction,
+                deleteRequest, viewBill, closeBillModal,
+                exportCSV, exportLedgerCSV,
+            };
+        })();
+        // ═══════════════════════════════════════════════════════════════════
+
+        initPage();
     </script>
-    <script src="js/portal-chat-fab.js"></script>
 </body>
 </html>

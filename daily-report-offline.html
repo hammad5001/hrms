@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Balitech — Daily Transfer Report (Offline)</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="js/offline-sync.js"></script>
+<style>
+:root {
+    --bg: #0e0f1a;
+    --surface: #171828;
+    --surface2: #1e1f30;
+    --border: rgba(255,255,255,0.08);
+    --primary: #6366f1;
+    --primary-glow: rgba(99,102,241,0.25);
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --text: #f1f5f9;
+    --muted: #64748b;
+    --radius: 16px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* Animated mesh background */
+body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(99,102,241,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(16,185,129,0.1) 0%, transparent 60%);
+    pointer-events: none;
+}
+
+.app { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 20px 16px 60px; }
+
+/* Header */
+.header {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 20px; margin-bottom: 20px;
+    backdrop-filter: blur(20px);
+}
+.header-brand { display: flex; align-items: center; gap: 12px; }
+.header-brand .logo-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff;
+}
+.header-brand h1 { font-size: 16px; font-weight: 800; line-height: 1.1; }
+.header-brand p  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* Status pill */
+.status-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px; border-radius: 999px; font-size: 12px; font-weight: 700;
+    border: 1px solid; transition: all 0.4s ease;
+}
+.status-pill.online  { background: rgba(16,185,129,0.1); color: #10b981; border-color: rgba(16,185,129,0.3); }
+.status-pill.offline { background: rgba(239,68,68,0.1);  color: #ef4444;  border-color: rgba(239,68,68,0.3); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse-dot 2s ease infinite; }
+@keyframes pulse-dot { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+
+/* Alert banner */
+.sync-banner {
+    display: none; align-items: center; gap: 10px; padding: 12px 16px;
+    border-radius: 12px; font-size: 13px; font-weight: 600; margin-bottom: 16px;
+}
+.sync-banner.pending { display: flex; background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: var(--warning); }
+.sync-banner.syncing { display: flex; background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3); color: var(--primary); }
+.sync-banner.done    { display: flex; background: rgba(16,185,129,0.12);  border: 1px solid rgba(16,185,129,0.3); color: var(--success); }
+
+/* Agent ID card */
+.agent-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 20px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+}
+.agent-card label { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.agent-input {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); font-size: 16px; font-weight: 700; font-family: monospace;
+    padding: 8px 12px; width: 180px;
+}
+.agent-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
+.agent-note { font-size: 12px; color: var(--muted); margin-left: auto; max-width: 320px; line-height: 1.5; }
+
+/* Main grid */
+.main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+@media (max-width: 640px) { .main-grid { grid-template-columns: 1fr; } }
+
+/* Cards */
+.card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px; transition: box-shadow 0.3s ease;
+}
+.card:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+.card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.card-head h2 { font-size: 15px; font-weight: 800; }
+.card-head h2 i { color: var(--primary); margin-right: 6px; }
+
+/* Form fields */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-field { margin-bottom: 12px; }
+.form-field.span2 { grid-column: 1/-1; }
+.form-field label {
+    display: block; font-size: 11px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px;
+}
+.form-field label .req { color: var(--danger); }
+.form-input, .form-select, .form-textarea {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text); font-size: 14px; font-family: inherit;
+    padding: 10px 12px; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow);
+}
+.form-textarea { min-height: 72px; resize: vertical; }
+.form-select option { background: #1e1f30; }
+
+/* Transfer option buttons */
+.transfer-btns { display: flex; gap: 10px; }
+.transfer-btn {
+    flex: 1; padding: 12px; border: 2px solid var(--border); border-radius: 10px;
+    background: transparent; color: var(--muted); font-weight: 800; font-size: 15px;
+    cursor: pointer; transition: all 0.2s; font-family: inherit; display: flex;
+    align-items: center; justify-content: center; gap: 8px;
+}
+.transfer-btn:hover { border-color: var(--primary); color: var(--primary); }
+.transfer-btn.active { border-color: var(--primary); background: var(--primary-glow); color: var(--primary); }
+.transfer-btn.d2.active { border-color: #f59e0b; background: rgba(245,158,11,0.1); color: #f59e0b; }
+
+/* Submit button */
+.submit-btn {
+    width: 100%; padding: 14px; border: none; border-radius: 12px;
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: #fff; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    transition: all 0.3s ease; margin-top: 8px;
+    box-shadow: 0 6px 20px rgba(99,102,241,0.35);
+}
+.submit-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(99,102,241,0.5);
+}
+.submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* Mini stats */
+.mini-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+.mini-stat {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 14px; text-align: center;
+}
+.mini-stat .label { font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+.mini-stat .value { font-size: 24px; font-weight: 900; color: var(--primary); margin-top: 4px; }
+.mini-stat .sub   { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* Pending table */
+.pending-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; overflow: hidden; }
+.pending-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+.pending-head h3 { font-size: 14px; font-weight: 800; }
+.pending-head h3 i { color: var(--warning); margin-right: 6px; }
+.action-btns { display: flex; gap: 8px; }
+.btn-sm {
+    padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;
+    font-family: inherit; border: 1px solid; display: inline-flex; align-items: center; gap: 6px;
+    transition: all 0.2s;
+}
+.btn-sync { background: rgba(99,102,241,0.1); color: var(--primary); border-color: rgba(99,102,241,0.3); }
+.btn-sync:hover { background: rgba(99,102,241,0.2); }
+.btn-export { background: rgba(16,185,129,0.1); color: var(--success); border-color: rgba(16,185,129,0.3); }
+.btn-export:hover { background: rgba(16,185,129,0.2); }
+
+.table-wrap { overflow-x: auto; max-height: 320px; overflow-y: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th {
+    padding: 10px 14px; text-align: left; font-size: 10px; font-weight: 800;
+    text-transform: uppercase; color: var(--muted); background: rgba(0,0,0,0.2);
+    position: sticky; top: 0;
+}
+tbody td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text); }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: rgba(255,255,255,0.02); }
+.badge {
+    display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px;
+    border-radius: 999px; font-size: 11px; font-weight: 700;
+}
+.badge-d1     { background: rgba(99,102,241,0.15); color: #818cf8; }
+.badge-d2     { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.badge-synced { background: rgba(16,185,129,0.15); color: #10b981; }
+.badge-pending{ background: rgba(245,158,11,0.15); color: #f59e0b; }
+.empty-row td { text-align: center; padding: 30px; color: var(--muted); }
+
+/* Toast */
+.toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+    display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 12px;
+    font-size: 13px; font-weight: 600; min-width: 240px;
+    backdrop-filter: blur(20px); animation: slideIn 0.3s ease;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.toast-success { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #10b981; }
+.toast-error   { background: rgba(239,68,68,0.15);   border: 1px solid rgba(239,68,68,0.3);   color: #ef4444; }
+.toast-info    { background: rgba(99,102,241,0.15);  border: 1px solid rgba(99,102,241,0.3);  color: #818cf8; }
+@keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* Footer */
+.footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 30px; line-height: 1.6; }
+.footer a { color: var(--primary); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="app">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-brand">
+            <div class="logo-icon"><i class="fas fa-headset"></i></div>
+            <div>
+                <h1>Balitech Daily Transfer Report</h1>
+                <p>Offline-capable — saves locally, syncs automatically</p>
+            </div>
+        </div>
+        <div id="statusPill" class="status-pill offline">
+            <span class="status-dot"></span>
+            <span id="statusText">Checking server…</span>
+        </div>
+    </div>
+
+    <!-- Sync Banner -->
+    <div id="syncBanner" class="sync-banner">
+        <i class="fas fa-sync fa-spin"></i>
+        <span id="syncBannerText">Syncing pending records…</span>
+    </div>
+
+    <!-- Agent ID -->
+    <div class="agent-card">
+        <div>
+            <label for="agentIdInput"><i class="fas fa-fingerprint"></i> Biometric / Agent ID</label>
+            <input type="text" id="agentIdInput" class="agent-input" placeholder="e.g. 1042" oninput="saveAgentId()">
+        </div>
+        <p class="agent-note">Enter your Biometric ID (same as HRMS). Records saved here will be linked to this ID when synced to the server.</p>
+    </div>
+
+    <!-- Mini Stats -->
+    <div class="mini-stats">
+        <div class="mini-stat">
+            <div class="label">Today (Local)</div>
+            <div class="value" id="statToday">0</div>
+            <div class="sub">transfers logged</div>
+        </div>
+        <div class="mini-stat">
+            <div class="label">Pending Sync</div>
+            <div class="value" id="statPending" style="color: var(--warning);">0</div>
+            <div class="sub">waiting for server</div>
+        </div>
+        <div class="mini-stat">
+            <div class="label">Total (All)</div>
+            <div class="value" id="statTotal" style="color: var(--success);">0</div>
+            <div class="sub">in local storage</div>
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="main-grid">
+        <!-- Log Transfer Form -->
+        <div class="card">
+            <div class="card-head">
+                <h2><i class="fas fa-phone-arrow-up-right"></i> Log Transfer Call</h2>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Customer Number <span class="req">*</span></label>
+                    <input type="text" id="custNumber" class="form-input" placeholder="555-0198">
+                </div>
+                <div class="form-field">
+                    <label>Zip Code</label>
+                    <input type="text" id="custZip" class="form-input" placeholder="90210">
+                </div>
+                <div class="form-field">
+                    <label>Customer Name</label>
+                    <input type="text" id="custName" class="form-input" placeholder="John Doe">
+                </div>
+                <div class="form-field">
+                    <label>Age</label>
+                    <input type="number" id="custAge" class="form-input" placeholder="45" min="18" max="120">
+                </div>
+            </div>
+
+            <div class="form-field">
+                <label>Transfer Option <span class="req">*</span></label>
+                <div class="transfer-btns">
+                    <button type="button" class="transfer-btn active" id="btnD1" onclick="selectTransfer('D1')">
+                        <i class="fas fa-circle-1"></i> D1
+                    </button>
+                    <button type="button" class="transfer-btn d2" id="btnD2" onclick="selectTransfer('D2')">
+                        <i class="fas fa-circle-2"></i> D2
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-field">
+                <label>Call Duration (minutes)</label>
+                <input type="number" id="callDuration" class="form-input" placeholder="5" min="0" max="120">
+            </div>
+
+            <div class="form-field">
+                <label>Notes (optional)</label>
+                <textarea id="callNotes" class="form-textarea form-input" placeholder="Interested, left voicemail, callback requested…"></textarea>
+            </div>
+
+            <button class="submit-btn" id="submitBtn" onclick="handleSubmit()">
+                <i class="fas fa-paper-plane"></i> Log Transfer
+            </button>
+        </div>
+
+        <!-- Chart: D1 vs D2 -->
+        <div class="card">
+            <div class="card-head">
+                <h2><i class="fas fa-chart-pie"></i> Today's D1 vs D2 Split</h2>
+            </div>
+            <div style="height: 200px; position: relative; margin-bottom: 16px;">
+                <canvas id="splitChart"></canvas>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px;">
+                <div style="background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); border-radius: 10px; padding: 10px; text-align: center;">
+                    <div style="font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase;">D1 Transfers</div>
+                    <div style="font-size: 26px; font-weight: 900; color: #818cf8;" id="chartD1Count">0</div>
+                </div>
+                <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); border-radius: 10px; padding: 10px; text-align: center;">
+                    <div style="font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase;">D2 Transfers</div>
+                    <div style="font-size: 26px; font-weight: 900; color: #f59e0b;" id="chartD2Count">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending / All Records Table -->
+    <div class="pending-section">
+        <div class="pending-head">
+            <h3><i class="fas fa-clock-rotate-left"></i> Transfer History <span id="pendingBadge" style="font-size:11px; background: rgba(245,158,11,0.15); color: var(--warning); padding: 2px 8px; border-radius: 999px; margin-left: 8px; display:none;"></span></h3>
+            <div class="action-btns">
+                <button class="btn-sm btn-sync" onclick="manualSync()"><i class="fas fa-sync"></i> Sync Now</button>
+                <button class="btn-sm btn-export" onclick="OfflineSync.exportCSV()"><i class="fas fa-download"></i> Export CSV</button>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Customer #</th>
+                        <th>Name</th>
+                        <th>Option</th>
+                        <th>Duration</th>
+                        <th>Notes</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <tr class="empty-row"><td colspan="7"><i class="fas fa-inbox"></i> No records yet.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p><strong>Balitech HRMS — Offline Daily Report Tool</strong></p>
+        <p>Data is stored securely in your browser's IndexedDB. It will automatically sync when the HRMS server is reachable.</p>
+        <p style="margin-top: 6px;">To use while connected: <a href="employee-portal.html">Open HRMS Employee Portal</a></p>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ── State ─────────────────────────────────────────────────
+let selectedTransfer = 'D1';
+let splitChartInstance = null;
+
+// ── Agent ID persistence ──────────────────────────────────
+function saveAgentId() {
+    const v = document.getElementById('agentIdInput').value.trim();
+    if (v) localStorage.setItem('balitech_offline_agent_id', v);
+}
+function loadAgentId() {
+    const v = localStorage.getItem('balitech_offline_agent_id') || '';
+    document.getElementById('agentIdInput').value = v;
+    return v;
+}
+
+// ── Transfer option selector ──────────────────────────────
+function selectTransfer(opt) {
+    selectedTransfer = opt;
+    document.getElementById('btnD1').classList.toggle('active', opt === 'D1');
+    document.getElementById('btnD2').classList.toggle('active', opt === 'D2');
+}
+
+// ── Submit handler ────────────────────────────────────────
+async function handleSubmit() {
+    const num  = document.getElementById('custNumber').value.trim();
+    const zip  = document.getElementById('custZip').value.trim();
+    const name = document.getElementById('custName').value.trim();
+    const age  = document.getElementById('custAge').value.trim();
+    const notes= document.getElementById('callNotes').value.trim();
+    const dur  = parseInt(document.getElementById('callDuration').value) || 0;
+    const agent= document.getElementById('agentIdInput').value.trim();
+
+    if (!num) { showToast('Customer Number is required.', 'error'); return; }
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+
+    const record = {
+        customer_number:    num,
+        customer_zip:       zip,
+        customer_name:      name,
+        customer_age:       age,
+        transfer_on:        selectedTransfer,
+        call_notes:         notes,
+        call_duration_mins: dur,
+        agent_biometric_id: agent,
+    };
+
+    try {
+        // First try to submit directly if server is up
+        const serverUp = await OfflineSync.ping();
+        if (serverUp && agent) {
+            const payload = { ...record, agent_biometric_id: agent };
+            try {
+                const res  = await fetch('api/submit_daily_report.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (data.success) {
+                    // Also save locally as synced for history
+                    const saved = await OfflineSync.saveLocally(record);
+                    await OfflineSync.markSynced(saved.uuid);
+                    showToast('✅ Transfer logged & synced to server!', 'success');
+                    resetForm();
+                    await refreshUI();
+                    return;
+                }
+            } catch {}
+        }
+
+        // Fallback: save locally
+        await OfflineSync.saveLocally(record);
+        showToast('💾 Saved locally — will sync when server is online.', 'info');
+        resetForm();
+        await refreshUI();
+
+    } catch(err) {
+        showToast('Error saving record: ' + err.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Log Transfer';
+    }
+}
+
+function resetForm() {
+    document.getElementById('custNumber').value = '';
+    document.getElementById('custZip').value    = '';
+    document.getElementById('custName').value   = '';
+    document.getElementById('custAge').value    = '';
+    document.getElementById('callNotes').value  = '';
+    document.getElementById('callDuration').value = '';
+    selectTransfer('D1');
+}
+
+// ── Manual Sync ───────────────────────────────────────────
+async function manualSync() {
+    const agent = document.getElementById('agentIdInput').value.trim();
+    if (!agent) { showToast('Enter your Biometric ID first to sync.', 'error'); return; }
+
+    setSyncBanner('syncing', '<i class="fas fa-sync fa-spin"></i> Syncing pending records…');
+    const { synced, failed } = await OfflineSync.syncAll(agent);
+    await refreshUI();
+
+    if (synced > 0 && failed === 0) {
+        setSyncBanner('done', `<i class="fas fa-check-circle"></i> ${synced} record(s) synced successfully!`);
+    } else if (failed > 0) {
+        setSyncBanner('pending', `<i class="fas fa-exclamation-triangle"></i> ${synced} synced, ${failed} failed — server may be offline.`);
+    } else {
+        setSyncBanner('done', '<i class="fas fa-check-circle"></i> Nothing to sync — all up to date!');
+    }
+    setTimeout(() => { document.getElementById('syncBanner').className = 'sync-banner'; }, 4000);
+}
+
+function setSyncBanner(type, html) {
+    const el = document.getElementById('syncBanner');
+    el.className = 'sync-banner ' + type;
+    el.innerHTML = html;
+}
+
+// ── Refresh UI ────────────────────────────────────────────
+async function refreshUI() {
+    const all     = await OfflineSync.getAll();
+    const pending = all.filter(r => !r.synced);
+    const today   = all.filter(r => r.created_at && r.created_at.startsWith(new Date().toISOString().slice(0,10)));
+
+    document.getElementById('statToday').textContent   = today.length;
+    document.getElementById('statPending').textContent = pending.length;
+    document.getElementById('statTotal').textContent   = all.length;
+
+    // Pending badge
+    const badge = document.getElementById('pendingBadge');
+    if (pending.length > 0) {
+        badge.style.display = 'inline'; badge.textContent = pending.length + ' pending';
+    } else {
+        badge.style.display = 'none';
+    }
+
+    // Render history table
+    renderTable(all);
+
+    // Update charts
+    const d1 = today.filter(r => r.transfer_on === 'D1').length;
+    const d2 = today.filter(r => r.transfer_on === 'D2').length;
+    document.getElementById('chartD1Count').textContent = d1;
+    document.getElementById('chartD2Count').textContent = d2;
+    renderSplitChart(d1, d2);
+}
+
+function renderTable(records) {
+    const tbody = document.getElementById('historyTableBody');
+    if (records.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="7"><i class="fas fa-inbox"></i> No records yet.</td></tr>';
+        return;
+    }
+
+    const sorted = [...records].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    tbody.innerHTML = sorted.map(r => {
+        const dt   = new Date(r.created_at);
+        const time = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const date = dt.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        return `<tr>
+            <td><strong>${time}</strong><br><span style="font-size:11px;color:var(--muted)">${date}</span></td>
+            <td style="font-family:monospace;color:#818cf8;font-weight:700">${r.customer_number}</td>
+            <td>${r.customer_name || '<span style="color:var(--muted)">—</span>'}</td>
+            <td><span class="badge badge-${r.transfer_on.toLowerCase()}">${r.transfer_on}</span></td>
+            <td>${r.call_duration_mins ? r.call_duration_mins + ' min' : '—'}</td>
+            <td style="max-width:160px;font-size:12px;color:var(--muted)">${r.call_notes || '—'}</td>
+            <td><span class="badge ${r.synced ? 'badge-synced' : 'badge-pending'}">${r.synced ? '✅ Synced' : '⏳ Pending'}</span></td>
+        </tr>`;
+    }).join('');
+}
+
+// ── Charts ────────────────────────────────────────────────
+function renderSplitChart(d1, d2) {
+    const ctx = document.getElementById('splitChart');
+    if (!ctx) return;
+
+    if (splitChartInstance) splitChartInstance.destroy();
+
+    if (d1 === 0 && d2 === 0) {
+        splitChartInstance = null;
+        return;
+    }
+
+    splitChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['D1 Transfers', 'D2 Transfers'],
+            datasets: [{
+                data: [d1, d2],
+                backgroundColor: ['#6366f1', '#f59e0b'],
+                borderColor: '#171828',
+                borderWidth: 4,
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#94a3b8', usePointStyle: true, padding: 16 } }
+            }
+        }
+    });
+}
+
+// ── Status update ─────────────────────────────────────────
+function updateStatus(online, pendingCount) {
+    const pill = document.getElementById('statusPill');
+    const text = document.getElementById('statusText');
+    if (online) {
+        pill.className = 'status-pill online';
+        text.textContent = pendingCount > 0 ? `Online — ${pendingCount} pending sync` : 'Online — Server Connected';
+    } else {
+        pill.className = 'status-pill offline';
+        text.textContent = `Offline — ${pendingCount} record(s) saved locally`;
+    }
+}
+
+// ── Toast ─────────────────────────────────────────────────
+function showToast(msg, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':type==='error'?'exclamation-circle':'info-circle'}"></i> ${msg}`;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+}
+
+// ── Init ──────────────────────────────────────────────────
+(async function init() {
+    await OfflineSync.initDB();
+    loadAgentId();
+    await refreshUI();
+
+    const agentId = document.getElementById('agentIdInput').value.trim();
+    OfflineSync.startAutoSync(agentId, async (online, pending) => {
+        updateStatus(online, pending);
+        await refreshUI();
+    });
+})();
+</script>
+</body>
+</html>

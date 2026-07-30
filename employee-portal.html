@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
     <link rel="stylesheet" href="css/employee-hrms.css?v=63">
-    <link rel="stylesheet" href="css/employee-performance.css?v=4">
+    <link rel="stylesheet" href="css/employee-performance.css?v=6">
     <link rel="stylesheet" href="css/dropdown-fix.css?v=3">
     <link rel="stylesheet" href="css/hr-productivity.css?v=2">
     <link rel="stylesheet" href="css/advanced-analytics.css?v=1">
@@ -733,11 +733,199 @@
 
                         <!-- Salary -->
                         <section id="view-salary" class="view-section">
-                            <div class="ess-card" style="margin-bottom: 24px;">
-                                <div class="ess-card-head" style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom:15px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                            <style>
+                                .sal-glass-stats-grid {
+                                    display: grid;
+                                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                                    gap: 16px;
+                                    margin-bottom: 24px;
+                                }
+                                .sal-glass-card {
+                                    background: rgba(30, 36, 54, 0.45);
+                                    backdrop-filter: blur(16px) saturate(120%);
+                                    -webkit-backdrop-filter: blur(16px) saturate(120%);
+                                    border: 1px solid rgba(255, 255, 255, 0.08);
+                                    border-radius: 16px;
+                                    padding: 18px;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 15px;
+                                    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+                                }
+                                .sal-glass-card:hover {
+                                    transform: translateY(-3px);
+                                }
+                                .sal-glass-card.border-orange:hover {
+                                    box-shadow: 0 8px 24px rgba(249, 115, 22, 0.15);
+                                    border-color: rgba(249, 115, 22, 0.45);
+                                }
+                                .sal-glass-card.border-emerald:hover {
+                                    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
+                                    border-color: rgba(16, 185, 129, 0.45);
+                                }
+                                .sal-glass-card.border-blue:hover {
+                                    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
+                                    border-color: rgba(59, 130, 246, 0.45);
+                                }
+                                .sal-glass-card .card-icon {
+                                    width: 48px;
+                                    height: 48px;
+                                    background: rgba(255, 255, 255, 0.04);
+                                    border-radius: 12px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    font-size: 20px;
+                                }
+                                .sal-glass-card .card-content {
+                                    display: flex;
+                                    flex-direction: column;
+                                }
+                                .sal-glass-card .card-content span {
+                                    font-size: 11px;
+                                    text-transform: uppercase;
+                                    color: #94a3b8;
+                                    font-weight: 600;
+                                    letter-spacing: 0.5px;
+                                    margin-bottom: 4px;
+                                }
+                                .sal-glass-card .card-content strong {
+                                    font-size: 20px;
+                                    color: white;
+                                    font-weight: 700;
+                                }
+                                
+                                .sal-main-accrual-glow {
+                                    background: linear-gradient(135deg, rgba(249, 115, 22, 0.08), rgba(30, 36, 54, 0.75));
+                                    backdrop-filter: blur(20px);
+                                    -webkit-backdrop-filter: blur(20px);
+                                    border: 1px solid rgba(249, 115, 22, 0.2);
+                                    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(249, 115, 22, 0.05);
+                                    border-radius: 20px;
+                                    padding: 28px;
+                                    text-align: center;
+                                    margin-bottom: 24px;
+                                    position: relative;
+                                    overflow: hidden;
+                                }
+                                .sal-main-accrual-glow .accrual-title {
+                                    font-size: 12px;
+                                    text-transform: uppercase;
+                                    color: #f97316;
+                                    font-weight: 700;
+                                    letter-spacing: 1.5px;
+                                    display: block;
+                                    margin-bottom: 8px;
+                                }
+                                .sal-main-accrual-glow .accrual-value {
+                                    font-size: 44px;
+                                    color: white;
+                                    font-weight: 800;
+                                    letter-spacing: -1px;
+                                    display: block;
+                                    text-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+                                    margin-bottom: 16px;
+                                }
+                                
+                                .sal-progress-track {
+                                    height: 10px;
+                                    background: rgba(255, 255, 255, 0.05);
+                                    border-radius: 5px;
+                                    margin-bottom: 12px;
+                                    overflow: hidden;
+                                    border: 1px solid rgba(255, 255, 255, 0.03);
+                                }
+                                .sal-progress-fill {
+                                    height: 100%;
+                                    background: linear-gradient(90deg, #f97316, #ea580c);
+                                    border-radius: 5px;
+                                    box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+                                    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+                                }
+                                .sal-progress-labels {
+                                    display: flex;
+                                    justify-content: space-between;
+                                    font-size: 11px;
+                                    color: #94a3b8;
+                                    font-weight: 500;
+                                }
+                                
+                                .sal-chart-card {
+                                    background: rgba(30, 36, 54, 0.45);
+                                    backdrop-filter: blur(16px);
+                                    -webkit-backdrop-filter: blur(16px);
+                                    border: 1px solid rgba(255, 255, 255, 0.08);
+                                    border-radius: 18px;
+                                    padding: 20px;
+                                    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+                                }
+                                .sal-chart-header {
+                                    margin-bottom: 16px;
+                                    border-bottom: 1px solid rgba(255,255,255,0.05);
+                                    padding-bottom: 10px;
+                                }
+                                .sal-chart-header h4 {
+                                    font-size: 13px;
+                                    font-weight: 700;
+                                    text-transform: uppercase;
+                                    color: white;
+                                    letter-spacing: 0.5px;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 8px;
+                                }
+                                
+                                .sal-list-card {
+                                    background: rgba(30, 36, 54, 0.45);
+                                    backdrop-filter: blur(16px);
+                                    -webkit-backdrop-filter: blur(16px);
+                                    border: 1px solid rgba(255, 255, 255, 0.08);
+                                    border-radius: 18px;
+                                    padding: 22px;
+                                    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+                                }
+                                .sal-list-card h4 {
+                                    font-size: 14px;
+                                    font-weight: 700;
+                                    text-transform: uppercase;
+                                    color: white;
+                                    letter-spacing: 0.5px;
+                                    margin-bottom: 16px;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 8px;
+                                    border-bottom: 1px solid rgba(255,255,255,0.05);
+                                    padding-bottom: 10px;
+                                }
+                                .sal-detail-rows .detail-row {
+                                    display: flex;
+                                    justify-content: space-between;
+                                    padding: 10px 0;
+                                    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+                                    font-size: 13px;
+                                    color: #cbd5e1;
+                                }
+                                .sal-detail-rows .detail-row:last-child {
+                                    border-bottom: none;
+                                }
+                                .sal-detail-rows .detail-row strong {
+                                    color: white;
+                                    font-weight: 600;
+                                }
+                                
+                                /* Utilities */
+                                .text-orange { color: #f97316 !important; }
+                                .text-emerald { color: #10b981 !important; }
+                                .text-blue { color: #3b82f6 !important; }
+                                .text-danger { color: #ef4444 !important; }
+                                .text-warning { color: #f59e0b !important; }
+                            </style>
+
+                            <div class="ess-card" style="margin-bottom: 24px; background:transparent; border:none; padding:0;">
+                                <div class="ess-card-head" style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom:15px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
                                     <h3><i class="fas fa-wallet" style="color:var(--primary); margin-right:8px;"></i> Live Earnings & Salary Payout</h3>
                                     <div style="display:flex; align-items:center; gap:10px;">
-                                        <select id="salMonthFilter" onchange="onSalaryMonthChange(this.value)" style="padding:6px 12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); border-radius:8px; color:white; font-size:12px; outline:none; font-family:'Inter', sans-serif; cursor:pointer;">
+                                        <select id="salMonthFilter" onchange="onSalaryMonthChange(this.value)" style="padding:6px 12px; background:rgba(30,36,54,0.95); border:1px solid rgba(255,255,255,0.15); border-radius:8px; color:white; font-size:12px; outline:none; font-family:'Inter', sans-serif; cursor:pointer;">
                                             <option value="2026-07">July 2026</option>
                                             <option value="2026-08">August 2026</option>
                                             <option value="2026-06">June 2026</option>
@@ -747,49 +935,121 @@
                                     </div>
                                 </div>
 
-                                <div class="ess-stats-row" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:15px; margin-bottom:20px;">
-                                    <div class="ess-stat highlight" style="text-align:center; padding:15px; background:rgba(255,255,255,0.02); border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
-                                        <span>Basic Salary</span>
-                                        <strong id="salBasic" style="font-size:20px; color:#fff;">-</strong>
+                                <div class="sal-glass-stats-grid">
+                                    <div class="sal-glass-card border-orange">
+                                        <div class="card-icon"><i class="fas fa-coins text-orange"></i></div>
+                                        <div class="card-content">
+                                            <span>Basic Salary</span>
+                                            <strong id="salBasic">-</strong>
+                                        </div>
                                     </div>
-                                    <div class="ess-stat" style="text-align:center; padding:15px; background:rgba(255,255,255,0.02); border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
-                                        <span>Punctuality Bonus</span>
-                                        <strong id="salPunc" style="font-size:20px; color:#10b981;">-</strong>
+                                    <div class="sal-glass-card border-emerald">
+                                        <div class="card-icon"><i class="fas fa-award text-emerald"></i></div>
+                                        <div class="card-content">
+                                            <span>Punctuality Bonus</span>
+                                            <strong id="salPunc">-</strong>
+                                        </div>
                                     </div>
-                                    <div class="ess-stat" style="text-align:center; padding:15px; background:rgba(255,255,255,0.02); border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
-                                        <span>Per Day Rate</span>
-                                        <strong id="salPerDay" style="font-size:20px; color:var(--primary);">-</strong>
+                                    <div class="sal-glass-card border-blue">
+                                        <div class="card-icon"><i class="fas fa-calendar-day text-blue"></i></div>
+                                        <div class="card-content">
+                                            <span>Per Day Rate</span>
+                                            <strong id="salPerDay">-</strong>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.15); padding:20px; border-radius:12px; text-align:center; margin-bottom:24px;">
-                                    <span style="font-size:12px; text-transform:uppercase; color:#10b981; font-weight:700; letter-spacing:1px; display:block; margin-bottom:4px;">Earning Till Today (After Deductions)</span>
-                                    <strong id="salEarningsTillToday" style="font-size:36px; color:#fff; font-weight:800; letter-spacing:-1px;">Rs. 0</strong>
-                                    <div style="font-size:11px; color:rgba(255,255,255,0.5); margin-top:8px;">Calculated dynamically based on month working days & attendance records.</div>
+                                <div class="sal-main-accrual-glow">
+                                    <span class="accrual-title">Earning Till Today (After Deductions)</span>
+                                    <strong class="accrual-value" id="salEarningsTillToday">Rs. 0</strong>
+                                    
+                                    <div class="sal-progress-track">
+                                        <div class="sal-progress-fill" id="salProgressFill" style="width: 0%;"></div>
+                                    </div>
+                                    <div class="sal-progress-labels">
+                                        <span id="salProgressPercent">0% of Month Complete</span>
+                                        <span id="salDaysStatus">0 / 0 Days</span>
+                                    </div>
                                 </div>
 
-                                <h4 style="font-size:14px; font-weight:700; color:#fff; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; display:flex; align-items:center; gap:8px;"><i class="fas fa-calculator" style="color:var(--primary);"></i> Salary Payout Parameters</h4>
-                                <div class="ess-info-list" style="background:rgba(255,255,255,0.01); border:1px solid rgba(255,255,255,0.05); padding:16px; border-radius:12px;">
-                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Total Days in Month</span><strong id="salTotalDays" style="color:#fff;">0</strong></div>
-                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Present Days</span><strong id="salPresentDays" style="color:#fff;">0</strong></div>
-                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Absent Days (After Leaves)</span><strong id="salAbsentDays" style="color:#fff;">0</strong></div>
-                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Approved / Allowed Leaves</span><strong id="salLeaves" style="color:#fff;">0</strong></div>
-                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Travelling Allowance (TA/DA)</span><strong id="salTada" style="color:#10b981;">Rs. 0</strong></div>
-                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Arrears</span><strong id="salArrears" style="color:#10b981;">Rs. 0</strong></div>
-                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Bonus</span><strong id="salBonus" style="color:#10b981;">Rs. 0</strong></div>
-                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Remaining Advance Salary</span><strong id="salAdvanceRemaining" style="color:#f59e0b;">Rs. 0</strong></div>
+                                <div class="sal-charts-row" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 24px;">
+                                    <div class="sal-chart-card">
+                                        <div class="sal-chart-header">
+                                            <h4><i class="fas fa-chart-pie text-orange"></i> Salary Breakdown</h4>
+                                        </div>
+                                        <div style="height: 220px; position: relative;"><canvas id="empSalBreakdownChart"></canvas></div>
+                                    </div>
+                                    <div class="sal-chart-card">
+                                        <div class="sal-chart-header">
+                                            <h4><i class="fas fa-chart-line text-orange"></i> Month Accrual Timeline</h4>
+                                        </div>
+                                        <div style="height: 220px; position: relative;"><canvas id="empSalTimelineChart"></canvas></div>
+                                    </div>
                                 </div>
 
-                                <h4 style="font-size:14px; font-weight:700; color:#fff; text-transform:uppercase; letter-spacing:1px; margin-top:24px; margin-bottom:12px; display:flex; align-items:center; gap:8px;"><i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i> Deductions & Docks</h4>
-                                <div class="ess-info-list" style="background:rgba(255,255,255,0.01); border:1px solid rgba(255,255,255,0.05); padding:16px; border-radius:12px;">
-                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Absent Deduction</span><strong id="salAbsentDeduct" style="color:#ef4444;">Rs. 0</strong></div>
-                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>NCNS Deduction</span><strong id="salNcnsDeduct" style="color:#ef4444;">Rs. 0</strong></div>
-                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Sandwich Dock (SD)</span><strong id="salSdDeduct" style="color:#ef4444;">Rs. 0</strong></div>
-                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Late Coming Fine</span><strong id="salLateFine" style="color:#ef4444;">Rs. 0</strong></div>
-                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>QA Docks</span><strong id="salQaDocks" style="color:#ef4444;">Rs. 0</strong></div>
-                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Tax Deduction</span><strong id="salTaxDeduct" style="color:#ef4444;">Rs. 0</strong></div>
-                                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);"><span>Misspunch Fine</span><strong id="salMisspunchFine" style="color:#ef4444;">Rs. 0</strong></div>
-                                    <div style="display:flex; justify-content:space-between; padding:8px 0;"><span>Advance Deduction</span><strong id="salAdvanceDeduct" style="color:#ef4444;">Rs. 0</strong></div>
+                                <div class="sal-chart-card" style="margin-bottom: 24px; background: rgba(30, 36, 54, 0.45); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 22px;">
+                                    <div class="sal-chart-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; margin-bottom: 16px;">
+                                        <h4 style="font-size: 13px; font-weight: 700; text-transform: uppercase; color: white; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; margin:0;"><i class="fas fa-calculator text-orange"></i> Interactive FBR Tax Estimator (2026-27)</h4>
+                                        <span style="font-size:11px; color:#94a3b8;">Estimate your monthly tax liability</span>
+                                    </div>
+                                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px; align-items:center;">
+                                        <div>
+                                            <label style="font-size:11px; text-transform:uppercase; color:#94a3b8; font-weight:600; display:block; margin-bottom:8px;">Enter Monthly Base Salary (PKR)</label>
+                                            <div style="display:flex; gap:10px;">
+                                                <input type="number" id="taxEstimatorInput" placeholder="e.g. 75000" style="flex:1; padding:10px 14px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); border-radius:8px; color:white; font-size:14px; outline:none; font-family:'Inter', sans-serif;">
+                                                <button onclick="estimateTaxForInput()" style="background:#f97316; color:white; border:none; padding:0 20px; border-radius:8px; font-weight:600; cursor:pointer; font-size:13px; transition:0.2s; font-family:'Inter', sans-serif;" onmouseover="this.style.background='#ea580c'" onmouseout="this.style.background='#f97316'">Calculate</button>
+                                            </div>
+                                        </div>
+                                        <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); padding:16px; border-radius:12px; display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                                            <div>
+                                                <span style="font-size:10px; color:#94a3b8; display:block; text-transform:uppercase; font-weight:600;">Annual Taxable Income</span>
+                                                <strong id="estAnnualIncome" style="font-size:16px; color:#fff; font-weight:700;">Rs. 0</strong>
+                                            </div>
+                                            <div>
+                                                <span style="font-size:10px; color:#94a3b8; display:block; text-transform:uppercase; font-weight:600;">Tax Bracket Slab</span>
+                                                <strong id="estTaxBracket" style="font-size:13px; color:#f97316; font-weight:700;">No Tax</strong>
+                                            </div>
+                                            <div>
+                                                <span style="font-size:10px; color:#94a3b8; display:block; text-transform:uppercase; font-weight:600;">Estimated Annual Tax</span>
+                                                <strong id="estAnnualTax" style="font-size:16px; color:#ef4444; font-weight:700;">Rs. 0</strong>
+                                            </div>
+                                            <div>
+                                                <span style="font-size:10px; color:#94a3b8; display:block; text-transform:uppercase; font-weight:600;">Estimated Monthly Tax</span>
+                                                <strong id="estMonthlyTax" style="font-size:16px; color:#ef4444; font-weight:700;">Rs. 0</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="sal-details-split-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:20px;">
+                                    <div class="sal-list-card">
+                                        <h4><i class="fas fa-calculator text-orange"></i> Payout Parameters</h4>
+                                        <div class="sal-detail-rows">
+                                            <div class="detail-row"><span>Total Working Days in Month</span><strong id="salTotalDays">0</strong></div>
+                                            <div class="detail-row"><span>Completed Working Days (Till Today)</span><strong id="salElapsedDays" class="text-emerald">0</strong></div>
+                                            <div class="detail-row"><span>Upcoming Days (Remaining)</span><strong id="salUpcomingDays" style="color:#60a5fa;">0</strong></div>
+                                            <div class="detail-row"><span>Present Days</span><strong id="salPresentDays">0</strong></div>
+                                            <div class="detail-row"><span>Past Absent Days (After Leaves)</span><strong id="salAbsentDays" class="text-danger">0</strong></div>
+                                            <div class="detail-row"><span>Approved Leaves</span><strong id="salLeaves">0</strong></div>
+                                            <div class="detail-row"><span>Travelling Allowance (TA/DA)</span><strong id="salTada" class="text-emerald">Rs. 0</strong></div>
+                                            <div class="detail-row"><span>Arrears</span><strong id="salArrears" class="text-emerald">Rs. 0</strong></div>
+                                            <div class="detail-row"><span>Bonus</span><strong id="salBonus" class="text-emerald">Rs. 0</strong></div>
+                                            <div class="detail-row"><span>Remaining Advance Salary</span><strong id="salAdvanceRemaining" class="text-warning">Rs. 0</strong></div>
+                                        </div>
+                                    </div>
+                                    <div class="sal-list-card">
+                                        <h4><i class="fas fa-exclamation-triangle text-danger"></i> Deductions & Docks</h4>
+                                        <div class="sal-detail-rows">
+                                            <div class="detail-row"><span>Absent Deduction</span><strong id="salAbsentDeduct" class="text-danger">Rs. 0</strong></div>
+                                            <div class="detail-row"><span>NCNS Deduction</span><strong id="salNcnsDeduct" class="text-danger">Rs. 0</strong></div>
+                                            <div class="detail-row"><span>Sandwich Dock (SD)</span><strong id="salSdDeduct" class="text-danger">Rs. 0</strong></div>
+                                            <div class="detail-row"><span>Late Coming Fine</span><strong id="salLateFine" class="text-danger">Rs. 0</strong></div>
+                                            <div class="detail-row"><span>QA Docks</span><strong id="salQaDocks" class="text-danger">Rs. 0</strong></div>
+                                            <div class="detail-row"><span>Tax Deduction</span><strong id="salTaxDeduct" class="text-danger">Rs. 0</strong></div>
+                                            <div class="detail-row"><span>Misspunch Fine</span><strong id="salMisspunchFine" class="text-danger">Rs. 0</strong></div>
+                                            <div class="detail-row"><span>Advance Deduction</span><strong id="salAdvanceDeduct" class="text-danger">Rs. 0</strong></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </section>
@@ -1109,136 +1369,401 @@
                             </div>
                         </section>
 
-                        <!-- Performance - Daily Full Day Report -->
+                        <!-- ======================================================= -->
+                        <!-- DAILY REPORTING CONSOLE - ADVANCED MISSION CONTROL UI -->
+                        <!-- ======================================================= -->
                         <section id="view-performance" class="view-section ess-perf-view">
-                            <div class="prod-analytics-header" style="margin-bottom: 24px;">
-                                <h2 style="font-size: 24px; color: var(--text-color);"><i class="fas fa-headset" style="color: var(--primary); margin-right: 8px;"></i> Daily Reporting Console</h2>
-                                <p style="font-size: 14px; color: var(--text-muted);">Log your transferred calls securely to the database</p>
-                            </div>
 
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-                                <!-- Daily Reporting Form -->
-                                <div class="ess-card">
-                                    <div class="ess-card-head" style="margin-bottom: 20px;">
-                                        <h3><i class="fas fa-plus-circle" style="color: var(--primary);"></i> Log Transfer Call</h3>
-                                    </div>
-                                    
-                                    <form id="dailyReportingForm" style="display: flex; flex-direction: column; gap: 16px;">
-                                        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(16,185,129,0.1); padding: 15px; border-radius: 8px; border: 1px solid rgba(16,185,129,0.2); margin-bottom: 8px;">
+                            <!-- CINEMATIC HERO COMMAND BAR -->
+                            <div class="drc-command-bar">
+                                <div class="drc-cb-mesh"></div>
+                                <div class="drc-cb-orb drc-cb-orb1"></div>
+                                <div class="drc-cb-orb drc-cb-orb2"></div>
+                                <div class="drc-cb-inner">
+
+                                    <!-- Left: Identity & Status -->
+                                    <div class="drc-cb-left">
+                                        <div class="drc-agent-identity">
+                                            <div class="drc-agent-avatar" id="drcAgentAvatarRing">
+                                                <i class="fas fa-headset"></i>
+                                            </div>
                                             <div>
-                                                <label style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;"><i class="fas fa-fingerprint"></i> Biometric ID (DID)</label>
-                                                <strong id="drpBiometricId" style="font-size: 18px; color: #10b981; display: block; margin-top: 4px; font-family: monospace;">Loading...</strong>
-                                            </div>
-                                            <div style="height: 36px; width: 36px; border-radius: 50%; background: rgba(16,185,129,0.2); display: flex; align-items: center; justify-content: center;"><i class="fas fa-check" style="color: #10b981;"></i></div>
-                                        </div>
-
-                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                                            <div class="form-field">
-                                                <label for="drpCustomerNumber">Customer Number <span style="color:#ef4444">*</span></label>
-                                                <input type="text" id="drpCustomerNumber" required placeholder="e.g. 555-0198" class="ess-leave-input">
-                                            </div>
-                                            <div class="form-field">
-                                                <label for="drpCustomerZip">Zip Code</label>
-                                                <input type="text" id="drpCustomerZip" placeholder="e.g. 90210" class="ess-leave-input">
+                                                <div class="drc-agent-label">AGENT CONSOLE <span class="drc-live-dot"></span> LIVE</div>
+                                                <div class="drc-agent-did">
+                                                    DID: <strong id="drpBiometricId">-</strong>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                                            <div class="form-field">
-                                                <label for="drpCustomerName">Customer Name</label>
-                                                <input type="text" id="drpCustomerName" placeholder="e.g. John Doe" class="ess-leave-input">
-                                            </div>
-                                            <div class="form-field">
-                                                <label for="drpCustomerAge">Customer Age</label>
-                                                <input type="number" id="drpCustomerAge" placeholder="e.g. 45" class="ess-leave-input">
-                                            </div>
+                                        <div class="drc-cb-tags">
+                                            <span id="drpStreakBadge" class="drc-streak-badge" style="display:none;">
+                                                Streak: <span id="drpStreakCount">0</span> Days
+                                            </span>
+                                            <a href="daily-report-offline.html" target="_blank" class="drc-offline-link">
+                                                <i class="fas fa-wifi-slash"></i> Offline Mode
+                                            </a>
                                         </div>
-
-                                        <div class="form-field">
-                                            <label for="drpTransferOn">Transfer Option <span style="color:#ef4444">*</span></label>
-                                            <select id="drpTransferOn" required class="ess-leave-input">
-                                                <option value="D1">Option D1</option>
-                                                <option value="D2">Option D2</option>
-                                            </select>
-                                        </div>
-
-                                        <button type="submit" class="ess-btn ess-btn-primary" style="margin-top: 8px;">
-                                            <i class="fas fa-paper-plane"></i> Log Transfer Call
-                                        </button>
-                                    </form>
-                                </div>
-
-                                <!-- Today's Logged Transfers Table -->
-                                <div class="ess-card">
-                                    <div class="ess-card-head" style="margin-bottom: 20px;">
-                                        <h3><i class="fas fa-history" style="color: var(--primary);"></i> Today's Logged Transfers</h3>
                                     </div>
-                                    <div class="ess-table-wrap">
-                                        <table class="data-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Time</th>
-                                                    <th>Customer Number</th>
-                                                    <th>Name</th>
-                                                    <th>Transfer Option</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="todayTransfersTableBody">
-                                                <tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">No transfers logged today yet.</td></tr>
-                                            </tbody>
-                                        </table>
+
+                                    <!-- Center: Mega KPI Counters -->
+                                    <div class="drc-cb-kpis">
+                                        <div class="drc-kpi-pill" id="drcKpiToday">
+                                            <div class="drc-kpi-icon"><i class="fas fa-sun"></i></div>
+                                            <div>
+                                                <div class="drc-kpi-val" id="drpMiniToday">0</div>
+                                                <div class="drc-kpi-label">Today</div>
+                                            </div>
+                                        </div>
+                                        <div class="drc-kpi-sep">|</div>
+                                        <div class="drc-kpi-pill" id="drcKpiWeek">
+                                            <div class="drc-kpi-icon drc-kpi-icon-week"><i class="fas fa-calendar-week"></i></div>
+                                            <div>
+                                                <div class="drc-kpi-val" id="drpMiniWeek">0</div>
+                                                <div class="drc-kpi-label">This Week</div>
+                                            </div>
+                                        </div>
+                                        <div class="drc-kpi-sep">|</div>
+                                        <div class="drc-kpi-pill" id="drcKpiMonth">
+                                            <div class="drc-kpi-icon drc-kpi-icon-month"><i class="fas fa-calendar-alt"></i></div>
+                                            <div>
+                                                <div class="drc-kpi-val" id="drpMiniMonth">0</div>
+                                                <div class="drc-kpi-label">This Month</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Right: D1/D2 + Clock -->
+                                    <div class="drc-cb-right">
+                                        <div class="drc-d1d2-mini">
+                                            <div class="drc-d1d2-chip drc-d1-chip">D1 <span id="drpMiniD1Today">0</span></div>
+                                            <div class="drc-d1d2-chip drc-d2-chip">D2 <span id="drpMiniD2Today">0</span></div>
+                                        </div>
+                                        <div class="drc-live-clock" id="drpLiveTime">00:00:00</div>
+                                        <div class="drc-refresh-ring" id="drcRefreshRing" title="Auto-refreshes every 60s">
+                                            <svg viewBox="0 0 36 36" class="drc-ring-svg">
+                                                <circle class="drc-ring-bg"  cx="18" cy="18" r="15.9"/>
+                                                <circle class="drc-ring-prog" cx="18" cy="18" r="15.9" id="drcRingProgress"/>
+                                            </svg>
+                                            <i class="fas fa-rotate-right drc-ring-icon"></i>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                                                     <!-- LOG TRANSFER FORM (FULL-WIDTH TOP PANEL) -->
+                             <div class="drc-form-panel" style="margin-bottom: 20px; position: static;">
+                                 <div class="drc-panel-head">
+                                     <span class="drc-panel-title"><i class="fas fa-phone-arrow-up-right"></i> Log Transfer Call</span>
+                                     <span class="drc-call-counter">Call #<strong id="drcCallCounter">-</strong></span>
+                                                                <form id="dailyReportingForm" class="drc-form" autocomplete="off" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; padding: 18px 22px;">
+                                     
+                                     <!-- Row 1: Customer #, Name, Zip, Age, Option -->
+                                     <div class="drc-field drc-field-accent">
+                                         <label class="drc-label"><i class="fas fa-phone"></i> Customer Number <span class="drc-req">*</span></label>
+                                         <input type="text" id="drpCustomerNumber" class="drc-input" placeholder="e.g. 555-0198" required style="height: 40px !important;">
+                                     </div>
+
+                                     <div class="drc-field">
+                                         <label class="drc-label"><i class="fas fa-user"></i> Customer Name</label>
+                                         <input type="text" id="drpCustomerName" class="drc-input" placeholder="Full name" style="height: 40px !important;">
+                                     </div>
+
+                                     <div class="drc-field">
+                                         <label class="drc-label"><i class="fas fa-location-dot"></i> Zip Code</label>
+                                         <input type="text" id="drpCustomerZip" class="drc-input" placeholder="90210" style="height: 40px !important;">
+                                     </div>
+
+                                     <div class="drc-field">
+                                         <label class="drc-label"><i class="fas fa-hashtag"></i> Age</label>
+                                         <input type="number" id="drpCustomerAge" class="drc-input" placeholder="45" min="18" style="height: 40px !important;">
+                                     </div>
+
+                                     <div class="drc-field">
+                                         <label class="drc-label"><i class="fas fa-right-left"></i> Transfer Option <span class="drc-req">*</span></label>
+                                         <div class="drc-transfer-toggle" style="height: 40px;">
+                                             <button type="button" id="drpBtnD1" class="drc-tog-btn drc-tog-d1 drc-tog-active" onclick="drpSelectTransfer('D1')" style="padding: 0px 8px !important; font-size: 11px; height: 100%;">
+                                                 <span class="drc-tog-num" style="width:16px; height:16px; font-size:9px; margin-right:4px;">1</span> D1
+                                             </button>
+                                             <button type="button" id="drpBtnD2" class="drc-tog-btn drc-tog-d2" onclick="drpSelectTransfer('D2')" style="padding: 0px 8px !important; font-size: 11px; height: 100%;">
+                                                 <span class="drc-tog-num" style="width:16px; height:16px; font-size:9px; margin-right:4px;">2</span> D2
+                                             </button>
+                                         </div>
+                                         <input type="hidden" id="drpTransferOn" value="D1">
+                                     </div>
+
+                                     <!-- Row 2: Duration, Outcome, Notes (2 Cols), Submit -->
+                                     <div class="drc-field">
+                                         <label class="drc-label"><i class="fas fa-stopwatch"></i> Duration <span class="drc-unit">(min)</span></label>
+                                         <div class="drc-duration-row" style="display: flex; gap: 4px; height: 40px; align-items: center;">
+                                             <button type="button" class="drc-dur-chip" onclick="drcSetDuration(2)" style="padding: 0 8px; height: 100%; min-width: 32px; font-size: 11px;">2m</button>
+                                             <button type="button" class="drc-dur-chip" onclick="drcSetDuration(5)" style="padding: 0 8px; height: 100%; min-width: 32px; font-size: 11px;">5m</button>
+                                             <input type="number" id="drpCallDuration" class="drc-input drc-dur-input" placeholder="min" min="0" max="120" style="height: 100% !important; margin: 0; padding: 0 4px !important;">
+                                         </div>
+                                     </div>
+
+                                     <div class="drc-field">
+                                         <label class="drc-label"><i class="fas fa-tag"></i> Call Outcome</label>
+                                         <select id="drpCallOutcome" class="drc-input drc-select" style="height: 40px !important; padding: 0 24px 0 10px !important; font-size: 13px !important;">
+                                             <option value="">- Select -</option>
+                                             <option value="Interested">Interested</option>
+                                             <option value="Not Interested">Not Interested</option>
+                                             <option value="Callback">Callback</option>
+                                             <option value="Voicemail">Voicemail</option>
+                                             <option value="No Answer">No Answer</option>
+                                         </select>
+                                     </div>
+
+                                     <div class="drc-field" style="grid-column: span 2;">
+                                         <label class="drc-label"><i class="fas fa-note-sticky"></i> Notes <span class="drc-unit">(optional)</span></label>
+                                         <input type="text" id="drpCallNotes" class="drc-input" placeholder="Customer notes, follow-up details..." style="height: 40px !important;">
+                                     </div>
+
+                                     <div class="drc-field" style="justify-content: flex-end;">
+                                         <button type="submit" class="drc-submit-btn" id="drcSubmitBtn" style="height: 40px; margin: 0; padding: 0 !important; font-size: 13px; width: 100%;">
+                                             <span class="drc-submit-glow"></span>
+                                             <i class="fas fa-paper-plane drc-submit-icon" style="font-size: 12px;"></i>
+                                             <span class="drc-submit-text">Log Transfer Call</span>
+                                         </button>
+                                     </div>
+
+                                 </form>
+                             </div>
+
+                             <!-- MAIN WORKSPACE (Split layout: Widgets on Left, Wide Table on Right) -->
+                             <div class="drc-workspace">
+
+                                 <!-- LEFT COLUMN: SIDE WIDGETS -->
+                                 <div class="drc-center-panel" style="width: 300px;">
+                                     
+                                     <!-- Top 5 Agents Card -->
+                                     <div class="drc-card-widget">
+                                         <div class="drc-widget-head">
+                                             <span><i class="fas fa-trophy" style="color: #f59e0b; margin-right: 6px;"></i> Top 5 Agents Today</span>
+                                         </div>
+                                         <div class="drc-widget-body" id="drcLeaderboardBody" style="padding: 10px 16px;">
+                                             <div class="drc-leaderboard-loading">Loading...</div>
+                                         </div>
+                                     </div>
+
+                                     <!-- MTD Transfers Goal Target Card -->
+                                     <div class="drc-card-widget">
+                                         <div class="drc-widget-head">
+                                             <span><i class="fas fa-bullseye" style="color: #ef4444; margin-right: 6px;"></i> Goal Target (MTD)</span>
+                                         </div>
+                                         <div class="drc-widget-body" style="text-align: center; padding: 12px 15px;">
+                                             <div class="drc-goal-large" id="drcGoalMTD">0</div>
+                                             <div class="drc-goal-label" style="margin-bottom: 8px;">Month-to-Date Logged</div>
+                                             <div class="drc-progress-bar-wrap" style="margin-bottom: 6px;">
+                                                 <div class="drc-progress-bar" id="drcGoalProgressBar" style="width: 0%;"></div>
+                                             </div>
+                                             <div class="drc-goal-subtext">Target: 360 transfers / month</div>
+                                         </div>
+                                     </div>
+
+                                     <!-- SLA Violation Status Card -->
+                                     <div class="drc-card-widget">
+                                         <div class="drc-widget-head">
+                                             <span><i class="fas fa-user-clock" style="color: #6366f1; margin-right: 6px;"></i> Speed & SLA Status</span>
+                                         </div>
+                                         <div class="drc-widget-body" style="padding: 15px;">
+                                             <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:12px;">
+                                                 <span>Avg. Duration:</span>
+                                                 <strong id="drcSlaDuration">0 min</strong>
+                                             </div>
+                                             <div class="drc-progress-bar-wrap" style="height: 6px; margin-bottom: 6px;">
+                                                 <div class="drc-progress-bar" id="drcSlaProgressBar" style="width: 0%; background: #10b981;"></div>
+                                             </div>
+                                             <div style="font-size:10px; color:rgba(255,255,255,0.4); display:flex; justify-content:space-between;">
+                                                 <span>Goal: &lt; 5 mins</span>
+                                                 <span id="drcSlaStatusText" style="font-weight: 700;">Within SLA</span>
+                                             </div>
+                                         </div>
+                                     </div>
+                                 </div>
+
+                                 <!-- RIGHT COLUMN: WIDE TABLE LOG LIST -->
+                                 <div class="drc-table-panel">
+
+                                     <!-- Tab Bar -->
+                                     <div class="drc-tab-bar">
+                                         <div class="drc-tabs">
+                                             <button class="drc-tab drc-tab-active" id="drpTabToday" onclick="drpSwitchPeriod('today')">
+                                                 <i class="fas fa-sun"></i> Today
+                                                 <span class="drc-tab-count" id="drcTabCountToday">0</span>
+                                             </button>
+                                             <button class="drc-tab" id="drpTabWeek" onclick="drpSwitchPeriod('week')">
+                                                 <i class="fas fa-calendar-week"></i> This Week
+                                                 <span class="drc-tab-count" id="drcTabCountWeek">0</span>
+                                             </button>
+                                             <button class="drc-tab" id="drpTabMonth" onclick="drpSwitchPeriod('month')">
+                                                 <i class="fas fa-calendar-alt"></i> This Month
+                                                 <span class="drc-tab-count" id="drcTabCountMonth">0</span>
+                                             </button>
+                                         </div>
+                                         <div class="drc-tab-actions">
+                                             <button class="drc-action-btn" onclick="loadPerformanceView()">
+                                                 <i class="fas fa-rotate-right"></i>
+                                             </button>
+                                             <button class="drc-action-btn drc-export-btn" onclick="drpExportCSV()">
+                                                 <i class="fas fa-download"></i> Export
+                                             </button>
+                                         </div>
+                                     </div>
+
+                                     <!-- Table Summary Bar -->
+                                     <div class="drc-summary-bar" id="drcSummaryBar">
+                                         <span class="drc-sum-item drc-sum-total"><i class="fas fa-list"></i> <span id="drpTableCount">0</span> transfers</span>
+                                         <span class="drc-sum-item drc-sum-d1"><span class="drc-sum-dot drc-dot-d1"></span> D1: <strong id="drcSumD1">0</strong></span>
+                                         <span class="drc-sum-item drc-sum-d2"><span class="drc-sum-dot drc-dot-d2"></span> D2: <strong id="drcSumD2">0</strong></span>
+                                         <span class="drc-sum-item" id="drpTableSummary"></span>
+                                     </div>
+
+                                     <!-- The Table -->
+                                     <div class="drc-table-scroll">
+                                         <table class="drc-table">
+                                             <thead>
+                                                 <tr>
+                                                     <th class="drc-th-num">#</th>
+                                                     <th>Time</th>
+                                                     <th>Customer #</th>
+                                                     <th>Name</th>
+                                                     <th>Zip</th>
+                                                     <th>Age</th>
+                                                     <th>Option</th>
+                                                     <th>Duration</th>
+                                                     <th>QA Status</th>
+                                                     <th>Notes</th>
+                                                 </tr>
+                                             </thead>
+                                             <tbody id="todayTransfersTableBody">
+                                                 <tr class="drc-loading-row">
+                                                     <td colspan="10">
+                                                         <div class="drc-spinner-wrap">
+                                                             <div class="drc-spinner"></div>
+                                                             <span>Loading transfers...</span>
+                                                         </div>
+                                                     </td>
+                                                 </tr>
+                                             </tbody>
+                                         </table>
+                                     </div>
+                                 </div>
+
+                             </div><!-- /drc-workspace -->
+
                         </section>
+                        <!-- ============================================== END DAILY REPORTING ============================================== -->
 
                         <!-- My Performance Analytics View -->
-                        <section id="view-performance-analytics" class="view-section ess-perf-view">
-                            <div class="prod-analytics-header" style="margin-bottom: 24px;">
-                                <h2 style="font-size: 24px; color: var(--text-color);"><i class="fas fa-chart-pie" style="color: var(--primary); margin-right: 8px;"></i> My Performance Analytics</h2>
-                                <p style="font-size: 14px; color: var(--text-muted);">Track your QA-verified sales metrics and history</p>
-                            </div>
+                         <section id="view-performance-analytics" class="view-section ess-perf-view">
+                             
+                             <!-- CINEMATIC HERO COMMAND BAR FOR ANALYTICS -->
+                             <div class="drc-command-bar" style="margin-bottom: 24px;">
+                                 <div class="drc-cb-mesh"></div>
+                                 <div class="drc-cb-orb drc-cb-orb1"></div>
+                                 <div class="drc-cb-orb drc-cb-orb2"></div>
+                                 <div class="drc-cb-inner">
+                                     <!-- Left: Identity & Status -->
+                                     <div class="drc-cb-left">
+                                         <div class="drc-agent-identity">
+                                             <div class="drc-agent-avatar" style="background: rgba(99,102,241,0.2); box-shadow: 0 0 15px rgba(99,102,241,0.4);">
+                                                 <i class="fas fa-chart-line" style="color: #818cf8;"></i>
+                                             </div>
+                                             <div>
+                                                 <div class="drc-agent-label">PERFORMANCE CONTROL PANEL</div>
+                                                 <div style="font-size:11px; color:rgba(255,255,255,0.4);">Track your QA-verified sales metrics and history</div>
+                                             </div>
+                                         </div>
+                                     </div>
+                                     <!-- Right: Conversion Badge Status -->
+                                     <div class="drc-cb-right">
+                                         <span style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 6px;">
+                                             <i class="fas fa-award"></i> TIER-1 SALES SPEC
+                                         </span>
+                                     </div>
+                                 </div>
+                             </div>
 
-                            <!-- KPI Cards -->
-                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
-                                <div class="ess-stat highlight" style="display: flex; flex-direction: column; padding: 20px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border-color);">
-                                    <span style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">QA Sales Closed</span>
-                                    <strong id="qaStatsSales" style="font-size: 28px; margin-top: 8px; color: #10b981;">0</strong>
-                                </div>
-                                <div class="ess-stat" style="display: flex; flex-direction: column; padding: 20px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border-color);">
-                                    <span style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Rejected Sales</span>
-                                    <strong id="qaStatsRejected" style="font-size: 28px; margin-top: 8px; color: #ef4444;">0</strong>
-                                </div>
-                                <div class="ess-stat" style="display: flex; flex-direction: column; padding: 20px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border-color);">
-                                    <span style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Total QA Transfers</span>
-                                    <strong id="qaStatsTransfers" style="font-size: 28px; margin-top: 8px; color: #818cf8;">0</strong>
-                                </div>
-                                <div class="ess-stat" style="display: flex; flex-direction: column; padding: 20px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border-color);">
-                                    <span style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Conversion Rate</span>
-                                    <strong id="qaStatsConversion" style="font-size: 28px; margin-top: 8px; color: #f59e0b;">0%</strong>
-                                </div>
-                            </div>
+                             <!-- MEGA KPI STATS CARDS GRID (Neon Glowing & Glassmorphic) -->
+                             <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 24px;">
+                                 
+                                 <!-- QA Sales Card -->
+                                 <div class="drc-card-widget" style="border-left: 4px solid #10b981; transition: transform 0.2s;">
+                                     <div class="drc-widget-body" style="display: flex; align-items: center; justify-content: space-between; padding: 20px 22px;">
+                                         <div>
+                                             <span style="font-size: 11px; color: rgba(255,255,255,0.4); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">QA Sales Closed</span>
+                                             <strong id="qaStatsSales" style="font-size: 32px; display: block; margin-top: 6px; color: #10b981; font-weight: 900; line-height: 1;">0</strong>
+                                         </div>
+                                         <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16,185,129,0.1); display: flex; align-items: center; justify-content: center; font-size: 20px; color: #10b981;">
+                                             <i class="fas fa-circle-check"></i>
+                                         </div>
+                                     </div>
+                                 </div>
 
-                            <!-- Charts Grid -->
-                            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
-                                <div class="ess-card">
-                                    <div class="ess-card-head" style="margin-bottom: 20px;">
-                                        <h3><i class="fas fa-chart-line" style="color: var(--primary);"></i> 30-Day Performance Trend</h3>
-                                    </div>
-                                    <div style="height: 350px; position: relative;">
-                                        <canvas id="perfTrendChart"></canvas>
-                                    </div>
-                                </div>
-                                <div class="ess-card">
-                                    <div class="ess-card-head" style="margin-bottom: 20px;">
-                                        <h3><i class="fas fa-pie-chart" style="color: var(--primary);"></i> Sales vs Rejections Ratio</h3>
-                                    </div>
-                                    <div style="height: 350px; position: relative;">
-                                        <canvas id="perfRatioChart"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
+                                 <!-- Rejected Sales Card -->
+                                 <div class="drc-card-widget" style="border-left: 4px solid #ef4444; transition: transform 0.2s;">
+                                     <div class="drc-widget-body" style="display: flex; align-items: center; justify-content: space-between; padding: 20px 22px;">
+                                         <div>
+                                             <span style="font-size: 11px; color: rgba(255,255,255,0.4); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Rejected Sales</span>
+                                             <strong id="qaStatsRejected" style="font-size: 32px; display: block; margin-top: 6px; color: #ef4444; font-weight: 900; line-height: 1;">0</strong>
+                                         </div>
+                                         <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(239,68,68,0.1); display: flex; align-items: center; justify-content: center; font-size: 20px; color: #ef4444;">
+                                             <i class="fas fa-circle-xmark"></i>
+                                         </div>
+                                     </div>
+                                 </div>
+
+                                 <!-- Total QA Transfers Card -->
+                                 <div class="drc-card-widget" style="border-left: 4px solid #818cf8; transition: transform 0.2s;">
+                                     <div class="drc-widget-body" style="display: flex; align-items: center; justify-content: space-between; padding: 20px 22px;">
+                                         <div>
+                                             <span style="font-size: 11px; color: rgba(255,255,255,0.4); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Total QA Transfers</span>
+                                             <strong id="qaStatsTransfers" style="font-size: 32px; display: block; margin-top: 6px; color: #818cf8; font-weight: 900; line-height: 1;">0</strong>
+                                         </div>
+                                         <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(129,140,248,0.1); display: flex; align-items: center; justify-content: center; font-size: 20px; color: #818cf8;">
+                                             <i class="fas fa-list-ol"></i>
+                                         </div>
+                                     </div>
+                                 </div>
+
+                                 <!-- Conversion Rate Card -->
+                                 <div class="drc-card-widget" style="border-left: 4px solid #f59e0b; transition: transform 0.2s;">
+                                     <div class="drc-widget-body" style="display: flex; align-items: center; justify-content: space-between; padding: 20px 22px;">
+                                         <div>
+                                             <span style="font-size: 11px; color: rgba(255,255,255,0.4); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Conversion Rate</span>
+                                             <strong id="qaStatsConversion" style="font-size: 32px; display: block; margin-top: 6px; color: #f59e0b; font-weight: 900; line-height: 1;">0%</strong>
+                                         </div>
+                                         <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(245,158,11,0.1); display: flex; align-items: center; justify-content: center; font-size: 20px; color: #f59e0b;">
+                                             <i class="fas fa-percent"></i>
+                                         </div>
+                                     </div>
+                                 </div>
+
+                             </div>
+
+                             <!-- CHARTS GRID (Glassmorphic panels) -->
+                             <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                                 
+                                 <!-- 30-Day Trend Panel -->
+                                 <div class="drc-card-widget">
+                                     <div class="drc-widget-head">
+                                         <span><i class="fas fa-chart-area" style="color: #6366f1; margin-right: 6px;"></i> 30-Day QA Performance Trend</span>
+                                     </div>
+                                     <div class="drc-widget-body" style="height: 350px; position: relative;">
+                                         <canvas id="perfTrendChart"></canvas>
+                                     </div>
+                                 </div>
+
+                                 <!-- Sales vs Rejections Panel -->
+                                 <div class="drc-card-widget">
+                                     <div class="drc-widget-head">
+                                         <span><i class="fas fa-circle-pie" style="color: #10b981; margin-right: 6px;"></i> Sales vs Rejections Ratio</span>
+                                     </div>
+                                     <div class="drc-widget-body" style="height: 350px; position: relative;">
+                                         <canvas id="perfRatioChart"></canvas>
+                                     </div>
+                                 </div>
+
+                             </div>
+                         </section>
 
                         <!-- Chat (embedded - same page URL) -->
                         <section id="view-chat" class="view-section ess-chat-view">
@@ -1410,8 +1935,46 @@
                 ESS_DEFAULT_NAV['feeds']        = 'nav-tab-feeds';
                 ESS_DEFAULT_NAV['timelogs']     = 'nav-tab-timelogs';
                 ESS_DEFAULT_NAV['timesheets']   = 'nav-tab-timesheets';
-            }
         });
+
+        function estimateTaxForInput() {
+            const inputVal = parseFloat(document.getElementById('taxEstimatorInput').value) || 0;
+            const annual = inputVal * 12;
+            let tax = 0;
+            let bracket = 'No Tax';
+            
+            if (annual <= 600000) {
+                tax = 0;
+                bracket = 'Up to Rs. 600k (0%)';
+            } else if (annual <= 1200000) {
+                tax = (annual - 600000) * 0.01;
+                bracket = 'Rs. 600k – 1.2M (1%)';
+            } else if (annual <= 2200000) {
+                tax = 6000 + (annual - 1200000) * 0.11;
+                bracket = 'Rs. 1.2M – 2.2M (11%)';
+            } else if (annual <= 3200000) {
+                tax = 116000 + (annual - 2200000) * 0.20;
+                bracket = 'Rs. 2.2M – 3.2M (20%)';
+            } else if (annual <= 4100000) {
+                tax = 316000 + (annual - 3200000) * 0.25;
+                bracket = 'Rs. 3.2M – 4.1M (25%)';
+            } else if (annual <= 5600000) {
+                tax = 541000 + (annual - 4100000) * 0.29;
+                bracket = 'Rs. 4.1M – 5.6M (29%)';
+            } else if (annual <= 7000000) {
+                tax = 976000 + (annual - 5600000) * 0.32;
+                bracket = 'Rs. 5.6M – 7.0M (32%)';
+            } else {
+                tax = 1424000 + (annual - 7000000) * 0.35;
+                bracket = 'Above Rs. 7.0M (35%)';
+            }
+            
+            document.getElementById('estAnnualIncome').innerText = 'Rs. ' + Math.round(annual).toLocaleString();
+            document.getElementById('estTaxBracket').innerText = bracket;
+            document.getElementById('estAnnualTax').innerText = 'Rs. ' + Math.round(tax).toLocaleString();
+            document.getElementById('estMonthlyTax').innerText = 'Rs. ' + Math.round(tax / 12).toLocaleString();
+        }
+        window.estimateTaxForInput = estimateTaxForInput;
     </script>
     <script charset="utf-8" src="js/hr-productivity.js?v=3"></script>
     <script charset="utf-8" src="js/employee-salary.js?v=6"></script>

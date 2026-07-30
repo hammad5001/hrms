@@ -15,11 +15,15 @@ ensure_app_schema($conn);
 
 $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
 
-$customer_number = trim($input['customer_number'] ?? '');
-$customer_zip = trim($input['customer_zip'] ?? '');
-$customer_name = trim($input['customer_name'] ?? '');
-$customer_age = trim($input['customer_age'] ?? '');
-$transfer_on = trim($input['transfer_on'] ?? '');
+$customer_number    = trim($input['customer_number']    ?? '');
+$customer_zip       = trim($input['customer_zip']       ?? '');
+$customer_name      = trim($input['customer_name']      ?? '');
+$customer_age       = trim($input['customer_age']       ?? '');
+$transfer_on        = trim($input['transfer_on']        ?? 'D1');
+$call_notes         = trim($input['call_notes']         ?? '');
+$call_duration_mins = max(0, (int)($input['call_duration_mins'] ?? 0));
+$offline_uuid       = trim($input['offline_uuid']       ?? '');
+$is_offline_sync    = !empty($offline_uuid) ? 1 : 0;
 
 if (empty($customer_number) || empty($transfer_on)) {
     echo json_encode(['success' => false, 'message' => 'Customer Number and Transfer On are required fields.']);
@@ -31,8 +35,8 @@ if (!in_array($transfer_on, ['D1', 'D2'])) {
     exit;
 }
 
-$user_id = $_SESSION['user_id'];
-$biometric_id = $_SESSION['employee_code'] ?? ''; // DID
+$user_id      = (int)$_SESSION['user_id'];
+$biometric_id = $_SESSION['employee_code'] ?? '';
 $company_branch = $_SESSION['company_branch'] ?? 'main';
 
 if (empty($biometric_id)) {
@@ -40,11 +44,46 @@ if (empty($biometric_id)) {
     exit;
 }
 
-$stmt = $conn->prepare("INSERT INTO agent_daily_transfers (user_id, biometric_id, customer_number, customer_zip, customer_name, customer_age, transfer_on, company_branch) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-$stmt->bind_param("isssssss", $user_id, $biometric_id, $customer_number, $customer_zip, $customer_name, $customer_age, $transfer_on, $company_branch);
+// If offline_uuid provided, check for duplicate (idempotent sync)
+if (!empty($offline_uuid)) {
+    $checkStmt = $conn->prepare("SELECT id FROM agent_daily_transfers WHERE offline_uuid = ? LIMIT 1");
+    $checkStmt->bind_param('s', $offline_uuid);
+    $checkStmt->execute();
+    $checkStmt->store_result();
+    if ($checkStmt->num_rows > 0) {
+        $checkStmt->close();
+        echo json_encode(['success' => true, 'message' => 'Already synced (duplicate skipped).', 'duplicate' => true]);
+        exit;
+    }
+    $checkStmt->close();
+}
+
+$offline_uuid_val = !empty($offline_uuid) ? $offline_uuid : null;
+
+$stmt = $conn->prepare(
+    "INSERT INTO agent_daily_transfers
+     (user_id, biometric_id, customer_number, customer_zip, customer_name, customer_age,
+      transfer_on, call_notes, call_duration_mins, is_offline_sync, offline_uuid, company_branch)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+);
+$stmt->bind_param(
+    "isssssssisis",
+    $user_id,
+    $biometric_id,
+    $customer_number,
+    $customer_zip,
+    $customer_name,
+    $customer_age,
+    $transfer_on,
+    $call_notes,
+    $call_duration_mins,
+    $is_offline_sync,
+    $offline_uuid_val,
+    $company_branch
+);
 
 if ($stmt->execute()) {
-    echo json_encode(['success' => true, 'message' => 'Transfer reported successfully!']);
+    echo json_encode(['success' => true, 'message' => 'Transfer reported successfully!', 'id' => $conn->insert_id]);
 } else {
     echo json_encode(['success' => false, 'message' => 'Database error: ' . $stmt->error]);
 }

@@ -46,6 +46,9 @@ const HRMS = {
     activeNavId: 'nav-tab-activities',
 };
 
+let empSalBreakdownChart = null;
+let empSalTimelineChart = null;
+
 const LEAVE_BALANCE_ACCENTS = {
     casual: 'ess-leave-card--casual',
     sick: 'ess-leave-card--sick',
@@ -1468,6 +1471,21 @@ function renderSalary() {
         }
     });
 
+    // Calculate elapsed working days (working days up to today or end of month)
+    const today = new Date();
+    let calculationEndDay = totalDaysInMonth;
+    if (today.getFullYear() === currentYear && (today.getMonth() + 1) === currentMonth) {
+        calculationEndDay = Math.min(today.getDate(), totalDaysInMonth);
+    } else if (new Date(currentYear, currentMonth - 1, 1) > today) {
+        calculationEndDay = 0; // Future month
+    }
+
+    let elapsedWorkingDaysCount = 0;
+    for (let d = 1; d <= calculationEndDay; d++) {
+        if (!isWeekend(currentYear, currentMonth, d)) elapsedWorkingDaysCount++;
+    }
+    const upcomingWorkingDays = Math.max(0, workingDaysCount - elapsedWorkingDaysCount);
+
     // Calculate leaves
     const approvedLeaves = parseInt(p.leaves_this_month || 0);
     
@@ -1480,14 +1498,16 @@ function renderSalary() {
         const daysDiff = Math.floor((new Date() - apptDate) / (1000 * 60 * 60 * 24));
         if (daysDiff >= 60) probationCompleted = true;
     }
-    const rawAbsent = Math.max(0, workingDaysCount - presentCount);
-    if (probationCompleted && rawAbsent > 0 && approvedLeaves === 0) {
+    
+    // Past raw absents = elapsed working days - present days
+    const pastRawAbsent = Math.max(0, elapsedWorkingDaysCount - presentCount);
+    if (probationCompleted && pastRawAbsent > 0 && approvedLeaves === 0) {
         autoLeave = 1;
     }
     const totalApprovedLeaves = approvedLeaves + autoLeave;
-    const adjustedLeaveCount = Math.min(rawAbsent, totalApprovedLeaves);
-    const adjustedAbsent = Math.max(0, rawAbsent - adjustedLeaveCount);
-    const totalWorkingDays = presentCount + adjustedLeaveCount;
+    const adjustedLeaveCount = Math.min(pastRawAbsent, totalApprovedLeaves);
+    const adjustedAbsent = Math.max(0, pastRawAbsent - adjustedLeaveCount);
+    const totalAccruedWorkingDays = presentCount + adjustedLeaveCount;
 
     // Punctuality Qualification Check
     let punctualityQualified = false;
@@ -1496,25 +1516,14 @@ function renderSalary() {
         punctualityAmount = parseFloat(p.manual_punctuality) || 0.0;
         punctualityQualified = punctualityAmount > 0;
     } else if (p.punctuality_enabled) {
-        // Qualified if 100% working days completed (or only 1 allowed leave as per requirement) AND < 3 lates
-        if (totalWorkingDays >= (workingDaysCount - 1) && lateCount < 3) {
+        if (adjustedAbsent === 0 && lateCount === 0) {
             punctualityQualified = true;
             punctualityAmount = punctualityBonus;
         }
     }
 
-    // Late coming deduction calculation
-    let lateDeduction = 0.0;
-    if (lateCount >= 3) {
-        if (punctualityQualified) {
-            // Strip punctuality bonus
-            punctualityAmount = 0.0;
-            punctualityQualified = false;
-        } else {
-            // Deduct $300 fine per late coming if punctuality is already lost
-            lateDeduction = lateCount * LATE_PENALTY;
-        }
-    }
+    // Late coming deduction calculation (Rs 300 per late arrival)
+    let lateDeduction = lateCount * 300;
     if (p.manual_late_deduction > 0) {
         lateDeduction = p.manual_late_deduction;
     }
@@ -1531,11 +1540,11 @@ function renderSalary() {
     const taxDeduction = parseFloat(p.tax_deduction) || 0.0;
     const advanceDeduction = parseFloat(p.advance_deduction) || 0.0;
 
-    // Absent Deduction
+    // Absent Deduction (Only for past elapsed working days where employee was absent)
     const absentDeduction = adjustedAbsent * perDaySalary;
 
-    // Earning Till Today (Live calculation)
-    const earningsBase = totalWorkingDays * perDaySalary;
+    // Earning Till Today (Live calculation for worked days till date)
+    const earningsBase = totalAccruedWorkingDays * perDaySalary;
     const totalEarnings = earningsBase + punctualityAmount + bonus + tada + arrears;
     const totalDeductions = lateDeduction + halfDayDeduction + ncnsDeduction + sdDeduction + qaDeduction + misspunchDeduction + advanceDeduction + taxDeduction;
     const grossSalary = totalEarnings - totalDeductions - absentDeduction;
@@ -1549,6 +1558,8 @@ function renderSalary() {
     setText('salEarningsTillToday', formatMoney(liveNetSalary));
     
     setText('salTotalDays', String(workingDaysCount));
+    setText('salElapsedDays', String(elapsedWorkingDaysCount));
+    setText('salUpcomingDays', String(upcomingWorkingDays));
     setText('salPresentDays', String(presentCount));
     setText('salAbsentDays', String(adjustedAbsent));
     setText('salLeaves', String(totalApprovedLeaves));
@@ -1565,6 +1576,104 @@ function renderSalary() {
     setText('salTaxDeduct', formatMoney(taxDeduction));
     setText('salMisspunchFine', formatMoney(misspunchDeduction));
     setText('salAdvanceDeduct', formatMoney(advanceDeduction));
+
+    // Update pro-rated progress bar
+    const progressPercent = workingDaysCount > 0 ? Math.round((elapsedWorkingDaysCount / workingDaysCount) * 100) : 0;
+    const progressEl = document.getElementById('salProgressFill');
+    if (progressEl) {
+        progressEl.style.width = `${progressPercent}%`;
+    }
+    setText('salProgressPercent', `${progressPercent}% of Month Elapsed`);
+    setText('salDaysStatus', `${elapsedWorkingDaysCount} / ${workingDaysCount} Working Days (${upcomingWorkingDays} Upcoming)`);
+
+    // Draw Breakdown Chart (Doughnut)
+    try {
+        if (empSalBreakdownChart) empSalBreakdownChart.destroy();
+        const ctxBreakdown = document.getElementById('empSalBreakdownChart');
+        if (ctxBreakdown) {
+            empSalBreakdownChart = new Chart(ctxBreakdown.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Base Salary', 'Allowances', 'Deductions'],
+                    datasets: [{
+                        data: [Math.round(basicSalary), Math.round(bonus + punctualityAmount + tada + arrears), Math.round(totalDeductions + absentDeduction)],
+                        backgroundColor: ['#10b981', '#3b82f6', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#9ca3af',
+                                boxWidth: 10,
+                                font: { size: 10, family: "'Inter', sans-serif" }
+                            }
+                        }
+                    },
+                    cutout: '75%'
+                }
+            });
+        }
+    } catch (e) {
+        console.error("Error drawing breakdown chart:", e);
+    }
+
+    // Draw Accrual Timeline Chart (Line)
+    try {
+        if (empSalTimelineChart) empSalTimelineChart.destroy();
+        const ctxTimeline = document.getElementById('empSalTimelineChart');
+        if (ctxTimeline) {
+            const daysArray = [];
+            const accrualValues = [];
+            let runningSalary = 0;
+            for (let d = 1; d <= totalDaysInMonth; d++) {
+                daysArray.push(d);
+                if (!isWeekend(currentYear, currentMonth, d) && d <= calculationEndDay) {
+                    runningSalary += perDaySalary;
+                }
+                accrualValues.push(Math.round(runningSalary));
+            }
+            empSalTimelineChart = new Chart(ctxTimeline.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: daysArray,
+                    datasets: [{
+                        label: 'Accrued Pay (₨)',
+                        data: accrualValues,
+                        borderColor: '#f97316',
+                        backgroundColor: 'rgba(249, 115, 22, 0.08)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 2,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#9ca3af', font: { size: 9, family: "'Inter', sans-serif" } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#9ca3af', font: { size: 9, family: "'Inter', sans-serif" } }
+                        }
+                    }
+                }
+            });
+        }
+    } catch (e) {
+        console.error("Error drawing timeline chart:", e);
+    }
 }
 
 function getShiftDatesFromAttendance(days = 30) {

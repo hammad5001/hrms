@@ -26,6 +26,14 @@ $conn->set_charset('utf8mb4');
 
 // Dynamic Branch Configuration
 if (session_status() === PHP_SESSION_NONE) {
+    if (!headers_sent()) {
+        session_set_cookie_params([
+            'lifetime' => 86400 * 7,
+            'path' => '/',
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
+    }
     session_start();
 }
 $active_branch = $_SESSION['company_branch'] ?? 'main';

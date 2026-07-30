@@ -33,11 +33,18 @@ function ensure_qa_schema(mysqli $conn): void
             `customer_name` VARCHAR(150),
             `customer_age` VARCHAR(10),
             `transfer_on` ENUM('D1','D2') NOT NULL DEFAULT 'D1',
+            `call_notes` TEXT DEFAULT NULL,
+            `call_duration_mins` TINYINT DEFAULT 0,
+            `is_offline_sync` TINYINT(1) DEFAULT 0,
+            `offline_uuid` VARCHAR(64) DEFAULT NULL,
             `company_branch` VARCHAR(32) NOT NULL DEFAULT 'main',
             `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
             INDEX `idx_adt_bio` (`biometric_id`),
-            INDEX `idx_adt_date` (`created_at`)
+            INDEX `idx_adt_date` (`created_at`),
+            INDEX `idx_adt_user_date` (`user_id`, `created_at`),
+            UNIQUE KEY `uq_offline_uuid` (`offline_uuid`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
 
         "CREATE TABLE IF NOT EXISTS `qa_bulk_uploads` (
             `id` INT AUTO_INCREMENT PRIMARY KEY,

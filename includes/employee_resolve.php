@@ -484,9 +484,9 @@ function fetch_payroll_bundle(mysqli $conn, string $empCode, string $month, stri
             $roster->execute();
             if ($rRow = $roster->get_result()->fetch_assoc()) {
                 $payroll['has_data'] = true;
-                $payroll['basic_salary'] = 50000.0;
-                $payroll['punctuality_enabled'] = true;
-                $payroll['punctuality_amount'] = 5000.0;
+                $payroll['basic_salary'] = 0.0;
+                $payroll['punctuality_enabled'] = false;
+                $payroll['punctuality_amount'] = 0.0;
                 $payroll['designation'] = $rRow['designation'] ?? 'Employee';
             }
         }

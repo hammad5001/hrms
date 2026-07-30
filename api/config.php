@@ -1,5 +1,13 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) {
+    if (!headers_sent()) {
+        session_set_cookie_params([
+            'lifetime' => 86400 * 7,
+            'path' => '/',
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
+    }
     session_start();
 }
 header('Content-Type: application/json');
@@ -19,6 +27,11 @@ define('DB_PASS', '12344321');
 define('DB_NAME', 'balitech');
 
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+
+if ($conn->connect_error) {
+    die(json_encode(['success' => false, 'error' => 'Database connection failed: ' . $conn->connect_error]));
+}
+
 $conn->set_charset('utf8mb4');
 
 require_once __DIR__ . '/../includes/company_branches.php';
@@ -26,16 +39,14 @@ require_once __DIR__ . '/../includes/db_schema.php';
 ensure_company_branch_schema($conn);
 ensure_app_schema($conn);
 
-if ($conn->connect_error) {
-    die(json_encode(['success' => false, 'error' => 'Database connection failed: ' . $conn->connect_error]));
-}
-
 function isAuthenticated() {
-    return isset($_SESSION['user_id']);
+    return isset($_SESSION['user_id']) && (int)$_SESSION['user_id'] > 0;
 }
 
 function isSuperRecruiter() {
-    return isset($_SESSION['recruiter_type']) && $_SESSION['recruiter_type'] === 'super';
+    $type = $_SESSION['recruiter_type'] ?? '';
+    $role = $_SESSION['portal_role'] ?? '';
+    return $type === 'super' || $role === 'super_admin' || $role === 'admin';
 }
 
 function isRegularRecruiter() {

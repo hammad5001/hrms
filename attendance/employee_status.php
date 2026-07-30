@@ -141,6 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 $status_filter = isset($_GET['status']) ? $_GET['status'] : 'all';
 $search = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
 $department = isset($_GET['department']) ? $conn->real_escape_string($_GET['department']) : '';
+$team = isset($_GET['team']) ? $conn->real_escape_string($_GET['team']) : '';
 
 // Build query
 $where = [];
@@ -152,6 +153,9 @@ if ($search) {
 }
 if ($department) {
     $where[] = "e.department = '$department'";
+}
+if ($team) {
+    $where[] = "e.team = '$team'";
 }
 
 $where_clause = $where ? "WHERE " . implode(" AND ", $where) : "";
@@ -189,8 +193,13 @@ $vacation_count = $conn->query("SELECT COUNT(*) as c FROM employees WHERE status
 $inactive_count = $conn->query("SELECT COUNT(*) as c FROM employees WHERE status = 'inactive'")->fetch_assoc()['c'] ?: 0;
 $total_count = $conn->query("SELECT COUNT(*) as c FROM employees")->fetch_assoc()['c'] ?: 0;
 
-// Get departments for filter
+// Get departments & teams for filter
 $departments = $conn->query("SELECT DISTINCT department FROM employees WHERE department IS NOT NULL AND department != '' ORDER BY department");
+$teams = $conn->query("SELECT DISTINCT team FROM (
+    SELECT team FROM users WHERE team IS NOT NULL AND team != ''
+    UNION
+    SELECT team FROM employees WHERE team IS NOT NULL AND team != ''
+) AS combined_teams ORDER BY team");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -861,6 +870,17 @@ $departments = $conn->query("SELECT DISTINCT department FROM employees WHERE dep
                         <?php while($dept = $departments->fetch_assoc()): ?>
                             <option value="<?php echo htmlspecialchars($dept['department']); ?>" <?php echo $department == $dept['department'] ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($dept['department']); ?>
+                            </option>
+                        <?php endwhile; ?>
+                    <?php endif; ?>
+                </select>
+
+                <select name="team" class="filter-select" onchange="this.form.submit()">
+                    <option value="">All Teams</option>
+                    <?php if ($teams): ?>
+                        <?php while($t = $teams->fetch_assoc()): ?>
+                            <option value="<?php echo htmlspecialchars($t['team']); ?>" <?php echo $team == $t['team'] ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($t['team']); ?>
                             </option>
                         <?php endwhile; ?>
                     <?php endif; ?>

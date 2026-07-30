@@ -245,6 +245,35 @@ function ensure_app_schema(mysqli $conn): void {
             `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             INDEX `idx_profile_modified` (`modified_by_user_id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+        "CREATE TABLE IF NOT EXISTS `petty_cash_requests` (
+            `id`              INT AUTO_INCREMENT PRIMARY KEY,
+            `expense_date`    DATE NOT NULL,
+            `branch`          VARCHAR(32) NOT NULL DEFAULT 'main',
+            `category`        VARCHAR(80) NOT NULL,
+            `item_name`       VARCHAR(200) NOT NULL,
+            `description`     TEXT,
+            `vendor_name`     VARCHAR(200),
+            `bill_number`     VARCHAR(100),
+            `amount`          DECIMAL(12,2) NOT NULL DEFAULT 0,
+            `bill_file_path`  VARCHAR(500) NOT NULL,
+            `bill_file_name`  VARCHAR(255) DEFAULT NULL,
+            `requested_by`    VARCHAR(150) NOT NULL,
+            `requested_by_id` INT DEFAULT NULL,
+            `remarks`         TEXT,
+            `status`          ENUM('submitted','need_correction','approved','rejected') NOT NULL DEFAULT 'submitted',
+            `action_by`       VARCHAR(150) DEFAULT NULL,
+            `action_by_id`    INT DEFAULT NULL,
+            `action_remarks`  TEXT,
+            `action_at`       DATETIME DEFAULT NULL,
+            `created_at`      DATETIME DEFAULT CURRENT_TIMESTAMP,
+            `updated_at`      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX `idx_pc_status`   (`status`),
+            INDEX `idx_pc_branch`   (`branch`),
+            INDEX `idx_pc_date`     (`expense_date`),
+            INDEX `idx_pc_category` (`category`),
+            INDEX `idx_pc_req_id`   (`requested_by_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
     ];
 
     foreach ($queries as $sql) {
@@ -520,6 +549,18 @@ function ensure_productivity_schema(mysqli $conn): void {
     foreach ($queries as $sql) {
         @$conn->query($sql);
     }
+
+    $adjCols = [
+        'team' => "ALTER TABLE `payroll_adjustments` ADD COLUMN `team` VARCHAR(80) DEFAULT NULL AFTER `reason`",
+        'adj_date' => "ALTER TABLE `payroll_adjustments` ADD COLUMN `adj_date` DATE DEFAULT NULL AFTER `team`",
+        'company_branch' => "ALTER TABLE `payroll_adjustments` ADD COLUMN `company_branch` VARCHAR(32) NOT NULL DEFAULT 'main' AFTER `adj_date`",
+    ];
+    foreach ($adjCols as $col => $alterSql) {
+        $chk = $conn->query("SHOW COLUMNS FROM `payroll_adjustments` LIKE '$col'");
+        if ($chk && $chk->num_rows === 0) {
+            @$conn->query($alterSql);
+        }
+    }
 }
 
 /** Advanced feature tables: productivity scores, smart alerts, timesheet unique key fix */
@@ -589,5 +630,106 @@ function ensure_advanced_schema(mysqli $conn): void {
     ");
     if ($chk && !$chk->fetch_row()) {
         @$conn->query("ALTER TABLE `timesheet_entries` ADD UNIQUE KEY `uq_te_ts_proj_date` (`timesheet_id`, `project`, `log_date`)");
+    }
+
+    ensure_bank_format_schema($conn);
+}
+
+function ensure_bank_format_schema(mysqli $conn): void {
+    static $bankSchemaDone = false;
+    if ($bankSchemaDone) return;
+    $bankSchemaDone = true;
+
+    $conn->query("CREATE TABLE IF NOT EXISTS `banks` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `bank_name` VARCHAR(100) NOT NULL UNIQUE,
+        `normalized_name` VARCHAR(100) NOT NULL,
+        `is_active` TINYINT(1) DEFAULT 1,
+        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX `idx_norm_name` (`normalized_name`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    $conn->query("CREATE TABLE IF NOT EXISTS `bank_code_mappings` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `source_bank` ENUM('ASKARI', 'ALFALAH') NOT NULL,
+        `destination_bank_id` INT NOT NULL,
+        `bank_code` VARCHAR(50) NOT NULL,
+        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY `uq_source_dest` (`source_bank`, `destination_bank_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    $conn->query("CREATE TABLE IF NOT EXISTS `company_bank_accounts` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `source_bank` ENUM('ASKARI', 'ALFALAH') NOT NULL UNIQUE,
+        `debit_account_number` VARCHAR(50) NOT NULL,
+        `company_title` VARCHAR(100) DEFAULT 'BALITECH SYSTEM',
+        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    // Seed default company salary debit accounts if missing
+    $conn->query("INSERT IGNORE INTO `company_bank_accounts` (`source_bank`, `debit_account_number`, `company_title`) VALUES
+        ('ASKARI', '01801006543210', 'BALITECH PRIVATE LIMITED'),
+        ('ALFALAH', '00100987654321', 'BALITECH PRIVATE LIMITED')");
+
+    // Seed canonical banks and both Askari (1Link) and Bank Alfalah (AT Plus) bank codes
+    $bankData = [
+        ['name' => 'Askari Bank', 'norm' => 'askari', 'askari_code' => '104', 'alfalah_code' => '22'],
+        ['name' => 'Bank Alfalah', 'norm' => 'alfalah', 'askari_code' => '109', 'alfalah_code' => '08'],
+        ['name' => 'Meezan Bank', 'norm' => 'meezan', 'askari_code' => '112', 'alfalah_code' => '16'],
+        ['name' => 'Habib Bank Limited (HBL)', 'norm' => 'hbl', 'askari_code' => '101', 'alfalah_code' => '01'],
+        ['name' => 'United Bank Limited (UBL)', 'norm' => 'ubl', 'askari_code' => '102', 'alfalah_code' => '02'],
+        ['name' => 'Allied Bank Limited (ABL)', 'norm' => 'abl', 'askari_code' => '103', 'alfalah_code' => '04'],
+        ['name' => 'MCB Bank', 'norm' => 'mcb', 'askari_code' => '105', 'alfalah_code' => '03'],
+        ['name' => 'Faysal Bank', 'norm' => 'faysal', 'askari_code' => '108', 'alfalah_code' => '12'],
+        ['name' => 'Bank Al Habib', 'norm' => 'bank al habib', 'askari_code' => '106', 'alfalah_code' => '07'],
+        ['name' => 'Standard Chartered Bank', 'norm' => 'standard chartered', 'askari_code' => '107', 'alfalah_code' => '09'],
+        ['name' => 'JS Bank', 'norm' => 'js bank', 'askari_code' => '110', 'alfalah_code' => '18'],
+        ['name' => 'Dubai Islamic Bank', 'norm' => 'dubai islamic', 'askari_code' => '111', 'alfalah_code' => '15'],
+        ['name' => 'BankIslami Pakistan', 'norm' => 'bankislami', 'askari_code' => '113', 'alfalah_code' => '17'],
+        ['name' => 'Soneri Bank', 'norm' => 'soneri', 'askari_code' => '114', 'alfalah_code' => '11'],
+        ['name' => 'Habib Metropolitan Bank', 'norm' => 'habib metro', 'askari_code' => '115', 'alfalah_code' => '10'],
+        ['name' => 'National Bank of Pakistan (NBP)', 'norm' => 'nbp', 'askari_code' => '116', 'alfalah_code' => '05'],
+        ['name' => 'The Bank of Punjab (BOP)', 'norm' => 'bop', 'askari_code' => '117', 'alfalah_code' => '06'],
+        ['name' => 'Summit Bank', 'norm' => 'summit', 'askari_code' => '118', 'alfalah_code' => '19'],
+        ['name' => 'Al Baraka Bank', 'norm' => 'al baraka', 'askari_code' => '119', 'alfalah_code' => '14'],
+        ['name' => 'Samba Bank', 'norm' => 'samba', 'askari_code' => '120', 'alfalah_code' => '13'],
+        ['name' => 'Silkbank', 'norm' => 'silkbank', 'askari_code' => '121', 'alfalah_code' => '20'],
+        ['name' => 'First Women Bank', 'norm' => 'fwbl', 'askari_code' => '122', 'alfalah_code' => '21'],
+        ['name' => 'Mobilink Microfinance Bank (JazzCash)', 'norm' => 'jazzcash', 'askari_code' => '054', 'alfalah_code' => '54'],
+        ['name' => 'Telenor Microfinance Bank (Easypaisa)', 'norm' => 'easypaisa', 'askari_code' => '055', 'alfalah_code' => '55'],
+        ['name' => 'NayaPay', 'norm' => 'nayapay', 'askari_code' => '056', 'alfalah_code' => '56'],
+        ['name' => 'SadaPay', 'norm' => 'sadapay', 'askari_code' => '057', 'alfalah_code' => '57']
+    ];
+
+    $stmtBank = $conn->prepare("INSERT INTO `banks` (`bank_name`, `normalized_name`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `normalized_name` = VALUES(`normalized_name`)");
+    $stmtCode = $conn->prepare("INSERT INTO `bank_code_mappings` (`source_bank`, `destination_bank_id`, `bank_code`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `bank_code` = VALUES(`bank_code`)");
+
+    if ($stmtBank && $stmtCode) {
+        foreach ($bankData as $b) {
+            $stmtBank->bind_param("ss", $b['name'], $b['norm']);
+            $stmtBank->execute();
+            $bankId = $conn->insert_id ?: $stmtBank->insert_id;
+            if (!$bankId) {
+                $res = $conn->query("SELECT `id` FROM `banks` WHERE `bank_name` = '" . $conn->real_escape_string($b['name']) . "' LIMIT 1");
+                if ($res && $r = $res->fetch_assoc()) $bankId = (int)$r['id'];
+            }
+            if ($bankId) {
+                // Seed Askari code
+                $sourceAskari = 'ASKARI';
+                $codeAskari = (string)$b['askari_code'];
+                $stmtCode->bind_param("sis", $sourceAskari, $bankId, $codeAskari);
+                $stmtCode->execute();
+
+                // Seed Bank Alfalah code
+                $sourceAlfalah = 'ALFALAH';
+                $codeAlfalah = (string)$b['alfalah_code'];
+                $stmtCode->bind_param("sis", $sourceAlfalah, $bankId, $codeAlfalah);
+                $stmtCode->execute();
+            }
+        }
+        $stmtBank->close();
+        $stmtCode->close();
     }
 }

@@ -18,8 +18,10 @@ $input = json_decode(file_get_contents('php://input'), true) ?: [];
 
 /** Adjustment types stored as multiple rows */
 $LIST_ADJ_TYPES = ['tada', 'arrears', 'bonus', 'halfDay', 'ncns', 'sd', 'qaHr', 'misspunch'];
-/** Single-value per employee per month */
+/** Single-value numeric per employee per month */
 $SCALAR_ADJ_TYPES = ['manualLate', 'manualPunctuality', 'manualLeaves', 'tax'];
+/** Single-value string/json per employee per month */
+$STRING_SCALAR_ADJ_TYPES = ['remarks', 'comments', 'attendanceOverrides', 'extraDays', 'appointmentDate'];
 
 function loadEmployeeDataFromCSV() {
     global $conn;
@@ -74,11 +76,12 @@ function emptyPayrollBundle(): array {
         'tada' => [], 'arrears' => [], 'bonus' => [], 'halfDay' => [], 'ncns' => [], 'sd' => [],
         'qaHr' => [], 'misspunch' => [], 'advance' => [], 'manualLate' => [], 'manualPunctuality' => [],
         'manualLeaves' => [], 'tax' => [], 'appointmentDate' => [], 'empMeta' => [],
+        'remarks' => [], 'comments' => [], 'attendanceOverrides' => [], 'extraDays' => [],
     ];
 }
 
 function fetchMonthBundle(mysqli $conn, string $month, string $branch): array {
-    global $LIST_ADJ_TYPES, $SCALAR_ADJ_TYPES;
+    global $LIST_ADJ_TYPES, $SCALAR_ADJ_TYPES, $STRING_SCALAR_ADJ_TYPES;
     $bundle = emptyPayrollBundle();
 
     $stmt = $conn->prepare("SELECT * FROM payroll_adjustments WHERE month = ? AND company_branch = ?");
@@ -102,6 +105,12 @@ function fetchMonthBundle(mysqli $conn, string $month, string $branch): array {
             ];
         } elseif (in_array($type, $SCALAR_ADJ_TYPES, true)) {
             $bundle[$type][$emp] = (float)$row['amount'];
+        } elseif (in_array($type, $STRING_SCALAR_ADJ_TYPES, true)) {
+            if ($type === 'attendanceOverrides') {
+                $bundle[$type][$emp] = json_decode($row['reason'] ?? '', true) ?: [];
+            } else {
+                $bundle[$type][$emp] = (string)($row['reason'] ?? '');
+            }
         }
     }
 
@@ -165,7 +174,7 @@ function fetchLeaves(mysqli $conn, string $branch): array {
 }
 
 function saveMonthBundle(mysqli $conn, string $month, string $branch, array $bundle, array $leaves): bool {
-    global $LIST_ADJ_TYPES, $SCALAR_ADJ_TYPES;
+    global $LIST_ADJ_TYPES, $SCALAR_ADJ_TYPES, $STRING_SCALAR_ADJ_TYPES;
     $userName = getCurrentUserName();
 
     $conn->begin_transaction();
@@ -205,6 +214,23 @@ function saveMonthBundle(mysqli $conn, string $month, string $branch, array $bun
                 }
                 $amount = (float)$val;
                 $reason = '';
+                $team = '';
+                $adjDate = null;
+                $ins->bind_param('sssdsssss', $empCode, $month, $type, $amount, $reason, $team, $adjDate, $branch, $userName);
+                $ins->execute();
+            }
+        }
+
+        foreach ($STRING_SCALAR_ADJ_TYPES as $type) {
+            if (empty($bundle[$type]) || !is_array($bundle[$type])) {
+                continue;
+            }
+            foreach ($bundle[$type] as $empCode => $val) {
+                if ($val === '' || $val === null) {
+                    continue;
+                }
+                $amount = 0;
+                $reason = is_array($val) ? json_encode($val) : (string)$val;
                 $team = '';
                 $adjDate = null;
                 $ins->bind_param('sssdsssss', $empCode, $month, $type, $amount, $reason, $team, $adjDate, $branch, $userName);
@@ -312,10 +338,22 @@ switch ($action) {
         respond(true, array_slice($results, 0, 50));
         break;
 
+    case 'switchBranch':
+        $newBranch = normalize_company_branch($_GET['branch'] ?? 'main');
+        if (is_valid_company_branch($newBranch)) {
+            $_SESSION['company_branch'] = $newBranch;
+            respond(true, ['branch' => $newBranch], 'Branch switched successfully');
+        } else {
+            respond(false, null, 'Invalid branch');
+        }
+        break;
+
+
     case 'getFinanceUsers':
         $stmt = $conn->prepare("
-            SELECT u.id, u.employee_code, u.full_name, u.email, u.department, u.designation,
-                   m.basic_salary, m.punctuality_enabled, m.punctuality_amount
+            SELECT u.id, u.employee_code, u.full_name, u.email, u.department, u.designation, u.phone AS contact_no,
+                   m.basic_salary, m.punctuality_enabled, m.punctuality_amount, m.appointment_date,
+                   m.bank_name, m.account_no, m.account_title, m.cnic
             FROM users u
             LEFT JOIN employee_payroll_meta m
               ON u.employee_code = m.employee_code
@@ -332,6 +370,12 @@ switch ($action) {
                 $row['basic_salary'] = (float)($row['basic_salary'] ?? 0.0);
                 $row['punctuality_enabled'] = (bool)($row['punctuality_enabled'] ?? false);
                 $row['punctuality_amount'] = (float)($row['punctuality_amount'] ?? 5000.00);
+                $row['appointment_date'] = $row['appointment_date'] ?? '';
+                $row['bank_name'] = $row['bank_name'] ?? '';
+                $row['account_no'] = $row['account_no'] ?? '';
+                $row['account_title'] = $row['account_title'] ?? '';
+                $row['cnic'] = $row['cnic'] ?? '';
+                $row['contact_no'] = $row['contact_no'] ?? '';
                 $results[] = $row;
             }
         }
@@ -358,6 +402,14 @@ switch ($action) {
         $basic_salary = (float)$basicSalaryInput;
         $punctuality_enabled = !empty($data['punctuality_enabled']) ? 1 : 0;
         $punctuality_amount = (float)$punctualityAmountInput;
+        $appointment_date = !empty($data['appointment_date']) ? trim($data['appointment_date']) : null;
+
+        $bank_name = trim($data['bank_name'] ?? '');
+        $account_no = trim($data['account_no'] ?? '');
+        $account_title = trim($data['account_title'] ?? '');
+        $cnic = trim($data['cnic'] ?? '');
+        $contact_no = trim($data['contact_no'] ?? '');
+
         if ($basic_salary < 0 || $punctuality_amount < 0) {
             respond(false, null, 'Amounts cannot be negative');
         }
@@ -375,18 +427,222 @@ switch ($action) {
         }
 
         $metaStmt = $conn->prepare("INSERT INTO employee_payroll_meta
-            (employee_code, basic_salary, punctuality_enabled, punctuality_amount, company_branch)
-            VALUES (?, ?, ?, ?, ?)
+            (employee_code, basic_salary, punctuality_enabled, punctuality_amount, appointment_date, bank_name, account_no, account_title, cnic, company_branch)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
             basic_salary = VALUES(basic_salary),
             punctuality_enabled = VALUES(punctuality_enabled),
             punctuality_amount = VALUES(punctuality_amount),
+            appointment_date = VALUES(appointment_date),
+            bank_name = VALUES(bank_name),
+            account_no = VALUES(account_no),
+            account_title = VALUES(account_title),
+            cnic = VALUES(cnic),
             company_branch = VALUES(company_branch)");
-        $metaStmt->bind_param('sdids', $employee_code, $basic_salary, $punctuality_enabled, $punctuality_amount, $branch);
+        $metaStmt->bind_param('sdidssssss', $employee_code, $basic_salary, $punctuality_enabled, $punctuality_amount, $appointment_date, $bank_name, $account_no, $account_title, $cnic, $branch);
         if (!$metaStmt->execute()) {
             respond(false, null, 'Unable to save payroll settings');
         }
+
+        if ($contact_no !== '') {
+            $uStmt = $conn->prepare("UPDATE users SET phone = ? WHERE employee_code = ? AND COALESCE(NULLIF(company_branch, ''), 'main') = ?");
+            $uStmt->bind_param('sss', $contact_no, $employee_code, $branch);
+            $uStmt->execute();
+        }
+
         respond(true, null, 'Payroll settings updated successfully');
+        break;
+
+    case 'importPayrollCSV':
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            respond(false, null, 'POST request required');
+        }
+        if (!isset($_FILES['csv_file']) || $_FILES['csv_file']['error'] !== UPLOAD_ERR_OK) {
+            respond(false, null, 'No valid CSV file uploaded');
+        }
+
+        $tmpFile = $_FILES['csv_file']['tmp_name'];
+        $handle = fopen($tmpFile, 'r');
+        if (!$handle) {
+            respond(false, null, 'Failed to open uploaded file');
+        }
+
+        // Parse header row
+        $headers = fgetcsv($handle);
+        if (!$headers) {
+            fclose($handle);
+            respond(false, null, 'Empty CSV file');
+        }
+
+        // Map column indices
+        $colMap = [
+            'code' => -1,
+            'name' => -1,
+            'salary' => -1,
+            'punctuality_amount' => -1,
+            'appointment_date' => -1,
+            'bank_name' => -1,
+            'account_no' => -1,
+            'account_title' => -1,
+            'cnic' => -1,
+            'contact_no' => -1
+        ];
+
+        foreach ($headers as $idx => $header) {
+            $header = strtolower(trim($header));
+            if (in_array($header, ['biometric id', 'employee_code', 'biometric_id', 'code', 'id', 'biometricid', 'employee code', 'b-id'])) {
+                $colMap['code'] = $idx;
+            } elseif (in_array($header, ['name', 'full_name', 'employee name', 'employee_name', 'fullname', 'employees name'])) {
+                $colMap['name'] = $idx;
+            } elseif (in_array($header, ['basic salary', 'salary', 'basic_salary', 'amount', 'basicsalary'])) {
+                $colMap['salary'] = $idx;
+            } elseif (in_array($header, ['punctuality amount', 'punctuality_amount', 'punctuality', 'punctualityamount', 'punctuality reward', 'punctuality_reward'])) {
+                $colMap['punctuality_amount'] = $idx;
+            } elseif (in_array($header, ['appointment date', 'appointment_date', 'appointmentdate', 'joining date', 'joining_date'])) {
+                $colMap['appointment_date'] = $idx;
+            } elseif (in_array($header, ['bank name', 'bank_name', 'bankname', 'bank'])) {
+                $colMap['bank_name'] = $idx;
+            } elseif (in_array($header, ['account no', 'account_no', 'account number', 'accountnos', 'account_nos', 'accountnum', 'accountno', 'account #'])) {
+                $colMap['account_no'] = $idx;
+            } elseif (in_array($header, ['account title', 'account_title', 'accounttitle', 'title'])) {
+                $colMap['account_title'] = $idx;
+            } elseif (in_array($header, ['cnic', 'cnic#', 'cnic_no', 'cnic number'])) {
+                $colMap['cnic'] = $idx;
+            } elseif (in_array($header, ['contact no', 'contact_no', 'phone', 'contact', 'mobile', 'contact number'])) {
+                $colMap['contact_no'] = $idx;
+            }
+        }
+
+        // Fallback checks if exact headers not found
+        if ($colMap['code'] === -1 && $colMap['name'] === -1) {
+            fclose($handle);
+            respond(false, null, 'CSV must contain at least a Biometric ID or Employee Name header');
+        }
+
+        $processed = 0;
+        $updated = [];
+        $failed = [];
+        $skipped = [];
+
+        // Prepare statements
+        $findCodeStmt = $conn->prepare("SELECT employee_code, full_name FROM users WHERE employee_code = ? AND COALESCE(NULLIF(company_branch, ''), 'main') = ? LIMIT 1");
+        $findNameStmt = $conn->prepare("SELECT employee_code, full_name FROM users WHERE LOWER(full_name) = LOWER(?) AND COALESCE(NULLIF(company_branch, ''), 'main') = ? LIMIT 1");
+        
+        $metaStmt = $conn->prepare("INSERT INTO employee_payroll_meta
+            (employee_code, basic_salary, punctuality_enabled, punctuality_amount, appointment_date, bank_name, account_no, account_title, cnic, company_branch)
+            VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+            basic_salary = VALUES(basic_salary),
+            punctuality_enabled = 1,
+            punctuality_amount = VALUES(punctuality_amount),
+            appointment_date = VALUES(appointment_date),
+            bank_name = VALUES(bank_name),
+            account_no = VALUES(account_no),
+            account_title = VALUES(account_title),
+            cnic = VALUES(cnic),
+            company_branch = VALUES(company_branch)");
+
+        $uStmt = $conn->prepare("UPDATE users SET phone = ? WHERE employee_code = ? AND COALESCE(NULLIF(company_branch, ''), 'main') = ?");
+
+        while (($row = fgetcsv($handle)) !== false) {
+            if (empty(array_filter($row))) {
+                continue;
+            }
+            $processed++;
+
+            $codeVal = $colMap['code'] !== -1 ? trim($row[$colMap['code']] ?? '') : '';
+            $nameVal = $colMap['name'] !== -1 ? trim($row[$colMap['name']] ?? '') : '';
+            $salaryVal = $colMap['salary'] !== -1 ? trim($row[$colMap['salary']] ?? '0') : '0';
+            $puncAmtVal = $colMap['punctuality_amount'] !== -1 ? trim($row[$colMap['punctuality_amount']] ?? '5000') : '5000';
+            $apptDateVal = $colMap['appointment_date'] !== -1 ? trim($row[$colMap['appointment_date']] ?? '') : null;
+            $bankVal = $colMap['bank_name'] !== -1 ? trim($row[$colMap['bank_name']] ?? '') : '';
+            $accNoVal = $colMap['account_no'] !== -1 ? trim($row[$colMap['account_no']] ?? '') : '';
+            $accTitleVal = $colMap['account_title'] !== -1 ? trim($row[$colMap['account_title']] ?? '') : '';
+            $cnicVal = $colMap['cnic'] !== -1 ? trim($row[$colMap['cnic']] ?? '') : '';
+            $contactVal = $colMap['contact_no'] !== -1 ? trim($row[$colMap['contact_no']] ?? '') : '';
+
+            $empCode = '';
+            $empName = '';
+
+            // Match logic
+            if ($codeVal !== '') {
+                $findCodeStmt->bind_param('ss', $codeVal, $branch);
+                $findCodeStmt->execute();
+                $findRes = $findCodeStmt->get_result()->fetch_assoc();
+                if ($findRes) {
+                    $empCode = $findRes['employee_code'];
+                    $empName = $findRes['full_name'];
+                }
+            }
+
+            if ($empCode === '' && $nameVal !== '') {
+                $findNameStmt->bind_param('ss', $nameVal, $branch);
+                $findNameStmt->execute();
+                $findRes = $findNameStmt->get_result()->fetch_assoc();
+                if ($findRes) {
+                    $empCode = $findRes['employee_code'];
+                    $empName = $findRes['full_name'];
+                }
+            }
+
+            if ($empCode === '') {
+                $skipped[] = [
+                    'row' => $processed,
+                    'code' => $codeVal,
+                    'name' => $nameVal,
+                    'reason' => 'No active matching employee found'
+                ];
+                continue;
+            }
+
+            // Sanitization
+            $salary = floatval(preg_replace('/[^\d.]/', '', $salaryVal));
+            $puncAmt = floatval(preg_replace('/[^\d.]/', '', $puncAmtVal));
+            if ($puncAmt < 0) $puncAmt = 5000.00;
+
+            // Appointment Date format check (YYYY-MM-DD or parse)
+            $apptDate = null;
+            if ($apptDateVal !== '' && $apptDateVal !== null) {
+                $ts = strtotime($apptDateVal);
+                if ($ts !== false) {
+                    $apptDate = date('Y-m-d', $ts);
+                }
+            }
+
+            $metaStmt->bind_param('sdisssssss', $empCode, $salary, $puncAmt, $apptDate, $bankVal, $accNoVal, $accTitleVal, $cnicVal, $branch);
+            if ($metaStmt->execute()) {
+                if ($contactVal !== '') {
+                    $uStmt->bind_param('sss', $contactVal, $empCode, $branch);
+                    $uStmt->execute();
+                }
+                $updated[] = [
+                    'code' => $empCode,
+                    'name' => $empName,
+                    'salary' => $salary,
+                    'punctuality_amount' => $puncAmt,
+                    'appointment_date' => $apptDate ? $apptDate : '—'
+                ];
+            } else {
+                $failed[] = [
+                    'row' => $processed,
+                    'code' => $empCode,
+                    'name' => $empName,
+                    'reason' => $conn->error
+                ];
+            }
+        }
+
+        fclose($handle);
+
+        respond(true, [
+            'total_rows' => $processed,
+            'updated_count' => count($updated),
+            'failed_count' => count($failed),
+            'skipped_count' => count($skipped),
+            'updated' => $updated,
+            'failed' => $failed,
+            'skipped' => $skipped
+        ], 'CSV processed successfully');
         break;
 
     case 'getMonthBundle':
@@ -525,6 +781,159 @@ switch ($action) {
         respond(false, null, $conn->error);
         break;
 
+    case 'getBankCodeMappings':
+        ensure_bank_format_schema($conn);
+        $banks = [];
+        $resB = $conn->query("SELECT `id`, `bank_name`, `normalized_name` FROM `banks` WHERE `is_active` = 1 ORDER BY `bank_name` ASC");
+        if ($resB) {
+            while ($row = $resB->fetch_assoc()) {
+                $banks[] = [
+                    'id' => (int)$row['id'],
+                    'name' => $row['bank_name'],
+                    'norm' => strtolower($row['normalized_name'])
+                ];
+            }
+        }
+
+        $mappings = ['ASKARI' => [], 'ALFALAH' => []];
+        $resM = $conn->query("SELECT `source_bank`, `destination_bank_id`, `bank_code` FROM `bank_code_mappings`");
+        if ($resM) {
+            while ($row = $resM->fetch_assoc()) {
+                $src = strtoupper($row['source_bank']);
+                $destId = (int)$row['destination_bank_id'];
+                $mappings[$src][$destId] = (string)$row['bank_code'];
+            }
+        }
+
+        $companyAccounts = ['ASKARI' => '01801006543210', 'ALFALAH' => '00100987654321'];
+        $resC = $conn->query("SELECT `source_bank`, `debit_account_number` FROM `company_bank_accounts`");
+        if ($resC) {
+            while ($row = $resC->fetch_assoc()) {
+                $src = strtoupper($row['source_bank']);
+                $companyAccounts[$src] = (string)$row['debit_account_number'];
+            }
+        }
+
+        respond(true, [
+            'banks' => $banks,
+            'mappings' => $mappings,
+            'companyAccounts' => $companyAccounts
+        ]);
+        break;
+
+    case 'exportBankXlsx':
+        $filename = preg_replace('/[^a-zA-Z0-9_\-\.]/', '', $input['filename'] ?? 'bank_export.xlsx');
+        if (!preg_match('/\.xlsx$/i', $filename)) {
+            $filename .= '.xlsx';
+        }
+        $headers = is_array($input['headers'] ?? null) ? $input['headers'] : [];
+        $rows = is_array($input['rows'] ?? null) ? $input['rows'] : [];
+
+        if (empty($headers) || empty($rows)) {
+            respond(false, null, 'No valid records to export');
+        }
+
+        createNativeXlsx($filename, $headers, $rows);
+        exit;
+
     default:
         respond(false, null, 'Invalid action');
+}
+
+function createNativeXlsx(string $filename, array $headers, array $rows): void {
+    if (!class_exists('ZipArchive')) {
+        header('Content-Type: text/plain');
+        die("Error: PHP ZipArchive extension required for XLSX generation.");
+    }
+    $zip = new ZipArchive();
+    $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
+    if ($zip->open($tempFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+        header('Content-Type: text/plain');
+        die("Error: Cannot create temporary spreadsheet archive.");
+    }
+
+    $contentTypes = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' .
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' .
+    '<Default Extension="xml" ContentType="application/xml"/>' .
+    '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' .
+    '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' .
+    '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' .
+    '</Types>';
+    $zip->addFromString('[Content_Types].xml', $contentTypes);
+
+    $rels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' .
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' .
+    '</Relationships>';
+    $zip->addFromString('_rels/.rels', $rels);
+
+    $wbRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' .
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' .
+    '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' .
+    '</Relationships>';
+    $zip->addFromString('xl/_rels/workbook.xml.rels', $wbRels);
+
+    $workbook = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+    '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' .
+    '<sheets><sheet name="Sheet1" sheetId="1" r:id="rId1"/></sheets>' .
+    '</workbook>';
+    $zip->addFromString('xl/workbook.xml', $workbook);
+
+    $styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+    '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' .
+    '<fonts count="1"><font><sz val="11"/><name val="Calibri"/></font></fonts>' .
+    '<fills count="1"><fill><patternFill patternType="none"/></fill></fills>' .
+    '<borders count="1"><border><left/><right/><top/><bottom/></border></borders>' .
+    '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' .
+    '<cellXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/></cellXfs>' .
+    '</styleSheet>';
+    $zip->addFromString('xl/styles.xml', $styles);
+
+    $colLetter = function(int $colIndex): string {
+        $str = '';
+        while ($colIndex >= 0) {
+            $str = chr(65 + ($colIndex % 26)) . $str;
+            $colIndex = (int)floor($colIndex / 26) - 1;
+        }
+        return $str;
+    };
+
+    $sheetXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' .
+    '<sheetData>';
+
+    $rowIndex = 1;
+    $sheetXml .= '<row r="' . $rowIndex . '">';
+    foreach ($headers as $cIdx => $val) {
+        $cellRef = $colLetter($cIdx) . $rowIndex;
+        $escVal = htmlspecialchars((string)$val, ENT_XML1, 'UTF-8');
+        $sheetXml .= '<c r="' . $cellRef . '" t="inlineStr"><is><t>' . $escVal . '</t></is></c>';
+    }
+    $sheetXml .= '</row>';
+
+    foreach ($rows as $row) {
+        $rowIndex++;
+        $sheetXml .= '<row r="' . $rowIndex . '">';
+        foreach ($row as $cIdx => $val) {
+            $cellRef = $colLetter($cIdx) . $rowIndex;
+            $escVal = htmlspecialchars((string)$val, ENT_XML1, 'UTF-8');
+            $sheetXml .= '<c r="' . $cellRef . '" t="inlineStr"><is><t>' . $escVal . '</t></is></c>';
+        }
+        $sheetXml .= '</row>';
+    }
+
+    $sheetXml .= '</sheetData></worksheet>';
+    $zip->addFromString('xl/worksheets/sheet1.xml', $sheetXml);
+    $zip->close();
+
+    ob_clean();
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Content-Length: ' . filesize($tempFile));
+    header('Cache-Control: max-age=0');
+    readfile($tempFile);
+    @unlink($tempFile);
+    exit;
 }

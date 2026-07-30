@@ -1216,7 +1216,7 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                             <input type="text" name="team" id="team" placeholder="e.g., Team Alpha">
                         </div>
                         <div class="form-group">
-                            <label><i class="fas fa-calendar"></i> Joining Date</label>
+                            <label><i class="fas fa-calendar"></i> Appointment Date</label>
                             <input type="date" name="joined_date" id="joined_date">
                         </div>
                         <?php if ($can_assign_super): ?>
@@ -1408,7 +1408,7 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                         <small class="field-hint">Changing this updates which branch the user must pick at login (except Super Admin).</small></div>
                         <div class="form-group"><label>Office Location</label><input type="text" name="branch" id="edit_branch"></div>
                         <div class="form-group"><label>Team</label><input type="text" name="team" id="edit_team"></div>
-                        <div class="form-group"><label>Joining Date</label><input type="date" name="joined_date" id="edit_joined_date"></div>
+                        <div class="form-group"><label>Appointment Date</label><input type="date" name="joined_date" id="edit_joined_date"></div>
                         <?php if ($can_assign_super): ?>
                         <div class="form-group super-admin-option" style="grid-column: 1 / -1;">
                             <label class="super-admin-toggle">
@@ -1500,7 +1500,7 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                                 </div>
                                 <div class="form-group"><label><i class="fas fa-map-marker-alt" style="color:#f97316;"></i> Office Location</label><input type="text" name="branch" id="ief_branch"></div>
                                 <div class="form-group"><label><i class="fas fa-users" style="color:#f97316;"></i> Team</label><input type="text" name="team" id="ief_team"></div>
-                                <div class="form-group"><label><i class="fas fa-calendar" style="color:#f97316;"></i> Joining Date</label><input type="date" name="joined_date" id="ief_joined_date"></div>
+                                <div class="form-group"><label><i class="fas fa-calendar" style="color:#f97316;"></i> Appointment Date</label><input type="date" name="joined_date" id="ief_joined_date"></div>
                                 <?php if ($can_assign_super): ?>
                                 <div class="form-group super-admin-option" style="grid-column: 1 / -1;">
                                     <label class="super-admin-toggle">

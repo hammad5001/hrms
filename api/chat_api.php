@@ -96,13 +96,16 @@ switch ($action) {
         }
         $idList = array_filter(array_map('intval', explode(',', (string)$ids)));
         $statuses = [];
-        foreach ($idList as $mid) {
-            $chk = $conn->prepare('SELECT sender_id FROM chat_messages WHERE id = ? AND conversation_id = ?');
-            $chk->bind_param('ii', $mid, $cid);
-            $chk->execute();
-            $row = $chk->get_result()->fetch_assoc();
-            if ($row && (int)$row['sender_id'] === $me_id) {
-                $statuses[$mid] = chat_receipt_status($conn, $mid);
+        if (!empty($idList)) {
+            $inClause = implode(',', $idList);
+            $res = $conn->query("SELECT id, sender_id FROM chat_messages WHERE id IN ($inClause) AND conversation_id = $cid");
+            if ($res) {
+                while ($row = $res->fetch_assoc()) {
+                    $mid = (int)$row['id'];
+                    if ((int)$row['sender_id'] === $me_id) {
+                        $statuses[$mid] = chat_receipt_status($conn, $mid);
+                    }
+                }
             }
         }
         chat_json(true, $statuses);
@@ -115,6 +118,17 @@ switch ($action) {
         }
         $results = chat_search_users($conn, $me_id, $q);
         chat_json(true, $results);
+        break;
+
+    case 'markAllRead':
+        $stmt = $conn->prepare("
+            UPDATE chat_participants 
+            SET last_read_at = NOW() 
+            WHERE user_id = ? AND participant_status != 'declined'
+        ");
+        $stmt->bind_param('i', $me_id);
+        $stmt->execute();
+        chat_json(true, ['ok' => true]);
         break;
 
     case 'unreadSummary':
@@ -144,6 +158,7 @@ switch ($action) {
         break;
 
     case 'listConversations':
+        // 1. Fetch conversations for user
         $stmt = $conn->prepare("
             SELECT c.id, c.type, c.title, c.avatar_color, c.created_by, c.updated_at, p.participant_status AS my_status
             FROM chat_conversations c
@@ -154,46 +169,119 @@ switch ($action) {
         ");
         $stmt->bind_param('i', $me_id);
         $stmt->execute();
-        $list = [];
-        $request_count = 0;
+        $rawConvs = [];
+        $cidList = [];
+        $directCids = [];
         $res = $stmt->get_result();
         while ($conv = $res->fetch_assoc()) {
             $cid = (int)$conv['id'];
             $conv['id'] = $cid;
+            $rawConvs[$cid] = $conv;
+            $cidList[] = $cid;
+            if ($conv['type'] === 'direct') {
+                $directCids[] = $cid;
+            }
+        }
+
+        if (empty($cidList)) {
+            chat_json(true, ['items' => [], 'request_count' => 0]);
+        }
+
+        $inCids = implode(',', $cidList);
+
+        // 2. Batch fetch last messages in 1 query
+        $lastMessages = [];
+        $lastSql = "
+            SELECT m.conversation_id, m.body, m.msg_type, m.created_at, u.full_name AS sender_name, m.is_deleted
+            FROM chat_messages m
+            INNER JOIN users u ON u.id = m.sender_id
+            INNER JOIN (
+                SELECT MAX(id) as max_id 
+                FROM chat_messages 
+                WHERE conversation_id IN ($inCids) AND is_deleted = 0 
+                GROUP BY conversation_id
+            ) max_m ON m.id = max_m.max_id
+        ";
+        $lastRes = $conn->query($lastSql);
+        if ($lastRes) {
+            while ($lm = $lastRes->fetch_assoc()) {
+                $lastMessages[(int)$lm['conversation_id']] = $lm;
+            }
+        }
+
+        // 3. Batch fetch unread counts in 1 query
+        $unreadCounts = [];
+        $unreadSql = "
+            SELECT p.conversation_id, COUNT(m.id) as unread_count
+            FROM chat_participants p
+            INNER JOIN chat_messages m ON m.conversation_id = p.conversation_id 
+                AND m.created_at > COALESCE(p.last_read_at, '1970-01-01') 
+                AND m.sender_id != p.user_id 
+                AND m.is_deleted = 0
+            WHERE p.user_id = $me_id AND p.conversation_id IN ($inCids)
+            GROUP BY p.conversation_id
+        ";
+        $unreadRes = $conn->query($unreadSql);
+        if ($unreadRes) {
+            while ($ur = $unreadRes->fetch_assoc()) {
+                $unreadCounts[(int)$ur['conversation_id']] = (int)$ur['unread_count'];
+            }
+        }
+
+        // 4. Batch fetch peer info for direct chats in 1 query
+        $peers = [];
+        if (!empty($directCids)) {
+            $inDirect = implode(',', $directCids);
+            $peerSql = "
+                SELECT p.conversation_id, u.id as user_id, u.full_name, u.email, u.portal_role, u.chat_avatar
+                FROM chat_participants p
+                INNER JOIN users u ON u.id = p.user_id
+                WHERE p.conversation_id IN ($inDirect) AND p.user_id != $me_id
+            ";
+            $peerRes = $conn->query($peerSql);
+            if ($peerRes) {
+                while ($pr = $peerRes->fetch_assoc()) {
+                    $peers[(int)$pr['conversation_id']] = $pr;
+                }
+            }
+        }
+
+        // 5. Assemble final response items
+        $list = [];
+        $request_count = 0;
+        foreach ($rawConvs as $cid => $conv) {
             $my_status = $conv['my_status'] ?? 'active';
-            $conv['my_status'] = $my_status;
             $conv['is_request'] = ($conv['type'] === 'direct' && $my_status === 'pending');
             if ($conv['is_request']) {
                 $request_count++;
             }
-            $conv['display_title'] = chat_conversation_title($conn, $conv, $me_id);
-            $conv['unread'] = chat_unread_count($conn, $cid, $me_id);
-
-            $last = $conn->prepare("
-                SELECT m.body, m.msg_type, m.created_at, u.full_name AS sender_name, m.is_deleted
-                FROM chat_messages m
-                INNER JOIN users u ON u.id = m.sender_id
-                WHERE m.conversation_id = ? AND m.is_deleted = 0
-                ORDER BY m.id DESC LIMIT 1
-            ");
-            $last->bind_param('i', $cid);
-            $last->execute();
-            $conv['last_message'] = $last->get_result()->fetch_assoc() ?: null;
+            $conv['unread'] = $unreadCounts[$cid] ?? 0;
+            $conv['last_message'] = $lastMessages[$cid] ?? null;
 
             if ($conv['type'] === 'direct') {
-                $peer = chat_direct_peer_row($conn, $cid, $me_id);
+                $peer = $peers[$cid] ?? null;
                 if ($peer) {
-                    if (chat_is_blocked($conn, $me_id, (int)$peer['id'])) {
+                    if (chat_is_blocked($conn, $me_id, (int)$peer['user_id'])) {
                         continue;
                     }
                     $conv['avatar_url'] = chat_public_avatar_url($peer['chat_avatar'] ?? '');
-                    $conv['avatar_color'] = chat_user_avatar_color((int)$peer['id']);
-                    $conv['peer_id'] = (int)$peer['id'];
+                    $conv['avatar_color'] = chat_user_avatar_color((int)$peer['user_id']);
+                    $conv['peer_id'] = (int)$peer['user_id'];
+                    if (empty($conv['title'])) {
+                        $conv['display_title'] = $peer['full_name'];
+                    } else {
+                        $conv['display_title'] = $conv['title'];
+                    }
+                } else {
+                    $conv['display_title'] = $conv['title'] ?: 'Direct Message';
                 }
+            } else {
+                $conv['display_title'] = $conv['title'] ?: 'Group Chat';
             }
 
             $list[] = $conv;
         }
+
         chat_json(true, ['items' => $list, 'request_count' => $request_count]);
         break;
 

@@ -16,54 +16,67 @@ require_once 'config.php';
 // NEW: Load Employee Data from CSV (Sheet4)
 // =====================================================
 function loadEmployeeDataFromCSV() {
-    $csv_file = __DIR__ . '/Present Employee Data - Sheet4.csv'; // UPDATED: Changed to Sheet4
+    global $conn;
     $employees = [];
     
-    if (!file_exists($csv_file)) {
-        error_log("CSV file not found: " . $csv_file);
-        return $employees;
+    // 1. Fetch primary employee data directly from User Management (users & employee_payroll_meta tables)
+    if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
+        $sql = "
+            SELECT 
+                u.employee_code, 
+                u.full_name, 
+                COALESCE(NULLIF(u.team, ''), '') as team,
+                COALESCE(NULLIF(u.department, ''), '') as department,
+                COALESCE(NULLIF(m.designation, ''), NULLIF(u.designation, ''), 'Employee') as designation,
+                COALESCE(NULLIF(m.company_branch, ''), NULLIF(u.company_branch, ''), NULLIF(u.branch, ''), 'Main') as branch
+            FROM users u
+            LEFT JOIN employee_payroll_meta m ON (u.employee_code IS NOT NULL AND u.employee_code != '' AND u.employee_code = m.employee_code)
+            WHERE u.status = 'active' AND u.employee_code IS NOT NULL AND u.employee_code != ''
+        ";
+        $res = $conn->query($sql);
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                $b_id = trim($row['employee_code']);
+                if ($b_id === '') continue;
+                $employees[$b_id] = [
+                    'id' => $b_id,
+                    'name' => $row['full_name'],
+                    'designation' => $row['designation'] ?? 'Employee',
+                    'department' => trim($row['department'] ?? ''),
+                    'branch' => $row['branch'] ?? 'Main',
+                    'team' => $row['team'] ?? ''
+                ];
+            }
+        }
     }
-    
-    $file = fopen($csv_file, 'r');
-    if (!$file) {
-        error_log("Cannot open CSV file");
-        return $employees;
-    }
-    
-    // Read header row
-    $headers = fgetcsv($file);
-    $headers = array_map('trim', $headers);
-    
-    while (($row = fgetcsv($file)) !== FALSE) {
-        // Skip empty rows
-        if (empty(array_filter($row))) continue;
-        
-        $row = array_map('trim', $row);
-        
-        // Check if this row has BID (employee data)
-        if (!empty($row[0])) {
-            $b_id = $row[0]; // BID
-            $name = $row[1] ?? ''; // Name
-            $team = $row[2] ?? ''; // Team
-            $department = $row[3] ?? ''; // Departments
-            $designation = $row[4] ?? ''; // Designations
-            $branch = $row[5] ?? ''; // Branch
-            
-            // Clean up department names
-            $department = trim($department);
-            
-            $employees[$b_id] = [
-                'id' => $b_id,
-                'name' => $name,
-                'designation' => $designation,
-                'department' => $department,
-                'branch' => $branch,
-                'team' => $team
-            ];
+
+    // 2. CSV fallback for historical BIDs not yet in users table
+    $csv_file = __DIR__ . '/Present Employee Data - Sheet4.csv';
+    if (file_exists($csv_file)) {
+        $file = fopen($csv_file, 'r');
+        if ($file) {
+            fgetcsv($file);
+            while (($row = fgetcsv($file)) !== FALSE) {
+                if (empty(array_filter($row))) continue;
+                $row = array_map('trim', $row);
+                if (!empty($row[0])) {
+                    $b_id = $row[0];
+                    if (!isset($employees[$b_id])) {
+                        $employees[$b_id] = [
+                            'id' => $b_id,
+                            'name' => $row[1] ?? '',
+                            'team' => $row[2] ?? '',
+                            'department' => trim($row[3] ?? ''),
+                            'designation' => $row[4] ?? '',
+                            'branch' => $row[5] ?? ''
+                        ];
+                    }
+                }
+            }
+            fclose($file);
         }
     }
     
-    fclose($file);
     return $employees;
 }
 
@@ -99,6 +112,83 @@ function getDepartmentsFromCSV() {
     }
     
     return array_keys($departments);
+}
+
+// =====================================================
+// NEW: Auto Sync Active Users from User Management to Attendance Tables
+// =====================================================
+function syncActiveUsersToAttendanceTables(mysqli $conn): void {
+    static $synced = false;
+    if ($synced) return;
+    $synced = true;
+
+    $sql = "
+        SELECT 
+            u.employee_code, 
+            u.full_name, 
+            COALESCE(NULLIF(u.team, ''), '') as team,
+            COALESCE(NULLIF(u.department, ''), '') as department,
+            COALESCE(NULLIF(m.designation, ''), NULLIF(u.designation, ''), 'Employee') as designation,
+            COALESCE(NULLIF(m.company_branch, ''), NULLIF(u.company_branch, ''), NULLIF(u.branch, ''), 'Main') as branch
+        FROM users u
+        LEFT JOIN employee_payroll_meta m ON (u.employee_code IS NOT NULL AND u.employee_code != '' AND u.employee_code = m.employee_code)
+        WHERE u.status = 'active' AND u.employee_code IS NOT NULL AND u.employee_code != ''
+    ";
+    $res = $conn->query($sql);
+    if (!$res) return;
+
+    while ($row = $res->fetch_assoc()) {
+        $code = trim($row['employee_code']);
+        if ($code === '') continue;
+
+        $name = $row['full_name'];
+        $dept = !empty($row['department']) ? $row['department'] : 'General';
+        $desig = !empty($row['designation']) ? $row['designation'] : 'Employee';
+        $team = $row['team'] ?? '';
+        $branch = !empty($row['branch']) ? $row['branch'] : 'Main';
+
+        // 1. Sync to employees table
+        $chk1 = $conn->prepare("SELECT id FROM employees WHERE employee_code = ? LIMIT 1");
+        if ($chk1) {
+            $chk1->bind_param("s", $code);
+            $chk1->execute();
+            $r1 = $chk1->get_result();
+            if ($r1 && $r1->num_rows > 0) {
+                $u1 = $conn->prepare("UPDATE employees SET full_name = ?, department = ?, designation = ?, team = ?, branch = ?, is_active = 1 WHERE employee_code = ?");
+                if ($u1) {
+                    $u1->bind_param("ssssss", $name, $dept, $desig, $team, $branch, $code);
+                    $u1->execute();
+                }
+            } else {
+                $i1 = $conn->prepare("INSERT INTO employees (employee_code, full_name, department, designation, team, branch, is_active) VALUES (?, ?, ?, ?, ?, ?, 1)");
+                if ($i1) {
+                    $i1->bind_param("ssssss", $code, $name, $dept, $desig, $team, $branch);
+                    $i1->execute();
+                }
+            }
+        }
+
+        // 2. Sync to employees_commercial table if exists
+        $chk2 = $conn->prepare("SELECT id FROM employees_commercial WHERE employee_code = ? LIMIT 1");
+        if ($chk2) {
+            $chk2->bind_param("s", $code);
+            $chk2->execute();
+            $r2 = $chk2->get_result();
+            if ($r2 && $r2->num_rows > 0) {
+                $u2 = $conn->prepare("UPDATE employees_commercial SET full_name = ?, department = ?, designation = ?, team = ?, branch = ?, is_active = 1 WHERE employee_code = ?");
+                if ($u2) {
+                    $u2->bind_param("ssssss", $name, $dept, $desig, $team, $branch, $code);
+                    $u2->execute();
+                }
+            } else {
+                $i2 = $conn->prepare("INSERT INTO employees_commercial (employee_code, full_name, department, designation, team, branch, is_active) VALUES (?, ?, ?, ?, ?, ?, 1)");
+                if ($i2) {
+                    $i2->bind_param("ssssss", $code, $name, $dept, $desig, $team, $branch);
+                    $i2->execute();
+                }
+            }
+        }
+    }
 }
 
 // =====================================================
@@ -142,23 +232,45 @@ function getDesignationsFromCSV() {
 }
 
 // =====================================================
-// NEW: Get All Teams from CSV
+// NEW: Get All Teams from DB and CSV
 // =====================================================
 function getTeamsFromCSV() {
-    static $csv_data = null;
-    
-    if ($csv_data === null) {
-        $csv_data = loadEmployeeDataFromCSV();
-    }
+    global $conn;
+    static $teams_cached = null;
+    if ($teams_cached !== null) return $teams_cached;
     
     $teams = [];
-    foreach ($csv_data as $emp) {
-        if (!empty($emp['team'])) {
-            $teams[$emp['team']] = true;
+    
+    // Fetch from users table
+    if ($conn) {
+        $res = $conn->query("SELECT DISTINCT team FROM users WHERE team IS NOT NULL AND team != ''");
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                $t = trim($row['team']);
+                if ($t !== '') $teams[$t] = true;
+            }
+        }
+        
+        $res2 = $conn->query("SELECT DISTINCT team FROM employees WHERE team IS NOT NULL AND team != ''");
+        if ($res2) {
+            while ($row = $res2->fetch_assoc()) {
+                $t = trim($row['team']);
+                if ($t !== '') $teams[$t] = true;
+            }
         }
     }
     
-    return array_keys($teams);
+    // Also include CSV teams
+    $csv_data = loadEmployeeDataFromCSV();
+    foreach ($csv_data as $emp) {
+        if (!empty($emp['team'])) {
+            $teams[trim($emp['team'])] = true;
+        }
+    }
+    
+    $teams_cached = array_keys($teams);
+    sort($teams_cached);
+    return $teams_cached;
 }
 
 // ===== SHIFT WINDOW CONFIGURATION - UPDATED =====
@@ -314,6 +426,8 @@ switch ($action) {
     // 1. GET LIVE ATTENDANCE - UPDATED with CSV data
     // =================================================
     case 'getLiveAttendance':
+        syncActiveUsersToAttendanceTables($conn);
+
         $selected_date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
         
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $selected_date)) {
@@ -333,7 +447,7 @@ switch ($action) {
             sendJSON(false, null, "DB error: " . $conn->error);
         }
 
-        // Load CSV employee data once
+        // Load CSV / User Management employee data once
         $csv_employees = loadEmployeeDataFromCSV();
 
         $attendance = [];
@@ -349,14 +463,15 @@ switch ($action) {
             $stats['total']++;
             $emp_code = $conn->real_escape_string($emp['employee_code']);
             
-            // Get employee details from CSV
+            // Get employee details from User Management / CSV
             $csv_emp = $csv_employees[$emp_code] ?? null;
             
-            // Set department, designation, branch, team from CSV or use defaults
-            $department = $csv_emp['department'] ?? $emp['department'] ?: 'General';
-            $designation = $csv_emp['designation'] ?? 'Employee';
-            $branch = $csv_emp['branch'] ?? 'Head Office';
-            $team = $csv_emp['team'] ?? ''; // NEW: Added team
+            // Set name, department, designation, branch, team from User Management (with CSV fallback)
+            $full_name = !empty($csv_emp['name']) ? $csv_emp['name'] : $emp['full_name'];
+            $department = !empty($csv_emp['department']) ? $csv_emp['department'] : ($emp['department'] ?: 'General');
+            $designation = !empty($csv_emp['designation']) ? $csv_emp['designation'] : 'Employee';
+            $branch = !empty($csv_emp['branch']) ? $csv_emp['branch'] : ($active_branch === 'commercial' ? 'Commercial' : ($active_branch === 'workfromhome' ? 'workfromhome' : 'Main'));
+            $team = !empty($csv_emp['team']) ? $csv_emp['team'] : '';
             
             // Initialize stats counters for department
             if (!isset($department_stats[$department])) {
@@ -473,7 +588,7 @@ switch ($action) {
             $attendance[] = [
                 'id'            => (int)$emp['id'],
                 'code'          => $emp['employee_code'],
-                'name'          => $emp['full_name'],
+                'name'          => $full_name,
                 'department'    => $department,
                 'designation'   => $designation,
                 'branch'        => $branch,
@@ -609,7 +724,7 @@ switch ($action) {
                 'full_name' => $employee['full_name'],
                 'department' => $csv_emp['department'] ?? $employee['department'] ?: 'General',
                 'designation' => $csv_emp['designation'] ?? 'Employee',
-                'branch' => $csv_emp['branch'] ?? 'Head Office',
+                'branch' => $csv_emp['branch'] ?? ($active_branch === 'commercial' ? 'Commercial' : ($active_branch === 'workfromhome' ? 'workfromhome' : 'Main')),
                 'team' => $csv_emp['team'] ?? '' // NEW: Added team
             ],
             'records'  => $records,
@@ -683,7 +798,7 @@ switch ($action) {
                 'employee_name' => $emp['full_name'],
                 'department'    => $csv_emp['department'] ?? $emp['department'] ?: 'General',
                 'designation'   => $csv_emp['designation'] ?? 'Employee',
-                'branch'        => $csv_emp['branch'] ?? 'Head Office',
+                'branch'        => $csv_emp['branch'] ?? ($active_branch === 'commercial' ? 'Commercial' : ($active_branch === 'workfromhome' ? 'workfromhome' : 'Main')),
                 'team'          => $csv_emp['team'] ?? '', // NEW: Added team
                 'date'          => $selected_date,
                 'status'        => $status,
@@ -792,7 +907,7 @@ switch ($action) {
                 'name'            => $emp['full_name'],
                 'department'      => $csv_emp['department'] ?? $emp['department'] ?: 'General',
                 'designation'     => $csv_emp['designation'] ?? 'Employee',
-                'branch'          => $csv_emp['branch'] ?? 'Head Office',
+                'branch'          => $csv_emp['branch'] ?? ($active_branch === 'commercial' ? 'Commercial' : ($active_branch === 'workfromhome' ? 'workfromhome' : 'Main')),
                 'team'            => $csv_emp['team'] ?? '',
                 'present'         => $present_days,
                 'late'            => $late_days,
@@ -919,7 +1034,7 @@ switch ($action) {
                 'full_name' => $row['full_name'],
                 'department' => $csv_emp['department'] ?? $row['department'] ?: 'General',
                 'designation' => $csv_emp['designation'] ?? 'Employee',
-                'branch' => $csv_emp['branch'] ?? 'Head Office',
+                'branch' => $csv_emp['branch'] ?? ($active_branch === 'commercial' ? 'Commercial' : ($active_branch === 'workfromhome' ? 'workfromhome' : 'Main')),
                 'team' => $csv_emp['team'] ?? '' // NEW: Added team
             ];
         }
@@ -1132,15 +1247,16 @@ switch ($action) {
         while ($emp = $employees->fetch_assoc()) {
             $code = $emp['employee_code'];
             $csv_emp = $csv_employees[$code] ?? null;
+            $full_name = !empty($csv_emp['name']) ? $csv_emp['name'] : $emp['full_name'];
             
             $emp_grid = [
                 'id' => $emp['id'],
                 'code' => $code,
-                'name' => $emp['full_name'],
-                'department' => $csv_emp['department'] ?? $emp['department'] ?: 'General',
-                'designation' => $csv_emp['designation'] ?? 'Employee',
-                'branch' => $csv_emp['branch'] ?? 'Head Office',
-                'team' => $csv_emp['team'] ?? '',
+                'name' => $full_name,
+                'department' => !empty($csv_emp['department']) ? $csv_emp['department'] : ($emp['department'] ?: 'General'),
+                'designation' => !empty($csv_emp['designation']) ? $csv_emp['designation'] : 'Employee',
+                'branch' => !empty($csv_emp['branch']) ? $csv_emp['branch'] : ($active_branch === 'commercial' ? 'Commercial' : ($active_branch === 'workfromhome' ? 'workfromhome' : 'Main')),
+                'team' => !empty($csv_emp['team']) ? $csv_emp['team'] : '',
                 'attendance' => []
             ];
             
