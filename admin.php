@@ -175,6 +175,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         if ($stmt->execute()) {
                             $message = 'User created successfully';
                             $messageType = 'success';
+                            if (!empty($employee_code)) {
+                                @$conn->query("UPDATE employees SET team = '" . $conn->real_escape_string($team) . "', department = '" . $conn->real_escape_string($department) . "', designation = '" . $conn->real_escape_string($designation) . "' WHERE employee_code = '" . $conn->real_escape_string($employee_code) . "'");
+                            }
                         } else {
                             $message = 'Error: ' . $conn->error;
                             $messageType = 'error';
@@ -291,6 +294,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($stmt->execute()) {
                     $message = 'User updated successfully';
                     $messageType = 'success';
+                    if (!empty($employee_code)) {
+                        @$conn->query("UPDATE employees SET team = '" . $conn->real_escape_string($team) . "', department = '" . $conn->real_escape_string($department) . "', designation = '" . $conn->real_escape_string($designation) . "' WHERE employee_code = '" . $conn->real_escape_string($employee_code) . "'");
+                    }
                 } else {
                     $message = 'Error: ' . $conn->error;
                     $messageType = 'error';
@@ -333,6 +339,15 @@ $users = $conn->query("
 // Get unique departments and roles for filters
 $departments = $conn->query("SELECT DISTINCT department FROM users WHERE department IS NOT NULL AND department != '' ORDER BY department");
 $roles = $conn->query("SELECT DISTINCT portal_role FROM users ORDER BY portal_role");
+
+// Fetch active teams for dropdowns
+$active_teams = [];
+$teams_res = $conn->query("SELECT * FROM teams WHERE status = 'active' ORDER BY team_name ASC");
+if ($teams_res) {
+    while ($t_row = $teams_res->fetch_assoc()) {
+        $active_teams[] = $t_row;
+    }
+}
 
 // Get stats
 $total_users = $conn->query("SELECT COUNT(*) as c FROM users")->fetch_assoc()['c'] ?? 0;
@@ -1213,7 +1228,12 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                         </div>
                         <div class="form-group">
                             <label><i class="fas fa-users"></i> Team</label>
-                            <input type="text" name="team" id="team" placeholder="e.g., Team Alpha">
+                            <select name="team" id="team">
+                                <option value="">-- Select Team --</option>
+                                <?php foreach ($active_teams as $t_item): ?>
+                                <option value="<?php echo htmlspecialchars($t_item['team_name']); ?>"><?php echo htmlspecialchars($t_item['team_name']); ?></option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label><i class="fas fa-calendar"></i> Appointment Date</label>
@@ -1255,6 +1275,59 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
         </div>
 
         <?php if ($current_is_super): ?>
+        <!-- Team Master Section (Super Admin Only) -->
+        <div class="create-card" id="teamMasterCard" style="margin-bottom: 28px;">
+            <div class="create-header">
+                <h2><i class="fas fa-layer-group" style="color: #f97316;"></i> Team Master Management</h2>
+                <button type="button" class="toggle-form-btn" onclick="toggleTeamMasterForm()">
+                    <i class="fas fa-plus-circle"></i> Add New Team
+                </button>
+            </div>
+            <p style="color: rgba(255,255,255,0.6); font-size: 13px; margin-top: -12px; margin-bottom: 16px;">
+                Create, edit, and deactivate teams. Saved active teams appear automatically in the Team dropdown for user accounts.
+            </p>
+            
+            <div class="create-form" id="teamMasterForm" style="display: none; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; margin-bottom: 20px;">
+                <h4 style="color: white; margin-bottom: 16px; font-size: 15px;" id="teamFormTitle"><i class="fas fa-plus"></i> Create New Team</h4>
+                <input type="hidden" id="tm_id" value="">
+                <div class="modal-form-grid">
+                    <div class="form-group">
+                        <label><i class="fas fa-users" style="color: #f97316;"></i> Team Name <span class="required">*</span></label>
+                        <input type="text" id="tm_name" placeholder="e.g., Team Alpha" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-clock" style="color: #f97316;"></i> Shift Start Time <span class="required">*</span></label>
+                        <input type="time" id="tm_shift_start" value="18:00" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-align-left" style="color: #f97316;"></i> Description</label>
+                        <input type="text" id="tm_description" placeholder="Optional description">
+                    </div>
+                </div>
+                <div class="form-actions" style="margin-top: 16px; display: flex; gap: 10px;">
+                    <button type="button" class="btn" onclick="cancelTeamEdit()">Cancel</button>
+                    <button type="button" class="btn-primary" id="saveTeamBtn" onclick="saveTeamMaster()"><i class="fas fa-save"></i> Save Team</button>
+                </div>
+            </div>
+
+            <div style="overflow-x: auto; margin-top: 10px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; color: rgba(255,255,255,0.6);">
+                            <th style="padding: 10px;">Team Name</th>
+                            <th style="padding: 10px;">Shift Start Time</th>
+                            <th style="padding: 10px;">Description</th>
+                            <th style="padding: 10px;">Status</th>
+                            <th style="padding: 10px; text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teamMasterTableBody">
+                        <tr><td colspan="5" style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);"><i class="fas fa-spinner fa-spin"></i> Loading teams...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <div class="create-card" id="bulkImportCard">
             <div class="create-header">
                 <h2><i class="fas fa-file-upload"></i> Bulk Import Users</h2>
@@ -1407,7 +1480,12 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                         </select>
                         <small class="field-hint">Changing this updates which branch the user must pick at login (except Super Admin).</small></div>
                         <div class="form-group"><label>Office Location</label><input type="text" name="branch" id="edit_branch"></div>
-                        <div class="form-group"><label>Team</label><input type="text" name="team" id="edit_team"></div>
+                        <div class="form-group"><label>Team</label><select name="team" id="edit_team">
+                            <option value="">-- Select Team --</option>
+                            <?php foreach ($active_teams as $t_item): ?>
+                            <option value="<?php echo htmlspecialchars($t_item['team_name']); ?>"><?php echo htmlspecialchars($t_item['team_name']); ?></option>
+                            <?php endforeach; ?>
+                        </select></div>
                         <div class="form-group"><label>Appointment Date</label><input type="date" name="joined_date" id="edit_joined_date"></div>
                         <?php if ($can_assign_super): ?>
                         <div class="form-group super-admin-option" style="grid-column: 1 / -1;">
@@ -1499,7 +1577,14 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                                     <small class="field-hint">Must match the branch selected on index login.</small>
                                 </div>
                                 <div class="form-group"><label><i class="fas fa-map-marker-alt" style="color:#f97316;"></i> Office Location</label><input type="text" name="branch" id="ief_branch"></div>
-                                <div class="form-group"><label><i class="fas fa-users" style="color:#f97316;"></i> Team</label><input type="text" name="team" id="ief_team"></div>
+                                <div class="form-group"><label><i class="fas fa-users" style="color:#f97316;"></i> Team</label>
+                                    <select name="team" id="ief_team">
+                                        <option value="">-- Select Team --</option>
+                                        <?php foreach ($active_teams as $t_item): ?>
+                                        <option value="<?php echo htmlspecialchars($t_item['team_name']); ?>"><?php echo htmlspecialchars($t_item['team_name']); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
                                 <div class="form-group"><label><i class="fas fa-calendar" style="color:#f97316;"></i> Appointment Date</label><input type="date" name="joined_date" id="ief_joined_date"></div>
                                 <?php if ($can_assign_super): ?>
                                 <div class="form-group super-admin-option" style="grid-column: 1 / -1;">
@@ -1761,7 +1846,7 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                 document.getElementById('department').value = e.department || '';
                 document.getElementById('designation').value = e.designation || '';
                 document.getElementById('branch').value = e.branch || '';
-                document.getElementById('team').value = e.team || '';
+                ensureTeamOption(document.getElementById('team'), e.team || '');
                 const emailEl = document.getElementById('email');
                 if (emailEl && (!emailEl.value || showToastOnSuccess) && e.suggested_email) {
                     let val = e.suggested_email;
@@ -1886,7 +1971,7 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
             document.getElementById('ief_branch').value = u.branch || '';
             const cb = document.getElementById('ief_company_branch');
             if (cb) cb.value = u.company_branch || 'main';
-            document.getElementById('ief_team').value = u.team || '';
+            ensureTeamOption(document.getElementById('ief_team'), u.team || '');
             document.getElementById('ief_joined_date').value = u.joined_date || '';
             document.getElementById('ief_portal_role').value = u.portal_role || 'user';
             syncSuperAdminCheckbox(u.portal_role, 'ief_as_super_admin', 'ief_portal_role');
@@ -2205,6 +2290,189 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
             });
         })();
         <?php endif; ?>
+
+        // --- Team Master Functions ---
+        function ensureTeamOption(selectEl, teamValue) {
+            if (!selectEl) return;
+            if (!teamValue) {
+                selectEl.value = '';
+                return;
+            }
+            let found = Array.from(selectEl.options).find(o => o.value.toLowerCase() === teamValue.toLowerCase());
+            if (found) {
+                selectEl.value = found.value;
+            } else {
+                const opt = document.createElement('option');
+                opt.value = teamValue;
+                opt.textContent = teamValue;
+                opt.selected = true;
+                selectEl.appendChild(opt);
+                selectEl.value = teamValue;
+            }
+        }
+
+        let _allTeamsData = [];
+
+        async function loadTeamMaster() {
+            const isSuper = <?php echo $current_is_super ? 'true' : 'false'; ?>;
+            try {
+                const res = await fetch(`api/teams_api.php?action=list${isSuper ? '&all=1' : ''}`);
+                const data = await res.json();
+                if (data.success && Array.isArray(data.data.teams)) {
+                    _allTeamsData = data.data.teams;
+                    if (isSuper) {
+                        renderTeamMasterTable(_allTeamsData);
+                    }
+                    updateTeamDropdownOptions(_allTeamsData.filter(t => t.status === 'active'));
+                }
+            } catch (e) {
+                console.error('Error loading teams:', e);
+            }
+        }
+
+        function renderTeamMasterTable(teams) {
+            const tbody = document.getElementById('teamMasterTableBody');
+            if (!tbody) return;
+            if (teams.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">No teams found. Click "Add New Team" above to create one.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = teams.map(t => {
+                const isActive = t.status === 'active';
+                const statusBadge = isActive 
+                    ? '<span class="status-badge active" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #10b981;">Active</span>'
+                    : '<span class="status-badge inactive" style="background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #f87171;">Inactive</span>';
+                const toggleBtnText = isActive ? 'Deactivate' : 'Activate';
+                const toggleBtnClass = isActive ? 'style="color: #f87171;"' : 'style="color: #10b981;"';
+                
+                const safeName = (t.team_name || '').replace(/'/g, "\\'");
+                const safeDesc = (t.description || '').replace(/'/g, "\\'");
+                const shiftTime = (t.shift_start_time || '18:00:00');
+                
+                return `<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 10px; font-weight: 600; color: white;">${t.team_name}</td>
+                    <td style="padding: 10px; font-family: monospace; color: #f97316; font-weight: 600;">${shiftTime}</td>
+                    <td style="padding: 10px; color: rgba(255,255,255,0.7);">${t.description || '—'}</td>
+                    <td style="padding: 10px;">${statusBadge}</td>
+                    <td style="padding: 10px; text-align: right;">
+                        <div class="action-icons" style="justify-content: flex-end;">
+                            <div class="action-icon" onclick="editTeamMaster(${t.id}, '${safeName}', '${safeDesc}', '${shiftTime}', '${t.status}')" title="Edit Team"><i class="fas fa-edit"></i></div>
+                            <div class="action-icon" ${toggleBtnClass} onclick="toggleTeamStatus(${t.id}, '${t.status}')" title="${toggleBtnText} Team"><i class="fas ${isActive ? 'fa-power-off' : 'fa-check-circle'}"></i></div>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function updateTeamDropdownOptions(activeTeams) {
+            const dropdownIds = ['team', 'edit_team', 'ief_team'];
+            dropdownIds.forEach(id => {
+                const select = document.getElementById(id);
+                if (!select) return;
+                const curVal = select.value;
+                select.innerHTML = '<option value="">-- Select Team --</option>' + 
+                    activeTeams.map(t => `<option value="${t.team_name}">${t.team_name}</option>`).join('');
+                if (curVal) {
+                    ensureTeamOption(select, curVal);
+                }
+            });
+        }
+
+        function toggleTeamMasterForm() {
+            const form = document.getElementById('teamMasterForm');
+            if (!form) return;
+            const isShowing = form.style.display !== 'none';
+            if (isShowing) {
+                cancelTeamEdit();
+            } else {
+                document.getElementById('teamFormTitle').innerHTML = '<i class="fas fa-plus"></i> Create New Team';
+                document.getElementById('tm_id').value = '';
+                document.getElementById('tm_name').value = '';
+                document.getElementById('tm_shift_start').value = '18:00';
+                document.getElementById('tm_description').value = '';
+                form.style.display = 'block';
+            }
+        }
+
+        function editTeamMaster(id, name, desc, shiftTime, status) {
+            const form = document.getElementById('teamMasterForm');
+            if (!form) return;
+            document.getElementById('teamFormTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Team';
+            document.getElementById('tm_id').value = id;
+            document.getElementById('tm_name').value = name;
+            document.getElementById('tm_description').value = desc;
+            if (shiftTime) {
+                const parts = shiftTime.split(':');
+                document.getElementById('tm_shift_start').value = `${parts[0].padStart(2,'0')}:${parts[1].padStart(2,'0')}`;
+            } else {
+                document.getElementById('tm_shift_start').value = '18:00';
+            }
+            form.style.display = 'block';
+        }
+
+        function cancelTeamEdit() {
+            const form = document.getElementById('teamMasterForm');
+            if (form) form.style.display = 'none';
+            document.getElementById('tm_id').value = '';
+            document.getElementById('tm_name').value = '';
+            document.getElementById('tm_shift_start').value = '18:00';
+            document.getElementById('tm_description').value = '';
+        }
+
+        async function saveTeamMaster() {
+            const id = document.getElementById('tm_id').value;
+            const name = document.getElementById('tm_name').value.trim();
+            const desc = document.getElementById('tm_description').value.trim();
+            const shiftTime = document.getElementById('tm_shift_start').value.trim();
+            if (!name) {
+                showNotification('Team name is required', 'error');
+                return;
+            }
+            const action = id ? 'update' : 'add';
+            const payload = { action: action, team_name: name, description: desc, shift_start_time: shiftTime || '18:00' };
+            if (id) payload.id = parseInt(id);
+            
+            try {
+                const res = await fetch('api/teams_api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showNotification(data.message || 'Team saved successfully', 'success');
+                    cancelTeamEdit();
+                    loadTeamMaster();
+                } else {
+                    showNotification(data.error || 'Failed to save team', 'error');
+                }
+            } catch (e) {
+                showNotification('Error saving team', 'error');
+            }
+        }
+
+        async function toggleTeamStatus(id, currentStatus) {
+            const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+            try {
+                const res = await fetch('api/teams_api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'toggle_status', id: id, status: newStatus })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showNotification(data.message || 'Team status updated', 'success');
+                    loadTeamMaster();
+                } else {
+                    showNotification(data.error || 'Failed to update status', 'error');
+                }
+            } catch (e) {
+                showNotification('Error updating team status', 'error');
+            }
+        }
+
+        // Initialize teams on load
+        document.addEventListener('DOMContentLoaded', loadTeamMaster);
 
         // --- Heartbeat Ping for admin.php ---
         setInterval(() => {

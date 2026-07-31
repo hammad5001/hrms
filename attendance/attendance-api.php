@@ -329,17 +329,15 @@ function calculateWorkingHours($check_in, $check_out) {
 }
 
 function isLate($punch_time, $shift_date, $team = '') {
-    $start_time = preg_match('/\bFE\b/i', $team) ? '19:00:00' : SHIFT_START;
+    global $conn;
+    require_once __DIR__ . '/../includes/attendance_shift.php';
+    $start_time = ess_get_team_shift_start($conn, $team);
     $shift_start = strtotime($shift_date . ' ' . $start_time);
     $punch = strtotime($punch_time);
-    $minutes_late = ($punch - $shift_start) / 60;
     
-    if ($minutes_late <= 0) {
-        return [false, 0];
-    }
-    
-    if ($minutes_late > GRACE_MINUTES) {
-        return [true, round($minutes_late)];
+    if ($punch > $shift_start) {
+        $minutes_late = round(($punch - $shift_start) / 60);
+        return [true, max(1, (int)$minutes_late)];
     }
     
     return [false, 0];
@@ -362,7 +360,12 @@ switch ($action) {
         }
 
         $emp_code = $conn->real_escape_string($emp_code);
-        $emp_query = $conn->query("SELECT * FROM " . TABLE_EMPLOYEES . " WHERE employee_code = '$emp_code' LIMIT 1");
+        $emp_query = $conn->query("
+            SELECT e.*, COALESCE(NULLIF(u.team, ''), NULLIF(e.team, ''), '') as resolved_team 
+            FROM " . TABLE_EMPLOYEES . " e 
+            LEFT JOIN users u ON (e.employee_code IS NOT NULL AND e.employee_code != '' AND e.employee_code COLLATE utf8mb4_unicode_ci = u.employee_code COLLATE utf8mb4_unicode_ci)
+            WHERE e.employee_code = '$emp_code' LIMIT 1
+        ");
         $employee = $emp_query ? $emp_query->fetch_assoc() : null;
 
         $records = [];
@@ -393,7 +396,7 @@ switch ($action) {
             if (count($punches) > 0) {
                 $first_in = $punches[0];
                 
-                list($is_late, $minutes) = isLate($first_in, $date, $employee['team'] ?? '');
+                list($is_late, $minutes) = isLate($first_in, $date, $employee['resolved_team'] ?? $employee['team'] ?? '');
                 $status = $is_late ? 'late' : 'present';
 
                 if (count($punches) >= 2) {
@@ -437,10 +440,11 @@ switch ($action) {
         $windows = getShiftWindows($selected_date);
 
         $employees = $conn->query("
-            SELECT id, employee_code, full_name, department 
-            FROM " . TABLE_EMPLOYEES . " 
-            WHERE is_active = 1 
-            ORDER BY CAST(employee_code AS UNSIGNED)
+            SELECT e.id, e.employee_code, e.full_name, e.department, COALESCE(NULLIF(u.team, ''), NULLIF(e.team, ''), '') as team 
+            FROM " . TABLE_EMPLOYEES . " e
+            LEFT JOIN users u ON (e.employee_code IS NOT NULL AND e.employee_code != '' AND e.employee_code COLLATE utf8mb4_unicode_ci = u.employee_code COLLATE utf8mb4_unicode_ci)
+            WHERE e.is_active = 1 
+            ORDER BY CAST(e.employee_code AS UNSIGNED)
         ");
         
         if (!$employees) {
@@ -471,7 +475,7 @@ switch ($action) {
             $department = !empty($csv_emp['department']) ? $csv_emp['department'] : ($emp['department'] ?: 'General');
             $designation = !empty($csv_emp['designation']) ? $csv_emp['designation'] : 'Employee';
             $branch = !empty($csv_emp['branch']) ? $csv_emp['branch'] : ($active_branch === 'commercial' ? 'Commercial' : ($active_branch === 'workfromhome' ? 'workfromhome' : 'Main'));
-            $team = !empty($csv_emp['team']) ? $csv_emp['team'] : '';
+            $team = !empty($csv_emp['team']) ? $csv_emp['team'] : (!empty($emp['team']) ? $emp['team'] : '');
             
             // Initialize stats counters for department
             if (!isset($department_stats[$department])) {
@@ -745,10 +749,11 @@ switch ($action) {
         $windows = getShiftWindows($selected_date);
 
         $employees = $conn->query("
-            SELECT id, employee_code, full_name, department 
-            FROM " . TABLE_EMPLOYEES . " 
-            WHERE is_active = 1 
-            ORDER BY CAST(employee_code AS UNSIGNED)
+            SELECT e.id, e.employee_code, e.full_name, e.department, COALESCE(NULLIF(u.team, ''), NULLIF(e.team, ''), '') as team 
+            FROM " . TABLE_EMPLOYEES . " e
+            LEFT JOIN users u ON (e.employee_code IS NOT NULL AND e.employee_code != '' AND e.employee_code COLLATE utf8mb4_unicode_ci = u.employee_code COLLATE utf8mb4_unicode_ci)
+            WHERE e.is_active = 1 
+            ORDER BY CAST(e.employee_code AS UNSIGNED)
         ");
 
         if (!$employees) {
@@ -763,6 +768,7 @@ switch ($action) {
         while ($emp = $employees->fetch_assoc()) {
             $emp_code = $conn->real_escape_string($emp['employee_code']);
             $csv_emp = $csv_employees[$emp_code] ?? null;
+            $team_name = !empty($csv_emp['team']) ? $csv_emp['team'] : (!empty($emp['team']) ? $emp['team'] : '');
 
             // Get first check-in of the shift
             $punch = $conn->query("
@@ -780,7 +786,7 @@ switch ($action) {
                 $punch_data = $punch->fetch_assoc();
                 $in_time = date('h:i A', strtotime($punch_data['timestamp']));
                 
-                list($is_late, $minutes) = isLate($punch_data['timestamp'], $selected_date, $csv_emp['team'] ?? $emp['team'] ?? '');
+                list($is_late, $minutes) = isLate($punch_data['timestamp'], $selected_date, $team_name);
                 if ($is_late) {
                     $status = 'late';
                     $stats['late']++;
@@ -799,7 +805,7 @@ switch ($action) {
                 'department'    => $csv_emp['department'] ?? $emp['department'] ?: 'General',
                 'designation'   => $csv_emp['designation'] ?? 'Employee',
                 'branch'        => $csv_emp['branch'] ?? ($active_branch === 'commercial' ? 'Commercial' : ($active_branch === 'workfromhome' ? 'workfromhome' : 'Main')),
-                'team'          => $csv_emp['team'] ?? '', // NEW: Added team
+                'team'          => $team_name,
                 'date'          => $selected_date,
                 'status'        => $status,
                 'in_time'       => $in_time,
@@ -822,13 +828,37 @@ switch ($action) {
             sendJSON(false, null, 'Invalid date format. Use YYYY-MM-DD');
         }
         
-        $where = $department ? "AND e.department = '$department'" : '';
+        $whereE = $department ? "AND e.department = '$department'" : '';
+        $whereEC = $department ? "AND ec.department = '$department'" : '';
 
         $employees = $conn->query("
-            SELECT id, employee_code, full_name, department 
-            FROM " . TABLE_EMPLOYEES . " 
-            WHERE is_active = 1 
-            $where
+            SELECT 
+                e.employee_code COLLATE utf8mb4_unicode_ci as employee_code, 
+                e.id, 
+                e.full_name COLLATE utf8mb4_unicode_ci as full_name, 
+                e.department COLLATE utf8mb4_unicode_ci as department, 
+                COALESCE(NULLIF(u.team, ''), NULLIF(e.team, ''), '') COLLATE utf8mb4_unicode_ci as team,
+                COALESCE(NULLIF(m.company_branch, ''), NULLIF(u.company_branch, ''), NULLIF(u.branch, ''), NULLIF(e.branch, ''), 'Main') COLLATE utf8mb4_unicode_ci as branch,
+                COALESCE(NULLIF(m.designation, ''), NULLIF(u.designation, ''), NULLIF(e.designation, ''), 'Employee') COLLATE utf8mb4_unicode_ci as designation
+            FROM employees e
+            LEFT JOIN users u ON (e.employee_code IS NOT NULL AND e.employee_code != '' AND e.employee_code COLLATE utf8mb4_unicode_ci = u.employee_code COLLATE utf8mb4_unicode_ci)
+            LEFT JOIN employee_payroll_meta m ON (e.employee_code IS NOT NULL AND e.employee_code != '' AND e.employee_code COLLATE utf8mb4_unicode_ci = m.employee_code COLLATE utf8mb4_unicode_ci)
+            WHERE e.is_active = 1 $whereE
+
+            UNION
+
+            SELECT 
+                ec.employee_code COLLATE utf8mb4_unicode_ci as employee_code, 
+                ec.id, 
+                ec.full_name COLLATE utf8mb4_unicode_ci as full_name, 
+                ec.department COLLATE utf8mb4_unicode_ci as department, 
+                COALESCE(NULLIF(u.team, ''), NULLIF(ec.team, ''), '') COLLATE utf8mb4_unicode_ci as team,
+                COALESCE(NULLIF(m.company_branch, ''), NULLIF(u.company_branch, ''), NULLIF(u.branch, ''), NULLIF(ec.branch, ''), 'Commercial') COLLATE utf8mb4_unicode_ci as branch,
+                COALESCE(NULLIF(m.designation, ''), NULLIF(u.designation, ''), NULLIF(ec.designation, ''), 'Employee') COLLATE utf8mb4_unicode_ci as designation
+            FROM employees_commercial ec
+            LEFT JOIN users u ON (ec.employee_code IS NOT NULL AND ec.employee_code != '' AND ec.employee_code COLLATE utf8mb4_unicode_ci = u.employee_code COLLATE utf8mb4_unicode_ci)
+            LEFT JOIN employee_payroll_meta m ON (ec.employee_code IS NOT NULL AND ec.employee_code != '' AND ec.employee_code COLLATE utf8mb4_unicode_ci = m.employee_code COLLATE utf8mb4_unicode_ci)
+            WHERE ec.is_active = 1 $whereEC
             ORDER BY CAST(employee_code AS UNSIGNED)
         ");
 
@@ -855,10 +885,17 @@ switch ($action) {
 
         $report = [];
         $total_days = (strtotime($end_date) - strtotime($start_date)) / (60*60*24) + 1;
+        $seen_codes = [];
 
         while ($emp = $employees->fetch_assoc()) {
             $emp_code = $conn->real_escape_string($emp['employee_code']);
+            if (empty($emp_code) || isset($seen_codes[$emp_code])) {
+                continue;
+            }
+            $seen_codes[$emp_code] = true;
+
             $csv_emp = $csv_employees[$emp_code] ?? null;
+            $team_name = !empty($csv_emp['team']) ? $csv_emp['team'] : (!empty($emp['team']) ? $emp['team'] : '');
             
             $present_days = 0;
             $late_days = 0;
@@ -890,7 +927,7 @@ switch ($action) {
                         }
                     }
                     if ($checkin_punch) {
-                        list($is_late,) = isLate($checkin_punch, $current, $csv_emp['team'] ?? $emp['team'] ?? '');
+                        list($is_late,) = isLate($checkin_punch, $current, $team_name);
                         if ($is_late) {
                             $late_days++;
                         }
@@ -907,8 +944,8 @@ switch ($action) {
                 'name'            => $emp['full_name'],
                 'department'      => $csv_emp['department'] ?? $emp['department'] ?: 'General',
                 'designation'     => $csv_emp['designation'] ?? 'Employee',
-                'branch'          => $csv_emp['branch'] ?? ($active_branch === 'commercial' ? 'Commercial' : ($active_branch === 'workfromhome' ? 'workfromhome' : 'Main')),
-                'team'            => $csv_emp['team'] ?? '',
+                'branch'          => !empty($csv_emp['branch']) ? $csv_emp['branch'] : (!empty($emp['branch']) ? $emp['branch'] : 'Main'),
+                'team'            => $team_name,
                 'present'         => $present_days,
                 'late'            => $late_days,
                 'absent'          => $total_days - $present_days,
@@ -1216,9 +1253,33 @@ switch ($action) {
         $days_in_month = (int)date('t', strtotime($start_date));
         
         $employees = $conn->query("
-            SELECT id, employee_code, full_name, department 
-            FROM " . TABLE_EMPLOYEES . " 
-            WHERE is_active = 1 
+            SELECT 
+                e.employee_code COLLATE utf8mb4_unicode_ci as employee_code, 
+                e.id, 
+                e.full_name COLLATE utf8mb4_unicode_ci as full_name, 
+                e.department COLLATE utf8mb4_unicode_ci as department, 
+                COALESCE(NULLIF(u.team, ''), NULLIF(e.team, ''), '') COLLATE utf8mb4_unicode_ci as team,
+                COALESCE(NULLIF(m.company_branch, ''), NULLIF(u.company_branch, ''), NULLIF(u.branch, ''), NULLIF(e.branch, ''), 'Main') COLLATE utf8mb4_unicode_ci as branch,
+                COALESCE(NULLIF(m.designation, ''), NULLIF(u.designation, ''), NULLIF(e.designation, ''), 'Employee') COLLATE utf8mb4_unicode_ci as designation
+            FROM employees e
+            LEFT JOIN users u ON (e.employee_code IS NOT NULL AND e.employee_code != '' AND e.employee_code COLLATE utf8mb4_unicode_ci = u.employee_code COLLATE utf8mb4_unicode_ci)
+            LEFT JOIN employee_payroll_meta m ON (e.employee_code IS NOT NULL AND e.employee_code != '' AND e.employee_code COLLATE utf8mb4_unicode_ci = m.employee_code COLLATE utf8mb4_unicode_ci)
+            WHERE e.is_active = 1
+
+            UNION
+
+            SELECT 
+                ec.employee_code COLLATE utf8mb4_unicode_ci as employee_code, 
+                ec.id, 
+                ec.full_name COLLATE utf8mb4_unicode_ci as full_name, 
+                ec.department COLLATE utf8mb4_unicode_ci as department, 
+                COALESCE(NULLIF(u.team, ''), NULLIF(ec.team, ''), '') COLLATE utf8mb4_unicode_ci as team,
+                COALESCE(NULLIF(m.company_branch, ''), NULLIF(u.company_branch, ''), NULLIF(u.branch, ''), NULLIF(ec.branch, ''), 'Commercial') COLLATE utf8mb4_unicode_ci as branch,
+                COALESCE(NULLIF(m.designation, ''), NULLIF(u.designation, ''), NULLIF(ec.designation, ''), 'Employee') COLLATE utf8mb4_unicode_ci as designation
+            FROM employees_commercial ec
+            LEFT JOIN users u ON (ec.employee_code IS NOT NULL AND ec.employee_code != '' AND ec.employee_code COLLATE utf8mb4_unicode_ci = u.employee_code COLLATE utf8mb4_unicode_ci)
+            LEFT JOIN employee_payroll_meta m ON (ec.employee_code IS NOT NULL AND ec.employee_code != '' AND ec.employee_code COLLATE utf8mb4_unicode_ci = m.employee_code COLLATE utf8mb4_unicode_ci)
+            WHERE ec.is_active = 1
             ORDER BY CAST(employee_code AS UNSIGNED)
         ");
         
@@ -1244,10 +1305,18 @@ switch ($action) {
             }
         }
 
+        $seen_codes = [];
         while ($emp = $employees->fetch_assoc()) {
             $code = $emp['employee_code'];
+            if (empty($code) || isset($seen_codes[$code])) {
+                continue;
+            }
+            $seen_codes[$code] = true;
+
             $csv_emp = $csv_employees[$code] ?? null;
             $full_name = !empty($csv_emp['name']) ? $csv_emp['name'] : $emp['full_name'];
+            $team_name = !empty($csv_emp['team']) ? $csv_emp['team'] : (!empty($emp['team']) ? $emp['team'] : '');
+            $branch_name = !empty($csv_emp['branch']) ? $csv_emp['branch'] : (!empty($emp['branch']) ? $emp['branch'] : 'Main');
             
             $emp_grid = [
                 'id' => $emp['id'],
@@ -1255,8 +1324,8 @@ switch ($action) {
                 'name' => $full_name,
                 'department' => !empty($csv_emp['department']) ? $csv_emp['department'] : ($emp['department'] ?: 'General'),
                 'designation' => !empty($csv_emp['designation']) ? $csv_emp['designation'] : 'Employee',
-                'branch' => !empty($csv_emp['branch']) ? $csv_emp['branch'] : ($active_branch === 'commercial' ? 'Commercial' : ($active_branch === 'workfromhome' ? 'workfromhome' : 'Main')),
-                'team' => !empty($csv_emp['team']) ? $csv_emp['team'] : '',
+                'branch' => $branch_name,
+                'team' => $team_name,
                 'attendance' => []
             ];
             
@@ -1283,7 +1352,7 @@ switch ($action) {
                 if ($first_in) {
                     $emp_grid['attendance'][$day_num] = date('H:i', strtotime($first_in));
                     $present_count++;
-                    list($is_late, ) = isLate($first_in, $current);
+                    list($is_late, ) = isLate($first_in, $current, $emp_grid['team']);
                     if ($is_late) $late_count++;
                 } else {
                     $emp_grid['attendance'][$day_num] = '--:--';

@@ -125,19 +125,15 @@ function calculateWorkingHours($check_in, $check_out) {
 // =====================================================
 // Check if late (after 7:00 PM)
 // =====================================================
-function isLate($punch_time, $shift_date) {
-    $shift_start = strtotime($shift_date . ' 19:00:00'); // 7:00 PM
+function isLate($punch_time, $shift_date, $team = '') {
+    global $conn;
+    require_once __DIR__ . '/../includes/attendance_shift.php';
+    $start_time = ess_get_team_shift_start($conn, $team);
+    $shift_start = strtotime($shift_date . ' ' . $start_time);
     $punch = strtotime($punch_time);
-    $minutes_late = ($punch - $shift_start) / 60;
-    
-    if ($minutes_late <= 15) { // 15 minutes grace period
-        return [false, 0];
+    if ($punch > $shift_start) {
+        return [true, max(1, round(($punch - $shift_start) / 60))];
     }
-    
-    if ($minutes_late > 15) {
-        return [true, round($minutes_late)];
-    }
-    
     return [false, 0];
 }
 

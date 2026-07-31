@@ -2643,7 +2643,25 @@ require_once 'config.php';
             return now.getDate();
         }
 
-        function isCheckinLate(checkinTime) {
+        window._teamShiftMap = {};
+        async function loadTeamShiftMap() {
+            try {
+                const res = await fetch('api/teams_api.php?action=list');
+                const data = await res.json();
+                if (data.success && Array.isArray(data.data.teams)) {
+                    data.data.teams.forEach(t => {
+                        if (t.team_name && t.shift_start_time) {
+                            const parts = t.shift_start_time.split(':');
+                            const mins = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+                            window._teamShiftMap[t.team_name.toLowerCase()] = mins;
+                        }
+                    });
+                }
+            } catch (e) {}
+        }
+        loadTeamShiftMap();
+
+        function isCheckinLate(checkinTime, teamName = '') {
             if (!checkinTime || checkinTime === '--:--') return false;
             const match = String(checkinTime).trim().match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?/i);
             if (!match) return false;
@@ -2652,7 +2670,12 @@ require_once 'config.php';
             const period = (match[3] || '').toUpperCase();
             if (period === 'PM' && hour !== 12) hour += 12;
             if (period === 'AM' && hour === 12) hour = 0;
-            return (hour * 60 + minute) > CHECKIN_CUTOFF_MINUTES;
+            
+            let cutoffMinutes = CHECKIN_CUTOFF_MINUTES;
+            if (teamName && window._teamShiftMap && window._teamShiftMap[String(teamName).toLowerCase()]) {
+                cutoffMinutes = window._teamShiftMap[String(teamName).toLowerCase()];
+            }
+            return (hour * 60 + minute) > cutoffMinutes;
         }
 
         async function loadAllAdj() {
@@ -2810,29 +2833,51 @@ require_once 'config.php';
                 }
             }
 
-            let punctualityQualified = false;
-            let punctualityAmount = 0;
+            // Base Punctuality Qualification Check (Leaves, Probation/Tenure, Working Days, Absences)
+            let basePunctualityQualified = false;
+            let basePunctualityAmount = 0;
             const manualPunc = payrollAdj.manualPunctuality[emp.id];
             if (manualPunc !== undefined) {
-                punctualityAmount = parseFloat(manualPunc) || 0;
-                punctualityQualified = punctualityAmount > 0;
-            } else if (meta.punctualityEnabled && payrollMonthComplete && emp.late === 0 && adjustedAbsent === 0) {
+                basePunctualityAmount = parseFloat(manualPunc) || 0;
+                basePunctualityQualified = basePunctualityAmount > 0;
+            } else if (meta.punctualityEnabled && payrollMonthComplete && adjustedAbsent === 0) {
                 const leaveAllowancePermitted = isTenure60Plus ? (adjustedLeaveCount <= 1) : (adjustedLeaveCount === 0);
                 if (leaveAllowancePermitted && totalWorkingDays === workingDaysCount) {
-                    punctualityQualified = true;
-                    punctualityAmount = punctualityBonus;
+                    basePunctualityQualified = true;
+                    basePunctualityAmount = punctualityBonus;
                 }
             }
 
             // Late Coming Logic:
-            // 1. Each late coming is 300 PKR.
-            // 2. Up to 3 late comings are allowed without monetary deduction (only punctuality is lost if > 0).
-            // 3. If late > 3, ALL late comings are deducted (e.g. 4 late comings = 4 * 300 = 1200 PKR).
+            // 1. Up to 3 late arrivals: No penalty (keep base punctuality reward & 0 PKR late deduction).
+            // 2. From 4th late arrival onward (emp.late >= 4):
+            //    - If Punctuality Reward was qualified, remove Punctuality Reward ONLY (punctualityAmount = 0, lateDeduction = 0).
+            //    - If Punctuality Reward was ALREADY lost (due to leave, probation, etc.), deduct Late Count * 300 PKR instead.
+            // 3. Do not apply both punctuality removal and monetary late deduction together.
             const LATE_RATE_PER_DAY = 300;
+            let punctualityQualified = false;
+            let punctualityAmount = 0;
             let lateDeduction = 0;
-            if (emp.late > 3) {
-                lateDeduction = emp.late * LATE_RATE_PER_DAY;
+
+            if (emp.late <= 3) {
+                punctualityQualified = basePunctualityQualified;
+                punctualityAmount = basePunctualityAmount;
+                lateDeduction = 0;
+            } else {
+                if (basePunctualityQualified) {
+                    // Remove Punctuality Reward ONLY (no monetary late deduction)
+                    punctualityQualified = false;
+                    punctualityAmount = 0;
+                    lateDeduction = 0;
+                } else {
+                    // Punctuality Reward was ALREADY lost due to leave, probation, or another rule
+                    // Deduct Late Count * 300 PKR instead
+                    punctualityQualified = false;
+                    punctualityAmount = 0;
+                    lateDeduction = emp.late * LATE_RATE_PER_DAY;
+                }
             }
+
             const manualLate = parseFloat(payrollAdj.manualLate[emp.id] || 0);
             if (manualLate > 0) lateDeduction = manualLate;
 
@@ -2967,6 +3012,7 @@ require_once 'config.php';
                     console.error('Failed to pre-load finance users', ue);
                 }
 
+                await loadTeamShiftMap();
                 const [summaryResult] = await Promise.all([
                     fetch(API_BASE + `attendance-api.php?action=getDateRange&start_date=${startDate}&end_date=${endDate}`, { credentials: 'include' }).then(r => r.json()),
                     loadAllAdj()
@@ -3029,7 +3075,7 @@ require_once 'config.php';
                             const isWorkingDay = !isWeekend(currentYear, currentMonth, day) && day <= calculationEndDay;
                             if (isWorkingDay && formattedTime !== '--:--') {
                                 presentCount++;
-                                if (isCheckinLate(formattedTime)) lateCount++;
+                                if (isCheckinLate(formattedTime, emp.team || '')) lateCount++;
                                 dailyCodes[day] = 'P';
                             } else if (isWorkingDay && isLeaveDay && leaveCount < 1) {
                                 leaveCount = 1;
@@ -4938,7 +4984,7 @@ require_once 'config.php';
                 const isWeekendDay = isWeekend(currentYear, currentMonth, day);
                 const checkin = employee.attendance[day];
                 const isPresent = checkin !== '--:--';
-                const isLate = isPresent && isCheckinLate(checkin);
+                const isLate = isPresent && isCheckinLate(checkin, employee.team || '');
                 const hasLeave = employee.paidLeaveDates.includes(`${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
                 let status = 'Absent', statusClass = 'summary-absent';
                 if (isWeekendDay) { status = isPresent ? 'Present (Weekend)' : 'Weekend'; statusClass = 'summary-leave'; }

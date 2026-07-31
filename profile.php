@@ -28,19 +28,14 @@ function calculateWorkingHours($check_in, $check_out) {
 
 // Function to check if employee is late (matches attendance-api.php isLate function)
 function isLate($punch_time, $shift_date, $team = '') {
-    $start_time = preg_match('/\bFE\b/i', $team) ? '19:00:00' : '18:00:00';
+    global $conn;
+    require_once __DIR__ . '/includes/attendance_shift.php';
+    $start_time = ess_get_team_shift_start($conn, $team);
     $shift_start = strtotime($shift_date . ' ' . $start_time);
     $punch = strtotime($punch_time);
-    $minutes_late = ($punch - $shift_start) / 60;
-    
-    if ($minutes_late <= 0) {
-        return [false, 0];
+    if ($punch > $shift_start) {
+        return [true, max(1, round(($punch - $shift_start) / 60))];
     }
-    
-    if ($minutes_late > 10) { // 10 minutes grace period
-        return [true, round($minutes_late)];
-    }
-    
     return [false, 0];
 }
 

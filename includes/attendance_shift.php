@@ -108,15 +108,12 @@ function ess_resolve_shift_punches(array $timestamps, string $shiftDate): array
     ];
 }
 
-function ess_is_late_checkin(?string $checkIn, string $shiftDate, string $team = ''): bool
+function ess_is_late_checkin(?string $checkIn, string $shiftDate, string $team = '', ?mysqli $conn = null): bool
 {
     if (!$checkIn) {
         return false;
     }
-    $lateTime = ESS_SHIFT_LATE_TIME;
-    if (preg_match('/\bFE\b/i', $team)) {
-        $lateTime = '19:00:00';
-    }
+    $lateTime = ess_get_team_shift_start($conn, $team);
     $lateAfter = strtotime($shiftDate . ' ' . $lateTime);
     return strtotime($checkIn) > $lateAfter;
 }
@@ -376,4 +373,33 @@ function ess_working_hours(?string $checkIn, ?string $checkOut, $connOrNow = nul
 {
     $seconds = ess_duty_seconds($checkIn, $checkOut, $connOrNow, $shiftDate);
     return round($seconds / 3600, 2);
+}
+
+/**
+ * Fetch team shift start time from teams table (defaults to 18:00:00).
+ */
+function ess_get_team_shift_start(?mysqli $conn, string $teamName = ''): string {
+    static $teamShiftCache = [];
+    $team = trim($teamName);
+    if ($team === '') {
+        return '18:00:00';
+    }
+    if (isset($teamShiftCache[strtolower($team)])) {
+        return $teamShiftCache[strtolower($team)];
+    }
+    if ($conn instanceof mysqli && !$conn->connect_error) {
+        $stmt = $conn->prepare("SELECT shift_start_time FROM teams WHERE LOWER(team_name) = LOWER(?) AND status = 'active' LIMIT 1");
+        if ($stmt) {
+            $stmt->bind_param("s", $team);
+            $stmt->execute();
+            $row = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+            if (!empty($row['shift_start_time'])) {
+                $teamShiftCache[strtolower($team)] = $row['shift_start_time'];
+                return $row['shift_start_time'];
+            }
+        }
+    }
+    $teamShiftCache[strtolower($team)] = '18:00:00';
+    return '18:00:00';
 }

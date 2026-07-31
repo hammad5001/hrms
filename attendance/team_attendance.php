@@ -32,13 +32,15 @@ function getShiftWindows($date) {
 // =====================================================
 // Check if employee is late
 // =====================================================
-function isLate($punch_time, $shift_date) {
-    $shift_start = strtotime($shift_date . ' ' . SHIFT_START);
+function isLate($punch_time, $shift_date, $team = '') {
+    global $conn;
+    require_once __DIR__ . '/../includes/attendance_shift.php';
+    $start_time = ess_get_team_shift_start($conn, $team);
+    $shift_start = strtotime($shift_date . ' ' . $start_time);
     $punch = strtotime($punch_time);
-    $minutes_late = ($punch - $shift_start) / 60;
-    
-    if ($minutes_late <= GRACE_MINUTES) return [false, 0];
-    if ($minutes_late > GRACE_MINUTES) return [true, round($minutes_late)];
+    if ($punch > $shift_start) {
+        return [true, max(1, round(($punch - $shift_start) / 60))];
+    }
     return [false, 0];
 }
 

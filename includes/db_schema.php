@@ -543,11 +543,46 @@ function ensure_productivity_schema(mysqli $conn): void {
             `meta_data` JSON DEFAULT NULL,
             `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
             INDEX `idx_feed_created` (`created_at`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+        "CREATE TABLE IF NOT EXISTS `teams` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `team_name` VARCHAR(100) NOT NULL UNIQUE,
+            `description` TEXT DEFAULT NULL,
+            `shift_start_time` TIME NOT NULL DEFAULT '18:00:00',
+            `status` ENUM('active', 'inactive') DEFAULT 'active',
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
     ];
 
     foreach ($queries as $sql) {
         @$conn->query($sql);
+    }
+
+    // Migration check for shift_start_time in teams table
+    $shiftColChk = $conn->query("SHOW COLUMNS FROM `teams` LIKE 'shift_start_time'");
+    if ($shiftColChk && $shiftColChk->num_rows === 0) {
+        @$conn->query("ALTER TABLE `teams` ADD COLUMN `shift_start_time` TIME NOT NULL DEFAULT '18:00:00' AFTER `description`");
+    }
+
+    // Collation alignment for users & employees employee_code columns
+    @$conn->query("ALTER TABLE `users` MODIFY COLUMN `employee_code` VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL");
+    @$conn->query("ALTER TABLE `employees` MODIFY COLUMN `employee_code` VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL");
+
+    // Seed existing teams from users & employees if teams table is newly created / empty
+    $teamChk = $conn->query("SELECT COUNT(*) FROM `teams`");
+    if ($teamChk && (int)($teamChk->fetch_array()[0] ?? 0) === 0) {
+        $seedSql = "
+            INSERT IGNORE INTO `teams` (`team_name`, `shift_start_time`, `status`)
+            SELECT DISTINCT TRIM(team) AS team_name, '18:00:00' AS shift_start_time, 'active' AS status
+            FROM (
+                SELECT team FROM users WHERE team IS NOT NULL AND TRIM(team) != ''
+                UNION
+                SELECT team FROM employees WHERE team IS NOT NULL AND TRIM(team) != ''
+            ) t
+        ";
+        @$conn->query($seedSql);
     }
 
     $adjCols = [

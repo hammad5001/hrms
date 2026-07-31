@@ -52,7 +52,12 @@ function loadEmployeeDataFromCSV() {
         }
     }
     fclose($file);
-    $db = $conn->query("SELECT employee_code, full_name, department FROM employees WHERE is_active = 1");
+    $db = $conn->query("
+        SELECT e.employee_code, e.full_name, e.department, COALESCE(NULLIF(u.team, ''), NULLIF(e.team, ''), '') as team 
+        FROM employees e
+        LEFT JOIN users u ON (e.employee_code IS NOT NULL AND e.employee_code != '' AND e.employee_code COLLATE utf8mb4_unicode_ci = u.employee_code COLLATE utf8mb4_unicode_ci)
+        WHERE e.is_active = 1
+    ");
     if ($db) {
         while ($row = $db->fetch_assoc()) {
             $code = $row['employee_code'];
@@ -63,7 +68,7 @@ function loadEmployeeDataFromCSV() {
                     'department' => $row['department'],
                     'designation' => 'Employee',
                     'branch' => 'Main',
-                    'team' => '',
+                    'team' => $row['team'] ?? '',
                 ];
             }
         }
@@ -351,12 +356,12 @@ switch ($action) {
 
     case 'getFinanceUsers':
         $stmt = $conn->prepare("
-            SELECT u.id, u.employee_code, u.full_name, u.email, u.department, u.designation, u.phone AS contact_no,
+            SELECT u.id, u.employee_code, u.full_name, u.email, u.department, u.designation, u.team, u.phone AS contact_no,
                    m.basic_salary, m.punctuality_enabled, m.punctuality_amount, m.appointment_date,
                    m.bank_name, m.account_no, m.account_title, m.cnic
             FROM users u
             LEFT JOIN employee_payroll_meta m
-              ON u.employee_code = m.employee_code
+              ON u.employee_code COLLATE utf8mb4_unicode_ci = m.employee_code COLLATE utf8mb4_unicode_ci
              AND COALESCE(NULLIF(m.company_branch, ''), 'main') = ?
             WHERE COALESCE(NULLIF(u.company_branch, ''), 'main') = ?
             ORDER BY CAST(u.employee_code AS UNSIGNED) ASC

@@ -186,6 +186,12 @@
                     <i class="fas fa-search"></i>
                     <input type="text" id="searchInput" placeholder="Search ID or name..." onkeyup="applyFilters()">
                 </div>
+                <select id="branchFilter" class="filter-select" onchange="applyFilters()">
+                    <option value="">All Branches</option>
+                    <option value="main">Main</option>
+                    <option value="commercial">Commercial</option>
+                    <option value="workfromhome">WorkFromHome</option>
+                </select>
                 <select id="teamFilter" class="filter-select" onchange="applyFilters()">
                     <option value="">All Teams</option>
                 </select>
@@ -262,6 +268,7 @@
                 const data = await response.json();
                 
                 if (data.success) {
+                    await loadTeamShiftMap();
                     allData = data.data.grid;
                     daysInMonth = data.data.days_in_month;
                     currentMonth = month;
@@ -286,16 +293,24 @@
 
         function applyFilters() {
             const query = document.getElementById('searchInput').value.toLowerCase();
+            const branch = document.getElementById('branchFilter').value.toLowerCase().trim();
             const team = document.getElementById('teamFilter').value;
             const designation = document.getElementById('designationFilter').value;
             const department = document.getElementById('departmentFilter').value;
 
             const filtered = allData.filter(emp => {
+                const empBranch = (emp.branch || '').toLowerCase();
                 const matchSearch = emp.name.toLowerCase().includes(query) || emp.code.toLowerCase().includes(query);
+                const matchBranch = !branch || (
+                    branch === 'commercial' ? (empBranch.includes('commercial')) :
+                    branch === 'main' ? (empBranch.includes('main') || empBranch.includes('head office')) :
+                    branch === 'workfromhome' ? (empBranch.includes('workfromhome') || empBranch.includes('wfh')) :
+                    empBranch === branch
+                );
                 const matchTeam = !team || emp.team === team;
                 const matchDesignation = !designation || emp.designation === designation;
                 const matchDept = !department || emp.department === department;
-                return matchSearch && matchTeam && matchDesignation && matchDept;
+                return matchSearch && matchBranch && matchTeam && matchDesignation && matchDept;
             });
 
             renderTable(filtered);
@@ -332,7 +347,7 @@
                     if (isWeekend) {
                         className = 'time-weekend';
                     } else if (time !== '--:--') {
-                        className = isLate(time) ? 'time-late' : 'time-present';
+                        className = isLate(time, emp.team || '') ? 'time-late' : 'time-present';
                         displayTime = formatTime12h(time);
                     }
                     
@@ -358,11 +373,39 @@
             return dayOfWeek === 0 || dayOfWeek === 6; // Sun or Sat
         }
 
-        function isLate(time) {
+        window._teamShiftMap = {};
+        async function loadTeamShiftMap() {
+            try {
+                const res = await fetch('../api/teams_api.php?action=list');
+                const data = await res.json();
+                if (data.success && Array.isArray(data.data.teams)) {
+                    data.data.teams.forEach(t => {
+                        if (t.team_name && t.shift_start_time) {
+                            const parts = t.shift_start_time.split(':');
+                            const mins = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+                            window._teamShiftMap[t.team_name.toLowerCase()] = mins;
+                        }
+                    });
+                }
+            } catch (e) {}
+        }
+        loadTeamShiftMap();
+
+        function isLate(time, teamName = '') {
             if (!time || time === '--:--') return false;
-            const [h, m] = time.split(':').map(Number);
-            // Late if after 5:30 PM (17:30)
-            return (h > 17 || (h === 17 && m > 30));
+            const match = String(time).trim().match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?/i);
+            if (!match) return false;
+            let h = Number(match[1]);
+            const m = Number(match[2]);
+            const period = (match[3] || '').toUpperCase();
+            if (period === 'PM' && h !== 12) h += 12;
+            if (period === 'AM' && h === 12) h = 0;
+            
+            let cutoffMinutes = 18 * 60; // 18:00 default
+            if (teamName && window._teamShiftMap && window._teamShiftMap[String(teamName).toLowerCase()]) {
+                cutoffMinutes = window._teamShiftMap[String(teamName).toLowerCase()];
+            }
+            return (h * 60 + m) > cutoffMinutes;
         }
 
         function showLoading(show) {
@@ -379,7 +422,7 @@
                 for (let i = 1; i <= daysInMonth; i++) {
                     const t = emp.attendance[i];
                     let display = formatTime12h(t);
-                    if (isLate(t)) display += ' (LATE)';
+                    if (isLate(t, emp.team)) display += ' (LATE)';
                     csv += `"${display}",`;
                 }
                 csv += `"${emp.summary.present}","${emp.summary.absent}","${emp.summary.late}"\n`;
