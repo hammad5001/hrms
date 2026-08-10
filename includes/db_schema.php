@@ -569,6 +569,7 @@ function ensure_productivity_schema(mysqli $conn): void {
     // Collation alignment for users & employees employee_code columns
     @$conn->query("ALTER TABLE `users` MODIFY COLUMN `employee_code` VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL");
     @$conn->query("ALTER TABLE `employees` MODIFY COLUMN `employee_code` VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL");
+    @$conn->query("ALTER TABLE `employees_commercial` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
 
     // Seed existing teams from users & employees if teams table is newly created / empty
     $teamChk = $conn->query("SELECT COUNT(*) FROM `teams`");

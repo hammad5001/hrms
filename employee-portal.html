@@ -1374,166 +1374,208 @@
                         <!-- ======================================================= -->
                         <section id="view-performance" class="view-section ess-perf-view">
 
-                            <!-- CINEMATIC HERO COMMAND BAR -->
-                            <div class="drc-command-bar">
+                            <!-- LOG TRANSFER FORM (FIRST AT THE TOP OF THE PAGE) -->
+                            <div class="drc-form-panel" style="margin-bottom: 24px; position: static; background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95)); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.4); overflow: hidden; padding: 28px 32px; font-family: 'Inter', system-ui, -apple-system, sans-serif;">
+                                
+                                <!-- Header -->
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 16px;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); display: flex; align-items: center; justify-content: center; color: #818cf8; font-size: 18px;">
+                                            <i class="fas fa-phone-arrow-up-right"></i>
+                                        </div>
+                                        <div>
+                                            <h2 style="font-size: 22px; font-weight: 800; color: #f8fafc; margin: 0; letter-spacing: -0.3px;">Log Medicare Transfer</h2>
+                                            <p style="font-size: 12px; color: #94a3b8; margin: 2px 0 0 0; font-weight: 500;">BT-C Medicare Sales Posting Form</p>
+                                        </div>
+                                    </div>
+                                    <div style="background: rgba(15, 23, 42, 0.6); padding: 8px 18px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.08); font-size: 12px; color: #cbd5e1;">
+                                        Today's Calls: <strong id="drcCallCounter" style="color: #34d399; font-size: 15px; font-weight: 800;">-</strong>
+                                    </div>
+                                </div>
+
+                                <!-- Form Container -->
+                                <form id="dailyReportingForm" autocomplete="off" style="display: flex; flex-direction: column; gap: 20px;">
+                                    
+                                    <!-- 2-Column Grid Layout -->
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px 24px;">
+                                        
+                                        <div>
+                                            <label style="display: block; font-size: 11px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">PHONE NUMBER <span style="color: #ef4444;">*</span></label>
+                                            <input type="text" id="drpCustomerNumber" required placeholder="699-558-7896" style="width: 100%; height: 42px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; color: #f8fafc; outline: none; box-sizing: border-box; transition: border-color 0.2s;">
+                                        </div>
+
+                                        <div>
+                                            <label style="display: block; font-size: 11px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">LINE <span style="color: #ef4444;">*</span></label>
+                                            <select id="drpTransferOn" required style="width: 100%; height: 42px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; color: #f8fafc; outline: none; box-sizing: border-box;">
+                                                <option value="D1">D1</option>
+                                                <option value="D4">D4</option>
+                                                <option value="D5">D5</option>
+                                                <option value="D6 CPL">D6 CPL</option>
+                                                <option value="D6 CPA">D6 CPA</option>
+                                                <option value="HI">HI</option>
+                                                <option value="Other Lines">Other Lines</option>
+                                                <option value="HI Main">HI Main</option>
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label style="display: block; font-size: 11px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">TEAMS</label>
+                                            <select id="drpTeamName" style="width: 100%; height: 42px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; color: #f8fafc; outline: none; box-sizing: border-box;">
+                                                <option value="">- Select Team -</option>
+                                                <option value="TEAM BRAD">TEAM BRAD</option>
+                                                <option value="TEAM ADAM">TEAM ADAM</option>
+                                                <option value="Team Awais Sajad">Team Awais Sajad</option>
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label style="display: block; font-size: 11px; font-weight: 800; color: #34d399; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;"><i class="fas fa-user-check"></i> REAL NAME (HRMS ACCOUNT)</label>
+                                            <input type="text" id="drpVerifierRealName" readonly placeholder="Auto-detected from HRMS" style="width: 100%; height: 42px; background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; color: #34d399; font-weight: 700; outline: none; box-sizing: border-box; cursor: not-allowed;">
+                                        </div>
+
+                                        <div>
+                                            <label style="display: block; font-size: 11px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">PSEUDO</label>
+                                            <input type="text" id="drpAgentPseudo" placeholder="Agent pseudo name" style="width: 100%; height: 42px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; color: #f8fafc; outline: none; box-sizing: border-box;">
+                                        </div>
+
+                                        <div>
+                                            <label style="display: block; font-size: 11px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">STATE</label>
+                                            <input type="text" id="drpCustomerState" placeholder="e.g. CA, TX, FL" maxlength="50" style="width: 100%; height: 42px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; color: #f8fafc; outline: none; box-sizing: border-box;">
+                                        </div>
+
+                                        <div>
+                                            <label style="display: block; font-size: 11px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">CUX FIRST NAME</label>
+                                            <input type="text" id="drpCustomerFirstName" placeholder="First name" style="width: 100%; height: 42px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; color: #f8fafc; outline: none; box-sizing: border-box;">
+                                        </div>
+
+                                        <div>
+                                            <label style="display: block; font-size: 11px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">LAST NAME</label>
+                                            <input type="text" id="drpCustomerLastName" placeholder="Last name" style="width: 100%; height: 42px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; color: #f8fafc; outline: none; box-sizing: border-box;">
+                                        </div>
+
+                                        <div>
+                                            <label style="display: block; font-size: 11px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">ZIPCODE</label>
+                                            <input type="text" id="drpCustomerZip" placeholder="e.g. 90210" style="width: 100%; height: 42px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; color: #f8fafc; outline: none; box-sizing: border-box;">
+                                        </div>
+
+                                        <div>
+                                            <label style="display: block; font-size: 11px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">AGE</label>
+                                            <input type="number" id="drpCustomerAge" placeholder="45" min="18" max="120" style="width: 100%; height: 42px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; color: #f8fafc; outline: none; box-sizing: border-box;">
+                                        </div>
+
+                                    </div>
+
+                                    <!-- Submit Button Bar -->
+                                    <div style="margin-top: 6px; display: flex; justify-content: flex-end;">
+                                        <button type="submit" id="drcSubmitBtn" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: #ffffff; font-size: 13px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 14px 44px; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35); transition: all 0.2s ease;">
+                                            <i class="fas fa-paper-plane" style="margin-right: 8px;"></i> LOG MEDICARE TRANSFER
+                                        </button>
+                                    </div>
+
+                                </form>
+                            </div>
+
+                            <!-- CINEMATIC HERO COMMAND BAR (CLEAN HORIZONTAL MISSION CONTROL) -->
+                            <div class="drc-command-bar" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9)); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 16px; padding: 18px 24px; box-shadow: 0 12px 32px rgba(0,0,0,0.35); position: relative; overflow: hidden;">
                                 <div class="drc-cb-mesh"></div>
                                 <div class="drc-cb-orb drc-cb-orb1"></div>
                                 <div class="drc-cb-orb drc-cb-orb2"></div>
-                                <div class="drc-cb-inner">
-
+                                
+                                <div style="position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: nowrap; overflow-x: auto;">
+                                    
                                     <!-- Left: Identity & Status -->
-                                    <div class="drc-cb-left">
-                                        <div class="drc-agent-identity">
-                                            <div class="drc-agent-avatar" id="drcAgentAvatarRing">
-                                                <i class="fas fa-headset"></i>
-                                            </div>
-                                            <div>
-                                                <div class="drc-agent-label">AGENT CONSOLE <span class="drc-live-dot"></span> LIVE</div>
-                                                <div class="drc-agent-did">
-                                                    DID: <strong id="drpBiometricId">-</strong>
-                                                </div>
-                                            </div>
+                                    <div style="display: flex; align-items: center; gap: 14px; flex-shrink: 0;">
+                                        <div style="width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #4f46e5); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; box-shadow: 0 0 16px rgba(99, 102, 241, 0.5); border: 2px solid rgba(255,255,255,0.15);">
+                                            <i class="fas fa-headset"></i>
                                         </div>
-
-                                        <div class="drc-cb-tags">
-                                            <span id="drpStreakBadge" class="drc-streak-badge" style="display:none;">
-                                                Streak: <span id="drpStreakCount">0</span> Days
-                                            </span>
-                                            <a href="daily-report-offline.html" target="_blank" class="drc-offline-link">
-                                                <i class="fas fa-wifi-slash"></i> Offline Mode
-                                            </a>
-                                        </div>
-                                    </div>
-
-                                    <!-- Center: Mega KPI Counters -->
-                                    <div class="drc-cb-kpis">
-                                        <div class="drc-kpi-pill" id="drcKpiToday">
-                                            <div class="drc-kpi-icon"><i class="fas fa-sun"></i></div>
-                                            <div>
-                                                <div class="drc-kpi-val" id="drpMiniToday">0</div>
-                                                <div class="drc-kpi-label">Today</div>
+                                        <div>
+                                            <div style="font-size: 10px; font-weight: 800; letter-spacing: 1px; color: #94a3b8; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+                                                AGENT CONSOLE <span style="width: 7px; height: 7px; border-radius: 50%; background: #34d399; display: inline-block;"></span> <span style="color: #34d399;">LIVE</span>
                                             </div>
-                                        </div>
-                                        <div class="drc-kpi-sep">|</div>
-                                        <div class="drc-kpi-pill" id="drcKpiWeek">
-                                            <div class="drc-kpi-icon drc-kpi-icon-week"><i class="fas fa-calendar-week"></i></div>
-                                            <div>
-                                                <div class="drc-kpi-val" id="drpMiniWeek">0</div>
-                                                <div class="drc-kpi-label">This Week</div>
+                                            <div style="font-size: 13px; color: #cbd5e1; margin-top: 1px;">
+                                                DID: <strong id="drpBiometricId" style="color: #34d399; font-family: monospace; font-size: 15px;">-</strong>
                                             </div>
-                                        </div>
-                                        <div class="drc-kpi-sep">|</div>
-                                        <div class="drc-kpi-pill" id="drcKpiMonth">
-                                            <div class="drc-kpi-icon drc-kpi-icon-month"><i class="fas fa-calendar-alt"></i></div>
-                                            <div>
-                                                <div class="drc-kpi-val" id="drpMiniMonth">0</div>
-                                                <div class="drc-kpi-label">This Month</div>
+                                            <div style="margin-top: 3px;">
+                                                <a href="daily-report-offline.html" target="_blank" style="font-size: 10px; color: #cbd5e1; text-decoration: none; background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); display: inline-flex; align-items: center; gap: 4px;">
+                                                    <i class="fas fa-wifi-slash"></i> Offline Mode
+                                                </a>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- Right: D1/D2 + Clock -->
-                                    <div class="drc-cb-right">
-                                        <div class="drc-d1d2-mini">
-                                            <div class="drc-d1d2-chip drc-d1-chip">D1 <span id="drpMiniD1Today">0</span></div>
-                                            <div class="drc-d1d2-chip drc-d2-chip">D2 <span id="drpMiniD2Today">0</span></div>
+                                    <!-- Center: Horizontal KPI Cards -->
+                                    <div style="display: flex; align-items: center; gap: 14px; flex-shrink: 0;">
+                                        
+                                        <div style="display: flex; align-items: center; gap: 12px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 12px; padding: 10px 18px;">
+                                            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(99, 102, 241, 0.2); color: #818cf8; display: flex; align-items: center; justify-content: center; font-size: 15px;">
+                                                <i class="fas fa-sun"></i>
+                                            </div>
+                                            <div>
+                                                <div id="drpMiniToday" style="font-size: 22px; font-weight: 900; color: #f8fafc; line-height: 1;">0</div>
+                                                <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">Today</div>
+                                            </div>
                                         </div>
-                                        <div class="drc-live-clock" id="drpLiveTime">00:00:00</div>
-                                        <div class="drc-refresh-ring" id="drcRefreshRing" title="Auto-refreshes every 60s">
+
+                                        <div style="color: rgba(255,255,255,0.15); font-size: 20px;">|</div>
+
+                                        <div style="display: flex; align-items: center; gap: 12px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(52, 211, 153, 0.25); border-radius: 12px; padding: 10px 18px;">
+                                            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(52, 211, 153, 0.2); color: #34d399; display: flex; align-items: center; justify-content: center; font-size: 15px;">
+                                                <i class="fas fa-calendar-week"></i>
+                                            </div>
+                                            <div>
+                                                <div id="drpMiniWeek" style="font-size: 22px; font-weight: 900; color: #f8fafc; line-height: 1;">0</div>
+                                                <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">This Week</div>
+                                            </div>
+                                        </div>
+
+                                        <div style="color: rgba(255,255,255,0.15); font-size: 20px;">|</div>
+
+                                        <div style="display: flex; align-items: center; gap: 12px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 12px; padding: 10px 18px;">
+                                            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(245, 158, 11, 0.2); color: #fbbf24; display: flex; align-items: center; justify-content: center; font-size: 15px;">
+                                                <i class="fas fa-calendar-alt"></i>
+                                            </div>
+                                            <div>
+                                                <div id="drpMiniMonth" style="font-size: 22px; font-weight: 900; color: #f8fafc; line-height: 1;">0</div>
+                                                <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">This Month</div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    <!-- Right: Live Clock & Lines -->
+                                    <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
+                                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                                            <div style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #818cf8; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                                                <span>D1</span> <strong id="drpMiniD1Today" style="font-size: 13px; font-weight: 900; color: #a5b4fc;">0</strong>
+                                            </div>
+                                            <div style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                                                <span>D2</span> <strong id="drpMiniD2Today" style="font-size: 13px; font-weight: 900; color: #fde047;">0</strong>
+                                            </div>
+                                        </div>
+
+                                        <div id="drpLiveTime" style="font-family: monospace; font-size: 17px; font-weight: 800; color: #f8fafc; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255,255,255,0.12); padding: 8px 14px; border-radius: 8px; letter-spacing: 1px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                                            00:00:00
+                                        </div>
+
+                                        <div class="drc-refresh-ring" id="drcRefreshRing" title="Auto-refreshes every 60s" style="width: 36px; height: 36px; flex-shrink: 0;">
                                             <svg viewBox="0 0 36 36" class="drc-ring-svg">
-                                                <circle class="drc-ring-bg"  cx="18" cy="18" r="15.9"/>
+                                                <circle class="drc-ring-bg" cx="18" cy="18" r="15.9"/>
                                                 <circle class="drc-ring-prog" cx="18" cy="18" r="15.9" id="drcRingProgress"/>
                                             </svg>
-                                            <i class="fas fa-rotate-right drc-ring-icon"></i>
+                                            <i class="fas fa-rotate-right drc-ring-icon" style="font-size: 12px;"></i>
                                         </div>
                                     </div>
+
                                 </div>
-                                                     <!-- LOG TRANSFER FORM (FULL-WIDTH TOP PANEL) -->
-                             <div class="drc-form-panel" style="margin-bottom: 20px; position: static;">
-                                 <div class="drc-panel-head">
-                                     <span class="drc-panel-title"><i class="fas fa-phone-arrow-up-right"></i> Log Transfer Call</span>
-                                     <span class="drc-call-counter">Call #<strong id="drcCallCounter">-</strong></span>
-                                                                <form id="dailyReportingForm" class="drc-form" autocomplete="off" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; padding: 18px 22px;">
-                                     
-                                     <!-- Row 1: Customer #, Name, Zip, Age, Option -->
-                                     <div class="drc-field drc-field-accent">
-                                         <label class="drc-label"><i class="fas fa-phone"></i> Customer Number <span class="drc-req">*</span></label>
-                                         <input type="text" id="drpCustomerNumber" class="drc-input" placeholder="e.g. 555-0198" required style="height: 40px !important;">
-                                     </div>
+                            </div>
 
-                                     <div class="drc-field">
-                                         <label class="drc-label"><i class="fas fa-user"></i> Customer Name</label>
-                                         <input type="text" id="drpCustomerName" class="drc-input" placeholder="Full name" style="height: 40px !important;">
-                                     </div>
+                            <!-- MAIN WORKSPACE (Split layout: Widgets on Left, Wide Table on Right) -->
+                            <div class="drc-workspace">
 
-                                     <div class="drc-field">
-                                         <label class="drc-label"><i class="fas fa-location-dot"></i> Zip Code</label>
-                                         <input type="text" id="drpCustomerZip" class="drc-input" placeholder="90210" style="height: 40px !important;">
-                                     </div>
-
-                                     <div class="drc-field">
-                                         <label class="drc-label"><i class="fas fa-hashtag"></i> Age</label>
-                                         <input type="number" id="drpCustomerAge" class="drc-input" placeholder="45" min="18" style="height: 40px !important;">
-                                     </div>
-
-                                     <div class="drc-field">
-                                         <label class="drc-label"><i class="fas fa-right-left"></i> Transfer Option <span class="drc-req">*</span></label>
-                                         <div class="drc-transfer-toggle" style="height: 40px;">
-                                             <button type="button" id="drpBtnD1" class="drc-tog-btn drc-tog-d1 drc-tog-active" onclick="drpSelectTransfer('D1')" style="padding: 0px 8px !important; font-size: 11px; height: 100%;">
-                                                 <span class="drc-tog-num" style="width:16px; height:16px; font-size:9px; margin-right:4px;">1</span> D1
-                                             </button>
-                                             <button type="button" id="drpBtnD2" class="drc-tog-btn drc-tog-d2" onclick="drpSelectTransfer('D2')" style="padding: 0px 8px !important; font-size: 11px; height: 100%;">
-                                                 <span class="drc-tog-num" style="width:16px; height:16px; font-size:9px; margin-right:4px;">2</span> D2
-                                             </button>
-                                         </div>
-                                         <input type="hidden" id="drpTransferOn" value="D1">
-                                     </div>
-
-                                     <!-- Row 2: Duration, Outcome, Notes (2 Cols), Submit -->
-                                     <div class="drc-field">
-                                         <label class="drc-label"><i class="fas fa-stopwatch"></i> Duration <span class="drc-unit">(min)</span></label>
-                                         <div class="drc-duration-row" style="display: flex; gap: 4px; height: 40px; align-items: center;">
-                                             <button type="button" class="drc-dur-chip" onclick="drcSetDuration(2)" style="padding: 0 8px; height: 100%; min-width: 32px; font-size: 11px;">2m</button>
-                                             <button type="button" class="drc-dur-chip" onclick="drcSetDuration(5)" style="padding: 0 8px; height: 100%; min-width: 32px; font-size: 11px;">5m</button>
-                                             <input type="number" id="drpCallDuration" class="drc-input drc-dur-input" placeholder="min" min="0" max="120" style="height: 100% !important; margin: 0; padding: 0 4px !important;">
-                                         </div>
-                                     </div>
-
-                                     <div class="drc-field">
-                                         <label class="drc-label"><i class="fas fa-tag"></i> Call Outcome</label>
-                                         <select id="drpCallOutcome" class="drc-input drc-select" style="height: 40px !important; padding: 0 24px 0 10px !important; font-size: 13px !important;">
-                                             <option value="">- Select -</option>
-                                             <option value="Interested">Interested</option>
-                                             <option value="Not Interested">Not Interested</option>
-                                             <option value="Callback">Callback</option>
-                                             <option value="Voicemail">Voicemail</option>
-                                             <option value="No Answer">No Answer</option>
-                                         </select>
-                                     </div>
-
-                                     <div class="drc-field" style="grid-column: span 2;">
-                                         <label class="drc-label"><i class="fas fa-note-sticky"></i> Notes <span class="drc-unit">(optional)</span></label>
-                                         <input type="text" id="drpCallNotes" class="drc-input" placeholder="Customer notes, follow-up details..." style="height: 40px !important;">
-                                     </div>
-
-                                     <div class="drc-field" style="justify-content: flex-end;">
-                                         <button type="submit" class="drc-submit-btn" id="drcSubmitBtn" style="height: 40px; margin: 0; padding: 0 !important; font-size: 13px; width: 100%;">
-                                             <span class="drc-submit-glow"></span>
-                                             <i class="fas fa-paper-plane drc-submit-icon" style="font-size: 12px;"></i>
-                                             <span class="drc-submit-text">Log Transfer Call</span>
-                                         </button>
-                                     </div>
-
-                                 </form>
-                             </div>
-
-                             <!-- MAIN WORKSPACE (Split layout: Widgets on Left, Wide Table on Right) -->
-                             <div class="drc-workspace">
-
-                                 <!-- LEFT COLUMN: SIDE WIDGETS -->
-                                 <div class="drc-center-panel" style="width: 300px;">
-                                     
-                                     <!-- Top 5 Agents Card -->
+                                <!-- LEFT COLUMN: SIDE WIDGETS -->
+                                <div class="drc-center-panel">
+                                    
+                                    <!-- Top 5 Agents Card -->
                                      <div class="drc-card-widget">
                                          <div class="drc-widget-head">
                                              <span><i class="fas fa-trophy" style="color: #f59e0b; margin-right: 6px;"></i> Top 5 Agents Today</span>
@@ -1623,14 +1665,14 @@
                                                  <tr>
                                                      <th class="drc-th-num">#</th>
                                                      <th>Time</th>
-                                                     <th>Customer #</th>
-                                                     <th>Name</th>
-                                                     <th>Zip</th>
+                                                     <th>Phone Number</th>
+                                                     <th>Customer Name</th>
+                                                     <th>State / Zip</th>
                                                      <th>Age</th>
-                                                     <th>Option</th>
-                                                     <th>Duration</th>
+                                                     <th>Line</th>
+                                                     <th>Real Name (HRMS)</th>
+                                                     <th>Pseudo / Team</th>
                                                      <th>QA Status</th>
-                                                     <th>Notes</th>
                                                  </tr>
                                              </thead>
                                              <tbody id="todayTransfersTableBody">

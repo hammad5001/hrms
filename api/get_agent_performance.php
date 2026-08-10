@@ -61,7 +61,8 @@ if ($action === 'load_dashboard') {
     // Transfers for selected period (full row detail)
     $transfers = [];
     $stmt = $conn->prepare(
-        "SELECT id, customer_number, customer_name, customer_zip, customer_age,
+        "SELECT id, customer_number, customer_name, customer_first_name, customer_last_name, customer_state,
+                customer_zip, customer_age, verifier_real_name, agent_pseudo, team_name,
                 transfer_on, call_notes, call_duration_mins, is_offline_sync, created_at
          FROM agent_daily_transfers
          WHERE user_id = ? AND DATE(created_at) BETWEEN ? AND ?
@@ -142,21 +143,51 @@ if ($action === 'load_dashboard') {
     }
     $stmt->close();
 
+    // Fetch active HRMS Users for Verifier Real Name dropdown
+    $verifiers = [];
+    $vRes = $conn->query("SELECT id, full_name, employee_code, team FROM users WHERE status = 'active' ORDER BY full_name ASC");
+    if ($vRes) {
+        while ($vRow = $vRes->fetch_assoc()) {
+            $verifiers[] = $vRow;
+        }
+    }
+
+    // Fetch logged in user real name from HRMS
+    $user_full_name = $_SESSION['full_name'] ?? '';
+    if (empty($user_full_name)) {
+        $uStmt = $conn->prepare("SELECT full_name FROM users WHERE id = ? LIMIT 1");
+        $uStmt->bind_param("i", $user_id);
+        $uStmt->execute();
+        if ($uRow = $uStmt->get_result()->fetch_assoc()) {
+            $user_full_name = $uRow['full_name'];
+        }
+        $uStmt->close();
+    }
+
     echo json_encode([
-        'success' => true,
+        'success'        => true,
+        'biometric_id'   => $biometric_id,
+        'user_full_name' => $user_full_name,
+        'verifiers'      => $verifiers,
         'data' => [
-            'biometric_id' => $biometric_id,
-            'period'       => $period,
-            'transfers'    => $transfers,
-            'mini_stats'   => $mini,
-            'streak'       => $streak,
-            'qa_stats'     => [
+            'biometric_id'   => $biometric_id,
+            'user_full_name' => $user_full_name,
+            'period'         => $period,
+            'transfers'      => $transfers,
+            'mini_stats'     => $mini,
+            'streak'         => $streak,
+            'verifiers'      => $verifiers,
+            'qa_stats'       => [
                 'sales'     => $qa_sales,
                 'rejected'  => $qa_rejected,
                 'transfers' => $qa_transfers,
             ],
-            'leaderboard'  => $leaderboard,
-        ]
+            'leaderboard'    => $leaderboard,
+        ],
+        'transfers'   => $transfers,
+        'mini_stats'  => $mini,
+        'streak'      => $streak,
+        'leaderboard' => $leaderboard,
     ]);
     exit;
 }

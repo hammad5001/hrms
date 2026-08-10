@@ -31,8 +31,14 @@ function ensure_qa_schema(mysqli $conn): void
             `customer_number` VARCHAR(50) NOT NULL,
             `customer_zip` VARCHAR(20),
             `customer_name` VARCHAR(150),
+            `customer_first_name` VARCHAR(100) DEFAULT NULL,
+            `customer_last_name` VARCHAR(100) DEFAULT NULL,
+            `customer_state` VARCHAR(50) DEFAULT NULL,
             `customer_age` VARCHAR(10),
-            `transfer_on` ENUM('D1','D2') NOT NULL DEFAULT 'D1',
+            `verifier_real_name` VARCHAR(100) DEFAULT NULL,
+            `agent_pseudo` VARCHAR(100) DEFAULT NULL,
+            `team_name` VARCHAR(100) DEFAULT NULL,
+            `transfer_on` VARCHAR(50) NOT NULL DEFAULT 'D1',
             `call_notes` TEXT DEFAULT NULL,
             `call_duration_mins` TINYINT DEFAULT 0,
             `is_offline_sync` TINYINT(1) DEFAULT 0,
@@ -74,5 +80,39 @@ function ensure_qa_schema(mysqli $conn): void
 
     foreach ($queries as $sql) {
         @$conn->query($sql);
+    }
+
+    // Migration for agent_daily_transfers columns if table existed
+    $colsRes = $conn->query("SHOW COLUMNS FROM `agent_daily_transfers`");
+    if ($colsRes) {
+        $existingCols = [];
+        $transferOnType = '';
+        while ($cRow = $colsRes->fetch_assoc()) {
+            $existingCols[] = $cRow['Field'];
+            if ($cRow['Field'] === 'transfer_on') {
+                $transferOnType = strtolower($cRow['Type']);
+            }
+        }
+        if (strpos($transferOnType, 'enum') !== false) {
+            @$conn->query("ALTER TABLE `agent_daily_transfers` MODIFY COLUMN `transfer_on` VARCHAR(50) NOT NULL DEFAULT 'D1'");
+        }
+        if (!in_array('verifier_real_name', $existingCols)) {
+            @$conn->query("ALTER TABLE `agent_daily_transfers` ADD COLUMN `verifier_real_name` VARCHAR(100) DEFAULT NULL AFTER `customer_age`");
+        }
+        if (!in_array('agent_pseudo', $existingCols)) {
+            @$conn->query("ALTER TABLE `agent_daily_transfers` ADD COLUMN `agent_pseudo` VARCHAR(100) DEFAULT NULL AFTER `verifier_real_name`");
+        }
+        if (!in_array('customer_first_name', $existingCols)) {
+            @$conn->query("ALTER TABLE `agent_daily_transfers` ADD COLUMN `customer_first_name` VARCHAR(100) DEFAULT NULL AFTER `customer_name`");
+        }
+        if (!in_array('customer_last_name', $existingCols)) {
+            @$conn->query("ALTER TABLE `agent_daily_transfers` ADD COLUMN `customer_last_name` VARCHAR(100) DEFAULT NULL AFTER `customer_first_name`");
+        }
+        if (!in_array('customer_state', $existingCols)) {
+            @$conn->query("ALTER TABLE `agent_daily_transfers` ADD COLUMN `customer_state` VARCHAR(50) DEFAULT NULL AFTER `customer_last_name`");
+        }
+        if (!in_array('team_name', $existingCols)) {
+            @$conn->query("ALTER TABLE `agent_daily_transfers` ADD COLUMN `team_name` VARCHAR(100) DEFAULT NULL AFTER `agent_pseudo`");
+        }
     }
 }

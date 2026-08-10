@@ -84,6 +84,43 @@ function drcStartRing() {
     }, 1000);
 }
 
+// ─── Populate HRMS Verifiers Dropdown ─────────────────────────────────────────
+function drpPopulateVerifiers(verifiers) {
+    const sel = document.getElementById('drpVerifierRealName');
+    if (!sel) return;
+
+    const currentVal = sel.value;
+    sel.innerHTML = '<option value="">- Select Verifier (HRMS) -</option>';
+
+    if (verifiers && verifiers.length > 0) {
+        verifiers.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v.full_name;
+            opt.textContent = `${v.full_name} (${v.employee_code || 'HRMS'})`;
+            sel.appendChild(opt);
+        });
+    } else {
+        const opt = document.createElement('option');
+        opt.value = "";
+        opt.textContent = "No active verifiers found in HRMS";
+        sel.appendChild(opt);
+    }
+
+    if (currentVal) sel.value = currentVal;
+}
+
+// ─── Restore Agent Memory (Pseudo & Team) ──────────────────────────────────────
+function drpRestoreAgentMemory() {
+    const savedPseudo = localStorage.getItem('drp_agent_pseudo');
+    const savedTeam   = localStorage.getItem('drp_team_name');
+
+    const pseudoEl = document.getElementById('drpAgentPseudo');
+    const teamEl   = document.getElementById('drpTeamName');
+
+    if (pseudoEl && savedPseudo) pseudoEl.value = savedPseudo;
+    if (teamEl && savedTeam) teamEl.value = savedTeam;
+}
+
 // ─── Period Tab Switch ────────────────────────────────────────────────────────
 window.drpSwitchPeriod = function(period) {
     drpCurrentPeriod = period;
@@ -108,33 +145,37 @@ function drpRenderTable(transfers) {
     if (!tbody) return;
 
     if (!transfers || transfers.length === 0) {
-        tbody.innerHTML = `<tr class="drc-empty-row"><td colspan="10">
+        tbody.innerHTML = `<tr class="drc-empty-row"><td colspan="12">
             <i class="fas fa-phone-slash drc-empty-icon"></i>
-            <strong class="drc-empty-title">No transfers logged yet</strong>
-            <span class="drc-empty-sub">Log your first call using the form on the left</span>
+            <strong class="drc-empty-title">No Medicare transfers logged yet</strong>
+            <span class="drc-empty-sub">Log your first transfer call using the form above</span>
         </td></tr>`;
         if (countEl) countEl.textContent = '0';
         if (d1El) d1El.textContent = '0';
         if (d2El) d2El.textContent = '0';
-        // update tab count
         const tabId = 'drcTabCount' + drpCurrentPeriod.charAt(0).toUpperCase() + drpCurrentPeriod.slice(1);
         const tabCount = document.getElementById(tabId); if (tabCount) tabCount.textContent = '0';
         return;
     }
 
-    const d1 = transfers.filter(r => r.transfer_on === 'D1').length;
-    const d2 = transfers.filter(r => r.transfer_on === 'D2').length;
+    const d1 = transfers.filter(r => (r.transfer_on || '').toUpperCase() === 'D1').length;
+    const d2 = transfers.filter(r => (r.transfer_on || '').toUpperCase() === 'D2').length;
 
     tbody.innerHTML = transfers.map((r, i) => {
         const dt   = new Date(r.created_at);
         const time = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const dateStr = drpCurrentPeriod !== 'today'
             ? `<span class="drc-time-date">${dt.toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>` : '';
-        const opt  = r.transfer_on === 'D1'
-            ? `<span class="drc-opt-d1"><i class="fas fa-circle-1" style="font-size:10px;"></i> D1</span>`
-            : `<span class="drc-opt-d2"><i class="fas fa-circle-2" style="font-size:10px;"></i> D2</span>`;
+
+        const linePill = `<span class="drc-opt-d1" style="font-weight:700;"><i class="fas fa-satellite-dish" style="font-size:10px; margin-right:4px;"></i> ${r.transfer_on || 'D1'}</span>`;
+
+        const nameVal = r.customer_name || (r.customer_first_name ? `${r.customer_first_name} ${r.customer_last_name || ''}`.trim() : '');
+        const stateZip = [r.customer_state, r.customer_zip].filter(Boolean).join(' / ') || '\u2014';
+        const verifier = r.verifier_real_name ? `<span style="color:#60a5fa; font-weight:600;"><i class="fas fa-user-shield" style="font-size:10px;"></i> ${r.verifier_real_name}</span>` : '<span style="color:rgba(255,255,255,0.25);">\u2014</span>';
+        const pseudoTeam = [r.agent_pseudo ? `Pseudo: ${r.agent_pseudo}` : '', r.team_name ? `[${r.team_name}]` : ''].filter(Boolean).join(' ') || '\u2014';
+
         const notes = r.call_notes
-            ? `<span title="${r.call_notes.replace(/"/g,'&quot;')}" style="font-size:11px; color:rgba(255,255,255,0.5); cursor:help;">${r.call_notes.length > 28 ? r.call_notes.substring(0,28)+'\u2026' : r.call_notes}</span>`
+            ? `<span title="${r.call_notes.replace(/"/g,'&quot;')}" style="font-size:11px; color:rgba(255,255,255,0.6); cursor:help;">${r.call_notes.length > 30 ? r.call_notes.substring(0,30)+'\u2026' : r.call_notes}</span>`
             : '<span style="color:rgba(255,255,255,0.18);">\u2014</span>';
         const offline = r.is_offline_sync ? `<span class="drc-offline-badge">OFFLINE</span>` : '';
 
@@ -152,13 +193,13 @@ function drpRenderTable(transfers) {
             <td class="drc-num-col">${transfers.length - i}</td>
             <td><span class="drc-time-strong">${time}</span>${dateStr}${offline}</td>
             <td class="drc-phone-col">${r.customer_number || '\u2014'}</td>
-            <td>${r.customer_name || '<span style="color:rgba(255,255,255,0.2);">\u2014</span>'}</td>
-            <td style="font-size:12px; color:rgba(255,255,255,0.35);">${r.customer_zip || '\u2014'}</td>
-            <td style="font-size:12px; color:rgba(255,255,255,0.35);">${r.customer_age || '\u2014'}</td>
-            <td>${opt}</td>
-            <td style="font-size:12px; color:rgba(255,255,255,0.5);">${r.call_duration_mins ? r.call_duration_mins + '<span style="opacity:0.5;"> min</span>' : '<span style="opacity:0.25;">\u2014</span>'}</td>
+            <td>${nameVal || '<span style="color:rgba(255,255,255,0.2);">\u2014</span>'}</td>
+            <td style="font-size:12px; color:rgba(255,255,255,0.5);">${stateZip}</td>
+            <td style="font-size:12px; color:rgba(255,255,255,0.5);">${r.customer_age || '\u2014'}</td>
+            <td>${linePill}</td>
+            <td>${verifier}</td>
+            <td style="font-size:11px; color:rgba(255,255,255,0.5);">${pseudoTeam}</td>
             <td>${qaBadge}</td>
-            <td>${notes}</td>
         </tr>`;
     }).join('');
 
@@ -283,22 +324,32 @@ function drpCalculateSLA(transfers) {
 window.loadPerformanceView = async function() {
     const res = await drpApi('load_dashboard', `&period=${drpCurrentPeriod}`);
     if (res.success) {
-        const data = res.data;
+        const data = res.data || res;
+
+        // Auto-fill logged in user Real Name from HRMS
+        const realNameInput = document.getElementById('drpVerifierRealName');
+        const userFullName = data.user_full_name || res.user_full_name || '';
+        if (realNameInput && userFullName) {
+            realNameInput.value = userFullName;
+        }
+
+        // Restore Agent Memory (Pseudo & Team)
+        drpRestoreAgentMemory();
 
         // Biometric ID
         const didEl = document.getElementById('drpBiometricId');
-        if (didEl) didEl.textContent = data.biometric_id || 'Not Assigned';
+        if (didEl) didEl.textContent = data.biometric_id || res.biometric_id || 'Not Assigned';
 
-        drpCurrentData = data.transfers || [];
+        drpCurrentData = data.transfers || res.transfers || [];
         drpRenderTable(drpCurrentData);
-        drpRenderMiniStats(data.mini_stats, data.streak || 0);
-        drpRenderLeaderboard(data.leaderboard || []);
+        drpRenderMiniStats(data.mini_stats || res.mini_stats, data.streak || res.streak || 0);
+        drpRenderLeaderboard(data.leaderboard || res.leaderboard || []);
         drpCalculateSLA(drpCurrentData);
 
         drpStartLiveClock();
         drpStartAutoRefresh();
     } else {
-        console.error('Could not load dashboard:', res.message);
+        window.showToast?.(res.message || 'Failed to load performance data', 'error');
     }
 };
 
@@ -351,35 +402,50 @@ window.drpExportCSV = function() {
 async function submitDailyTransfer(e) {
     e.preventDefault();
 
-    const numEl      = document.getElementById('drpCustomerNumber');
-    const zipEl      = document.getElementById('drpCustomerZip');
-    const nameEl     = document.getElementById('drpCustomerName');
-    const ageEl      = document.getElementById('drpCustomerAge');
-    const transferEl = document.getElementById('drpTransferOn');
-    const durEl      = document.getElementById('drpCallDuration');
-    const notesEl    = document.getElementById('drpCallNotes');
-    const outcomeEl  = document.getElementById('drpCallOutcome');
-    const btn        = e.target.querySelector('button[type="submit"]');
+    const numEl          = document.getElementById('drpCustomerNumber');
+    const transferEl     = document.getElementById('drpTransferOn');
+    const teamEl         = document.getElementById('drpTeamName');
+    const verifierEl     = document.getElementById('drpVerifierRealName');
+    const pseudoEl       = document.getElementById('drpAgentPseudo');
+    const firstNameEl    = document.getElementById('drpCustomerFirstName');
+    const lastNameEl     = document.getElementById('drpCustomerLastName');
+    const stateEl        = document.getElementById('drpCustomerState');
+    const zipEl          = document.getElementById('drpCustomerZip');
+    const ageEl          = document.getElementById('drpCustomerAge');
+    const durEl          = document.getElementById('drpCallDuration');
+    const notesEl        = document.getElementById('drpCallNotes');
+    const outcomeEl      = document.getElementById('drpCallOutcome');
+    const btn            = e.target.querySelector('button[type="submit"]');
 
     if (!numEl || !transferEl) return;
 
     const payload = {
-        customer_number:    numEl.value.trim(),
-        customer_zip:       zipEl?.value.trim()     || '',
-        customer_name:      nameEl?.value.trim()    || '',
-        customer_age:       ageEl?.value.trim()     || '',
-        transfer_on:        transferEl.value         || 'D1',
-        call_duration_mins: parseInt(durEl?.value)  || 0,
-        call_notes:         ((outcomeEl?.value ? outcomeEl.value + ': ' : '') + (notesEl?.value.trim() || '')).trim(),
+        customer_number:     numEl.value.trim(),
+        transfer_on:         transferEl.value                     || 'D1',
+        team_name:           teamEl?.value.trim()                 || '',
+        verifier_real_name:  verifierEl?.value.trim()             || '',
+        agent_pseudo:        pseudoEl?.value.trim()               || '',
+        customer_first_name: firstNameEl?.value.trim()            || '',
+        customer_last_name:  lastNameEl?.value.trim()             || '',
+        customer_name:       `${firstNameEl?.value.trim() || ''} ${lastNameEl?.value.trim() || ''}`.trim(),
+        customer_state:      stateEl?.value.trim()                || '',
+        customer_zip:        zipEl?.value.trim()                  || '',
+        customer_age:        ageEl?.value.trim()                  || '',
+        call_duration_mins:  parseInt(durEl?.value)               || 0,
+        call_notes:          ((outcomeEl?.value ? outcomeEl.value + ': ' : '') + (notesEl?.value.trim() || '')).trim(),
     };
 
     if (!payload.customer_number || !payload.transfer_on) {
-        window.showToast?.('Customer Number and Transfer Option are required', 'error');
+        window.showToast?.('Phone Number and Line Option are required fields', 'error');
         return;
     }
 
+    // Save Agent Memory in localStorage
+    if (payload.agent_pseudo) localStorage.setItem('drp_agent_pseudo', payload.agent_pseudo);
+    if (payload.team_name)    localStorage.setItem('drp_team_name', payload.team_name);
+
     const origHtml = btn ? btn.innerHTML : '';
-    if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging…'; btn.disabled = true; }
+    if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging Medicare Transfer…'; btn.disabled = true; }
 
     try {
         const response = await fetch('api/submit_daily_report.php', {
@@ -391,9 +457,19 @@ async function submitDailyTransfer(e) {
         const res = await response.json();
 
         if (res.success) {
-            window.showToast?.('✅ Transfer logged successfully!', 'success');
-            e.target.reset();
-            drpSelectTransfer('D1'); // reset toggle
+            window.showToast?.('✅ Medicare transfer logged successfully!', 'success');
+            
+            // Clear call fields, keeping pseudo & team for agent convenience
+            if (numEl) numEl.value = '';
+            if (firstNameEl) firstNameEl.value = '';
+            if (lastNameEl) lastNameEl.value = '';
+            if (stateEl) stateEl.value = '';
+            if (zipEl) zipEl.value = '';
+            if (ageEl) ageEl.value = '';
+            if (durEl) durEl.value = '';
+            if (notesEl) notesEl.value = '';
+            if (outcomeEl) outcomeEl.value = '';
+
             drpCurrentPeriod = 'today';
             drpSwitchPeriod('today');
             loadPerformanceView();
