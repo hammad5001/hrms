@@ -204,8 +204,78 @@ function drpRenderTable(transfers) {
     }).join('');
 
     if (countEl) countEl.textContent = `${transfers.length}`;
-    if (d1El) d1El.textContent = d1;
-    if (d2El) d2El.textContent = d2;
+
+    const dispositionCounts = {};
+    (transfers || []).forEach(row => {
+        const disp = String(row.transfer_on || row.disposition || row.line || '').trim().toUpperCase();
+        if (!disp) return;
+        dispositionCounts[disp] = (dispositionCounts[disp] || 0) + 1;
+    });
+
+    const dispositionOrder = ['D1','D2','D3','D4','D5','D5B','D6','D6CPL','D7','D8','HI','HI2','HIB','HIC','HIMAIN'];
+    const dispositionList = [];
+
+    dispositionOrder.forEach(disp => {
+        if (dispositionCounts[disp] > 0) {
+            dispositionList.push({ disposition: disp, total: dispositionCounts[disp] });
+        }
+    });
+
+    Object.keys(dispositionCounts).sort().forEach(disp => {
+        if (!dispositionOrder.includes(disp) && dispositionCounts[disp] > 0) {
+            dispositionList.push({ disposition: disp, total: dispositionCounts[disp] });
+        }
+    });
+
+    const chipForValue = (valueEl) => {
+        if (!valueEl) return null;
+        return valueEl.closest('.drc-dispo-chip') || valueEl.parentElement;
+    };
+
+    const d1Chip = chipForValue(d1El);
+    const d2Chip = chipForValue(d2El);
+    const chipParent = d2Chip ? d2Chip.parentElement : null;
+
+    if (chipParent) {
+        chipParent.querySelectorAll('.drc-table-dynamic-disposition-chip').forEach(el => el.remove());
+    }
+
+    const setChip = (chip, label, total, valueId) => {
+        if (!chip) return;
+        chip.style.removeProperty('display');
+        chip.innerHTML = `${label}: <span${valueId ? ` id="${valueId}"` : ''}>${Number(total) || 0}</span>`;
+    };
+
+    const hideChip = (chip) => {
+        if (chip) chip.style.display = 'none';
+    };
+
+    if (!dispositionList.length) {
+        hideChip(d1Chip);
+        hideChip(d2Chip);
+    } else {
+        setChip(d1Chip, dispositionList[0].disposition, dispositionList[0].total, 'drpMiniD1Today');
+
+        if (dispositionList[1]) {
+            setChip(d2Chip, dispositionList[1].disposition, dispositionList[1].total, 'drpMiniD2Today');
+        } else {
+            hideChip(d2Chip);
+        }
+
+        if (chipParent) {
+            let insertAfter = d2Chip || d1Chip;
+
+            dispositionList.slice(2).forEach(item => {
+                const clone = (d1Chip || d2Chip).cloneNode(false);
+                clone.classList.add('drc-table-dynamic-disposition-chip');
+                clone.style.removeProperty('display');
+                clone.innerHTML = `${item.disposition}: <span>${Number(item.total) || 0}</span>`;
+                insertAfter.insertAdjacentElement('afterend', clone);
+                insertAfter = clone;
+            });
+        }
+    }
+
     if (summaryEl) summaryEl.textContent = '';
 
     // Update active tab count badge
@@ -220,44 +290,131 @@ function drpRenderTable(transfers) {
 // ─── Render Mini Stats ────────────────────────────────────────────────────────
 function drpRenderMiniStats(miniStats, streak) {
     const s = miniStats || {};
-    const t = s.today || { total: 0, d1: 0, d2: 0 };
-    const w = s.week  || { total: 0 };
-    const m = s.month || { total: 0 };
+    const t = s.today || { total: 0, dispositions: [] };
+    const w = s.week  || { total: 0, dispositions: [] };
+    const m = s.month || { total: 0, dispositions: [] };
+
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    }[ch]));
+
+    const setEl = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    };
 
     const animNum = (id, newVal) => {
         const el = document.getElementById(id);
         if (!el) return;
+
         const old = parseInt(el.textContent) || 0;
+
         if (old !== newVal) {
             el.textContent = newVal;
-            // Pop animation on parent pill
+
             const pill = el.closest('.drc-kpi-pill');
-            if (pill) { pill.classList.remove('drc-pop'); void pill.offsetWidth; pill.classList.add('drc-pop'); }
+            if (pill) {
+                pill.classList.remove('drc-pop');
+                void pill.offsetWidth;
+                pill.classList.add('drc-pop');
+            }
         }
     };
-    animNum('drpMiniToday',  t.total);
-    animNum('drpMiniWeek',   w.total);
-    animNum('drpMiniMonth',  m.total);
-    const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-    setEl('drpMiniD1Today', t.d1);
-    setEl('drpMiniD2Today', t.d2);
-    // Tab count badges
-    setEl('drcTabCountToday',  t.total);
-    setEl('drcTabCountWeek',   w.total);
-    setEl('drcTabCountMonth',  m.total);
 
-    // Month-to-Date Goal calculations (Target: 360 transfers)
-    const mtdTotal = m.total || 0;
+    const setChip = (chip, label, count, valueId = '') => {
+        if (!chip) return;
+
+        const idAttr = valueId ? ` id="${valueId}"` : '';
+
+        chip.style.display = '';
+        chip.innerHTML = `${escapeHtml(label)}: <span${idAttr}>${Number(count) || 0}</span>`;
+    };
+
+    const renderTodayDispositionChips = () => {
+        const d1Value = document.getElementById('drpMiniD1Today');
+        const d2Value = document.getElementById('drpMiniD2Today');
+
+        if (!d1Value || !d2Value) return;
+
+        const d1Chip = d1Value.closest('.drc-kpi-pill') || d1Value.parentElement;
+        const d2Chip = d2Value.closest('.drc-kpi-pill') || d2Value.parentElement;
+
+        if (!d1Chip || !d2Chip || !d2Chip.parentElement) return;
+
+        const parent = d2Chip.parentElement;
+
+        parent.querySelectorAll('.drc-dynamic-disposition-chip').forEach(el => el.remove());
+
+        const list = Array.isArray(t.dispositions)
+            ? t.dispositions
+                .map(x => ({
+                    disposition: String(x.disposition || '').toUpperCase(),
+                    total: Number(x.total || 0)
+                }))
+                .filter(x => x.disposition && x.total > 0)
+            : [];
+
+        // Important:
+        // Koi disposition nahi hai to D1/D2 bhi hide rahenge.
+        // Zero fallback show nahi hoga.
+        if (!list.length) {
+            d1Chip.style.display = 'none';
+            d2Chip.style.display = 'none';
+            return;
+        }
+
+        // First disposition existing D1 chip mein same style ke sath
+        setChip(d1Chip, list[0].disposition, list[0].total, 'drpMiniD1Today');
+
+        // Second disposition existing D2 chip mein same style ke sath
+        if (list[1]) {
+            setChip(d2Chip, list[1].disposition, list[1].total, 'drpMiniD2Today');
+        } else {
+            d2Chip.style.display = 'none';
+        }
+
+        // Baqi dispositions D2 chip ka same style clone karke
+        let insertAfter = d2Chip;
+
+        list.slice(2).forEach(item => {
+            const clone = d2Chip.cloneNode(false);
+            clone.classList.add('drc-dynamic-disposition-chip');
+            clone.removeAttribute('id');
+            clone.style.display = '';
+
+            setChip(clone, item.disposition, item.total);
+
+            insertAfter.insertAdjacentElement('afterend', clone);
+            insertAfter = clone;
+        });
+    };
+
+    animNum('drpMiniToday',  Number(t.total || 0));
+    animNum('drpMiniWeek',   Number(w.total || 0));
+    animNum('drpMiniMonth',  Number(m.total || 0));
+
+    renderTodayDispositionChips();
+
+    setEl('drcTabCountToday',  Number(t.total || 0));
+    setEl('drcTabCountWeek',   Number(w.total || 0));
+    setEl('drcTabCountMonth',  Number(m.total || 0));
+
+    const mtdTotal = Number(m.total || 0);
     setEl('drcGoalMTD', mtdTotal);
+
     const mtdProgBar = document.getElementById('drcGoalProgressBar');
     if (mtdProgBar) {
         const mtdPercent = Math.min((mtdTotal / 360) * 100, 100);
         mtdProgBar.style.width = mtdPercent + '%';
     }
 
-    // Streak badge
     const badge   = document.getElementById('drpStreakBadge');
     const countEl = document.getElementById('drpStreakCount');
+
     if (badge && countEl) {
         badge.style.display = streak >= 2 ? 'inline-flex' : 'none';
         countEl.textContent = streak;
@@ -915,3 +1072,63 @@ document.addEventListener('DOMContentLoaded', () => {
     drpInitZipLookup();
 });
 
+
+// ─── My Performance QA Cards Updater ──────────────────────────────────────────
+// Updates existing cards only. No extra UI, no extra CSS, no buttons.
+(function () {
+    async function updateMyPerformanceQaCards() {
+        const salesEl = document.getElementById('qaStatsSales');
+        const rejectedEl = document.getElementById('qaStatsRejected');
+        const transfersEl = document.getElementById('qaStatsTransfers');
+        const conversionEl = document.getElementById('qaStatsConversion');
+
+        if (!salesEl || !rejectedEl || !transfersEl || !conversionEl) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/get_agent_performance.php?action=load_analytics&_=' + Date.now(), {
+                credentials: 'include',
+                cache: 'no-store'
+            });
+
+            const result = await response.json();
+
+            if (!result.success || !result.data || !result.data.qa_stats) {
+                return;
+            }
+
+            const stats = result.data.qa_stats;
+
+            const sales = parseInt(stats.sales || stats.approved || 0, 10) || 0;
+            const rejected = parseInt(stats.rejected || 0, 10) || 0;
+            const transfers = parseInt(stats.transfers || 0, 10) || 0;
+            const conversion = transfers > 0 ? ((sales / transfers) * 100) : 0;
+
+            salesEl.textContent = sales;
+            rejectedEl.textContent = rejected;
+            transfersEl.textContent = transfers;
+            conversionEl.textContent = conversion.toFixed(1).replace('.0', '') + '%';
+
+            if (typeof renderPerformanceCharts === 'function') {
+                renderPerformanceCharts(result.data.history || []);
+            }
+        } catch (error) {
+            console.warn('My Performance QA cards update failed:', error);
+        }
+    }
+
+    window.updateMyPerformanceQaCards = updateMyPerformanceQaCards;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        setTimeout(updateMyPerformanceQaCards, 500);
+        setTimeout(updateMyPerformanceQaCards, 1500);
+        setTimeout(updateMyPerformanceQaCards, 3000);
+    });
+
+    document.addEventListener('click', function () {
+        setTimeout(updateMyPerformanceQaCards, 500);
+    });
+
+    setInterval(updateMyPerformanceQaCards, 30000);
+})();

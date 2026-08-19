@@ -2708,65 +2708,110 @@ require_once 'config.php';
         }
 
         async function persistAllAdjNow() {
+            const response = await fetch(`${PAYROLL_API}?action=saveMonthBundle`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    month: payrollMonthStr(),
+                    bundle: payrollAdj,
+                    leaves: leaves
+                })
+            });
+
+            const responseText = await response.text();
+            let result;
+
             try {
-                await fetch(`${PAYROLL_API}?action=saveMonthBundle`, {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        month: payrollMonthStr(),
-                        bundle: payrollAdj,
-                        leaves: leaves
-                    })
-                });
-            } catch (e) {
-                console.error('Save failed', e);
+                result = JSON.parse(responseText);
+            } catch (error) {
+                throw new Error(
+                    `Server returned invalid JSON. HTTP ${response.status}: ${responseText.slice(0, 200)}`
+                );
             }
+
+            if (!response.ok || !result.success) {
+                throw new Error(
+                    result.message || `Save failed with HTTP ${response.status}`
+                );
+            }
+
+            return result;
         }
 
         let payrollSaveTimer = null;
         function persistAllAdj() {
             clearTimeout(payrollSaveTimer);
-            payrollSaveTimer = setTimeout(() => persistAllAdjNow(), 500);
+            payrollSaveTimer = setTimeout(() => {
+                persistAllAdjNow().catch(error => {
+                    console.error('Background payroll save failed:', error);
+                    showToast(`❌ Save failed: ${error.message}`, 'error');
+                });
+            }, 500);
         }
 
         function getEmpMeta(empId) {
-            // First check if a saved override exists in the month bundle for this month
-            if (payrollAdj.empMeta[empId]) {
-                const saved = payrollAdj.empMeta[empId];
-                // If it was saved with dummy salary (50000), update it from the live database
-                if (parseFloat(saved.basicSalary) === 50000 || parseFloat(saved.basicSalary) === 0) {
-                    const dbUser = financeUsersList.find(u => String(u.employee_code) === String(empId) || String(u.id) === String(empId));
-                    if (dbUser) {
-                        saved.basicSalary = parseFloat(dbUser.basic_salary) || 0;
-                        saved.punctualityEnabled = !!parseInt(dbUser.punctuality_enabled);
-                        saved.punctualityAmount = parseFloat(dbUser.punctuality_amount) || 0;
-                    }
-                }
-                return saved;
-            }
-            
-            // Otherwise check the database settings loaded from API
-            const dbUser = financeUsersList.find(u => String(u.employee_code) === String(empId) || String(u.id) === String(empId));
-            if (dbUser) {
-                return {
-                    basicSalary: parseFloat(dbUser.basic_salary) || 0,
-                    punctualityEnabled: !!parseInt(dbUser.punctuality_enabled),
-                    punctualityAmount: parseFloat(dbUser.punctuality_amount) || 0,
-                    sudoName: dbUser.full_name || '',
-                    designation: dbUser.designation || '',
-                    cnic: dbUser.cnic || '',
-                    bankName: dbUser.bank_name || '',
-                    accountNo: dbUser.account_no || '',
-                    accountTitle: dbUser.account_title || ''
-                };
-            }
+            const dbUser = financeUsersList.find(
+                u => String(u.employee_code) === String(empId) ||
+                     String(u.id) === String(empId)
+            );
 
-            return {
+            const dbMeta = dbUser ? {
+                basicSalary: parseFloat(dbUser.basic_salary) || 0,
+                punctualityEnabled: !!parseInt(dbUser.punctuality_enabled),
+                punctualityAmount: parseFloat(dbUser.punctuality_amount) || 0,
+                sudoName: dbUser.full_name || '',
+                designation: dbUser.designation || '',
+                cnic: dbUser.cnic || '',
+                bankName: dbUser.bank_name || '',
+                accountNo: dbUser.account_no || '',
+                accountTitle: dbUser.account_title || '',
+                appointmentDate: dbUser.appointment_date || '',
+                contactNo: dbUser.contact_no || ''
+            } : {
                 basicSalary: 0,
                 punctualityEnabled: false,
                 punctualityAmount: 0,
-                sudoName: '', designation: '', cnic: '', bankName: '', accountNo: '', accountTitle: ''
+                sudoName: '',
+                designation: '',
+                cnic: '',
+                bankName: '',
+                accountNo: '',
+                accountTitle: '',
+                appointmentDate: '',
+                contactNo: ''
+            };
+
+            const saved = payrollAdj.empMeta[empId] || {};
+
+            // Latest database values are the source of truth for employee
+            // master data. A non-blank saved monthly override may still win.
+            return {
+                basicSalary:
+                    parseFloat(saved.basicSalary) > 0
+                        ? parseFloat(saved.basicSalary)
+                        : dbMeta.basicSalary,
+
+                punctualityEnabled:
+                    saved.punctualityEnabled !== undefined
+                        ? !!saved.punctualityEnabled
+                        : dbMeta.punctualityEnabled,
+
+                punctualityAmount:
+                    saved.punctualityAmount !== undefined &&
+                    saved.punctualityAmount !== null &&
+                    saved.punctualityAmount !== ''
+                        ? parseFloat(saved.punctualityAmount) || 0
+                        : dbMeta.punctualityAmount,
+
+                sudoName: saved.sudoName || dbMeta.sudoName,
+                designation: saved.designation || dbMeta.designation,
+                cnic: saved.cnic || dbMeta.cnic,
+                bankName: saved.bankName || dbMeta.bankName,
+                accountNo: saved.accountNo || dbMeta.accountNo,
+                accountTitle: saved.accountTitle || dbMeta.accountTitle,
+                appointmentDate: saved.appointmentDate || dbMeta.appointmentDate,
+                contactNo: saved.contactNo || dbMeta.contactNo
             };
         }
 
@@ -3041,6 +3086,7 @@ require_once 'config.php';
                     const dailyCodes = {};
                     let presentCount = 0, lateCount = 0, leaveCount = 0;
                     let overrideMpCount = 0, overrideSdCount = 0, overrideNcnsCount = 0, overrideAbsentCount = 0;
+                    let overrideUnpaidCount = 0, overrideHdCount = 0, overrideLeaveCount = 0;
                     const paidLeaveDates = [];
                     const empLeaves = leaves[emp.code] || [];
                     const calculationEndDay = getCalculationEndDay(currentYear, currentMonth);
@@ -3061,6 +3107,15 @@ require_once 'config.php';
                             } else if (codeUpper === 'MP') {
                                 presentCount++;
                                 overrideMpCount++;
+                            } else if (codeUpper === 'UNPAID') {
+                                presentCount++;
+                                overrideUnpaidCount++;
+                            } else if (codeUpper === 'HD') {
+                                presentCount += 0.5;
+                                overrideHdCount++;
+                            } else if (codeUpper === 'LEAVE') {
+                                leaveCount++;
+                                overrideLeaveCount++;
                             } else if (codeUpper === 'SD') {
                                 overrideAbsentCount++;
                                 overrideSdCount++;
@@ -3086,7 +3141,7 @@ require_once 'config.php';
                             }
                         }
                     }
-                    const absent = Math.max(0, elapsedWorkingDaysCount - presentCount - leaveCount) + overrideAbsentCount;
+                    const absent = Math.max(0, elapsedWorkingDaysCount - presentCount - leaveCount);
                     const attendance_rate = elapsedWorkingDaysCount > 0 ? Math.round((presentCount / elapsedWorkingDaysCount) * 100) : 0;
                     const savedExtraDays = payrollAdj.extraDays && payrollAdj.extraDays[emp.code] !== undefined ? parseFloat(payrollAdj.extraDays[emp.code]) : 0;
 
@@ -3095,9 +3150,16 @@ require_once 'config.php';
                         designation: emp.designation || 'Employee', branch: emp.branch || 'Main', team: emp.team || 'No Team',
                         cnic: emp.cnic || '', contact: emp.contact || '', accountNo: emp.account_no || '',
                         accountTitle: emp.account_title || '', bankName: emp.bank_name || '',
-                        appointmentDate: payrollAdj.appointmentDate[emp.code] || emp.appointment_date || '',
+                        appointmentDate:
+                            payrollAdj.appointmentDate[emp.code] ||
+                            (financeUsersList.find(u =>
+                                String(u.employee_code) === String(emp.code) ||
+                                String(u.id) === String(emp.code)
+                            )?.appointment_date || emp.appointment_date || ''),
                         present: presentCount, late: lateCount, absent: absent, leave: leaveCount,
-                        overrideMpCount, overrideSdCount, overrideNcnsCount, extraDays: savedExtraDays,
+                        overrideMpCount, overrideSdCount, overrideNcnsCount,
+                        overrideUnpaidCount, overrideHdCount, overrideLeaveCount,
+                        extraDays: savedExtraDays,
                         working_days: workingDaysCount, elapsed_working_days: elapsedWorkingDaysCount, attendance_rate: attendance_rate,
                         attendance: dailyTimes, attendanceCodes: dailyCodes, leaves: empLeaves, paidLeaveDates
                     };
@@ -3370,7 +3432,7 @@ require_once 'config.php';
                 emp.overrideHdCount = overrideHdCount;
                 emp.overrideLeaveCount = overrideLeaveCount;
                 emp.leave = leaveCount;
-                emp.absent = Math.max(0, elapsedWorkingDaysCount - Math.floor(presentCount) - leaveCount) + overrideAbsentCount;
+                emp.absent = Math.max(0, elapsedWorkingDaysCount - Math.floor(presentCount) - leaveCount);
             }
 
             calculateStats();
@@ -4374,10 +4436,10 @@ require_once 'config.php';
                                 <td>${fmtTxt(desig)}</td>
                                 <td>${fmtTxt(campaign)}</td>
                                 <td>${fmtTxt(cnic)}</td>
-                                <td>${fmtTxt(e.phone || e.contact_no)}</td>
-                                <td>${fmtTxt(e.account_no)}</td>
-                                <td>${fmtTxt(e.account_title)}</td>
-                                <td>${fmtTxt(e.bank_name)}</td>
+                                <td>${fmtTxt((e.meta && e.meta.contactNo) || e.phone || e.contact_no)}</td>
+                                <td>${fmtTxt((e.meta && e.meta.accountNo) || e.account_no || e.accountNo)}</td>
+                                <td>${fmtTxt((e.meta && e.meta.accountTitle) || e.account_title || e.accountTitle)}</td>
+                                <td>${fmtTxt((e.meta && e.meta.bankName) || e.bank_name || e.bankName)}</td>
                                 <td>${fmtTxt(e.appointmentDate)}</td>
                                 <td>${fmtAmt(e.basicSalary)}</td>
                                 <td>${fmtAmt(e.punctualityBonus)}</td>
@@ -4532,41 +4594,136 @@ require_once 'config.php';
             inputWrapper.appendChild(resultsDiv);
         }
 
-        function addAdjItemFromSearch(type, isPerDay) {
+        async function addAdjItemFromSearch(type, isPerDay) {
             const searchInput = document.getElementById(`${type}-emp-search`);
             const searchValue = searchInput?.value.trim();
-            const employee = allData.find(emp => emp.id === searchValue || emp.name.toLowerCase() === searchValue.toLowerCase());
-            if (!employee) { showToast('Select an employee first', 'warning'); return; }
-            
-            const reason = document.getElementById(`adj-reason-${type}`)?.value || '';
-            const dateInput = document.getElementById(`adj-date-${type}`);
+
+            const employee = allData.find(emp =>
+                String(emp.id) === String(searchValue) ||
+                String(emp.name || '').toLowerCase() === String(searchValue || '').toLowerCase()
+            );
+
+            if (!employee) {
+                showToast('Select an employee first', 'warning');
+                return;
+            }
+
+            const reason =
+                document.getElementById(`adj-reason-${type}`)?.value || '';
+
+            const dateInput =
+                document.getElementById(`adj-date-${type}`);
+
             const date = dateInput ? dateInput.value : '';
-            const amtInput = document.getElementById(`adj-amt-${type}`);
-            let amount = amtInput ? parseFloat(amtInput.value) || 0 : 0;
-            
-            const modeInput = document.getElementById(`adj-mode-${type}`);
+
+            const amtInput =
+                document.getElementById(`adj-amt-${type}`);
+
+            let amount =
+                amtInput ? parseFloat(amtInput.value) || 0 : 0;
+
+            const modeInput =
+                document.getElementById(`adj-mode-${type}`);
+
             if (modeInput && modeInput.value === 'deduction') {
                 amount = -Math.abs(amount);
             }
 
-            if (type === 'ncns') amount = NCNS_PENALTY;
-            else if (type === 'misspunch') amount = MISSPUNCH_DEDUCTION;
+            if (type === 'ncns') {
+                amount = NCNS_PENALTY;
+            } else if (type === 'misspunch') {
+                amount = MISSPUNCH_DEDUCTION;
+            }
 
-            if (!payrollAdj[type][employee.id]) payrollAdj[type][employee.id] = [];
-            payrollAdj[type][employee.id].push({ amount, reason, date, addedAt: new Date().toISOString() });
-            persistAllAdj();
-            showToast(`✅ Entry added for ${employee.name}`, 'success');
-            loadAttendanceData();
+            if (!payrollAdj[type]) {
+                payrollAdj[type] = {};
+            }
+
+            if (!payrollAdj[type][employee.id]) {
+                payrollAdj[type][employee.id] = [];
+            }
+
+            const newEntry = {
+                amount,
+                reason,
+                date,
+                addedAt: new Date().toISOString()
+            };
+
+            payrollAdj[type][employee.id].push(newEntry);
+
+            try {
+                clearTimeout(payrollSaveTimer);
+
+                // Save must finish before data is loaded again.
+                await persistAllAdjNow();
+
+                showToast(
+                    `✅ Entry added for ${employee.name}`,
+                    'success'
+                );
+
+                await loadAttendanceData();
+            } catch (error) {
+                console.error('Adjustment save failed:', error);
+
+                const items = payrollAdj[type][employee.id] || [];
+                const index = items.lastIndexOf(newEntry);
+
+                if (index !== -1) {
+                    items.splice(index, 1);
+                }
+
+                if (items.length === 0) {
+                    delete payrollAdj[type][employee.id];
+                }
+
+                showToast(
+                    `❌ Entry could not be saved: ${error.message}`,
+                    'error'
+                );
+            }
         }
 
         // Keep standard helper functions ...
-        function deleteAdjItem(type, empId, idx) {
+        async function deleteAdjItem(type, empId, idx) {
             if (!confirm('Confirm delete?')) return;
+
+            const previousItems = [
+                ...(payrollAdj[type]?.[empId] || [])
+            ];
+
+            if (!payrollAdj[type] || !payrollAdj[type][empId]) {
+                showToast('Entry not found', 'warning');
+                return;
+            }
+
             payrollAdj[type][empId].splice(idx, 1);
-            if (payrollAdj[type][empId].length === 0) delete payrollAdj[type][empId];
-            persistAllAdj();
-            showToast('✅ Entry deleted', 'success');
-            loadAttendanceData();
+
+            if (payrollAdj[type][empId].length === 0) {
+                delete payrollAdj[type][empId];
+            }
+
+            try {
+                clearTimeout(payrollSaveTimer);
+                await persistAllAdjNow();
+
+                showToast('✅ Entry deleted', 'success');
+                await loadAttendanceData();
+            } catch (error) {
+                console.error('Adjustment delete failed:', error);
+
+                if (!payrollAdj[type]) {
+                    payrollAdj[type] = {};
+                }
+
+                payrollAdj[type][empId] = previousItems;
+
+                showToast(
+                    `❌ Entry could not be deleted: ${error.message}`,
+                    'error'
+                );
+            }
         }
 
         function renderAdvanceTab() {
@@ -4816,20 +4973,89 @@ require_once 'config.php';
         }
 
         function exportToCSV() {
-            let headers = ['ID', 'Personnel', 'Department', 'Designation', 'Branch', 'Team'];
-            for (let day = 1; day <= daysInMonth; day++) headers.push(`${day} ${getMonthAbbr(currentMonth)}`);
-            headers.push('Present Days', 'Absent Days', 'Late Days', 'Leave Days');
-            let csvContent = headers.map(h => `"${h}"`).join(',') + '\n';
-            allData.forEach(emp => { 
-                let row = [emp.id, emp.name, emp.department, emp.designation, emp.branch, emp.team];
-                for (let day = 1; day <= daysInMonth; day++) { 
-                    row.push(emp.attendance[day]); 
+            let headers = [
+                'ID',
+                'Personnel',
+                'Department',
+                'Designation',
+                'Branch',
+                'Team'
+            ];
+
+            // Har date ke liye separate Time aur Status columns
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateLabel = `${day} ${getMonthAbbr(currentMonth)}`;
+                headers.push(`${dateLabel} Time`);
+                headers.push(`${dateLabel} Status`);
+            }
+
+            headers.push(
+                'Present Days',
+                'Absent Days',
+                'Late Days',
+                'Leave Days'
+            );
+
+            const csvEscape = value => {
+                const str = value === undefined || value === null
+                    ? ''
+                    : String(value);
+
+                return `"${str.replace(/"/g, '""')}"`;
+            };
+
+            let csvContent = headers.map(csvEscape).join(',') + '\n';
+
+            allData.forEach(emp => {
+                const row = [
+                    emp.id,
+                    emp.name,
+                    emp.department,
+                    emp.designation,
+                    emp.branch,
+                    emp.team
+                ];
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const time =
+                        emp.attendance &&
+                        emp.attendance[day]
+                            ? emp.attendance[day]
+                            : '--:--';
+
+                    let status =
+                        emp.attendanceCodes &&
+                        emp.attendanceCodes[day] !== undefined
+                            ? String(emp.attendanceCodes[day])
+                            : '';
+
+                    if (status.trim() === '') {
+                        status = 'Absent (Blank)';
+                    }
+
+                    row.push(time);
+                    row.push(status);
                 }
-                row.push(emp.present, emp.absent, emp.late, emp.leave);
-                csvContent += row.map(cell => `"${cell}"`).join(',') + '\n';
+
+                row.push(
+                    emp.present,
+                    emp.absent,
+                    emp.late,
+                    emp.leave
+                );
+
+                csvContent += row.map(csvEscape).join(',') + '\n';
             });
-            downloadCSV(csvContent, `attendance_${currentYear}_${currentMonth}.csv`);
-            showToast(`✅ Exported successfully`, 'success');
+
+            downloadCSV(
+                csvContent,
+                `attendance_time_status_${currentYear}_${currentMonth}.csv`
+            );
+
+            showToast(
+                '✅ Attendance time and status exported successfully',
+                'success'
+            );
         }
 
         function downloadCSV(content, filename) { const blob = new Blob(["\uFEFF" + content], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url); }

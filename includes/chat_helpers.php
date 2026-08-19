@@ -356,7 +356,8 @@ function chat_search_users(mysqli $conn, int $me_id, string $q, int $limit = 25)
         $needles[] = '%' . strtolower($parsed['text']) . '%';
     }
     foreach ($needles as $needle) {
-        $matchParts[] = $blob . ' LIKE ?';
+        $matchParts[] = "CONVERT((" . $blob . ") USING utf8mb4) COLLATE utf8mb4_unicode_ci
+            LIKE CONVERT(? USING utf8mb4) COLLATE utf8mb4_unicode_ci";
         $types .= 's';
         $params[] = $needle;
     }
@@ -368,7 +369,8 @@ function chat_search_users(mysqli $conn, int $me_id, string $q, int $limit = 25)
         $codeVariants = employee_code_variants($parsed['raw']);
     }
     foreach ($codeVariants as $variant) {
-        $matchParts[] = "LOWER(IFNULL(u.employee_code, '')) = LOWER(?)";
+        $matchParts[] = "LOWER(CONVERT(IFNULL(u.employee_code, '') USING utf8mb4)) COLLATE utf8mb4_unicode_ci
+            = LOWER(CONVERT(? USING utf8mb4)) COLLATE utf8mb4_unicode_ci";
         $types .= 's';
         $params[] = $variant;
     }
@@ -685,6 +687,10 @@ function chat_create_message_receipts(mysqli $conn, int $message_id, int $conver
 }
 
 function chat_backfill_receipts(mysqli $conn, int $conversation_id): void {
+    // Production performance: receipt backfill disabled.
+    // Normal new-message receipt handling remains active.
+    return;
+
     $stmt = $conn->prepare("
         SELECT m.id, m.sender_id FROM chat_messages m
         WHERE m.conversation_id = ?
@@ -723,22 +729,24 @@ function chat_mark_delivered_for_viewer(mysqli $conn, int $conversation_id, int 
 function chat_mark_conversation_read(mysqli $conn, int $conversation_id, int $user_id): void {
     require_once __DIR__ . '/chat_redis.php';
     chat_redis_invalidate_unread($user_id, $conversation_id);
-    chat_backfill_receipts($conn, $conversation_id);
 
+    /*
+     * Temporary production-safe mode:
+     * unread state uses chat_participants.last_read_at.
+     * The expensive receipt-table update is handled separately.
+     */
     $stmt = $conn->prepare("
-        UPDATE chat_message_receipts r
-        INNER JOIN chat_messages m ON m.id = r.message_id
-        SET r.read_at = NOW(),
-            r.delivered_at = COALESCE(r.delivered_at, NOW())
-        WHERE m.conversation_id = ? AND r.user_id = ? AND m.sender_id != ?
-        AND r.read_at IS NULL
+        UPDATE chat_participants
+        SET last_read_at = NOW()
+        WHERE conversation_id = ?
+          AND user_id = ?
+          AND (
+              last_read_at IS NULL
+              OR last_read_at < NOW() - INTERVAL 2 SECOND
+          )
     ");
-    $stmt->bind_param('iii', $conversation_id, $user_id, $user_id);
+    $stmt->bind_param('ii', $conversation_id, $user_id);
     $stmt->execute();
-
-    $p = $conn->prepare('UPDATE chat_participants SET last_read_at = NOW() WHERE conversation_id = ? AND user_id = ?');
-    $p->bind_param('ii', $conversation_id, $user_id);
-    $p->execute();
 }
 
 /** sent | delivered | read */

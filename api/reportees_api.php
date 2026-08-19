@@ -7,7 +7,7 @@ require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/session_user.php';
 require_once __DIR__ . '/../includes/reportees_helpers.php';
 
-ensure_app_schema($conn);
+// Production: schema migrations are run manually during deployment.
 
 $user = resolve_logged_in_user($conn);
 if (!$user) {

@@ -5,7 +5,7 @@ require_once __DIR__ . '/../includes/employee_profile.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-ensure_app_schema($conn);
+// Production: schema migrations are run manually during deployment.
 
 $user = resolve_logged_in_user($conn);
 if (!$user) {

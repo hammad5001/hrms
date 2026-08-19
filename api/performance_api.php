@@ -8,7 +8,7 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/performance_helpers.php';
 
-ensure_app_schema($conn);
+// Production: schema migrations are run manually during deployment.
 ensure_performance_schema($conn);
 
 require_once __DIR__ . '/../includes/session_user.php';

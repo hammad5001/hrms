@@ -730,7 +730,7 @@ function previewText(msg) {
     if (!msg) return 'No messages yet';
     if (msg.msg_type === 'image') return 'Photo';
     if (msg.msg_type === 'file') return 'Attachment';
-    if (msg.is_deleted) return 'Message deleted';
+    if (Number(msg.is_deleted) === 1) return 'Message deleted';
     const cleanBody = (msg.body || '').replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*([^\*]+)\*/g, '$1');
     return cleanBody.slice(0, 60);
 }
@@ -1188,6 +1188,7 @@ async function confirmDelete() {
     document.getElementById('deleteMsgModal').classList.remove('open');
     Chat.deleteMsgId = null;
     renderMessages(renderScrollMode());
+    await loadConversations();
     toast('Message deleted');
 }
 
@@ -1197,6 +1198,7 @@ async function deleteMessageForMe(msgId) {
     if (!res.success) { toast(res.error || 'Could not delete message'); return; }
     Chat.messages = Chat.messages.filter(m => m.id !== msgId);
     renderMessages(renderScrollMode());
+    await loadConversations();
     toast('Message removed');
 }
 
@@ -1606,6 +1608,7 @@ function handleChatWsEvent(ev) {
             msg.file_url = null;
             renderMessages(Chat.scroll.pinnedToBottom ? 'bottom' : 'preserve');
         }
+        loadConversations().catch(err => console.error('Conversation preview refresh failed:', err));
         return;
     }
 

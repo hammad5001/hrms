@@ -10,8 +10,133 @@ if (!isset($_SESSION['user_id'])) {
 require_once '../config.php';
 require_once '../includes/db_schema.php';
 
+
+function getGoogleSheetEnvValue($key) {
+    $paths = [
+        __DIR__ . '/../.env',
+        __DIR__ . '/../backend/.env'
+    ];
+
+    foreach ($paths as $path) {
+        if (!is_readable($path)) {
+            continue;
+        }
+
+        $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+        foreach ($lines as $line) {
+            $line = trim(str_replace('\\_', '_', $line));
+
+            if (strpos($line, $key . '=') === 0) {
+                $value = trim(substr($line, strlen($key) + 1));
+                $value = trim($value, "\"'");
+
+                if ($key === 'GOOGLE_SHEET_WEBHOOK_URL') {
+                    if (preg_match('/https:\/\/script\.google\.com\/macros\/s\/[^)\]\s]+\/exec/', $value, $m)) {
+                        return $m[0];
+                    }
+                }
+
+                return str_replace('\\_', '_', $value);
+            }
+        }
+    }
+
+    return '';
+}
+
+function syncTransferToGoogleSheet($transfer) {
+    $url = getenv('GOOGLE_SHEET_WEBHOOK_URL') ?: getGoogleSheetEnvValue('GOOGLE_SHEET_WEBHOOK_URL');
+    $secret = getenv('GOOGLE_SHEET_SECRET') ?: getGoogleSheetEnvValue('GOOGLE_SHEET_SECRET');
+
+    $url = trim(str_replace('\\_', '_', $url));
+    $secret = trim(str_replace('\\_', '_', $secret));
+
+    if (preg_match('/https:\/\/script\.google\.com\/macros\/s\/[^)\]\s]+\/exec/', $url, $m)) {
+        $url = $m[0];
+    }
+
+    if (empty($url) || empty($secret)) {
+        return [
+            'success' => false,
+            'message' => 'Google Sheet URL or secret missing'
+        ];
+    }
+
+    $payload = [
+        'secret' => $secret,
+        'action' => 'create_transfer',
+        'transfer_id' => 'HRMS-' . $transfer['id'],
+        'phone_number' => (string)($transfer['customer_number'] ?? ''),
+        'line' => (string)($transfer['transfer_on'] ?? ''),
+        'team' => (string)($transfer['team_name'] ?? ''),
+        'hrms_real_name' => (string)($transfer['verifier_real_name'] ?? ''),
+        'pseudo' => (string)($transfer['agent_pseudo'] ?? ''),
+        'state' => (string)($transfer['customer_state'] ?? ''),
+        'customer_first_name' => (string)($transfer['customer_first_name'] ?? ''),
+        'customer_last_name' => (string)($transfer['customer_last_name'] ?? ''),
+        'zipcode' => (string)($transfer['customer_zip'] ?? ''),
+        'age' => (string)($transfer['customer_age'] ?? ''),
+        'qa_status' => 'pending'
+    ];
+
+    $json = json_encode($payload);
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+        CURLOPT_POSTFIELDS => $json,
+        CURLOPT_TIMEOUT => 15
+    ]);
+
+    $response = curl_exec($ch);
+    $error = curl_error($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($error) {
+        error_log('Google Sheet sync failed curl error: ' . $error);
+        return [
+            'success' => false,
+            'message' => $error,
+            'raw' => $response
+        ];
+    }
+
+    $decoded = json_decode($response, true);
+
+    if ($httpCode >= 400) {
+        error_log('Google Sheet sync HTTP error: ' . $httpCode . ' Response: ' . $response);
+        return [
+            'success' => false,
+            'message' => 'HTTP ' . $httpCode,
+            'raw' => $response
+        ];
+    }
+
+    if (is_array($decoded) && !empty($decoded['success'])) {
+        return [
+            'success' => true,
+            'message' => $decoded['message'] ?? 'synced',
+            'raw' => $response
+        ];
+    }
+
+    error_log('Google Sheet sync bad response: ' . $response);
+
+    return [
+        'success' => false,
+        'message' => 'Bad Google Sheet response',
+        'raw' => $response
+    ];
+}
+
+
 // Ensure tables exist
-ensure_app_schema($conn);
+// Production: schema migrations are run manually during deployment.
 
 $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
 
@@ -107,7 +232,44 @@ $stmt->bind_param(
 );
 
 if ($stmt->execute()) {
-    echo json_encode(['success' => true, 'message' => 'Transfer reported successfully!', 'id' => $conn->insert_id]);
+    $inserted_id = (int)$conn->insert_id;
+    $google_sheet_transfer_id = 'HRMS-' . $inserted_id;
+
+    $syncResult = syncTransferToGoogleSheet([
+        'id' => $inserted_id,
+        'customer_number' => $customer_number,
+        'customer_zip' => $customer_zip,
+        'customer_first_name' => $customer_first_name,
+        'customer_last_name' => $customer_last_name,
+        'customer_state' => $customer_state,
+        'customer_age' => $customer_age,
+        'transfer_on' => $transfer_on,
+        'verifier_real_name' => $verifier_real_name,
+        'agent_pseudo' => $agent_pseudo,
+        'team_name' => $team_name
+    ]);
+
+    $qa_sync_status = !empty($syncResult['success']) ? 'synced' : 'failed';
+
+    $updateStmt = $conn->prepare(
+        "UPDATE agent_daily_transfers
+         SET google_sheet_transfer_id = ?, qa_sync_status = ?
+         WHERE id = ?"
+    );
+
+    if ($updateStmt) {
+        $updateStmt->bind_param("ssi", $google_sheet_transfer_id, $qa_sync_status, $inserted_id);
+        $updateStmt->execute();
+        $updateStmt->close();
+    }
+
+    echo json_encode([
+        'success' => true,
+        'message' => 'Transfer reported successfully!',
+        'id' => $inserted_id,
+        'google_sheet_transfer_id' => $google_sheet_transfer_id,
+        'google_sheet_sync' => $qa_sync_status
+    ]);
 } else {
     echo json_encode(['success' => false, 'message' => 'Database error: ' . $stmt->error]);
 }

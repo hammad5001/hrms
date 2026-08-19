@@ -1379,6 +1379,71 @@ switch ($action) {
         ]);
         break;
 
+    case 'fetchAttendanceNow':
+        // Super Admin only
+        if (empty($_SESSION['portal_role']) || $_SESSION['portal_role'] !== 'super_admin') {
+            sendJSON(false, null, 'Access denied. Only Super Admin can fetch attendance.');
+        }
+
+        $mainCheckpoint = __DIR__ . '/python-script/last_sync_main_branch.txt';
+        $commercialCheckpoint = __DIR__ . '/python-script/last_sync_commercial_branch.txt';
+
+        $oldMain = file_exists($mainCheckpoint) ? trim((string)file_get_contents($mainCheckpoint)) : '';
+        $oldCommercial = file_exists($commercialCheckpoint) ? trim((string)file_get_contents($commercialCheckpoint)) : '';
+
+        $output = [];
+        $exitCode = 0;
+
+        exec(
+            'sudo -n /usr/bin/systemctl restart hrms-attendance-sync.service 2>&1',
+            $output,
+            $exitCode
+        );
+
+        if ($exitCode !== 0) {
+            sendJSON(false, [
+                'logs' => implode("\n", $output)
+            ], 'Unable to start attendance synchronization.');
+        }
+
+        // Wait for both device checkpoint files to update.
+        $deadline = time() + 25;
+        $newMain = $oldMain;
+        $newCommercial = $oldCommercial;
+
+        while (time() < $deadline) {
+            clearstatcache(true, $mainCheckpoint);
+            clearstatcache(true, $commercialCheckpoint);
+
+            if (file_exists($mainCheckpoint)) {
+                $newMain = trim((string)file_get_contents($mainCheckpoint));
+            }
+
+            if (file_exists($commercialCheckpoint)) {
+                $newCommercial = trim((string)file_get_contents($commercialCheckpoint));
+            }
+
+            $mainUpdated = ($newMain !== '' && $newMain !== $oldMain);
+            $commercialUpdated = ($newCommercial !== '' && $newCommercial !== $oldCommercial);
+
+            if ($mainUpdated && $commercialUpdated) {
+                sendJSON(true, [
+                    'main_branch' => $newMain,
+                    'commercial_branch' => $newCommercial
+                ], 'Attendance fetched successfully from both devices.');
+            }
+
+            usleep(500000);
+        }
+
+        // Service was started, but device fetch did not finish within browser wait time.
+        sendJSON(true, [
+            'main_branch' => $newMain,
+            'commercial_branch' => $newCommercial,
+            'processing' => true
+        ], 'Attendance synchronization started. Data is still processing.');
+        break;
+
     case 'fetchDevices':
         // Check permissions: only super_admin allowed
         if (empty($_SESSION['portal_role']) || $_SESSION['portal_role'] !== 'super_admin') {

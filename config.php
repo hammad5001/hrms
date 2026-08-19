@@ -19,8 +19,8 @@ $conn->query("SET time_zone = '+05:00'");
 require_once __DIR__ . '/includes/company_branches.php';
 require_once __DIR__ . '/includes/db_schema.php';
 require_once __DIR__ . '/includes/portal_roles.php';
-ensure_company_branch_schema($conn);
-ensure_app_schema($conn);
+// Disabled on web requests: run schema migration manually.
+// Disabled on web requests: run schema migration manually.
 ensure_receptionist_portal_role($conn);
 require_once __DIR__ . '/includes/chat_schema.php';
 // Disabled in production: schema migration must run manually, not on every request.

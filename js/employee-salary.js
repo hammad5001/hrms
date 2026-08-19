@@ -59,201 +59,405 @@ document.addEventListener('DOMContentLoaded', () => {
 function viewPayslipDetails(slip) {
     const modal = document.getElementById('payslipModal');
     const body = document.getElementById('payslipModalBody');
-    
+
     if (!modal || !body) return;
 
-    const findVal = (parts, notParts = []) => {
-        for (const [k, v] of Object.entries(slip.slip_data)) {
-            const kLower = k.toLowerCase().trim();
-            const matchesAll = parts.every(p => kLower.includes(p));
-            const matchesNone = notParts.every(p => !kLower.includes(p));
-            if (matchesAll && matchesNone) {
-                return v;
+    const data = slip.slip_data || {};
+
+    const esc = value => String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+    const compatibilityKeys = new Set([
+        'biometric id',
+        'employee name',
+        'total deductions',
+        'net payable'
+    ]);
+
+    const entries = Object.entries(data).filter(([key]) => {
+        const clean = String(key ?? '').trim();
+        const lower = clean.toLowerCase();
+
+        if (!clean) return false;
+        if (/^_\d+$/.test(clean)) return false;
+        if (compatibilityKeys.has(lower)) return false;
+
+        return true;
+    });
+
+    const exact = (...names) => {
+        for (const name of names) {
+            for (const [k, v] of entries) {
+                if (
+                    String(k).trim().toLowerCase() ===
+                    String(name).trim().toLowerCase()
+                ) {
+                    return v;
+                }
             }
         }
         return '';
     };
 
-    function formatVal(key, val, isCurrency = true) {
-        const strVal = val === null || val === undefined || String(val).trim() === '' ? '0' : String(val).trim();
-        if (strVal.includes('Rs') || strVal.includes('Rs.')) return strVal;
-        
-        const cleanNum = strVal.replace(/,/g, '');
-        if (!isNaN(cleanNum) && cleanNum !== '') {
-            const num = parseFloat(cleanNum);
-            if (!isCurrency) {
-                return num.toString();
-            }
-            return 'Rs. ' + num.toLocaleString('en-US');
-        }
-        return isCurrency ? 'Rs. ' + strVal : strVal;
-    }
+    const byKeys = names => {
+        const normalized = names.map(x => x.toLowerCase());
 
-    const summaryDef = [
-        { label: 'Basic Salary', parts: ['basic'], notParts: [] },
-        { label: 'Punctuality Amount', parts: ['punctuality'], notParts: ['deduct', 'fine', 'penalty'] },
-        { label: 'Present Days', parts: ['present'], notParts: [], isCurrency: false },
-        { label: 'Absent Days', parts: ['absent'], notParts: ['deduct', 'fine', 'penalty'], isCurrency: false },
-        { label: 'Paid Leave', parts: ['leave'], notParts: ['deduct', 'fine', 'policy'], isCurrency: false },
-        { label: 'Half Day', parts: ['half day'], notParts: ['amount', 'deduct', 'dock'], isCurrency: false },
-        { label: 'No. of NCNS', parts: ['ncns'], notParts: ['amount', 'deduct', 'ammount', 'dock'], isCurrency: false },
-        { label: 'No. of Sandwich Docks', parts: ['sandwich'], notParts: ['amount', 'ammount', 'deduct', 'dock'], isCurrency: false },
-        { label: 'No. of Late Arrivals', parts: ['late coming'], notParts: ['deduct', 'deduction', 'dock'], isCurrency: false },
-        { label: 'No. of Misthumb Impressions', parts: ['misthumb'], notParts: ['amount', 'deduct', 'dock'], isCurrency: false },
-        { label: 'Traveling Allowance - Females Only', parts: ['traveling'], notParts: [] },
-        { label: 'Arrears', parts: ['arrears'], notParts: [] },
-        { label: 'Extra Day Pay', parts: ['extra day'], notParts: [] },
-        { label: 'Gross Salary', parts: ['gross'], notParts: [], isBold: true }
-    ];
+        return entries.filter(([key]) =>
+            normalized.includes(String(key).trim().toLowerCase())
+        );
+    };
 
-    const deductionsDef = [
-        { label: 'QA Deduction Amount', parts: ['qa'], notParts: [] },
-        { label: 'Punctuality Deduction Amount', parts: ['punctuality', 'deduct'], notParts: [] },
-        { label: 'Absenteeism Deduction Amount', parts: ['absent', 'deduct'], notParts: [] },
-        { label: 'NCNS Deduction Amount', parts: ['ncns'], notParts: [], fallbackParts: ['ncns', 'ammount'] },
-        { label: 'Late Coming Dock Amount', parts: ['late coming', 'deduct'], notParts: [], fallbackParts: ['late coming', 'deduction'] },
-        { label: 'HD Deduction Amount', parts: ['hd', 'amount'], notParts: ['total'], fallbackParts: ['hd', 'deduct'] },
-        { label: 'Sandwich Dock Amount', parts: ['sd'], notParts: [], fallbackParts: ['sd', 'ammount'] },
-        { label: 'Mispunch / Thumbprint Dock Amount', parts: ['missed', 'punch'], notParts: [], fallbackParts: ['mispunch'] },
-        { label: 'Advance Salary Deduction', parts: ['advance'], notParts: [] },
-        { label: 'Tax Deduction Amount', parts: ['tax'], notParts: [] }
-    ];
+    const employeeFields = byKeys([
+        'B-ID',
+        'Employees Name',
+        'Sudo Names',
+        'Designation',
+        'Campaign',
+        'CNIC#',
+        'Contact No.',
+        'Branch Code',
+        'Account Nos',
+        'Account Title',
+        'BANK',
+        'Bank Name',
+        'Appointment Date'
+    ]);
 
-    let summaryRowsHtml = '';
-    for (const item of summaryDef) {
-        let rawVal = findVal(item.parts, item.notParts);
-        if (rawVal === '') {
-            if (item.label === 'Punctuality Amount') rawVal = findVal(['p.reward']);
-            if (item.label === 'Present Days') rawVal = findVal(['w.days']) || findVal(['work']);
-            if (item.label === 'Traveling Allowance - Females Only') rawVal = findVal(['transport']) || findVal(['ta/da']);
-        }
-        
-        // Hide Traveling Allowance if it is Rs. 0 or empty
-        if (item.label === 'Traveling Allowance - Females Only') {
-            const valNum = parseFloat(String(rawVal).replace(/[^0-9.]/g, '')) || 0;
-            if (valNum === 0) {
-                continue;
-            }
-        }
-        
-        const isBold = item.isBold;
-        const style = isBold ? 'font-weight: 700; color: #0f172a; background: #f8fafc; border-top: 2px solid #cbd5e1;' : 'color: #334155;';
-        summaryRowsHtml += `<tr style="border-bottom: 1px solid #e2e8f0; ${style}">
-            <td style="text-align:left; padding:10px 15px; font-weight:500;">${item.label}</td>
-            <td style="text-align:right; padding:10px 15px; font-weight:700;">${formatVal(item.label, rawVal, item.isCurrency !== false)}</td>
-        </tr>`;
-    }
+    const attendanceFields = byKeys([
+        'Basic Salary',
+        'Punctuality',
+        'Total Salary',
+        'Salary Per Day',
+        'Num of Days',
+        'Present',
+        'Leave',
+        'Absent',
+        'Total No of W.Days',
+        'Late Coming',
+        'HD',
+        'SD',
+        'NCNS',
+        'Docs',
+        'Missed Punchin'
+    ]);
 
-    let deductionRowsHtml = '';
-    for (const item of deductionsDef) {
-        let rawVal = findVal(item.parts, item.notParts);
-        if (rawVal === '' && item.fallbackParts) {
-            rawVal = findVal(item.fallbackParts);
-        }
-        deductionRowsHtml += `<tr style="border-bottom: 1px solid #e2e8f0; color: #334155;">
-            <td style="text-align:left; padding:10px 15px; font-weight:500;">${item.label}</td>
-            <td style="text-align:right; padding:10px 15px; font-weight:700;">${formatVal(item.label, rawVal, true)}</td>
-        </tr>`;
-    }
+    const additionFields = byKeys([
+        'Punch Reward',
+        'Bonus',
+        'TA/DA',
+        'Arrears',
+        'Extra Day',
+        'Extra Day pay',
+        'Total Addition'
+    ]);
 
-    const totalDeductionsVal = findVal(['total deduction']) || findVal(['total deductions']) || '0';
-    const netPayableVal = findVal(['net payable']) || findVal(['net salary']) || slip.net_salary || '0';
+    const deductionFields = byKeys([
+        'Late Coming Deduction',
+        'HD Deduction',
+        'SD Deduction',
+        'NCNS Deduction',
+        'Missed Punchin Deduction',
+        'Transport Deduction',
+        'Advance Salary',
+        'Absent Deduction',
+        'Total Deduction Ept Tax',
+        'Tax'
+    ]);
 
-    let empName = '';
-    for (const [k, v] of Object.entries(slip.slip_data)) {
-        const kLower = k.toLowerCase().trim();
-        if (kLower.includes('name') && !kLower.includes('bank') && !kLower.includes('campaign') && !kLower.includes('department') && !kLower.includes('title') && v) {
-            empName = String(v).trim();
-            if (empName) break;
-        }
-    }
+    const finalFields = byKeys([
+        'Gross Salary',
+        'SUB - Net Salary',
+        'Final Net Salary',
+        'Remarks',
+        'Comments',
+        'Annual Salary',
+        'Annual Tax'
+    ]);
 
-    if (!empName || empName.toLowerCase() === 'valued employee' || empName === '-') {
-        const profileNameEl = document.getElementById('profileCardName') || document.getElementById('chipName');
-        if (profileNameEl && profileNameEl.innerText && profileNameEl.innerText.trim() !== '-') {
-            empName = profileNameEl.innerText.trim();
-        } else {
-            empName = 'Waqar Ahmed';
-        }
-    }
+    const renderRows = fields => fields.map(([key, value]) => {
+        const display =
+            value === undefined ||
+            value === null ||
+            String(value).trim() === ''
+                ? '—'
+                : value;
 
-    const empId = slip.slip_data['B ID'] || slip.slip_data['Biometric ID'] || slip.slip_data['Emp ID'] || slip.slip_data['Sr. No'] || '-';
-    const campaign = slip.slip_data['Department / Campaign'] || slip.slip_data['Campaign'] || slip.slip_data['Department'] || 'B2B';
+        return `
+            <tr style="border-bottom:1px solid #e2e8f0;">
+                <td style="
+                    padding:9px 14px;
+                    font-weight:600;
+                    color:#334155;
+                    width:48%;
+                ">${esc(key)}</td>
+
+                <td style="
+                    padding:9px 14px;
+                    text-align:right;
+                    font-weight:700;
+                    color:#0f172a;
+                ">${esc(display)}</td>
+            </tr>
+        `;
+    }).join('');
+
+    const section = (title, fields) => {
+        if (!fields.length) return '';
+
+        return `
+            <div style="
+                margin-bottom:24px;
+                position:relative;
+                z-index:2;
+            ">
+                <h3 style="
+                    margin:0 0 10px;
+                    font-size:15px;
+                    font-weight:800;
+                    color:#0f172a;
+                    text-transform:uppercase;
+                    letter-spacing:.4px;
+                ">${esc(title)}</h3>
+
+                <table style="
+                    width:100%;
+                    border-collapse:collapse;
+                    border:1px solid #e2e8f0;
+                    background:white;
+                    font-size:13px;
+                ">
+                    <tbody>
+                        ${renderRows(fields)}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    };
+
+    const empName =
+        exact('Employees Name', 'Employee Name') ||
+        'Employee';
+
+    const empId =
+        exact('B-ID', 'B ID', 'Biometric ID', 'Emp ID') ||
+        '-';
+
+    const campaign =
+        exact('Campaign', 'Department / Campaign', 'Department') ||
+        '—';
+
+    const totalDeduction =
+        exact(
+            'Total Deduction Ept Tax',
+            'Total Deduction Except Tax',
+            'Total Deductions'
+        ) || '0';
+
+    const finalNet =
+        exact('Final Net Salary') ||
+        slip.net_salary ||
+        '0';
 
     body.innerHTML = `
-        <div id="payslipPrintableArea" style="position: relative; overflow: hidden; padding: 40px; background: #ffffff; color: #0f172a; font-family: 'Plus Jakarta Sans', sans-serif;">
-            
-            <!-- Watermark -->
-            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.03; pointer-events: none; z-index: 1;">
-                <img src="assets/images/balitech-logo.png" style="width: 450px; filter: grayscale(100%);">
+        <div id="payslipPrintableArea"
+             style="
+                position:relative;
+                overflow:hidden;
+                padding:40px;
+                background:#fff;
+                color:#0f172a;
+                font-family:'Plus Jakarta Sans',sans-serif;
+             ">
+
+            <div style="
+                position:absolute;
+                top:50%;
+                left:50%;
+                transform:translate(-50%,-50%);
+                opacity:.03;
+                pointer-events:none;
+                z-index:1;
+            ">
+                <img src="assets/images/balitech-logo.png"
+                     style="width:450px;filter:grayscale(100%);">
             </div>
 
-            <!-- Header -->
-            <div style="background: #0f172a; color: white; padding: 25px 30px; border-radius: 16px 16px 0 0; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 2;">
+            <div style="
+                background:#0f172a;
+                color:white;
+                padding:25px 30px;
+                border-radius:16px 16px 0 0;
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                position:relative;
+                z-index:2;
+            ">
                 <div>
-                    <h2 style="margin: 0; font-size: 26px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">BALITECH</h2>
-                    <p style="margin: 4px 0 0 0; color: #94a3b8; font-size: 14px; font-weight: 500;">Monthly Salary Slip</p>
+                    <h2 style="
+                        margin:0;
+                        font-size:26px;
+                        font-weight:800;
+                        color:white;
+                    ">BALITECH</h2>
+
+                    <div style="
+                        margin-top:4px;
+                        color:#94a3b8;
+                        font-size:14px;
+                    ">Monthly Salary Slip</div>
                 </div>
-                <div style="background: white; color: #0f172a; padding: 8px 16px; border-radius: 30px; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                    MONTH: ${slip.month.toUpperCase()}, ${slip.year}
+
+                <div style="
+                    background:white;
+                    color:#0f172a;
+                    padding:8px 16px;
+                    border-radius:30px;
+                    font-size:13px;
+                    font-weight:800;
+                ">
+                    ${esc(String(slip.month || '').toUpperCase())},
+                    ${esc(slip.year)}
                 </div>
             </div>
 
-            <!-- Employee Quick Info -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: #f8fafc; padding: 20px; border-radius: 0 0 16px 16px; border: 1px solid #e2e8f0; border-top: none; margin-bottom: 30px; position: relative; z-index: 2;">
-                <div style="display: flex; flex-direction: column;">
-                    <span style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 5px;">Employee Name</span>
-                    <span style="font-size: 18px; font-weight: 700; color: #0f172a;">${empName}</span>
+            <div style="
+                display:grid;
+                grid-template-columns:1fr 1fr;
+                gap:20px;
+                background:#f8fafc;
+                padding:20px;
+                border:1px solid #e2e8f0;
+                border-top:none;
+                border-radius:0 0 16px 16px;
+                margin-bottom:28px;
+                position:relative;
+                z-index:2;
+            ">
+                <div>
+                    <div style="
+                        font-size:11px;
+                        color:#64748b;
+                        text-transform:uppercase;
+                        font-weight:700;
+                    ">Employee</div>
+
+                    <div style="
+                        margin-top:5px;
+                        font-size:18px;
+                        font-weight:800;
+                    ">
+                        ${esc(empName)} (${esc(empId)})
+                    </div>
                 </div>
-                <div style="display: flex; flex-direction: column; text-align: right;">
-                    <span style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 5px;">Department / Campaign</span>
-                    <span style="font-size: 18px; font-weight: 700; color: #0f172a;">${campaign}</span>
+
+                <div style="text-align:right;">
+                    <div style="
+                        font-size:11px;
+                        color:#64748b;
+                        text-transform:uppercase;
+                        font-weight:700;
+                    ">Campaign</div>
+
+                    <div style="
+                        margin-top:5px;
+                        font-size:18px;
+                        font-weight:800;
+                    ">${esc(campaign)}</div>
                 </div>
             </div>
-            
-            <!-- Salary & Attendance Summary -->
-            <div style="margin-bottom: 30px; position: relative; z-index: 2;">
-                <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Salary & Attendance Summary</h3>
-                <table style="width: 100%; border-collapse: collapse; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; font-size: 13px;">
-                    <tbody>
-                        ${summaryRowsHtml}
-                    </tbody>
-                </table>
+
+            ${section('Employee Information', employeeFields)}
+
+            ${section('Salary & Attendance', attendanceFields)}
+
+            ${section('Allowances / Additions', additionFields)}
+
+            ${section('Deductions', deductionFields)}
+
+            ${section('Final Payroll Summary', finalFields)}
+
+            <div style="
+                background:#f8fafc;
+                border:1px solid #e2e8f0;
+                border-radius:12px;
+                padding:16px 22px;
+                display:flex;
+                justify-content:space-between;
+                margin-bottom:10px;
+                position:relative;
+                z-index:2;
+            ">
+                <span style="
+                    font-size:16px;
+                    font-weight:800;
+                    color:#334155;
+                ">Total Deduction</span>
+
+                <span style="
+                    font-size:20px;
+                    font-weight:900;
+                    color:#ef4444;
+                ">${esc(totalDeduction)}</span>
             </div>
 
-            <!-- Specified Deductions -->
-            <div style="margin-bottom: 30px; position: relative; z-index: 2;">
-                <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Specified Deductions</h3>
-                <table style="width: 100%; border-collapse: collapse; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; font-size: 13px;">
-                    <tbody>
-                        ${deductionRowsHtml}
-                    </tbody>
-                </table>
-            </div>
+            <div style="
+                background:#f0fdf4;
+                border:1px solid #bbf7d0;
+                border-radius:12px;
+                padding:18px 22px;
+                display:flex;
+                justify-content:space-between;
+                position:relative;
+                z-index:2;
+            ">
+                <span style="
+                    font-size:18px;
+                    font-weight:800;
+                    color:#166534;
+                ">Final Net Salary</span>
 
-            <!-- Highlight Boxes -->
-            <div style="background: #f8fafc; border-radius: 12px; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border: 1px solid #e2e8f0; position: relative; z-index: 2;">
-                <span style="font-size: 16px; font-weight: 700; color: #334155;">Total Deduction</span>
-                <span style="font-size: 20px; font-weight: 800; color: #0f172a;">${formatVal('Total Deduction', totalDeductionsVal)}</span>
-            </div>
-
-            <div style="background: #f0fdf4; border-radius: 12px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #bbf7d0; position: relative; z-index: 2; margin-bottom: 25px;">
-                <span style="font-size: 18px; font-weight: 700; color: #166534;">Net Payable Salary</span>
-                <span style="font-size: 24px; font-weight: 800; color: #15803d;">${formatVal('Net Payable Salary', netPayableVal)}</span>
-            </div>
-
-            <!-- Note Footer -->
-            <div style="font-size: 11px; color: #64748b; line-height: 1.6; text-align: justify; border-top: 1px solid #e2e8f0; padding-top: 15px; position: relative; z-index: 2;">
-                <strong>Note:</strong> Traveling allowance and transport deduction apply only for females where approved/applicable. NCNS, sandwich dock, late arrival, misthumb, half day, and paid leave counts are shown in the summary; deduction amounts are listed separately below as per policy.
+                <span style="
+                    font-size:24px;
+                    font-weight:900;
+                    color:#15803d;
+                ">${esc(finalNet)}</span>
             </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div style="text-align: center; margin-top: 25px; display: flex; justify-content: center; gap: 15px; padding-bottom: 20px;">
-            <button onclick="window.print()" style="background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; padding: 12px 25px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#ffffff'">
+        <div style="
+            text-align:center;
+            margin-top:25px;
+            display:flex;
+            justify-content:center;
+            gap:15px;
+            padding-bottom:20px;
+        ">
+            <button onclick="window.print()"
+                    style="
+                        background:#fff;
+                        color:#0f172a;
+                        border:1px solid #cbd5e1;
+                        padding:12px 25px;
+                        border-radius:8px;
+                        cursor:pointer;
+                    ">
                 <i class="fas fa-print"></i> Print
             </button>
-            <button onclick="downloadSlipPDF()" style="background: #0f172a; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25); display: inline-flex; align-items: center; gap: 8px;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+
+            <button onclick="downloadSlipPDF()"
+                    style="
+                        background:#0f172a;
+                        color:white;
+                        border:none;
+                        padding:12px 25px;
+                        border-radius:8px;
+                        cursor:pointer;
+                    ">
                 <i class="fas fa-download"></i> Download PDF
             </button>
         </div>

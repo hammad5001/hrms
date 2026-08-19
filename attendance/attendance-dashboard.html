@@ -1310,7 +1310,24 @@
                 grid-template-columns: 1fr;
             }
         }
-    </style>
+
+        /* Light notification toast */
+        .toast,
+        .notification,
+        .toast-notification {
+            background: #ffffff !important;
+            color: #1f2937 !important;
+            border: 1px solid rgba(0,0,0,0.12) !important;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.20) !important;
+        }
+
+        .toast *,
+        .notification *,
+        .toast-notification * {
+            color: #1f2937 !important;
+        }
+
+</style>
 </head>
 <body>
     <div class="animated-bg"></div>
@@ -1327,6 +1344,7 @@
                 <div class="nav-bar">
 
                     <button class="nav-btn" onclick="refreshData()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    <button class="nav-btn" id="fetchAttendanceNowBtn" onclick="fetchAttendanceNow()"><i class="fas fa-fingerprint"></i> Fetch Attendance</button>
                     <button class="nav-btn" onclick="showManualPunchModal()"><i class="fas fa-pen-fancy"></i> Manual</button>
                     <button class="nav-btn" onclick="openAttendanceDownload()"><i class="fas fa-download"></i> Export</button>
                     <button class="nav-btn" onclick="importFromPython()"><i class="fas fa-cloud-download-alt"></i> Import</button>
@@ -1403,7 +1421,94 @@
     
     <div class="modal" id="employeeDetailModal"><div class="modal-content"><div class="modal-header"><h2><i class="fas fa-id-card"></i> Employee Profile</h2><div class="modal-close" onclick="closeEmployeeModal()">&times;</div></div><div class="modal-body" id="employeeDetailContent"><div class="loading-state"><div class="loading-spinner"></div><p>Loading employee details...</p></div></div></div></div>
 
-    <div class="modal" id="manualPunchModal"><div class="modal-content" style="max-width: 500px;"><div class="modal-header"><h2><i class="fas fa-pen-fancy"></i> Manual Entry</h2><div class="modal-close" onclick="closeManualPunchModal()">&times;</div></div><div class="modal-body"><form id="manualPunchForm" onsubmit="submitManualPunch(event)"><div style="margin-bottom: 16px;"><label style="display: block; margin-bottom: 8px; color: white;">Personnel</label><select id="punchEmployee" required style="width:100%; padding:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:white;"><option>Loading...</option></select></div><div style="margin-bottom: 16px;"><label style="display: block; margin-bottom: 8px; color: white;">Timestamp</label><input type="datetime-local" id="punchDateTime" required style="width:100%; padding:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:white;"></div><div style="display: flex; justify-content: flex-end; gap: 12px;"><button type="button" class="clear-filters" onclick="closeManualPunchModal()" style="background:transparent;">Cancel</button><button type="submit" class="export-btn" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border:none;">Submit</button></div></form></div></div></div>
+    <div class="modal" id="manualPunchModal">
+        <div class="modal-content" style="max-width: 560px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-pen-fancy"></i> Manual Attendance</h2>
+                <div class="modal-close" onclick="closeManualPunchModal()">&times;</div>
+            </div>
+
+            <div class="modal-body">
+                <form id="manualPunchForm" onsubmit="submitManualPunch(event)">
+
+                    <div style="margin-bottom:16px; position:relative;">
+                        <label style="display:block;margin-bottom:8px;color:white;">
+                            Employee / Biometric ID
+                        </label>
+
+                        <input
+                            type="text"
+                            id="punchEmployeeSearch"
+                            autocomplete="off"
+                            placeholder="Type Biometric ID or employee name..."
+                            oninput="searchManualPunchEmployee(this.value)"
+                            style="width:100%;padding:12px;background:rgba(255,255,255,0.05);
+                                   border:1px solid rgba(255,255,255,0.12);border-radius:12px;
+                                   color:white;box-sizing:border-box;"
+                        >
+
+                        <input type="hidden" id="punchEmployee">
+
+                        <div
+                            id="punchEmployeeResults"
+                            style="display:none;position:absolute;left:0;right:0;top:72px;
+                                   max-height:240px;overflow-y:auto;background:#151927;
+                                   border:1px solid rgba(255,255,255,0.14);
+                                   border-radius:12px;z-index:9999;
+                                   box-shadow:0 12px 30px rgba(0,0,0,.45);">
+                        </div>
+                    </div>
+
+                    <div
+                        id="punchSelectedEmployee"
+                        style="display:none;margin-bottom:16px;padding:12px 14px;
+                               background:rgba(34,197,94,.08);
+                               border:1px solid rgba(34,197,94,.25);
+                               border-radius:12px;">
+                    </div>
+
+                    <div style="margin-bottom:16px;">
+                        <label style="display:block;margin-bottom:8px;color:white;">
+                            Attendance Date & Time
+                        </label>
+
+                        <input
+                            type="datetime-local"
+                            id="punchDateTime"
+                            required
+                            style="width:100%;padding:12px;background:rgba(255,255,255,0.05);
+                                   border:1px solid rgba(255,255,255,0.1);
+                                   border-radius:12px;color:white;box-sizing:border-box;"
+                        >
+                    </div>
+
+                    <div style="font-size:12px;color:#94a3b8;margin-bottom:18px;">
+                        <i class="fas fa-circle-info"></i>
+                        This entry will be stored as a manual biometric punch and used by the normal attendance calculation.
+                    </div>
+
+                    <div style="display:flex;justify-content:flex-end;gap:12px;">
+                        <button
+                            type="button"
+                            class="clear-filters"
+                            onclick="closeManualPunchModal()"
+                            style="background:transparent;">
+                            Cancel
+                        </button>
+
+                        <button
+                            type="submit"
+                            class="export-btn"
+                            id="manualPunchSubmitBtn"
+                            style="background:linear-gradient(135deg,var(--primary),var(--primary-dark));border:none;">
+                            <i class="fas fa-check"></i> Add Attendance
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- ZKTeco Sync Command Center Modal -->
     <div class="modal" id="zkSyncModal">
@@ -1722,10 +1827,279 @@
             document.getElementById('employeeDetailModal').classList.remove('active');
         }
 
-        async function loadEmployeesForManualPunch() { try { const r = await fetch('attendance-api.php?action=searchEmployees&q='); const d = await r.json(); if (d.success) { employeesList = d.data; const sel = document.getElementById('punchEmployee'); if (sel) { let opts = '<option value="">Select Personnel</option>'; employeesList.forEach(e => { opts += `<option value="${e.id}">${e.employee_code} - ${e.full_name}</option>`; }); sel.innerHTML = opts; } } } catch(e) { console.error(e); } }
-        function showManualPunchModal() { loadEmployeesForManualPunch(); const n = new Date(); document.getElementById('punchDateTime').value = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}T${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`; document.getElementById('manualPunchModal').classList.add('active'); }
-        function closeManualPunchModal() { document.getElementById('manualPunchModal').classList.remove('active'); }
-        async function submitManualPunch(e) { e.preventDefault(); const id = document.getElementById('punchEmployee').value, dt = document.getElementById('punchDateTime').value; if (!id || !dt) { showToast('Complete all fields', 'warning'); return; } const punch = dt.replace('T', ' ') + ':00'; showToast('Submitting...', 'info'); const fd = new FormData(); fd.append('employee_id', id); fd.append('punch_time', punch); try { const r = await fetch('attendance-api.php?action=manualPunch', { method: 'POST', body: fd }); const d = await r.json(); if (d.success) { showToast('Entry recorded', 'success'); closeManualPunchModal(); loadLiveAttendance(); } else showToast('Error: ' + d.message, 'error'); } catch(e) { showToast('Submission failed', 'error'); } }
+        let manualPunchSearchTimer = null;
+
+        function escapeManualHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function resetManualPunchEmployee() {
+            const hidden = document.getElementById('punchEmployee');
+            const search = document.getElementById('punchEmployeeSearch');
+            const results = document.getElementById('punchEmployeeResults');
+            const selected = document.getElementById('punchSelectedEmployee');
+
+            if (hidden) hidden.value = '';
+            if (search) search.value = '';
+
+            if (results) {
+                results.innerHTML = '';
+                results.style.display = 'none';
+            }
+
+            if (selected) {
+                selected.innerHTML = '';
+                selected.style.display = 'none';
+            }
+        }
+
+        function searchManualPunchEmployee(value) {
+            clearTimeout(manualPunchSearchTimer);
+
+            const q = String(value || '').trim();
+            const results = document.getElementById('punchEmployeeResults');
+            const hidden = document.getElementById('punchEmployee');
+
+            // User changed search after selecting an employee.
+            if (hidden) hidden.value = '';
+
+            const selected = document.getElementById('punchSelectedEmployee');
+            if (selected) {
+                selected.style.display = 'none';
+                selected.innerHTML = '';
+            }
+
+            if (q.length < 2) {
+                if (results) {
+                    results.innerHTML =
+                        '<div style="padding:12px;color:#94a3b8;">Type at least 2 characters...</div>';
+                    results.style.display = q.length ? 'block' : 'none';
+                }
+                return;
+            }
+
+            manualPunchSearchTimer = setTimeout(async () => {
+                if (!results) return;
+
+                results.style.display = 'block';
+                results.innerHTML =
+                    '<div style="padding:12px;color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i> Searching...</div>';
+
+                try {
+                    const r = await fetch(
+                        'attendance-api.php?action=searchEmployees&q=' +
+                        encodeURIComponent(q),
+                        { credentials: 'include' }
+                    );
+
+                    const d = await r.json();
+
+                    if (!d.success) {
+                        results.innerHTML =
+                            '<div style="padding:12px;color:#f87171;">' +
+                            escapeManualHtml(d.message || 'Search failed') +
+                            '</div>';
+                        return;
+                    }
+
+                    const list = Array.isArray(d.data) ? d.data : [];
+
+                    if (!list.length) {
+                        results.innerHTML =
+                            '<div style="padding:14px;color:#94a3b8;">No employee found</div>';
+                        return;
+                    }
+
+                    results.innerHTML = list.map(emp => `
+                        <button
+                            type="button"
+                            onclick='selectManualPunchEmployee(${JSON.stringify(emp)})'
+                            style="
+                                width:100%;
+                                display:block;
+                                text-align:left;
+                                padding:11px 14px;
+                                border:0;
+                                border-bottom:1px solid rgba(255,255,255,.06);
+                                background:transparent;
+                                color:white;
+                                cursor:pointer;
+                            "
+                            onmouseover="this.style.background='rgba(255,255,255,.07)'"
+                            onmouseout="this.style.background='transparent'"
+                        >
+                            <div style="font-weight:700;color:#fff;">
+                                ${escapeManualHtml(emp.employee_code)}
+                                <span style="font-weight:400;color:#64748b;"> — </span>
+                                ${escapeManualHtml(emp.full_name)}
+                            </div>
+
+                            <div style="font-size:11px;color:#94a3b8;margin-top:3px;">
+                                ${escapeManualHtml(emp.department || 'General')}
+                                ${emp.team ? ' • ' + escapeManualHtml(emp.team) : ''}
+                                ${emp.branch ? ' • ' + escapeManualHtml(emp.branch) : ''}
+                            </div>
+                        </button>
+                    `).join('');
+
+                } catch (err) {
+                    console.error('Manual employee search failed:', err);
+
+                    results.innerHTML =
+                        '<div style="padding:12px;color:#f87171;">Search request failed</div>';
+                }
+            }, 250);
+        }
+
+        function selectManualPunchEmployee(emp) {
+            const hidden = document.getElementById('punchEmployee');
+            const search = document.getElementById('punchEmployeeSearch');
+            const results = document.getElementById('punchEmployeeResults');
+            const selected = document.getElementById('punchSelectedEmployee');
+
+            if (hidden) hidden.value = emp.id || '';
+
+            if (search) {
+                search.value =
+                    `${emp.employee_code || ''} - ${emp.full_name || ''}`;
+            }
+
+            if (results) {
+                results.style.display = 'none';
+                results.innerHTML = '';
+            }
+
+            if (selected) {
+                selected.innerHTML = `
+                    <div style="font-size:11px;color:#86efac;
+                                text-transform:uppercase;font-weight:700;
+                                margin-bottom:5px;">
+                        Selected Employee
+                    </div>
+
+                    <div style="color:white;font-weight:700;">
+                        ${escapeManualHtml(emp.full_name || '')}
+                    </div>
+
+                    <div style="font-size:12px;color:#cbd5e1;margin-top:4px;">
+                        Biometric ID:
+                        <strong style="color:#f97316;">
+                            ${escapeManualHtml(emp.employee_code || '')}
+                        </strong>
+
+                        ${emp.team
+                            ? ' &nbsp; • &nbsp; Team: ' +
+                              escapeManualHtml(emp.team)
+                            : ''}
+
+                        ${emp.branch
+                            ? ' &nbsp; • &nbsp; ' +
+                              escapeManualHtml(emp.branch)
+                            : ''}
+                    </div>
+                `;
+
+                selected.style.display = 'block';
+            }
+        }
+
+        function showManualPunchModal() {
+            resetManualPunchEmployee();
+
+            const n = new Date();
+
+            document.getElementById('punchDateTime').value =
+                `${n.getFullYear()}-` +
+                `${String(n.getMonth() + 1).padStart(2, '0')}-` +
+                `${String(n.getDate()).padStart(2, '0')}T` +
+                `${String(n.getHours()).padStart(2, '0')}:` +
+                `${String(n.getMinutes()).padStart(2, '0')}`;
+
+            document.getElementById('manualPunchModal').classList.add('active');
+
+            setTimeout(() => {
+                document.getElementById('punchEmployeeSearch')?.focus();
+            }, 100);
+        }
+
+        function closeManualPunchModal() {
+            clearTimeout(manualPunchSearchTimer);
+            resetManualPunchEmployee();
+            document.getElementById('manualPunchModal').classList.remove('active');
+        }
+
+        async function submitManualPunch(e) {
+            e.preventDefault();
+
+            const id = document.getElementById('punchEmployee').value;
+            const dt = document.getElementById('punchDateTime').value;
+            const btn = document.getElementById('manualPunchSubmitBtn');
+
+            if (!id) {
+                showToast('Search and select an employee first', 'warning');
+                document.getElementById('punchEmployeeSearch')?.focus();
+                return;
+            }
+
+            if (!dt) {
+                showToast('Select attendance date and time', 'warning');
+                return;
+            }
+
+            const punch = dt.replace('T', ' ') + ':00';
+
+            const fd = new FormData();
+            fd.append('employee_id', id);
+            fd.append('punch_time', punch);
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML =
+                    '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            }
+
+            try {
+                const r = await fetch(
+                    'attendance-api.php?action=manualPunch',
+                    {
+                        method: 'POST',
+                        body: fd,
+                        credentials: 'include'
+                    }
+                );
+
+                const d = await r.json();
+
+                if (d.success) {
+                    showToast('Manual attendance recorded successfully', 'success');
+                    closeManualPunchModal();
+
+                    await loadLiveAttendance();
+                } else {
+                    showToast(
+                        'Error: ' + (d.message || 'Unable to record attendance'),
+                        'error'
+                    );
+                }
+
+            } catch (err) {
+                console.error('Manual punch submission failed:', err);
+                showToast('Submission failed', 'error');
+
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML =
+                        '<i class="fas fa-check"></i> Add Attendance';
+                }
+            }
+        }
+
         async function checkSuperAdminAccess() {
             try {
                 const res = await fetch('../api/portal_auth_check.php');
@@ -1733,9 +2107,74 @@
                 if (d.success && d.data && d.data.portal_role === 'super_admin') {
                     const btn = document.getElementById('syncDevicesBtn');
                     if (btn) btn.style.display = 'inline-flex';
+
+                    const fetchBtn = document.getElementById('fetchAttendanceNowBtn');
+                    if (fetchBtn) fetchBtn.style.display = 'inline-flex';
                 }
             } catch (e) { console.error(e); }
         }
+        async function fetchAttendanceNow() {
+            const btn = document.getElementById('fetchAttendanceNowBtn');
+
+            if (!btn) return;
+
+            const originalHtml = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching...';
+
+            showToast('Fetching attendance from Main & Commercial devices...', 'warning');
+
+            try {
+                const response = await fetch('attendance-api.php?action=fetchAttendanceNow', {
+                    method: 'POST',
+                    cache: 'no-store'
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.message || 'Attendance fetch failed');
+                }
+
+                if (data.data && data.data.processing) {
+                    showToast('Attendance sync started. Refreshing shortly...', 'info');
+
+                    setTimeout(async () => {
+                        await loadLiveAttendance();
+                        await loadFilterOptions();
+                    }, 10000);
+                } else {
+                    let message = 'Attendance fetched successfully';
+
+                    if (data.data) {
+                        const main = data.data.main_branch || '';
+                        const commercial = data.data.commercial_branch || '';
+
+                        if (main || commercial) {
+                            message += ` · Main: ${main} · Commercial: ${commercial}`;
+                        }
+                    }
+
+                    showToast(message, 'success');
+
+                    await loadLiveAttendance();
+                    await loadFilterOptions();
+                    await loadEmployeesForManualPunch();
+
+                    countdownSeconds = 15 * 60;
+                }
+
+            } catch (err) {
+                console.error('Attendance fetch failed:', err);
+                showToast('Fetch failed: ' + err.message, 'error');
+
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
+
         function triggerLiveDeviceSync() {
             document.getElementById('zkConsoleLog').textContent = 'Terminal ready... Select a command option and click Execute Sync.';
             document.getElementById('zkSyncModal').classList.add('active');

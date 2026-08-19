@@ -5,7 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/leave_helpers.php';
 
-ensure_app_schema($conn);
+// Production: schema migrations are run manually during deployment.
 
 require_once __DIR__ . '/../includes/session_user.php';
 $user = resolve_logged_in_user($conn);

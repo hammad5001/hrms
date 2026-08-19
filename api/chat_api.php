@@ -22,6 +22,15 @@ if ($action !== '' && !chat_rate_limit_check($me_id, $action)) {
     chat_json(false, null, 'Too many requests. Please wait a moment.');
 }
 
+/*
+ * Authentication and session-based rate limiting are complete.
+ * Release the PHP session lock so parallel HRMS API requests
+ * from the same logged-in user do not wait behind this request.
+ */
+if (session_status() === PHP_SESSION_ACTIVE) {
+    session_write_close();
+}
+
 // Do NOT read php://input on multipart uploads — it empties $_POST / $_FILES on some PHP setups
 $input = [];
 $contentType = $_SERVER['CONTENT_TYPE'] ?? $_SERVER['HTTP_CONTENT_TYPE'] ?? '';

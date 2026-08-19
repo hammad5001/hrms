@@ -22,7 +22,7 @@ function ensure_app_schema(mysqli $conn): void {
 
     $queries = [
         "CREATE TABLE IF NOT EXISTS `employee_payroll_meta` (
-            `employee_code` VARCHAR(32) NOT NULL PRIMARY KEY,
+            `employee_code` VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL PRIMARY KEY,
             `basic_salary` DECIMAL(12,2) DEFAULT 50000,
             `punctuality_enabled` TINYINT(1) DEFAULT 1,
             `punctuality_amount` DECIMAL(12,2) DEFAULT 5000.00,
@@ -39,7 +39,7 @@ function ensure_app_schema(mysqli $conn): void {
 
         "CREATE TABLE IF NOT EXISTS `payroll_adjustments` (
             `id` INT AUTO_INCREMENT PRIMARY KEY,
-            `employee_code` VARCHAR(32) NOT NULL,
+            `employee_code` VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
             `month` CHAR(7) NOT NULL,
             `adj_type` VARCHAR(40) NOT NULL,
             `amount` DECIMAL(12,2) DEFAULT 0,
@@ -55,7 +55,7 @@ function ensure_app_schema(mysqli $conn): void {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
 
         "CREATE TABLE IF NOT EXISTS `payroll_advances` (
-            `employee_code` VARCHAR(32) NOT NULL PRIMARY KEY,
+            `employee_code` VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL PRIMARY KEY,
             `total_amount` DECIMAL(12,2) NOT NULL DEFAULT 0,
             `per_month` DECIMAL(12,2) NOT NULL DEFAULT 0,
             `paid_amount` DECIMAL(12,2) NOT NULL DEFAULT 0,
@@ -66,7 +66,7 @@ function ensure_app_schema(mysqli $conn): void {
 
         "CREATE TABLE IF NOT EXISTS `employee_leaves` (
             `id` INT AUTO_INCREMENT PRIMARY KEY,
-            `employee_code` VARCHAR(32) NOT NULL,
+            `employee_code` VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
             `leave_date` DATE NOT NULL,
             `leave_type` VARCHAR(40) DEFAULT 'approved',
             `reason` TEXT,
@@ -119,7 +119,7 @@ function ensure_app_schema(mysqli $conn): void {
         "CREATE TABLE IF NOT EXISTS `leave_requests` (
             `id` INT AUTO_INCREMENT PRIMARY KEY,
             `user_id` INT NOT NULL,
-            `employee_code` VARCHAR(32) NOT NULL,
+            `employee_code` VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
             `employee_name` VARCHAR(150) NOT NULL,
             `team` VARCHAR(80) DEFAULT NULL,
             `department` VARCHAR(120) DEFAULT NULL,
@@ -163,7 +163,7 @@ function ensure_app_schema(mysqli $conn): void {
         "CREATE TABLE IF NOT EXISTS `employee_reporting` (
             `id` INT AUTO_INCREMENT PRIMARY KEY,
             `employee_user_id` INT NOT NULL,
-            `employee_code` VARCHAR(32) DEFAULT NULL,
+            `employee_code` VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
             `employee_name` VARCHAR(150) DEFAULT NULL,
             `manager_user_id` INT NOT NULL,
             `manager_code` VARCHAR(32) DEFAULT NULL,
@@ -204,7 +204,7 @@ function ensure_app_schema(mysqli $conn): void {
 
         "CREATE TABLE IF NOT EXISTS `employee_leave_policy_map` (
             `id` INT AUTO_INCREMENT PRIMARY KEY,
-            `employee_code` VARCHAR(32) NOT NULL,
+            `employee_code` VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
             `policy_id` INT NOT NULL,
             `company_branch` VARCHAR(32) NOT NULL DEFAULT 'main',
             `assigned_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -215,7 +215,7 @@ function ensure_app_schema(mysqli $conn): void {
 
         "CREATE TABLE IF NOT EXISTS `leave_balance` (
             `id` INT AUTO_INCREMENT PRIMARY KEY,
-            `employee_code` VARCHAR(32) NOT NULL,
+            `employee_code` VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
             `company_branch` VARCHAR(32) NOT NULL DEFAULT 'main',
             `casual_leaves` DECIMAL(8,1) NOT NULL DEFAULT 0,
             `sick_leaves` DECIMAL(8,1) NOT NULL DEFAULT 0,
@@ -567,9 +567,9 @@ function ensure_productivity_schema(mysqli $conn): void {
     }
 
     // Collation alignment for users & employees employee_code columns
-    @$conn->query("ALTER TABLE `users` MODIFY COLUMN `employee_code` VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL");
-    @$conn->query("ALTER TABLE `employees` MODIFY COLUMN `employee_code` VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL");
-    @$conn->query("ALTER TABLE `employees_commercial` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+
+
+
 
     // Seed existing teams from users & employees if teams table is newly created / empty
     $teamChk = $conn->query("SELECT COUNT(*) FROM `teams`");

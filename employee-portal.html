@@ -10,7 +10,7 @@
     <link rel="apple-touch-icon" href="assets/images/balitech-favicon-192.png?v=5">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
+    <link rel="stylesheet" href="css/portal-ui-polish.css?v=qa-clean-2">
     <link rel="stylesheet" href="css/employee-hrms.css?v=63">
     <link rel="stylesheet" href="css/employee-performance.css?v=6">
     <link rel="stylesheet" href="css/dropdown-fix.css?v=3">
@@ -1961,7 +1961,7 @@
     <script charset="utf-8" src="js/portal-session-guard.js"></script>
     <script src="js/portal-notify-sound.js?v=1"></script>
     <script charset="utf-8" src="js/employee-hrms.js?v=76"></script>
-    <script charset="utf-8" src="js/employee-performance.js?v=4"></script>
+    <script charset="utf-8" src="js/employee-performance.js?v=1786990797"></script>
     <script charset="utf-8" src="js/portal-chat-fab.js"></script>
     <!-- Register new productivity views so showView() recognises them -->
     <script>
@@ -1977,6 +1977,7 @@
                 ESS_DEFAULT_NAV['feeds']        = 'nav-tab-feeds';
                 ESS_DEFAULT_NAV['timelogs']     = 'nav-tab-timelogs';
                 ESS_DEFAULT_NAV['timesheets']   = 'nav-tab-timesheets';
+        }
         });
 
         function estimateTaxForInput() {
@@ -2244,5 +2245,317 @@
             setTimeout(() => { t.remove(); }, 3000);
         }
     </script>
+
+<!-- DAILY REPORT FORM ORDER PATCH START -->
+<script>
+(function () {
+    if (window.__dailyReportFormOrderPatchInstalled) return;
+    window.__dailyReportFormOrderPatchInstalled = true;
+
+    function cleanText(el) {
+        return (el && el.textContent ? el.textContent : "")
+            .replace(/\s+/g, " ")
+            .trim()
+            .toUpperCase();
+    }
+
+    function findSmallestContainer(requiredTexts) {
+        var nodes = Array.from(document.querySelectorAll("div, section, form"));
+        var matches = nodes.filter(function (el) {
+            var txt = cleanText(el);
+            return requiredTexts.every(function (t) {
+                return txt.includes(t);
+            });
+        });
+
+        matches.sort(function (a, b) {
+            return cleanText(a).length - cleanText(b).length;
+        });
+
+        return matches[0] || null;
+    }
+
+    function reorderDailyReportLayout() {
+        /*
+          Required:
+          - Agent Console / Top 5 / Goal Target should stay above
+          - Log Medicare Transfer form should move below
+          - No ID/API/functionality changes
+        */
+
+        var formBlock = findSmallestContainer([
+            "LOG MEDICARE TRANSFER",
+            "CUX FIRST NAME",
+            "ZIPCODE",
+            "AGE"
+        ]);
+
+        if (!formBlock) return false;
+
+        var root = formBlock.parentElement;
+
+        while (root && root !== document.body) {
+            var txt = cleanText(root);
+
+            if (
+                txt.includes("AGENT CONSOLE") &&
+                (
+                    txt.includes("TOP 5 AGENTS TODAY") ||
+                    txt.includes("GOAL TARGET")
+                )
+            ) {
+                break;
+            }
+
+            root = root.parentElement;
+        }
+
+        if (!root || root === document.body) return false;
+
+        if (formBlock.dataset.dailyReportMoved === "1") return true;
+
+        formBlock.style.marginTop = "28px";
+        root.appendChild(formBlock);
+        formBlock.dataset.dailyReportMoved = "1";
+
+        return true;
+    }
+
+    window.reorderDailyReportLayout = reorderDailyReportLayout;
+
+    document.addEventListener("DOMContentLoaded", function () {
+        [200, 700, 1500, 3000].forEach(function (delay) {
+            setTimeout(reorderDailyReportLayout, delay);
+        });
+    });
+
+    document.addEventListener("click", function () {
+        setTimeout(reorderDailyReportLayout, 500);
+        setTimeout(reorderDailyReportLayout, 1500);
+    }, true);
+
+    setInterval(reorderDailyReportLayout, 4000);
+})();
+</script>
+<!-- DAILY REPORT FORM ORDER PATCH END -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script id="HRMS_REFRESH_STAY_ON_ACTIVE_MENU_PATCH">
+(function () {
+  const STORAGE_KEY = "hrms_employee_portal_active_menu";
+
+  const menuMap = [
+    { key: "dashboard", labels: ["Dashboard", "Home", "Overview"] },
+    { key: "daily-report", labels: ["Daily Report"] },
+    { key: "my-performance", labels: ["My Performance", "Performance"] },
+    { key: "attendance", labels: ["Attendance"] },
+    { key: "leaves", labels: ["Leaves"] },
+    { key: "time-tracker", labels: ["Time Tracker"] },
+    { key: "payroll", labels: ["Payroll"] },
+    { key: "payslips", labels: ["Payslips"] },
+    { key: "files", labels: ["Files"] },
+    { key: "chat", labels: ["Chat"] },
+    { key: "calendar", labels: ["Calendar"] },
+    { key: "onboarding", labels: ["Onboarding"] }
+  ];
+
+  function cleanText(value) {
+    return (value || "").replace(/\s+/g, " ").trim().toLowerCase();
+  }
+
+  function keyFromText(text) {
+    const t = cleanText(text);
+    for (const item of menuMap) {
+      for (const label of item.labels) {
+        const l = cleanText(label);
+        if (t === l || t.includes(l)) return item.key;
+      }
+    }
+    return "";
+  }
+
+  function findMenuElement(key) {
+    const item = menuMap.find(x => x.key === key);
+    if (!item) return null;
+
+    const selectors = [
+      "a",
+      "button",
+      "[role='button']",
+      "[onclick]",
+      "[data-page]",
+      "[data-section]",
+      ".nav-link",
+      ".sidebar-item",
+      ".menu-item",
+      ".menu-link"
+    ].join(",");
+
+    const nodes = Array.from(document.querySelectorAll(selectors));
+
+    for (const label of item.labels) {
+      const wanted = cleanText(label);
+
+      let exact = nodes.find(el => cleanText(el.innerText || el.textContent) === wanted);
+      if (exact) return exact;
+
+      let partial = nodes.find(el => cleanText(el.innerText || el.textContent).includes(wanted));
+      if (partial) return partial;
+    }
+
+    return null;
+  }
+
+  document.addEventListener("click", function (e) {
+    const el = e.target.closest("a,button,[role='button'],[onclick],[data-page],[data-section],.nav-link,.sidebar-item,.menu-item,.menu-link");
+    if (!el) return;
+
+    const key = keyFromText(el.innerText || el.textContent);
+    if (!key) return;
+
+    localStorage.setItem(STORAGE_KEY, key);
+    history.replaceState(null, "", "#" + key);
+  }, true);
+
+  function restoreLastMenu() {
+    const hashKey = (location.hash || "").replace("#", "").trim();
+    const savedKey = hashKey || localStorage.getItem(STORAGE_KEY);
+
+    if (!savedKey || savedKey === "dashboard") return;
+
+    const el = findMenuElement(savedKey);
+    if (!el) return;
+
+    el.click();
+    history.replaceState(null, "", "#" + savedKey);
+  }
+
+  function delayedRestore() {
+    setTimeout(restoreLastMenu, 250);
+    setTimeout(restoreLastMenu, 800);
+    setTimeout(restoreLastMenu, 1500);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", delayedRestore);
+  } else {
+    delayedRestore();
+  }
+
+  window.addEventListener("load", delayedRestore);
+})();
+</script>
+
+<script id="DIALER_TOP_5_AGENTS_REALTIME_PATCH">
+(function () {
+  if (window.__dialerTop5PatchStarted) return;
+  window.__dialerTop5PatchStarted = true;
+
+  const API_URL = "/api/get_dialer_top_agents_today.php";
+  const HOST_ATTR = "data-dialer-top5-host";
+
+  function esc(v) {
+    return String(v ?? "").replace(/[&<>"']/g, function (m) {
+      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[m];
+    });
+  }
+
+  function findTopAgentsCard() {
+    const existing = document.querySelector("[" + HOST_ATTR + "='1']");
+    if (existing) return existing;
+
+    const nodes = Array.from(document.querySelectorAll("div,section,aside"))
+      .filter(el => !el.closest(".dialer-top5-live-root"))
+      .filter(el => /TOP\s*5\s*AGENTS\s*TODAY/i.test(el.innerText || ""))
+      .map(el => {
+        const r = el.getBoundingClientRect();
+        return { el, area: r.width * r.height, w: r.width, h: r.height };
+      })
+      .filter(x => x.w >= 250 && x.w <= 700 && x.h >= 120);
+
+    nodes.sort((a, b) => a.area - b.area);
+    const card = nodes[0]?.el || null;
+
+    if (card) card.setAttribute(HOST_ATTR, "1");
+    return card;
+  }
+
+  function renderRows(card, agents) {
+    card.setAttribute(HOST_ATTR, "1");
+
+    const rows = agents.length ? agents.map((a, i) => {
+      return `
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.07);">
+          <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+            <span style="width:26px;height:26px;border-radius:8px;background:rgba(243,149,41,.22);color:#F39529;display:flex;align-items:center;justify-content:center;font-weight:900;">${i + 1}</span>
+            <div style="min-width:0;">
+              <div style="font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(a.agent_name)}</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.55);font-weight:800;">${esc(a.employee_code)} · USA Today</div>
+            </div>
+          </div>
+          <div style="font-weight:900;color:#8c8cff;">${Number(a.total_transfers || 0)}</div>
+        </div>
+      `;
+    }).join("") : `
+      <div style="padding:18px;color:rgba(255,255,255,.6);font-weight:800;">No dialer transfers today</div>
+    `;
+
+    card.innerHTML = `
+      <div class="dialer-top5-live-root" style="width:100%;overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.08);">
+          <div style="font-weight:900;color:#fff;">🏆 TOP 5 AGENTS TODAY</div>
+          <div style="font-size:11px;color:#20e0b0;font-weight:900;">Sales</div>
+        </div>
+        <div>${rows}</div>
+      </div>
+    `;
+  }
+
+  async function loadTopAgents() {
+    const card = findTopAgentsCard();
+    if (!card) return;
+
+    const res = await fetch(API_URL + "?_=" + Date.now(), {
+      credentials: "same-origin",
+      cache: "no-store"
+    });
+
+    const data = await res.json();
+    if (!data || !data.success) return;
+
+    renderRows(card, data.agents || []);
+  }
+
+  function start() {
+    loadTopAgents();
+    setTimeout(loadTopAgents, 1000);
+
+    if (window.__dialerTop5Interval) clearInterval(window.__dialerTop5Interval);
+    window.__dialerTop5Interval = setInterval(loadTopAgents, 30000);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start);
+  } else {
+    start();
+  }
+})();
+</script>
+
 </body>
 </html>

@@ -36,8 +36,8 @@ $conn->set_charset('utf8mb4');
 
 require_once __DIR__ . '/../includes/company_branches.php';
 require_once __DIR__ . '/../includes/db_schema.php';
-ensure_company_branch_schema($conn);
-ensure_app_schema($conn);
+// Disabled on web requests: run schema migration manually during deployment.
+// Disabled on web requests: run schema migration manually during deployment.
 
 function isAuthenticated() {
     return isset($_SESSION['user_id']) && (int)$_SESSION['user_id'] > 0;

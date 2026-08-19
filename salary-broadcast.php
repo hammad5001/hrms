@@ -405,7 +405,7 @@ if ($stmt = $conn->prepare("SELECT full_name FROM users WHERE id = ?")) {
             <div class="upload-zone" id="dropzone" onclick="document.getElementById('fileInput').click()">
                 <i class="fas fa-cloud-upload-alt"></i>
                 <h3>Click or drag Excel file to upload</h3>
-                <p>Supports .xlsx files with columns: Employee Name, Sudo Name, Gross Salary, Net Payable, etc.</p>
+                <p>Supports official Finance template: B-ID, Employees Name, Gross Salary, Total Deduction Ept Tax, Tax and Final Net Salary.</p>
                 <input type="file" id="fileInput" accept=".xlsx, .xls" style="display: none;">
             </div>
 
@@ -596,90 +596,240 @@ if ($stmt = $conn->prepare("SELECT full_name FROM users WHERE id = ?")) {
                     });
                 });
 
-                // Calculate Gross Salary and Total Deductions dynamically
+                /*
+                 * New official Finance Salary Template mapping.
+                 *
+                 * Keep all uploaded columns exactly as they are, but add the
+                 * canonical keys used by the existing payslip system.
+                 */
                 if (parsedData.length > 0) {
-                    const firstRow = parsedData[0];
-                    const getCol = (keyParts) => Object.keys(firstRow).find(k => keyParts.some(p => k.toLowerCase().includes(p)));
-                    
-                    const basicCol = getCol(['basic salary', 'basic']);
-                    const punctualityCol = getCol(['punctuality', 'punctual']);
-                    const grossCol = getCol(['gross salary', 'gross']) || 'Gross Salary';
-                    const deductCol = getCol(['total deductions', 'deduction', 'deduct']) || 'Total Deductions';
-                    const netCol = getCol(['net payable', 'net salary', 'net']) || 'Net Payable';
 
-                    const getFloat = (val) => {
-                        if (val === undefined || val === null) return 0;
-                        const clean = String(val).replace(/,/g, '').trim();
-                        const parsed = parseFloat(clean);
-                        return isNaN(parsed) ? 0 : parsed;
+                    const normalizeHeader = (value) => String(value || '')
+                        .trim()
+                        .toLowerCase()
+                        .replace(/[_\.]+/g, ' ')
+                        .replace(/\s+/g, ' ');
+
+                    const findExactCol = (row, aliases) => {
+                        const keys = Object.keys(row);
+
+                        for (const alias of aliases) {
+                            const wanted = normalizeHeader(alias);
+
+                            const found = keys.find(
+                                key => normalizeHeader(key) === wanted
+                            );
+
+                            if (found) return found;
+                        }
+
+                        return null;
                     };
 
-                    parsedData = parsedData.map(row => {
-                        // 1. Calculate Gross if Basic + Punctuality exist
-                        if (basicCol && punctualityCol) {
-                            const basicVal = getFloat(row[basicCol]);
-                            const punctVal = getFloat(row[punctualityCol]);
-                            const calculatedGross = basicVal + punctVal;
-                            if (calculatedGross > 0) {
-                                row[grossCol] = calculatedGross;
-                            }
+                    parsedData = parsedData.map(sourceRow => {
+
+                        /*
+                         * Preserve every field from new temp.xlsx.
+                         */
+                        const row = { ...sourceRow };
+
+                        const biometricCol = findExactCol(sourceRow, [
+                            'B-ID',
+                            'B ID',
+                            'Biometric ID',
+                            'Employee Code',
+                            'Emp ID'
+                        ]);
+
+                        const employeeNameCol = findExactCol(sourceRow, [
+                            'Employees Name',
+                            'Employee Name'
+                        ]);
+
+                        const basicCol = findExactCol(sourceRow, [
+                            'Basic Salary'
+                        ]);
+
+                        const punctualityCol = findExactCol(sourceRow, [
+                            'Punctuality'
+                        ]);
+
+                        const grossCol = findExactCol(sourceRow, [
+                            'Gross Salary'
+                        ]);
+
+                        /*
+                         * IMPORTANT:
+                         * This exact column is Total Deduction excluding Tax.
+                         * Do NOT accidentally select Late Coming Deduction,
+                         * HD Deduction, SD Deduction, etc.
+                         */
+                        const deductionCol = findExactCol(sourceRow, [
+                            'Total Deduction Ept Tax',
+                            'Total Deduction Except Tax',
+                            'Total Deductions'
+                        ]);
+
+                        const subNetCol = findExactCol(sourceRow, [
+                            'SUB - Net Salary',
+                            'SUB Net Salary'
+                        ]);
+
+                        const taxCol = findExactCol(sourceRow, [
+                            'Tax'
+                        ]);
+
+                        /*
+                         * New template final payable salary.
+                         * FINAL NET SALARY always has priority.
+                         */
+                        const finalNetCol = findExactCol(sourceRow, [
+                            'Final Net Salary',
+                            'Net Payable'
+                        ]);
+
+                        /*
+                         * Add old/canonical keys so existing payslip code
+                         * continues working without requiring Excel changes.
+                         */
+                        if (biometricCol) {
+                            row['Biometric ID'] =
+                                String(sourceRow[biometricCol] ?? '').trim();
                         }
 
-                        // 2. Calculate Total Deductions = Gross - Net if deductions are empty/0 and Gross > Net
-                        const grossVal = getFloat(row[grossCol]);
-                        const netVal = getFloat(row[netCol]);
-                        const currentDeduct = getFloat(row[deductCol]);
-
-                        if ((currentDeduct === 0 || !row[deductCol]) && grossVal > netVal) {
-                            row[deductCol] = grossVal - netVal;
+                        if (employeeNameCol) {
+                            row['Employee Name'] =
+                                String(sourceRow[employeeNameCol] ?? '').trim();
                         }
-                        
+
+                        if (basicCol) {
+                            row['Basic Salary'] = sourceRow[basicCol];
+                        }
+
+                        if (punctualityCol) {
+                            row['Punctuality'] = sourceRow[punctualityCol];
+                        }
+
+                        /*
+                         * Use sheet Gross Salary exactly.
+                         * Do NOT recalculate Basic + Punctuality.
+                         */
+                        if (grossCol) {
+                            row['Gross Salary'] = sourceRow[grossCol];
+                        }
+
+                        if (deductionCol) {
+                            row['Total Deductions'] =
+                                sourceRow[deductionCol];
+                        }
+
+                        if (subNetCol) {
+                            row['SUB - Net Salary'] =
+                                sourceRow[subNetCol];
+                        }
+
+                        if (taxCol) {
+                            row['Tax'] = sourceRow[taxCol];
+                        }
+
+                        /*
+                         * This is the critical mapping for employee payslip:
+                         *
+                         * Final Net Salary -> Net Payable
+                         */
+                        if (finalNetCol) {
+                            row['Final Net Salary'] =
+                                sourceRow[finalNetCol];
+
+                            row['Net Payable'] =
+                                sourceRow[finalNetCol];
+                        }
+
                         return row;
                     });
                 }
-                
+
                 renderPreview(parsedData);
             };
             reader.readAsBinaryString(file);
         }
 
         function renderPreview(data) {
-            const tbody = document.querySelector('#previewTable tbody');
+            const table = document.getElementById('previewTable');
+            const thead = table.querySelector('thead');
+            const tbody = table.querySelector('tbody');
+
+            thead.innerHTML = '';
             tbody.innerHTML = '';
-            
-            if (data.length === 0) {
+
+            if (!data || data.length === 0) {
                 alert("No valid data found in the sheet.");
                 return;
             }
 
-            // Figure out column names dynamically in case they slightly differ
-            const firstRow = data[0];
-            const getCol = (keyParts) => Object.keys(firstRow).find(k => keyParts.some(p => k.toLowerCase().includes(p)));
-            
-            const empCodeCol = getCol(['biometric id', 'employee code', 'emp id', 'sr. no']) || Object.keys(firstRow)[0];
-            const nameCol = getCol(['employee name', 'name']) || Object.keys(firstRow)[1];
-            const grossCol = getCol(['gross salary', 'gross']) || '';
-            const deductCol = getCol(['total deductions', 'deduction']) || '';
-            const netCol = getCol(['net payable', 'net salary']) || '';
+            const escapePreview = value => String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
 
-            data.slice(0, 50).forEach(row => { // Show up to 50 for preview
+            // Keep the same order as uploaded Excel.
+            // Ignore only genuinely blank / generated blank headers.
+            const headers = Object.keys(data[0]).filter(key => {
+                const clean = String(key ?? '').trim();
+
+                if (!clean) return false;
+                if (/^_\d+$/.test(clean)) return false;
+
+                return true;
+            });
+
+            const headerRow = document.createElement('tr');
+
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                th.style.whiteSpace = 'nowrap';
+                headerRow.appendChild(th);
+            });
+
+            thead.appendChild(headerRow);
+
+            // Show first 50 employees, but ALL columns.
+            data.slice(0, 50).forEach(row => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${row[empCodeCol] || '-'}</td>
-                    <td>${row[nameCol] || '-'}</td>
-                    <td>${grossCol ? row[grossCol] : '-'}</td>
-                    <td>${deductCol ? row[deductCol] : '-'}</td>
-                    <td><strong>${netCol ? row[netCol] : '-'}</strong></td>
-                `;
+
+                headers.forEach(header => {
+                    const td = document.createElement('td');
+                    const value = row[header];
+
+                    td.innerHTML =
+                        value === undefined ||
+                        value === null ||
+                        String(value).trim() === ''
+                            ? '<span style="color:var(--text-muted);">—</span>'
+                            : escapePreview(value);
+
+                    td.style.whiteSpace = 'nowrap';
+                    tr.appendChild(td);
+                });
+
                 tbody.appendChild(tr);
             });
 
-            document.getElementById('recordCount').innerText = `${data.length} records found`;
+            document.getElementById('recordCount').innerText =
+                `${data.length} records found · ${headers.length} columns`;
+
             document.getElementById('previewContainer').style.display = 'block';
             document.getElementById('broadcastBtn').disabled = false;
             document.getElementById('revertBtn').style.display = 'inline-flex';
             document.getElementById('dropzone').style.borderColor = 'var(--secondary)';
-            document.getElementById('dropzone').querySelector('h3').innerText = fileInput.files[0] ? fileInput.files[0].name : 'File Loaded';
+
+            document.getElementById('dropzone').querySelector('h3').innerText =
+                fileInput.files[0]
+                    ? fileInput.files[0].name
+                    : 'File Loaded';
         }
 
         function revertSheet() {
@@ -780,35 +930,89 @@ if ($stmt = $conn->prepare("SELECT full_name FROM users WHERE id = ?")) {
         }
 
         function downloadTemplate() {
-            // Define headers and sample rows for the Excel template
-            const templateData = [
-                {
-                    "Biometric ID": "101",
-                    "Employee Name": "John Doe",
-                    "Basic Salary": 50000,
-                    "Punctuality": 5000,
-                    "Gross Salary": 55000,
-                    "Total Deductions": 2000,
-                    "Net Payable": 53000
-                },
-                {
-                    "Biometric ID": "102",
-                    "Employee Name": "Jane Smith",
-                    "Basic Salary": 60000,
-                    "Punctuality": 0,
-                    "Gross Salary": 60000,
-                    "Total Deductions": 0,
-                    "Net Payable": 60000
-                }
+
+            /*
+             * Official Salary Broadcast template.
+             * Exact column structure of the new temp.xlsx.
+             */
+            const headers = [
+                "B-ID",
+                "Employees Name",
+                "Sudo Names",
+                "Designation",
+                "Campaign",
+                "CNIC#",
+                "Contact No.",
+                "Branch Code",
+                "Account Nos",
+                "Account Title",
+                "Bank Name",
+                "Appointment Date",
+                "Basic Salary",
+                "Punctuality",
+                "Total Salary",
+                "Salary Per Day",
+                "Num of Days",
+                "Present",
+                "Leave",
+                "Absent",
+                "Total No of W.Days",
+                "Punch Reward",
+                "Bonus",
+                "TA/DA",
+                "Arrears",
+                "Extra Day",
+                "Extra Day pay",
+                "Late Coming",
+                "Late Coming Deduction",
+                "HD",
+                "HD Deduction",
+                "SD",
+                "SD Deduction",
+                "NCNS",
+                "NCNS Deduction",
+                "Docs",
+                "Missed Punchin",
+                "Missed Punchin Deduction",
+                "Transport Deduction",
+                "Advance Salary",
+                "Absent Deduction",
+                "Total Addition",
+                "Gross Salary",
+                "Total Deduction Ept Tax",
+                "SUB - Net Salary",
+                "Tax",
+                "Final Net Salary",
+                "Remarks",
+                "Comments",
+                "",
+                "",
+                "",
+                "Annual Salary",
+                "Annual Tax"
             ];
 
-            // Create worksheet and workbook using SheetJS
-            const worksheet = XLSX.utils.json_to_sheet(templateData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Salary Template");
+            const worksheet = XLSX.utils.aoa_to_sheet([headers]);
 
-            // Write and download file
-            XLSX.writeFile(workbook, "Salary_Slip_Import_Template.xlsx");
+            worksheet['!cols'] = headers.map(header => ({
+                wch: Math.max(
+                    14,
+                    String(header || '').length + 3
+                )
+            }));
+
+            const workbook = XLSX.utils.book_new();
+
+            XLSX.utils.book_append_sheet(
+                workbook,
+                worksheet,
+                "Salary Template"
+            );
+
+            XLSX.writeFile(
+                workbook,
+                "Salary_Slip_Import_Template.xlsx"
+            );
         }
     </script>
 </body>

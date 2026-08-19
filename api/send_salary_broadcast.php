@@ -43,7 +43,7 @@ foreach ($salaryData as $row) {
         // Match IDs like 'B ID', 'Biometric ID', 'Emp ID', 'Sr ID'
         if (empty($empCode) && (strpos($kLower, 'id') !== false || strpos($kLower, 'code') !== false || strpos($kLower, 'sr') !== false)) {
             // Avoid matching 'Account ID' or similar if they exist, stick to expected variants
-            if (in_array($kLower, ['b id', 'biometric id', 'employee code', 'emp id', 'sr. no', 'sr id'])) {
+            if (in_array($kLower, ['b id', 'b-id', 'bid', 'b_id', 'biometric id', 'employee code', 'emp id', 'sr. no', 'sr id'])) {
                 $empCode = $val;
             }
         }
@@ -86,18 +86,114 @@ foreach ($salaryData as $row) {
     }
     $stmt->close();
 
-    // Identify Gross and Net Salary for DB
+    /*
+     * New Finance template salary mapping.
+     *
+     * Final Net Salary is the amount that must appear on employee payslip.
+     */
     $grossCol = '';
-    $netCol = '';
+    $finalNetCol = '';
+    $totalDeductionCol = '';
+
     foreach (array_keys($row) as $col) {
-        if (stripos($col, 'gross') !== false) $grossCol = $col;
-        if (stripos($col, 'net payable') !== false || stripos($col, 'net salary') !== false) $netCol = $col;
+
+        $key = strtolower(trim((string)$col));
+
+        if ($key === 'gross salary') {
+            $grossCol = $col;
+        }
+
+        if ($key === 'final net salary') {
+            $finalNetCol = $col;
+        }
+
+        if (
+            $key === 'total deduction ept tax'
+            || $key === 'total deduction except tax'
+            || $key === 'total deductions'
+        ) {
+            $totalDeductionCol = $col;
+        }
     }
 
-    $gross_salary = $grossCol && isset($row[$grossCol]) ? (float)str_replace(',', '', $row[$grossCol]) : 0.00;
-    $net_salary = $netCol && isset($row[$netCol]) ? (float)str_replace(',', '', $row[$netCol]) : 0.00;
+    /*
+     * Backward compatibility.
+     * Use Net Payable only if Final Net Salary doesn't exist.
+     */
+    if ($finalNetCol === '') {
 
-    $json_data = json_encode($row);
+        foreach (array_keys($row) as $col) {
+
+            $key = strtolower(trim((string)$col));
+
+            if ($key === 'net payable') {
+                $finalNetCol = $col;
+                break;
+            }
+        }
+    }
+
+    $moneyValue = static function ($value): float {
+
+        if ($value === null || $value === '') {
+            return 0.0;
+        }
+
+        $clean = preg_replace(
+            '/[^0-9.\-]/',
+            '',
+            (string)$value
+        );
+
+        return is_numeric($clean)
+            ? (float)$clean
+            : 0.0;
+    };
+
+    $gross_salary = (
+        $grossCol !== ''
+        && array_key_exists($grossCol, $row)
+    )
+        ? $moneyValue($row[$grossCol])
+        : 0.00;
+
+    $net_salary = (
+        $finalNetCol !== ''
+        && array_key_exists($finalNetCol, $row)
+    )
+        ? $moneyValue($row[$finalNetCol])
+        : 0.00;
+
+    /*
+     * Canonical fields expected by old employee payslip renderer.
+     */
+    if ($empCode !== '') {
+        $row['Biometric ID'] = $empCode;
+    }
+
+    if ($empName !== '') {
+        $row['Employee Name'] = $empName;
+    }
+
+    $row['Gross Salary'] = $gross_salary;
+
+    if ($totalDeductionCol !== '') {
+        $row['Total Deductions'] =
+            $row[$totalDeductionCol];
+    }
+
+    /*
+     * CRITICAL:
+     * Existing payslip expects Net Payable.
+     */
+    $row['Net Payable'] = $net_salary;
+    $row['Final Net Salary'] = $net_salary;
+
+    $json_data = json_encode(
+        $row,
+        JSON_UNESCAPED_UNICODE |
+        JSON_UNESCAPED_SLASHES
+    );
 
     // Save to DB
     if ($sendPortal || $sendEmail) {

@@ -10,7 +10,7 @@ if (!isset($_SESSION['user_id']) || ($role !== 'super_admin' && $role !== 'qa'))
 
 require_once '../config.php';
 require_once '../includes/db_schema.php';
-ensure_app_schema($conn);
+// Production: schema migrations are run manually during deployment.
 
 $input = json_decode(file_get_contents('php://input'), true);
 

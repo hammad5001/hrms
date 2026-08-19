@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/../includes/db_schema.php';
-ensure_app_schema($conn);
+// Production: schema migrations are run manually during deployment.
 
 // Check if user is logged in and has super admin privileges
 if (!isAuthenticated() || !isSuperRecruiter()) {

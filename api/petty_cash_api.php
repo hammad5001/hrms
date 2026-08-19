@@ -29,7 +29,7 @@ if (!in_array($portalRole, $PETTY_CASH_ROLES, true)) {
     respond(false, null, 'Finance access required');
 }
 
-ensure_app_schema($conn);
+// Production: schema migrations are run manually during deployment.
 
 // ── Constants ───────────────────────────────────────────────────────────────
 define('PC_CATEGORIES', [

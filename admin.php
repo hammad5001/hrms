@@ -1357,7 +1357,7 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
         <!-- Control Panel -->
         <div class="control-panel">
             <div class="filter-row">
-                <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Search by name, email, or employee ID..." onkeyup="filterTable()"></div>
+                <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Search by name, email, or employee ID..." oninput="scheduleFilterTable()"></div>
                 <select id="departmentFilter" class="filter-select" onchange="filterTable()"><option value="">All Departments</option><?php while($dept = $departments->fetch_assoc()): ?><option value="<?php echo htmlspecialchars($dept['department']); ?>"><?php echo htmlspecialchars($dept['department']); ?></option><?php endwhile; ?></select>
                 <select id="roleFilter" class="filter-select" onchange="filterTable()"><option value="">All Roles</option><?php while($role = $roles->fetch_assoc()): ?><option value="<?php echo htmlspecialchars($role['portal_role']); ?>"><?php echo htmlspecialchars(portal_role_label($role['portal_role'])); ?></option><?php endwhile; ?></select>
                 <button class="btn" onclick="clearFilters()"><i class="fas fa-times"></i> Clear</button>
@@ -1890,24 +1890,119 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
             else btn.innerHTML = '<i class="fas fa-plus"></i> Show Form';
         }
 
+        let userFilterTimer = null;
+        let userFilterRowsCache = null;
+
+        function scheduleFilterTable() {
+            clearTimeout(userFilterTimer);
+
+            userFilterTimer = setTimeout(() => {
+                filterTable();
+            }, 160);
+        }
+
+        function getUserFilterRows() {
+            if (userFilterRowsCache) {
+                return userFilterRowsCache;
+            }
+
+            const rows = Array.from(
+                document.querySelectorAll('#usersTable tbody tr')
+            );
+
+            userFilterRowsCache = rows
+                .filter(row => row.cells.length >= 11)
+                .map(row => {
+                    const empId =
+                        (row.cells[1]?.textContent || '')
+                            .trim()
+                            .toLowerCase();
+
+                    const name =
+                        (row.cells[2]?.textContent || '')
+                            .trim()
+                            .toLowerCase();
+
+                    const email =
+                        (row.cells[3]?.textContent || '')
+                            .trim()
+                            .toLowerCase();
+
+                    const dept =
+                        (row.cells[4]?.textContent || '')
+                            .trim()
+                            .toLowerCase();
+
+                    const userRole =
+                        (row.cells[8]?.textContent || '')
+                            .trim()
+                            .toLowerCase();
+
+                    return {
+                        row,
+                        searchText: `${empId} ${name} ${email}`,
+                        dept,
+                        userRole
+                    };
+                });
+
+            return userFilterRowsCache;
+        }
+
         function filterTable() {
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            const department = document.getElementById('departmentFilter').value.toLowerCase();
-            const role = document.getElementById('roleFilter').value.toLowerCase();
-            const rows = document.querySelectorAll('#usersTable tbody tr');
-            rows.forEach(row => {
-                if (row.cells.length < 11) return;
-                const name = row.cells[2]?.innerText.toLowerCase() || '';
-                const email = row.cells[3]?.innerText.toLowerCase() || '';
-                const empId = row.cells[1]?.innerText.toLowerCase() || '';
-                const dept = row.cells[4]?.innerText.toLowerCase() || '';
-                const userRole = row.cells[8]?.innerText.toLowerCase() || '';
+            const search =
+                document.getElementById('searchInput')
+                    .value
+                    .trim()
+                    .toLowerCase();
+
+            const department =
+                document.getElementById('departmentFilter')
+                    .value
+                    .trim()
+                    .toLowerCase();
+
+            const role =
+                document.getElementById('roleFilter')
+                    .value
+                    .trim()
+                    .toLowerCase();
+
+            const rows = getUserFilterRows();
+
+            for (const item of rows) {
                 let show = true;
-                if (search && !name.includes(search) && !email.includes(search) && !empId.includes(search)) show = false;
-                if (department && !dept.includes(department)) show = false;
-                if (role && !userRole.includes(role)) show = false;
-                row.style.display = show ? '' : 'none';
-            });
+
+                if (
+                    search &&
+                    !item.searchText.includes(search)
+                ) {
+                    show = false;
+                }
+
+                if (
+                    show &&
+                    department &&
+                    !item.dept.includes(department)
+                ) {
+                    show = false;
+                }
+
+                if (
+                    show &&
+                    role &&
+                    !item.userRole.includes(role)
+                ) {
+                    show = false;
+                }
+
+                const desiredDisplay = show ? '' : 'none';
+
+                // Avoid unnecessary DOM writes
+                if (item.row.style.display !== desiredDisplay) {
+                    item.row.style.display = desiredDisplay;
+                }
+            }
         }
 
         function clearFilters() {
@@ -2408,6 +2503,16 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                 document.getElementById('tm_shift_start').value = '18:00';
             }
             form.style.display = 'block';
+
+            // Bring the edit form into view after clicking a team's edit button
+            form.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+
+            setTimeout(() => {
+                document.getElementById('tm_shift_start')?.focus();
+            }, 350);
         }
 
         function cancelTeamEdit() {

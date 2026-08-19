@@ -10,7 +10,7 @@ if (!in_array($portalRole, ['finance', 'admin', 'super_admin'], true)) {
     respond(false, null, 'Finance access required');
 }
 
-ensure_app_schema($conn);
+// Production: schema migrations are run manually during deployment.
 
 $branch = get_active_company_branch();
 $action = $_GET['action'] ?? '';
@@ -614,7 +614,7 @@ switch ($action) {
                 }
             }
 
-            $metaStmt->bind_param('sdisssssss', $empCode, $salary, $puncAmt, $apptDate, $bankVal, $accNoVal, $accTitleVal, $cnicVal, $branch);
+            $metaStmt->bind_param('sddssssss', $empCode, $salary, $puncAmt, $apptDate, $bankVal, $accNoVal, $accTitleVal, $cnicVal, $branch);
             if ($metaStmt->execute()) {
                 if ($contactVal !== '') {
                     $uStmt->bind_param('sss', $contactVal, $empCode, $branch);
