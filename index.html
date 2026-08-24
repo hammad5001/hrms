@@ -35,14 +35,14 @@
                 <div class="login-hero-accent" aria-hidden="true"></div>
                 <div class="login-hero-top">
                     <div class="login-hero-brand">
-                        <img src="assets/images/balitech-logo.png?v=5" alt="Balitech Pvt. Ltd" class="balitech-logo balitech-logo--hero" width="240" height="72">
+                        <img src="assets/images/balitech-logo.png?v=5" alt="Balitech Pvt. Ltd" class="balitech-logo balitech-logo--hero" width="220" height="66">
                         <div class="hrms-badge"><i class="fas fa-building"></i> Enterprise HRMS</div>
                     </div>
-                    <h1>One platform.<br><span>Every branch.</span></h1>
-                    <p class="login-hero-desc">Secure human resources for Main, 2.0, 3.0, and Commercial - attendance, payroll, recruitment, and role-based portals in one workspace.</p>
+                    <h1>One platform.<br><span>Enterprise HRMS.</span></h1>
+                    <p class="login-hero-desc">Secure human resources for all company operations - attendance, payroll, recruitment, and role-based portals in one workspace.</p>
 
                     <div class="hero-stats">
-                        <div class="hero-stat"><strong>4</strong><span>Branches</span></div>
+                        <div class="hero-stat"><strong>HRMS</strong><span>Enterprise</span></div>
                         <div class="hero-stat"><strong>ESS</strong><span>Self Service</span></div>
                         <div class="hero-stat"><strong>24/7</strong><span>Access</span></div>
                     </div>
@@ -52,7 +52,7 @@
                         <li><i class="fas fa-fingerprint"></i> Biometric attendance &amp; punch tracking</li>
                         <li><i class="fas fa-file-invoice-dollar"></i> Payroll visibility &amp; finance insights</li>
                         <li><i class="fas fa-user-tie"></i> Dedicated HR, Recruiter &amp; Admin portals</li>
-                        <li><i class="fas fa-shield-halved"></i> Branch-isolated, role-secured data</li>
+                        <li><i class="fas fa-shield-halved"></i> Role-secured, enterprise-grade data</li>
                     </ul>
                 </div>
                 <div class="login-hero-footer">
@@ -62,24 +62,19 @@
             </aside>
 
             <div class="login-panel">
-                <div class="panel-header">
-                    <div class="panel-icon" aria-hidden="true"><i class="fas fa-right-to-bracket"></i></div>
-                    <div class="panel-header-copy">
-                        <h2>Welcome back</h2>
-                        <p>Sign in with the <strong>same branch</strong> your account was created under.</p>
+                <div class="panel-header text-center">
+                    <div class="balitech-tile-wordmark" aria-label="BALITECH">
+                        <span class="tile tile-orange tile-b">B</span>
+                        <span class="tile tile-dark tile-a">A</span>
+                        <span class="tile tile-orange tile-l">L</span>
+                        <span class="tile tile-dark tile-i">I</span>
+                        <span class="tile tile-orange tile-t">T</span>
+                        <span class="tile tile-dark tile-e">E</span>
+                        <span class="tile tile-orange tile-c">C</span>
+                        <span class="tile tile-dark tile-h">H</span>
                     </div>
-                </div>
-
-                <div class="branch-section">
-                    <label><i class="fas fa-code-branch"></i> Company branch</label>
-                    <p class="branch-login-hint">Main, Commercial, 2.0, and 3.0 accounts are separate - pick your assigned branch. Only <strong>Super Admin</strong> may sign in from any branch.</p>
-                    <div class="branch-grid" id="branchGrid"></div>
-                    <select id="companyBranch" class="branch-select-hidden" required aria-hidden="true" tabindex="-1">
-                        <option value="main">Main Branch</option>
-                        <option value="v2">2.0 Branch</option>
-                        <option value="v3">3.0 Branch</option>
-                        <option value="commercial">Commercial Branch</option>
-                    </select>
+                    <h2>One account. <span class="zoho-underline">Access all services.</span></h2>
+                    <p>Sign In to access Balitech HRMS</p>
                 </div>
 
                 <div class="error-message" id="errorMessage" role="alert">
@@ -88,19 +83,17 @@
                 </div>
 
                 <form id="loginForm" onsubmit="handleLogin(event, 'work')" novalidate>
-                    <div class="form-group">
-                        <label for="email">Email address</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-envelope field-icon" aria-hidden="true"></i>
-                            <input type="email" id="email" name="email" placeholder="name@balitech.com" required autocomplete="username">
+                    <div class="form-group zoho-form-group">
+                        <div class="input-wrapper zoho-input-wrapper">
+                            <i class="fas fa-envelope zoho-input-icon" aria-hidden="true"></i>
+                            <input type="email" id="email" name="email" placeholder="Email / Phone" required autocomplete="username">
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-lock field-icon" aria-hidden="true"></i>
-                            <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+                    <div class="form-group zoho-form-group">
+                        <div class="input-wrapper zoho-input-wrapper">
+                            <i class="fas fa-lock zoho-input-icon" aria-hidden="true"></i>
+                            <input type="password" id="password" name="password" placeholder="Password" required autocomplete="current-password">
                             <button type="button" class="toggle-password" id="togglePassword" aria-label="Show password" title="Show password">
                                 <i class="fas fa-eye"></i>
                             </button>
@@ -155,37 +148,6 @@
 
     <script src="js/portal-access.js"></script>
     <script>
-        const BRANCHES = [
-            { key: 'main', label: 'Main Branch', color: '#f97316' },
-            { key: 'v2', label: '2.0 Branch', color: '#3b82f6' },
-            { key: 'v3', label: '3.0 Branch', color: '#8b5cf6' },
-            { key: 'commercial', label: 'Commercial', color: '#10b981' }
-        ];
-
-        let selectedBranch = localStorage.getItem('companyBranch') || 'main';
-
-        function renderBranchChips() {
-            const grid = document.getElementById('branchGrid');
-            const select = document.getElementById('companyBranch');
-            grid.innerHTML = BRANCHES.map(b => `
-                <button type="button" class="branch-chip ${b.key === selectedBranch ? 'active' : ''}"
-                    data-branch="${b.key}" style="--chip-color:${b.color}">
-                    <span class="dot"></span>
-                    <span>${b.label}</span>
-                </button>
-            `).join('');
-            select.value = selectedBranch;
-            grid.querySelectorAll('.branch-chip').forEach(chip => {
-                chip.addEventListener('click', () => {
-                    selectedBranch = chip.dataset.branch;
-                    localStorage.setItem('companyBranch', selectedBranch);
-                    select.value = selectedBranch;
-                    renderBranchChips();
-                });
-            });
-        }
-        renderBranchChips();
-
         document.getElementById('togglePassword')?.addEventListener('click', () => {
             const input = document.getElementById('password');
             const btn = document.getElementById('togglePassword');
@@ -239,12 +201,10 @@
             essBtn.disabled = true;
             activeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
 
-            const company_branch = document.getElementById('companyBranch').value;
-
             fetch('login.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}&company_branch=${encodeURIComponent(company_branch)}`
+                body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
             })
             .then(response => response.json())
             .then(data => {
@@ -266,7 +226,7 @@
                     localStorage.setItem('userId', data.user.id);
                     localStorage.setItem('userFullName', name);
                     localStorage.setItem('userEmail', data.user.email);
-                    localStorage.setItem('companyBranch', data.user.company_branch || company_branch);
+                    localStorage.setItem('companyBranch', data.user.company_branch || 'main');
                     localStorage.setItem('companyBranchLabel', data.user.company_branch_label || '');
                     if (data.user.employee_code) localStorage.setItem('userEmployeeCode', data.user.employee_code);
                     if (data.user.department) localStorage.setItem('userDepartment', data.user.department);
@@ -303,11 +263,6 @@
 
                     setTimeout(() => { window.location.href = dest; }, 480);
                 } else {
-                    if (data.branch_required) {
-                        selectedBranch = data.branch_required;
-                        localStorage.setItem('companyBranch', selectedBranch);
-                        renderBranchChips();
-                    }
                     showError(data.message || 'Invalid email or password. Please try again.');
                     resetButton();
                 }

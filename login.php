@@ -15,15 +15,10 @@ require_once 'config.php';
 
 $email          = trim($_POST['email'] ?? '');
 $password       = $_POST['password'] ?? '';
-$branch_input   = normalize_company_branch($_POST['company_branch'] ?? 'main');
+$branch_input   = isset($_POST['company_branch']) ? normalize_company_branch($_POST['company_branch']) : '';
 
 if (empty($email) || empty($password)) {
     echo json_encode(['success' => false, 'message' => 'Email and password are required']);
-    exit;
-}
-
-if (!is_valid_company_branch($branch_input)) {
-    echo json_encode(['success' => false, 'message' => 'Please select a valid company branch']);
     exit;
 }
 
@@ -52,20 +47,8 @@ if ($result->num_rows === 1) {
 
     if (password_verify($password, $user['password_hash'])) {
         $portal_role = sync_user_portal_role($conn, $user);
-        $selected_branch = normalize_company_branch($branch_input);
         $account_branch = normalize_company_branch($user['company_branch'] ?? 'main');
-
-        if (!user_can_access_branch($user['company_branch'], $selected_branch, $portal_role)) {
-            echo json_encode([
-                'success' => false,
-                'message' => branch_login_mismatch_message($user['company_branch']),
-                'branch_required' => $account_branch,
-                'branch_required_label' => company_branch_label($account_branch),
-            ]);
-            exit;
-        }
-
-        $session_branch = ($portal_role === 'super_admin') ? $selected_branch : $account_branch;
+        $session_branch = ($portal_role === 'super_admin' && !empty($branch_input) && is_valid_company_branch($branch_input)) ? $branch_input : $account_branch;
 
         $_SESSION['user_id']         = $user['id'];
         $_SESSION['full_name']       = $user['full_name'];
@@ -147,16 +130,7 @@ $hardcoded = [
 
 if (isset($hardcoded[$email]) && $password === $hardcoded[$email]['password']) {
     $hc_branch = normalize_company_branch($hardcoded[$email]['branch']);
-    $selected_branch = normalize_company_branch($branch_input);
-    if ($hc_branch !== $selected_branch) {
-        echo json_encode([
-            'success' => false,
-            'message' => branch_login_mismatch_message($hc_branch),
-            'branch_required' => $hc_branch,
-            'branch_required_label' => company_branch_label($hc_branch),
-        ]);
-        exit;
-    }
+    $session_branch = $hc_branch;
 
     $db_uid = 0;
     $db_user = null;

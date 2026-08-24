@@ -618,7 +618,7 @@
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'Accept': 'application/json'
                 },
-                body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}&company_branch=main`
+                body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
             })
             .then(response => {
                 if (!response.ok) {
