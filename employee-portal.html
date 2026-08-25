@@ -11,11 +11,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/portal-ui-polish.css?v=qa-clean-2">
-    <link rel="stylesheet" href="css/employee-hrms.css?v=63">
-    <link rel="stylesheet" href="css/employee-performance.css?v=6">
+    <link rel="stylesheet" href="css/employee-hrms.css?v=64">
+    <link rel="stylesheet" href="css/employee-performance.css?v=12">
     <link rel="stylesheet" href="css/dropdown-fix.css?v=3">
     <link rel="stylesheet" href="css/hr-productivity.css?v=2">
     <link rel="stylesheet" href="css/advanced-analytics.css?v=1">
+    <link rel="stylesheet" href="css/employee-mail.css?v=3">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -34,6 +35,7 @@
                 <button type="button" class="ess-header-link" data-nav-id="nav-header-dashboard" data-view="dashboard">Dashboard</button>
                 <button type="button" class="ess-header-link" data-nav-id="nav-header-calendar" data-view="attendance">Calendar</button>
                 <button type="button" class="ess-header-link hidden" data-nav-id="nav-header-approvals" data-view="approvals" id="headerApprovals">Approvals</button>
+                <button type="button" class="ess-header-link" data-nav-id="nav-header-mail" data-view="mail"><i class="fas fa-envelope"></i> Mail<span class="ess-badge hidden" id="badgeHeaderMail">0</span></button>
                 <button type="button" class="ess-header-link ess-header-chat" data-nav-id="nav-header-chat" data-view="chat"><i class="fas fa-comments"></i> Chat<span class="ess-badge hidden" id="badgeHeaderChat">0</span></button>
             </nav>
             </div>
@@ -76,6 +78,7 @@
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-payroll" data-view="salary"><i class="fas fa-wallet"></i><span>Payroll</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-payslips" data-view="payslips"><i class="fas fa-file-invoice-dollar"></i><span>Payslips</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-files" data-view="coming-soon" data-nav-label="Files"><i class="fas fa-folder-open"></i><span>Files</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-mail" data-view="mail"><i class="fas fa-envelope"></i><span>Mail</span><span class="ess-side-badge hidden" id="badgeSideMail">0</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-chat" data-view="chat"><i class="fas fa-comments"></i><span>Chat</span><span class="ess-side-badge hidden" id="badgeSideChat">0</span></button>
                     <button type="button" class="ess-side-item hidden" data-nav-id="nav-side-active-members" data-view="active-members" id="navSideActiveMembers"><i class="fas fa-users-viewfinder"></i><span>Active Members</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-more" data-view="notifications"><i class="fas fa-ellipsis"></i><span>More</span></button>
@@ -94,6 +97,7 @@
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-timelogs" data-view="timelogs">Time Tracking</button>
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-timesheets" data-view="timesheets">Timesheets</button>
                     <button type="button" class="ess-tab hidden" data-nav-id="nav-tab-leave-policy" data-view="leave-policy" id="tabLeavePolicy">Leave Policy</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-mail" data-view="mail">Internal Mail</button>
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-reportees" data-view="reportees" id="tabReportees">Manage Reportees</button>
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-notifications" data-view="notifications">Notifications</button>
                 </nav>
@@ -671,7 +675,7 @@
                                     <div class="ess-card-head">
                                         <h3><i class="fas fa-history"></i> Web Attendance History</h3>
                                         <div class="ess-date-nav">
-                                            <button type="button" class="ess-icon-btn" onclick="loadMyAttendance()"><i class="fas fa-sync-alt"></i></button>
+                                            <button type="button" class="ess-icon-btn" onclick="loadMyAttendance()" title="Refresh Attendance"><i class="fas fa-sync-alt"></i></button>
                                         </div>
                                     </div>
                                     <div class="ess-table-responsive" style="margin-top:20px;">
@@ -698,9 +702,9 @@
                                 <div class="ess-card-head">
                                     <h3><i class="fas fa-fingerprint"></i> Work Schedule</h3>
                                     <div class="ess-date-nav">
-                                        <button type="button" class="ess-icon-btn" id="weekPrev"><i class="fas fa-chevron-left"></i></button>
+                                        <button type="button" class="ess-icon-btn" id="weekPrev" title="Previous Week"><i class="fas fa-chevron-left"></i></button>
                                         <span id="attWeekLabel">This week</span>
-                                        <button type="button" class="ess-icon-btn" id="weekNext"><i class="fas fa-chevron-right"></i></button>
+                                        <button type="button" class="ess-icon-btn" id="weekNext" title="Next Week"><i class="fas fa-chevron-right"></i></button>
                                     </div>
                                 </div>
                                 <div class="ess-week-list" id="attendanceWeekList"></div>
@@ -742,8 +746,8 @@
                                 }
                                 .sal-glass-card {
                                     background: rgba(30, 36, 54, 0.45);
-                                    backdrop-filter: blur(16px) saturate(120%);
                                     -webkit-backdrop-filter: blur(16px) saturate(120%);
+                                    backdrop-filter: blur(16px) saturate(120%);
                                     border: 1px solid rgba(255, 255, 255, 0.08);
                                     border-radius: 16px;
                                     padding: 18px;
@@ -797,8 +801,8 @@
                                 
                                 .sal-main-accrual-glow {
                                     background: linear-gradient(135deg, rgba(249, 115, 22, 0.08), rgba(30, 36, 54, 0.75));
-                                    backdrop-filter: blur(20px);
                                     -webkit-backdrop-filter: blur(20px);
+                                    backdrop-filter: blur(20px);
                                     border: 1px solid rgba(249, 115, 22, 0.2);
                                     box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(249, 115, 22, 0.05);
                                     border-radius: 20px;
@@ -852,8 +856,8 @@
                                 
                                 .sal-chart-card {
                                     background: rgba(30, 36, 54, 0.45);
-                                    backdrop-filter: blur(16px);
                                     -webkit-backdrop-filter: blur(16px);
+                                    backdrop-filter: blur(16px);
                                     border: 1px solid rgba(255, 255, 255, 0.08);
                                     border-radius: 18px;
                                     padding: 20px;
@@ -877,8 +881,8 @@
                                 
                                 .sal-list-card {
                                     background: rgba(30, 36, 54, 0.45);
-                                    backdrop-filter: blur(16px);
                                     -webkit-backdrop-filter: blur(16px);
+                                    backdrop-filter: blur(16px);
                                     border: 1px solid rgba(255, 255, 255, 0.08);
                                     border-radius: 18px;
                                     padding: 22px;
@@ -925,7 +929,7 @@
                                 <div class="ess-card-head" style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom:15px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
                                     <h3><i class="fas fa-wallet" style="color:var(--primary); margin-right:8px;"></i> Live Earnings & Salary Payout</h3>
                                     <div style="display:flex; align-items:center; gap:10px;">
-                                        <select id="salMonthFilter" onchange="onSalaryMonthChange(this.value)" style="padding:6px 12px; background:rgba(30,36,54,0.95); border:1px solid rgba(255,255,255,0.15); border-radius:8px; color:white; font-size:12px; outline:none; font-family:'Inter', sans-serif; cursor:pointer;">
+                                        <select id="salMonthFilter" title="Select Month" onchange="onSalaryMonthChange(this.value)" style="padding:6px 12px; background:rgba(30,36,54,0.95); border:1px solid rgba(255,255,255,0.15); border-radius:8px; color:white; font-size:12px; outline:none; font-family:'Inter', sans-serif; cursor:pointer;">
                                             <option value="2026-07">July 2026</option>
                                             <option value="2026-08">August 2026</option>
                                             <option value="2026-06">June 2026</option>
@@ -1110,24 +1114,24 @@
                                     <div class="form-grid">
                                         <div class="form-field">
                                             <label>Date</label>
-                                            <input type="date" name="start_date" required>
+                                            <input type="date" name="start_date" title="Start Date" required>
                                         </div>
                                         <div class="form-field" id="halfDayFields">
                                             <label>Session</label>
-                                            <select name="half_day_slot">
+                                            <select name="half_day_slot" title="Select Session">
                                                 <option value="morning">Morning (1st half)</option>
                                                 <option value="afternoon">Afternoon (2nd half)</option>
                                             </select>
                                         </div>
                                         <div class="form-field">
                                             <label>Leave Type</label>
-                                            <select name="leave_type" data-leave-select="half_day"></select>
+                                            <select name="leave_type" title="Select Leave Type" data-leave-select="half_day"></select>
                                         </div>
                                     </div>
                                     <input type="hidden" name="end_date" value="">
                                     <div class="form-field">
                                         <label>Reason</label>
-                                        <textarea name="reason" required></textarea>
+                                        <textarea name="reason" title="Reason" required></textarea>
                                     </div>
                                     <button type="submit" class="ess-btn ess-btn-primary"><i class="fas fa-paper-plane"></i> Submit Half Day</button>
                                 </form>
@@ -1152,13 +1156,13 @@
                                             <label>Policy code <span class="ess-req">*</span></label>
                                             <input type="text" name="policy_code" id="policyDefCode" required placeholder="CL" maxlength="32" autocomplete="off">
                                         </div>
-                                        <div class="form-field">
+                                         <div class="form-field">
                                             <label>Leave type <span class="ess-req">*</span></label>
-                                            <select name="leave_type" id="policyDefLeaveType" required></select>
+                                            <select name="leave_type" id="policyDefLeaveType" title="Select Leave Type" required></select>
                                         </div>
                                         <div class="form-field">
                                             <label>Category</label>
-                                            <select name="leave_category" id="policyDefCategory">
+                                            <select name="leave_category" id="policyDefCategory" title="Select Category">
                                                 <option value="paid">Paid</option>
                                                 <option value="unpaid">Unpaid</option>
                                                 <option value="compensatory">Compensatory</option>
@@ -1166,7 +1170,7 @@
                                         </div>
                                         <div class="form-field">
                                             <label>Unit</label>
-                                            <select name="unit" id="policyDefUnit">
+                                            <select name="unit" id="policyDefUnit" title="Select Unit">
                                                 <option value="days">Days</option>
                                                 <option value="hours">Hours</option>
                                             </select>
@@ -1177,18 +1181,18 @@
                                         </div>
                                         <div class="form-field">
                                             <label>Valid from</label>
-                                            <input type="date" name="valid_from" id="policyDefValidFrom">
+                                            <input type="date" name="valid_from" id="policyDefValidFrom" title="Valid From Date">
                                         </div>
                                         <div class="form-field">
                                             <label>Expires on</label>
-                                            <input type="date" name="expires_on" id="policyDefExpiresOn">
+                                            <input type="date" name="expires_on" id="policyDefExpiresOn" title="Expires On Date">
                                         </div>
                                     </div>
                                     <div class="ess-policy-def-checks">
                                         <label class="ess-check-inline"><input type="checkbox" name="reset_enabled" id="policyDefReset"> Enable yearly reset</label>
                                         <div class="form-field ess-policy-def-reset-extra">
                                             <label>Reset frequency</label>
-                                            <select name="reset_frequency" id="policyDefResetFreq">
+                                            <select name="reset_frequency" id="policyDefResetFreq" title="Reset Frequency">
                                                 <option value="yearly">Yearly</option>
                                                 <option value="monthly">Monthly</option>
                                             </select>
@@ -1372,324 +1376,370 @@
                         <!-- ======================================================= -->
                         <!-- DAILY REPORTING CONSOLE - ADVANCED MISSION CONTROL UI -->
                         <!-- ======================================================= -->
+                        <!-- ======================================================= -->
+                        <!-- DAILY REPORTING CONSOLE - MODERN ENTERPRISE DASHBOARD -->
+                        <!-- ======================================================= -->
                         <section id="view-performance" class="view-section ess-perf-view">
 
-                            <!-- LOG TRANSFER FORM (FIRST AT THE TOP OF THE PAGE) -->
-                            <div class="drc-form-panel" style="margin-bottom: 24px; position: static; background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95)); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.4); overflow: hidden; padding: 28px 32px; font-family: 'Inter', system-ui, -apple-system, sans-serif;">
-                                
-                                <!-- Header -->
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 16px;">
-                                    <div style="display: flex; align-items: center; gap: 12px;">
-                                        <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); display: flex; align-items: center; justify-content: center; color: #818cf8; font-size: 18px;">
+                            <!-- LOG TRANSFER FORM CARD -->
+                            <div class="drc-panel drc-form-card">
+                                <div class="drc-card-header">
+                                    <div class="drc-card-title-group">
+                                        <div class="drc-icon-badge">
                                             <i class="fas fa-phone-arrow-up-right"></i>
                                         </div>
                                         <div>
-                                            <h2 style="font-size: 22px; font-weight: 800; color: #f8fafc; margin: 0; letter-spacing: -0.3px;">Log Medicare Transfer</h2>
-                                            <p style="font-size: 12px; color: #94a3b8; margin: 2px 0 0 0; font-weight: 500;">BT-C Medicare Sales Posting Form</p>
+                                            <h2 class="drc-card-title">Log Medicare Transfer</h2>
+                                            <p class="drc-card-subtitle">BT-C Medicare Sales Posting Form</p>
                                         </div>
                                     </div>
-                                    <div style="background: rgba(15, 23, 42, 0.6); padding: 8px 18px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.08); font-size: 12px; color: #cbd5e1;">
-                                        Today's Calls: <strong id="drcCallCounter" style="color: #34d399; font-size: 15px; font-weight: 800;">-</strong>
+                                    <div class="drc-call-badge">
+                                        <span class="drc-call-badge-label">Today's Calls</span>
+                                        <strong id="drcCallCounter" class="drc-call-badge-val">-</strong>
                                     </div>
                                 </div>
 
                                 <!-- Form Container -->
-                                <form id="dailyReportingForm" autocomplete="off" style="display: flex; flex-direction: column; gap: 20px;">
-                                    
-                                    <!-- 2-Column Grid Layout -->
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px 24px;">
+                                <form id="dailyReportingForm" autocomplete="off" class="drc-entry-form">
+                                    <div class="drc-form-grid">
                                         
-                                        <div>
-                                            <label style="display: block; font-size: 11px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">PHONE NUMBER <span style="color: #ef4444;">*</span></label>
-                                            <input type="text" id="drpCustomerNumber" required placeholder="699-558-7896" style="width: 100%; height: 42px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; color: #f8fafc; outline: none; box-sizing: border-box; transition: border-color 0.2s;">
+                                        <div class="drc-input-group">
+                                            <label class="drc-field-label" for="drpCustomerNumber">Phone Number <span class="drc-req">*</span></label>
+                                            <div class="drc-input-wrap">
+                                                <i class="fas fa-phone drc-input-icon"></i>
+                                                <input type="text" id="drpCustomerNumber" required placeholder="699-558-7896" class="drc-form-input">
+                                            </div>
                                         </div>
 
-                                        <div>
-                                            <label style="display: block; font-size: 11px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">LINE <span style="color: #ef4444;">*</span></label>
-                                            <select id="drpTransferOn" required style="width: 100%; height: 42px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; color: #f8fafc; outline: none; box-sizing: border-box;">
-                                                <option value="D1">D1</option>
-                                                <option value="D4">D4</option>
-                                                <option value="D5">D5</option>
-                                                <option value="D6 CPL">D6 CPL</option>
-                                                <option value="D6 CPA">D6 CPA</option>
-                                                <option value="HI">HI</option>
-                                                <option value="Other Lines">Other Lines</option>
-                                                <option value="HI Main">HI Main</option>
-                                            </select>
+                                        <div class="drc-input-group">
+                                            <label class="drc-field-label" for="drpTransferOn">Line <span class="drc-req">*</span></label>
+                                            <div class="drc-input-wrap">
+                                                <i class="fas fa-satellite-dish drc-input-icon"></i>
+                                                <select id="drpTransferOn" title="Select Line" required class="drc-form-select">
+                                                    <option value="D1">D1</option>
+                                                    <option value="D4">D4</option>
+                                                    <option value="D5">D5</option>
+                                                    <option value="D6 CPL">D6 CPL</option>
+                                                    <option value="D6 CPA">D6 CPA</option>
+                                                    <option value="HI">HI</option>
+                                                    <option value="Other Lines">Other Lines</option>
+                                                    <option value="HI Main">HI Main</option>
+                                                </select>
+                                            </div>
                                         </div>
 
-                                        <div>
-                                            <label style="display: block; font-size: 11px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">TEAMS</label>
-                                            <select id="drpTeamName" style="width: 100%; height: 42px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; color: #f8fafc; outline: none; box-sizing: border-box;">
-                                                <option value="">- Select Team -</option>
-                                                <option value="TEAM BRAD">TEAM BRAD</option>
-                                                <option value="TEAM ADAM">TEAM ADAM</option>
-                                                <option value="Team Awais Sajad">Team Awais Sajad</option>
-                                            </select>
+                                        <div class="drc-input-group">
+                                            <label class="drc-field-label" for="drpTeamName">Teams</label>
+                                            <div class="drc-input-wrap">
+                                                <i class="fas fa-users drc-input-icon"></i>
+                                                <select id="drpTeamName" title="Select Team" class="drc-form-select">
+                                                    <option value="">- Select Team -</option>
+                                                    <option value="TEAM BRAD">TEAM BRAD</option>
+                                                    <option value="TEAM ADAM">TEAM ADAM</option>
+                                                    <option value="Team Awais Sajad">Team Awais Sajad</option>
+                                                </select>
+                                            </div>
                                         </div>
 
-                                        <div>
-                                            <label style="display: block; font-size: 11px; font-weight: 800; color: #34d399; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;"><i class="fas fa-user-check"></i> REAL NAME (HRMS ACCOUNT)</label>
-                                            <input type="text" id="drpVerifierRealName" readonly placeholder="Auto-detected from HRMS" style="width: 100%; height: 42px; background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; color: #34d399; font-weight: 700; outline: none; box-sizing: border-box; cursor: not-allowed;">
+                                        <div class="drc-input-group">
+                                            <label class="drc-field-label drc-label-verified" for="drpVerifierRealName"><i class="fas fa-shield-check"></i> Real Name (HRMS Account)</label>
+                                            <div class="drc-input-wrap">
+                                                <i class="fas fa-user-check drc-input-icon drc-icon-verified"></i>
+                                                <input type="text" id="drpVerifierRealName" readonly placeholder="Auto-detected from HRMS" class="drc-form-input drc-input-verified">
+                                            </div>
                                         </div>
 
-                                        <div>
-                                            <label style="display: block; font-size: 11px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">PSEUDO</label>
-                                            <input type="text" id="drpAgentPseudo" placeholder="Agent pseudo name" style="width: 100%; height: 42px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; color: #f8fafc; outline: none; box-sizing: border-box;">
+                                        <div class="drc-input-group">
+                                            <label class="drc-field-label" for="drpAgentPseudo">Pseudo</label>
+                                            <div class="drc-input-wrap">
+                                                <i class="fas fa-id-badge drc-input-icon"></i>
+                                                <input type="text" id="drpAgentPseudo" placeholder="Agent pseudo name" class="drc-form-input">
+                                            </div>
                                         </div>
 
-                                        <div>
-                                            <label style="display: block; font-size: 11px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">STATE</label>
-                                            <input type="text" id="drpCustomerState" placeholder="e.g. CA, TX, FL" maxlength="50" style="width: 100%; height: 42px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; color: #f8fafc; outline: none; box-sizing: border-box;">
+                                        <div class="drc-input-group">
+                                            <label class="drc-field-label" for="drpCustomerState">State</label>
+                                            <div class="drc-input-wrap">
+                                                <i class="fas fa-map-location-dot drc-input-icon"></i>
+                                                <input type="text" id="drpCustomerState" placeholder="e.g. CA, TX, FL" maxlength="50" class="drc-form-input">
+                                            </div>
                                         </div>
 
-                                        <div>
-                                            <label style="display: block; font-size: 11px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">CUX FIRST NAME</label>
-                                            <input type="text" id="drpCustomerFirstName" placeholder="First name" style="width: 100%; height: 42px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; color: #f8fafc; outline: none; box-sizing: border-box;">
+                                        <div class="drc-input-group">
+                                            <label class="drc-field-label" for="drpCustomerFirstName">Cux First Name</label>
+                                            <div class="drc-input-wrap">
+                                                <i class="fas fa-user drc-input-icon"></i>
+                                                <input type="text" id="drpCustomerFirstName" placeholder="First name" class="drc-form-input">
+                                            </div>
                                         </div>
 
-                                        <div>
-                                            <label style="display: block; font-size: 11px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">LAST NAME</label>
-                                            <input type="text" id="drpCustomerLastName" placeholder="Last name" style="width: 100%; height: 42px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; color: #f8fafc; outline: none; box-sizing: border-box;">
+                                        <div class="drc-input-group">
+                                            <label class="drc-field-label" for="drpCustomerLastName">Last Name</label>
+                                            <div class="drc-input-wrap">
+                                                <i class="fas fa-user drc-input-icon"></i>
+                                                <input type="text" id="drpCustomerLastName" placeholder="Last name" class="drc-form-input">
+                                            </div>
                                         </div>
 
-                                        <div>
-                                            <label style="display: block; font-size: 11px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">ZIPCODE</label>
-                                            <input type="text" id="drpCustomerZip" placeholder="e.g. 90210" style="width: 100%; height: 42px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; color: #f8fafc; outline: none; box-sizing: border-box;">
+                                        <div class="drc-input-group">
+                                            <label class="drc-field-label" for="drpCustomerZip">Zipcode</label>
+                                            <div class="drc-input-wrap">
+                                                <i class="fas fa-mail-bulk drc-input-icon"></i>
+                                                <input type="text" id="drpCustomerZip" placeholder="e.g. 90210" class="drc-form-input">
+                                            </div>
                                         </div>
 
-                                        <div>
-                                            <label style="display: block; font-size: 11px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">AGE</label>
-                                            <input type="number" id="drpCustomerAge" placeholder="45" min="18" max="120" style="width: 100%; height: 42px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; color: #f8fafc; outline: none; box-sizing: border-box;">
+                                        <div class="drc-input-group">
+                                            <label class="drc-field-label" for="drpCustomerAge">Age</label>
+                                            <div class="drc-input-wrap">
+                                                <i class="fas fa-cake-candles drc-input-icon"></i>
+                                                <input type="number" id="drpCustomerAge" placeholder="45" min="18" max="120" class="drc-form-input">
+                                            </div>
                                         </div>
 
                                     </div>
 
-                                    <!-- Submit Button Bar -->
-                                    <div style="margin-top: 6px; display: flex; justify-content: flex-end;">
-                                        <button type="submit" id="drcSubmitBtn" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: #ffffff; font-size: 13px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 14px 44px; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35); transition: all 0.2s ease;">
-                                            <i class="fas fa-paper-plane" style="margin-right: 8px;"></i> LOG MEDICARE TRANSFER
+                                    <!-- Submit Button Action Bar -->
+                                    <div class="drc-form-actions">
+                                        <button type="submit" id="drcSubmitBtn" class="drc-btn-primary">
+                                            <i class="fas fa-paper-plane"></i>
+                                            <span>Log Medicare Transfer</span>
                                         </button>
                                     </div>
-
                                 </form>
                             </div>
 
-                            <!-- CINEMATIC HERO COMMAND BAR (CLEAN HORIZONTAL MISSION CONTROL) -->
-                            <div class="drc-command-bar" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9)); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 16px; padding: 18px 24px; box-shadow: 0 12px 32px rgba(0,0,0,0.35); position: relative; overflow: hidden;">
-                                <div class="drc-cb-mesh"></div>
-                                <div class="drc-cb-orb drc-cb-orb1"></div>
-                                <div class="drc-cb-orb drc-cb-orb2"></div>
-                                
-                                <div style="position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: nowrap; overflow-x: auto;">
+                            <!-- PERFORMANCE METRICS & LIVE CONSOLE BAR -->
+                            <div class="drc-panel drc-stats-banner">
+                                <div class="drc-stats-banner-inner">
                                     
-                                    <!-- Left: Identity & Status -->
-                                    <div style="display: flex; align-items: center; gap: 14px; flex-shrink: 0;">
-                                        <div style="width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #4f46e5); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; box-shadow: 0 0 16px rgba(99, 102, 241, 0.5); border: 2px solid rgba(255,255,255,0.15);">
+                                    <!-- Agent DID & Live Status -->
+                                    <div class="drc-agent-status-col">
+                                        <div class="drc-agent-avatar-icon">
                                             <i class="fas fa-headset"></i>
                                         </div>
-                                        <div>
-                                            <div style="font-size: 10px; font-weight: 800; letter-spacing: 1px; color: #94a3b8; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
-                                                AGENT CONSOLE <span style="width: 7px; height: 7px; border-radius: 50%; background: #34d399; display: inline-block;"></span> <span style="color: #34d399;">LIVE</span>
+                                        <div class="drc-agent-meta">
+                                            <div class="drc-live-indicator">
+                                                <span class="drc-live-dot"></span>
+                                                <span class="drc-live-text">AGENT CONSOLE &bull; LIVE</span>
                                             </div>
-                                            <div style="font-size: 13px; color: #cbd5e1; margin-top: 1px;">
-                                                DID: <strong id="drpBiometricId" style="color: #34d399; font-family: monospace; font-size: 15px;">-</strong>
+                                            <div class="drc-did-display">
+                                                <span class="drc-did-label">DID:</span>
+                                                <strong id="drpBiometricId" class="drc-did-code">-</strong>
                                             </div>
-                                            <div style="margin-top: 3px;">
-                                                <a href="daily-report-offline.html" target="_blank" style="font-size: 10px; color: #cbd5e1; text-decoration: none; background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); display: inline-flex; align-items: center; gap: 4px;">
+                                            <div class="drc-offline-link-wrap">
+                                                <a href="daily-report-offline.html" target="_blank" class="drc-offline-chip">
                                                     <i class="fas fa-wifi-slash"></i> Offline Mode
                                                 </a>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- Center: Horizontal KPI Cards -->
-                                    <div style="display: flex; align-items: center; gap: 14px; flex-shrink: 0;">
-                                        
-                                        <div style="display: flex; align-items: center; gap: 12px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 12px; padding: 10px 18px;">
-                                            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(99, 102, 241, 0.2); color: #818cf8; display: flex; align-items: center; justify-content: center; font-size: 15px;">
+                                    <!-- Performance Counters -->
+                                    <div class="drc-kpi-group">
+                                        <div class="drc-kpi-card drc-kpi-today">
+                                            <div class="drc-kpi-icon-box">
                                                 <i class="fas fa-sun"></i>
                                             </div>
-                                            <div>
-                                                <div id="drpMiniToday" style="font-size: 22px; font-weight: 900; color: #f8fafc; line-height: 1;">0</div>
-                                                <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">Today</div>
+                                            <div class="drc-kpi-text">
+                                                <div id="drpMiniToday" class="drc-kpi-number">0</div>
+                                                <div class="drc-kpi-caption">Today</div>
                                             </div>
                                         </div>
 
-                                        <div style="color: rgba(255,255,255,0.15); font-size: 20px;">|</div>
+                                        <div class="drc-kpi-divider"></div>
 
-                                        <div style="display: flex; align-items: center; gap: 12px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(52, 211, 153, 0.25); border-radius: 12px; padding: 10px 18px;">
-                                            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(52, 211, 153, 0.2); color: #34d399; display: flex; align-items: center; justify-content: center; font-size: 15px;">
+                                        <div class="drc-kpi-card drc-kpi-week">
+                                            <div class="drc-kpi-icon-box">
                                                 <i class="fas fa-calendar-week"></i>
                                             </div>
-                                            <div>
-                                                <div id="drpMiniWeek" style="font-size: 22px; font-weight: 900; color: #f8fafc; line-height: 1;">0</div>
-                                                <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">This Week</div>
+                                            <div class="drc-kpi-text">
+                                                <div id="drpMiniWeek" class="drc-kpi-number">0</div>
+                                                <div class="drc-kpi-caption">This Week</div>
                                             </div>
                                         </div>
 
-                                        <div style="color: rgba(255,255,255,0.15); font-size: 20px;">|</div>
+                                        <div class="drc-kpi-divider"></div>
 
-                                        <div style="display: flex; align-items: center; gap: 12px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 12px; padding: 10px 18px;">
-                                            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(245, 158, 11, 0.2); color: #fbbf24; display: flex; align-items: center; justify-content: center; font-size: 15px;">
+                                        <div class="drc-kpi-card drc-kpi-month">
+                                            <div class="drc-kpi-icon-box">
                                                 <i class="fas fa-calendar-alt"></i>
                                             </div>
-                                            <div>
-                                                <div id="drpMiniMonth" style="font-size: 22px; font-weight: 900; color: #f8fafc; line-height: 1;">0</div>
-                                                <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">This Month</div>
+                                            <div class="drc-kpi-text">
+                                                <div id="drpMiniMonth" class="drc-kpi-number">0</div>
+                                                <div class="drc-kpi-caption">This Month</div>
                                             </div>
                                         </div>
-
                                     </div>
 
-                                    <!-- Right: Live Clock & Lines -->
-                                    <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
-                                        <div style="display: flex; flex-direction: column; gap: 4px;">
-                                            <div style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #818cf8; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                                                <span>D1</span> <strong id="drpMiniD1Today" style="font-size: 13px; font-weight: 900; color: #a5b4fc;">0</strong>
+                                    <!-- Lines Breakdown & Live Clock -->
+                                    <div class="drc-status-right-col">
+                                        <div class="drc-dispo-chips-stack">
+                                            <div class="drc-chip drc-chip-d1">
+                                                <span class="drc-chip-name">D1</span>
+                                                <strong id="drpMiniD1Today" class="drc-chip-val">0</strong>
                                             </div>
-                                            <div style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                                                <span>D2</span> <strong id="drpMiniD2Today" style="font-size: 13px; font-weight: 900; color: #fde047;">0</strong>
+                                            <div class="drc-chip drc-chip-d2">
+                                                <span class="drc-chip-name">D2</span>
+                                                <strong id="drpMiniD2Today" class="drc-chip-val">0</strong>
                                             </div>
                                         </div>
 
-                                        <div id="drpLiveTime" style="font-family: monospace; font-size: 17px; font-weight: 800; color: #f8fafc; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255,255,255,0.12); padding: 8px 14px; border-radius: 8px; letter-spacing: 1px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                                        <div id="drpLiveTime" class="drc-clock-badge">
                                             00:00:00
                                         </div>
 
-                                        <div class="drc-refresh-ring" id="drcRefreshRing" title="Auto-refreshes every 60s" style="width: 36px; height: 36px; flex-shrink: 0;">
+                                        <div class="drc-refresh-ring" id="drcRefreshRing" title="Auto-refreshes every 60s">
                                             <svg viewBox="0 0 36 36" class="drc-ring-svg">
                                                 <circle class="drc-ring-bg" cx="18" cy="18" r="15.9"/>
                                                 <circle class="drc-ring-prog" cx="18" cy="18" r="15.9" id="drcRingProgress"/>
                                             </svg>
-                                            <i class="fas fa-rotate-right drc-ring-icon" style="font-size: 12px;"></i>
+                                            <i class="fas fa-rotate-right drc-ring-icon"></i>
                                         </div>
                                     </div>
 
                                 </div>
                             </div>
 
-                            <!-- MAIN WORKSPACE (Split layout: Widgets on Left, Wide Table on Right) -->
+                            <!-- MAIN WORKSPACE: WIDGETS + TRANSFERS TABLE -->
                             <div class="drc-workspace">
 
                                 <!-- LEFT COLUMN: SIDE WIDGETS -->
-                                <div class="drc-center-panel">
+                                <div class="drc-side-panel">
                                     
                                     <!-- Top 5 Agents Card -->
-                                     <div class="drc-card-widget">
-                                         <div class="drc-widget-head">
-                                             <span><i class="fas fa-trophy" style="color: #f59e0b; margin-right: 6px;"></i> Top 5 Agents Today</span>
-                                         </div>
-                                         <div class="drc-widget-body" id="drcLeaderboardBody" style="padding: 10px 16px;">
-                                             <div class="drc-leaderboard-loading">Loading...</div>
-                                         </div>
-                                     </div>
+                                    <div class="drc-panel drc-widget-card">
+                                        <div class="drc-widget-card-header">
+                                            <i class="fas fa-trophy text-amber"></i>
+                                            <span>Top 5 Agents Today</span>
+                                        </div>
+                                        <div class="drc-widget-card-body" id="drcLeaderboardBody">
+                                            <div class="drc-leaderboard-loading">Loading...</div>
+                                        </div>
+                                    </div>
 
-                                     <!-- MTD Transfers Goal Target Card -->
-                                     <div class="drc-card-widget">
-                                         <div class="drc-widget-head">
-                                             <span><i class="fas fa-bullseye" style="color: #ef4444; margin-right: 6px;"></i> Goal Target (MTD)</span>
-                                         </div>
-                                         <div class="drc-widget-body" style="text-align: center; padding: 12px 15px;">
-                                             <div class="drc-goal-large" id="drcGoalMTD">0</div>
-                                             <div class="drc-goal-label" style="margin-bottom: 8px;">Month-to-Date Logged</div>
-                                             <div class="drc-progress-bar-wrap" style="margin-bottom: 6px;">
-                                                 <div class="drc-progress-bar" id="drcGoalProgressBar" style="width: 0%;"></div>
-                                             </div>
-                                             <div class="drc-goal-subtext">Target: 360 transfers / month</div>
-                                         </div>
-                                     </div>
+                                    <!-- MTD Transfers Goal Target Card -->
+                                    <div class="drc-panel drc-widget-card">
+                                        <div class="drc-widget-card-header">
+                                            <i class="fas fa-bullseye text-rose"></i>
+                                            <span>Goal Target (MTD)</span>
+                                        </div>
+                                        <div class="drc-widget-card-body drc-goal-body">
+                                            <div class="drc-goal-large" id="drcGoalMTD">0</div>
+                                            <div class="drc-goal-label">Month-to-Date Logged</div>
+                                            <div class="drc-progress-track">
+                                                <div class="drc-progress-fill" id="drcGoalProgressBar" style="width: 0%;"></div>
+                                            </div>
+                                            <div class="drc-goal-subtext">Target: 360 transfers / month</div>
+                                        </div>
+                                    </div>
 
-                                     <!-- SLA Violation Status Card -->
-                                     <div class="drc-card-widget">
-                                         <div class="drc-widget-head">
-                                             <span><i class="fas fa-user-clock" style="color: #6366f1; margin-right: 6px;"></i> Speed & SLA Status</span>
-                                         </div>
-                                         <div class="drc-widget-body" style="padding: 15px;">
-                                             <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:12px;">
-                                                 <span>Avg. Duration:</span>
-                                                 <strong id="drcSlaDuration">0 min</strong>
-                                             </div>
-                                             <div class="drc-progress-bar-wrap" style="height: 6px; margin-bottom: 6px;">
-                                                 <div class="drc-progress-bar" id="drcSlaProgressBar" style="width: 0%; background: #10b981;"></div>
-                                             </div>
-                                             <div style="font-size:10px; color:rgba(255,255,255,0.4); display:flex; justify-content:space-between;">
-                                                 <span>Goal: &lt; 5 mins</span>
-                                                 <span id="drcSlaStatusText" style="font-weight: 700;">Within SLA</span>
-                                             </div>
-                                         </div>
-                                     </div>
-                                 </div>
+                                    <!-- Speed & SLA Status Card -->
+                                    <div class="drc-panel drc-widget-card">
+                                        <div class="drc-widget-card-header">
+                                            <i class="fas fa-user-clock text-indigo"></i>
+                                            <span>Speed &amp; SLA Status</span>
+                                        </div>
+                                        <div class="drc-widget-card-body drc-sla-body">
+                                            <div class="drc-sla-row">
+                                                <span class="drc-sla-title">Avg. Duration:</span>
+                                                <strong id="drcSlaDuration" class="drc-sla-val">0 min</strong>
+                                            </div>
+                                            <div class="drc-progress-track drc-progress-track-sm">
+                                                <div class="drc-progress-fill drc-progress-fill-emerald" id="drcSlaProgressBar" style="width: 0%;"></div>
+                                            </div>
+                                            <div class="drc-sla-footer">
+                                                <span>Goal: &lt; 5 mins</span>
+                                                <span id="drcSlaStatusText" class="drc-sla-badge">Within SLA</span>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                 <!-- RIGHT COLUMN: WIDE TABLE LOG LIST -->
-                                 <div class="drc-table-panel">
+                                </div>
 
-                                     <!-- Tab Bar -->
-                                     <div class="drc-tab-bar">
-                                         <div class="drc-tabs">
-                                             <button class="drc-tab drc-tab-active" id="drpTabToday" onclick="drpSwitchPeriod('today')">
-                                                 <i class="fas fa-sun"></i> Today
-                                                 <span class="drc-tab-count" id="drcTabCountToday">0</span>
-                                             </button>
-                                             <button class="drc-tab" id="drpTabWeek" onclick="drpSwitchPeriod('week')">
-                                                 <i class="fas fa-calendar-week"></i> This Week
-                                                 <span class="drc-tab-count" id="drcTabCountWeek">0</span>
-                                             </button>
-                                             <button class="drc-tab" id="drpTabMonth" onclick="drpSwitchPeriod('month')">
-                                                 <i class="fas fa-calendar-alt"></i> This Month
-                                                 <span class="drc-tab-count" id="drcTabCountMonth">0</span>
-                                             </button>
-                                         </div>
-                                         <div class="drc-tab-actions">
-                                             <button class="drc-action-btn" onclick="loadPerformanceView()">
-                                                 <i class="fas fa-rotate-right"></i>
-                                             </button>
-                                             <button class="drc-action-btn drc-export-btn" onclick="drpExportCSV()">
-                                                 <i class="fas fa-download"></i> Export
-                                             </button>
-                                         </div>
-                                     </div>
+                                <!-- RIGHT COLUMN: TRANSFERS LOG TABLE -->
+                                <div class="drc-panel drc-table-card">
 
-                                     <!-- Table Summary Bar -->
-                                     <div class="drc-summary-bar" id="drcSummaryBar">
-                                         <span class="drc-sum-item drc-sum-total"><i class="fas fa-list"></i> <span id="drpTableCount">0</span> transfers</span>
-                                         <span class="drc-sum-item drc-sum-d1"><span class="drc-sum-dot drc-dot-d1"></span> D1: <strong id="drcSumD1">0</strong></span>
-                                         <span class="drc-sum-item drc-sum-d2"><span class="drc-sum-dot drc-dot-d2"></span> D2: <strong id="drcSumD2">0</strong></span>
-                                         <span class="drc-sum-item" id="drpTableSummary"></span>
-                                     </div>
+                                    <!-- Period Tabs & Actions Bar -->
+                                    <div class="drc-table-header-bar">
+                                        <div class="drc-period-tabs">
+                                            <button type="button" class="drc-tab drc-tab-active" id="drpTabToday" onclick="drpSwitchPeriod('today')">
+                                                <i class="fas fa-sun"></i>
+                                                <span>Today</span>
+                                                <span class="drc-tab-count" id="drcTabCountToday">0</span>
+                                            </button>
+                                            <button type="button" class="drc-tab" id="drpTabWeek" onclick="drpSwitchPeriod('week')">
+                                                <i class="fas fa-calendar-week"></i>
+                                                <span>This Week</span>
+                                                <span class="drc-tab-count" id="drcTabCountWeek">0</span>
+                                            </button>
+                                            <button type="button" class="drc-tab" id="drpTabMonth" onclick="drpSwitchPeriod('month')">
+                                                <i class="fas fa-calendar-alt"></i>
+                                                <span>This Month</span>
+                                                <span class="drc-tab-count" id="drcTabCountMonth">0</span>
+                                            </button>
+                                        </div>
+                                        <div class="drc-table-actions">
+                                            <button type="button" class="drc-btn-secondary" title="Refresh Performance Data" onclick="loadPerformanceView()">
+                                                <i class="fas fa-rotate-right"></i>
+                                            </button>
+                                            <button type="button" class="drc-btn-secondary drc-btn-export" title="Export Data" onclick="drpExportCSV()">
+                                                <i class="fas fa-download"></i>
+                                                <span>Export</span>
+                                            </button>
+                                        </div>
+                                    </div>
 
-                                     <!-- The Table -->
-                                     <div class="drc-table-scroll">
-                                         <table class="drc-table">
-                                             <thead>
-                                                 <tr>
-                                                     <th class="drc-th-num">#</th>
-                                                     <th>Time</th>
-                                                     <th>Phone Number</th>
-                                                     <th>Customer Name</th>
-                                                     <th>State / Zip</th>
-                                                     <th>Age</th>
-                                                     <th>Line</th>
-                                                     <th>Real Name (HRMS)</th>
-                                                     <th>Pseudo / Team</th>
-                                                     <th>QA Status</th>
-                                                 </tr>
-                                             </thead>
-                                             <tbody id="todayTransfersTableBody">
-                                                 <tr class="drc-loading-row">
-                                                     <td colspan="10">
-                                                         <div class="drc-spinner-wrap">
-                                                             <div class="drc-spinner"></div>
-                                                             <span>Loading transfers...</span>
-                                                         </div>
-                                                     </td>
-                                                 </tr>
-                                             </tbody>
-                                         </table>
-                                     </div>
-                                 </div>
+                                    <!-- Table Summary Strip -->
+                                    <div class="drc-summary-strip" id="drcSummaryBar">
+                                        <div class="drc-sum-pill drc-sum-total">
+                                            <i class="fas fa-list-check"></i>
+                                            <span><span id="drpTableCount">0</span> transfers</span>
+                                        </div>
+                                        <div class="drc-sum-pill drc-sum-d1">
+                                            <span class="drc-dot drc-dot-d1"></span>
+                                            <span>D1: <strong id="drcSumD1">0</strong></span>
+                                        </div>
+                                        <div class="drc-sum-pill drc-sum-d2">
+                                            <span class="drc-dot drc-dot-d2"></span>
+                                            <span>D2: <strong id="drcSumD2">0</strong></span>
+                                        </div>
+                                        <div class="drc-sum-pill drc-sum-extra" id="drpTableSummary"></div>
+                                    </div>
 
-                             </div><!-- /drc-workspace -->
+                                    <!-- Transfers Table View -->
+                                    <div class="drc-table-responsive">
+                                        <table class="drc-data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th class="drc-th-num">#</th>
+                                                    <th>Time</th>
+                                                    <th>Phone Number</th>
+                                                    <th>Customer Name</th>
+                                                    <th>State / Zip</th>
+                                                    <th>Age</th>
+                                                    <th>Line</th>
+                                                    <th>Real Name (HRMS)</th>
+                                                    <th>Pseudo / Team</th>
+                                                    <th>QA Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="todayTransfersTableBody">
+                                                <tr class="drc-loading-row">
+                                                    <td colspan="10">
+                                                        <div class="drc-spinner-wrap">
+                                                            <div class="drc-spinner"></div>
+                                                            <span>Loading transfers...</span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                </div><!-- /drc-table-card -->
+
+                            </div><!-- /drc-workspace -->
 
                         </section>
                         <!-- ============================================== END DAILY REPORTING ============================================== -->
@@ -1817,6 +1867,124 @@
                             <div class="ess-card">
                                 <h3><i class="fas fa-bell"></i> Notifications</h3>
                                 <div class="notif-list" id="notifList"></div>
+                            </div>
+                        </section>
+
+                        <!-- Internal Mail View Section -->
+                        <section id="view-mail" class="view-section">
+                            <div class="ess-mail-container">
+                                <!-- 1. Left Folders Sidebar -->
+                                <aside class="ess-mail-sidebar">
+                                    <button type="button" class="ess-mail-compose-btn" onclick="MailModule.openComposeModal()">
+                                        <i class="fas fa-plus"></i> Compose Email
+                                    </button>
+                                    <ul class="ess-mail-nav-list">
+                                        <li class="ess-mail-nav-item active" data-folder="inbox" onclick="MailModule.switchFolder('inbox')">
+                                            <i class="fas fa-inbox"></i> <span>Inbox</span>
+                                            <span class="ess-mail-badge hidden" id="essMailInboxBadge">0</span>
+                                        </li>
+                                        <li class="ess-mail-nav-item" data-folder="starred" onclick="MailModule.switchFolder('starred')">
+                                            <i class="fas fa-star" style="color:#f59e0b;"></i> <span>Starred</span>
+                                            <span class="ess-mail-badge count-gray hidden" id="essMailStarredBadge">0</span>
+                                        </li>
+                                        <li class="ess-mail-nav-item" data-folder="important" onclick="MailModule.switchFolder('important')">
+                                            <i class="fas fa-bookmark" style="color:#ef4444;"></i> <span>Important</span>
+                                            <span class="ess-mail-badge count-gray hidden" id="essMailImportantBadge">0</span>
+                                        </li>
+                                        <li class="ess-mail-nav-item" data-folder="sent" onclick="MailModule.switchFolder('sent')">
+                                            <i class="fas fa-paper-plane"></i> <span>Sent</span>
+                                        </li>
+                                        <li class="ess-mail-nav-item" data-folder="drafts" onclick="MailModule.switchFolder('drafts')">
+                                            <i class="fas fa-file-alt"></i> <span>Drafts</span>
+                                            <span class="ess-mail-badge count-amber hidden" id="essMailDraftsBadge">0</span>
+                                        </li>
+                                        <li class="ess-mail-nav-item" data-folder="archive" onclick="MailModule.switchFolder('archive')">
+                                            <i class="fas fa-archive"></i> <span>Archive</span>
+                                        </li>
+                                        <li class="ess-mail-nav-item" data-folder="trash" onclick="MailModule.switchFolder('trash')">
+                                            <i class="fas fa-trash-alt"></i> <span>Trash</span>
+                                            <span class="ess-mail-badge count-gray hidden" id="essMailTrashBadge">0</span>
+                                        </li>
+                                        <li class="ess-mail-nav-item" data-folder="settings" onclick="MailModule.switchFolder('settings')">
+                                            <i class="fas fa-cog"></i> <span>Settings</span>
+                                        </li>
+                                    </ul>
+                                </aside>
+
+                                <!-- 2. Middle List Pane -->
+                                <div class="ess-mail-list-pane">
+                                    <!-- Metric Counters Bar -->
+                                    <div class="ess-mail-metrics-bar">
+                                        <div class="ess-mail-metric-card" onclick="MailModule.switchFolder('inbox')">
+                                            <span class="metric-num" id="metricNumInbox">0</span>
+                                            <span class="metric-lbl">Inbox</span>
+                                        </div>
+                                        <div class="ess-mail-metric-card" onclick="MailModule.switchFolder('inbox'); MailModule.setFilter('unread');">
+                                            <span class="metric-num text-blue" id="metricNumUnread">0</span>
+                                            <span class="metric-lbl">Unread</span>
+                                        </div>
+                                        <div class="ess-mail-metric-card" onclick="MailModule.switchFolder('starred')">
+                                            <span class="metric-num text-amber" id="metricNumStarred">0</span>
+                                            <span class="metric-lbl">Starred</span>
+                                        </div>
+                                        <div class="ess-mail-metric-card" onclick="MailModule.switchFolder('sent')">
+                                            <span class="metric-num text-green" id="metricNumSent">0</span>
+                                            <span class="metric-lbl">Sent</span>
+                                        </div>
+                                        <div class="ess-mail-metric-card" onclick="MailModule.switchFolder('drafts')">
+                                            <span class="metric-num text-purple" id="metricNumDrafts">0</span>
+                                            <span class="metric-lbl">Drafts</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="ess-mail-list-header">
+                                        <div class="ess-mail-search-row">
+                                            <div class="ess-mail-search-box">
+                                                <i class="fas fa-search"></i>
+                                                <input type="text" id="essMailSearchInput" placeholder="Search mail by subject, body or sender..." oninput="MailModule.handleSearchInput(this.value)">
+                                                <button type="button" class="ess-mail-search-clear hidden" id="essMailSearchClear" onclick="MailModule.clearSearch()"><i class="fas fa-times"></i></button>
+                                            </div>
+                                            <div class="ess-mail-sort-wrap">
+                                                <select id="essMailSortSelect" onchange="MailModule.handleSortChange(this.value)" class="ess-mail-select-compact">
+                                                    <option value="newest">Newest First</option>
+                                                    <option value="oldest">Oldest First</option>
+                                                </select>
+                                                <button type="button" class="ess-icon-btn" onclick="MailModule.loadFolderMails()" title="Refresh Folder"><i class="fas fa-sync-alt"></i></button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Filter Pills -->
+                                        <div class="ess-mail-filter-pills">
+                                            <button type="button" class="ess-mail-pill active" data-filter="all" onclick="MailModule.setFilter('all')">All</button>
+                                            <button type="button" class="ess-mail-pill" data-filter="unread" onclick="MailModule.setFilter('unread')"><i class="fas fa-circle" style="font-size:8px;color:#3b82f6;"></i> Unread</button>
+                                            <button type="button" class="ess-mail-pill" data-filter="starred" onclick="MailModule.setFilter('starred')"><i class="fas fa-star" style="color:#f59e0b;"></i> Starred</button>
+                                            <button type="button" class="ess-mail-pill" data-filter="has_attachment" onclick="MailModule.setFilter('has_attachment')"><i class="fas fa-paperclip"></i> Attachments</button>
+                                            <button type="button" class="ess-mail-pill" data-filter="important" onclick="MailModule.setFilter('important')"><i class="fas fa-bookmark" style="color:#ef4444;"></i> Important</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="ess-mail-items" id="essMailItemsList">
+                                        <!-- Mail items rendered dynamically -->
+                                    </div>
+
+                                    <!-- Pagination Footer -->
+                                    <div class="ess-mail-pagination-footer" id="essMailPaginationFooter">
+                                        <div class="ess-mail-page-info" id="essMailPageInfo">Showing 0-0 of 0</div>
+                                        <div class="ess-mail-page-controls">
+                                            <button type="button" class="ess-mail-page-btn" id="essMailPrevBtn" onclick="MailModule.prevPage()" disabled><i class="fas fa-chevron-left"></i></button>
+                                            <span class="ess-mail-page-num" id="essMailPageNum">Page 1</span>
+                                            <button type="button" class="ess-mail-page-btn" id="essMailNextBtn" onclick="MailModule.nextPage()" disabled><i class="fas fa-chevron-right"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 3. Right Reading Pane -->
+                                <div class="ess-mail-reading-pane" id="essMailReadingPane">
+                                    <div class="ess-mail-empty-state">
+                                        <i class="fas fa-envelope-open-text"></i>
+                                        <span>Select an email from the folder list to view its contents</span>
+                                    </div>
+                                </div>
                             </div>
                         </section>
                     </div>
@@ -1957,10 +2125,147 @@
         </div>
     </div>
 
+    <!-- Authentic Google Gmail Floating Compose Popup Window -->
+    <div class="gmail-compose-popup" id="essMailComposeModal" style="display:none;">
+        <!-- Header Bar -->
+        <div class="gmail-compose-header" onclick="MailModule.toggleMinimizeCompose(event)">
+            <span id="essMailComposeTitle" class="gmail-compose-title">New Message</span>
+            <div class="gmail-compose-window-controls" onclick="event.stopPropagation()">
+                <button type="button" class="gmail-win-btn" onclick="MailModule.toggleMinimizeCompose()" title="Minimize"><i class="fas fa-minus"></i></button>
+                <button type="button" class="gmail-win-btn" onclick="MailModule.toggleMaximizeCompose()" title="Full screen"><i class="fas fa-expand-alt" id="gmailComposeExpandIcon"></i></button>
+                <button type="button" class="gmail-win-btn" onclick="MailModule.closeComposeModal()" title="Save & close"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+
+        <!-- Compose Body Container -->
+        <div class="gmail-compose-content" id="gmailComposeContent">
+            <!-- To Field -->
+            <div class="gmail-compose-field">
+                <span class="gmail-field-label">To</span>
+                <div class="ess-mail-recipients-wrap" id="essMailRecipientsWrap"></div>
+                <input type="text" id="essMailToInput" class="gmail-field-input" placeholder="Recipients" onkeyup="MailModule.handleEmployeeSearch(this.value)">
+                <div class="gmail-cc-bcc-toggles">
+                    <span onclick="MailModule.toggleCcBcc('cc')">Cc</span>
+                    <span onclick="MailModule.toggleCcBcc('bcc')">Bcc</span>
+                </div>
+                <div class="ess-mail-emp-dropdown" id="essMailEmpDropdown" style="display:none;"></div>
+            </div>
+
+            <!-- Cc Field -->
+            <div class="gmail-compose-field hidden" id="gmailCcRow">
+                <span class="gmail-field-label">Cc</span>
+                <div class="ess-mail-recipients-wrap" id="essMailCcWrap"></div>
+                <input type="text" id="essMailCcInput" class="gmail-field-input" placeholder="Cc Recipients" onkeyup="MailModule.handleCcSearch(this.value)">
+                <div class="ess-mail-emp-dropdown" id="essMailCcEmpDropdown" style="display:none;"></div>
+            </div>
+
+            <!-- Bcc Field -->
+            <div class="gmail-compose-field hidden" id="gmailBccRow">
+                <span class="gmail-field-label">Bcc</span>
+                <div class="ess-mail-recipients-wrap" id="essMailBccWrap"></div>
+                <input type="text" id="essMailBccInput" class="gmail-field-input" placeholder="Bcc Recipients" onkeyup="MailModule.handleBccSearch(this.value)">
+                <div class="ess-mail-emp-dropdown" id="essMailBccEmpDropdown" style="display:none;"></div>
+            </div>
+
+            <!-- Subject Line Row -->
+            <div class="gmail-compose-field">
+                <input type="text" id="essMailSubjectInput" class="gmail-field-input" placeholder="Subject">
+                <select id="essMailImportanceInput" style="font-size:11px;border:none;background:transparent;color:#5f6368;outline:none;cursor:pointer;">
+                    <option value="normal">Normal Priority</option>
+                    <option value="high">⚡ High Priority</option>
+                    <option value="low">Low Priority</option>
+                </select>
+            </div>
+
+            <!-- WYSIWYG Rich Text ContentEditable Editor -->
+            <div class="gmail-editor-wrap">
+                <div id="essMailBodyRich" class="gmail-rich-editor" contenteditable="true" placeholder="Write your message here..."></div>
+                <textarea id="essMailBodyInput" style="display:none;"></textarea>
+            </div>
+
+            <!-- Attachments Bar -->
+            <div id="essMailComposeAttachments" class="gmail-attachments-bar"></div>
+
+            <!-- Formatting Toolbar Bar -->
+            <div class="gmail-fmt-toolbar" id="gmailFmtToolbar">
+                <button type="button" class="fmt-btn" onclick="MailModule.formatDoc('undo')" title="Undo"><i class="fas fa-undo"></i></button>
+                <button type="button" class="fmt-btn" onclick="MailModule.formatDoc('redo')" title="Redo"><i class="fas fa-redo"></i></button>
+                <div class="fmt-divider"></div>
+                <select class="fmt-select" onchange="MailModule.formatDoc('fontName', this.value)" title="Font Family">
+                    <option value="Sans-Serif">Sans Serif</option>
+                    <option value="Serif">Serif</option>
+                    <option value="Monospace">Monospace</option>
+                    <option value="Roboto">Roboto</option>
+                    <option value="Google Sans">Google Sans</option>
+                </select>
+                <select class="fmt-select" onchange="MailModule.formatDoc('fontSize', this.value)" title="Font Size">
+                    <option value="3">Normal</option>
+                    <option value="1">Small</option>
+                    <option value="5">Large</option>
+                    <option value="7">Huge</option>
+                </select>
+                <div class="fmt-divider"></div>
+                <button type="button" class="fmt-btn" onclick="MailModule.formatDoc('bold')" title="Bold"><i class="fas fa-bold"></i></button>
+                <button type="button" class="fmt-btn" onclick="MailModule.formatDoc('italic')" title="Italic"><i class="fas fa-italic"></i></button>
+                <button type="button" class="fmt-btn" onclick="MailModule.formatDoc('underline')" title="Underline"><i class="fas fa-underline"></i></button>
+                <input type="color" class="fmt-color-picker" onchange="MailModule.formatDoc('foreColor', this.value)" title="Text Color">
+                <div class="fmt-divider"></div>
+                <button type="button" class="fmt-btn" onclick="MailModule.formatDoc('justifyLeft')" title="Align Left"><i class="fas fa-align-left"></i></button>
+                <button type="button" class="fmt-btn" onclick="MailModule.formatDoc('justifyCenter')" title="Align Center"><i class="fas fa-align-center"></i></button>
+                <button type="button" class="fmt-btn" onclick="MailModule.formatDoc('justifyRight')" title="Align Right"><i class="fas fa-align-right"></i></button>
+                <button type="button" class="fmt-btn" onclick="MailModule.formatDoc('insertOrderedList')" title="Numbered List"><i class="fas fa-list-ol"></i></button>
+                <button type="button" class="fmt-btn" onclick="MailModule.formatDoc('insertUnorderedList')" title="Bullet List"><i class="fas fa-list-ul"></i></button>
+                <button type="button" class="fmt-btn" onclick="MailModule.formatDoc('removeFormat')" title="Clear Formatting"><i class="fas fa-remove-format"></i></button>
+            </div>
+
+            <!-- Bottom Action Footer Bar -->
+            <div class="gmail-compose-footer">
+                <div class="gmail-footer-left">
+                    <div class="gmail-send-group">
+                        <button type="button" class="gmail-btn-send" id="btnSendMail" onclick="MailModule.sendMail()">Send</button>
+                        <button type="button" class="gmail-btn-send-dropdown" title="Schedule send"><i class="fas fa-caret-down"></i></button>
+                    </div>
+
+                    <button type="button" class="gmail-tool-btn" onclick="MailModule.toggleFmtBar()" title="Formatting options"><i class="fas fa-font"></i></button>
+                    <label class="gmail-tool-btn" title="Attach files" style="cursor:pointer;margin:0;">
+                        <i class="fas fa-paperclip"></i>
+                        <input type="file" id="essMailFileInput" hidden onchange="MailModule.handleFileUpload(this)">
+                    </label>
+                    <button type="button" class="gmail-tool-btn" onclick="MailModule.promptInsertLink()" title="Insert link"><i class="fas fa-link"></i></button>
+                    
+                    <div style="position:relative;display:inline-block;">
+                        <button type="button" class="gmail-tool-btn" onclick="MailModule.toggleEmojiPicker(event)" title="Insert emoji"><i class="far fa-smile"></i></button>
+                        <div class="gmail-emoji-picker hidden" id="gmailEmojiPicker">
+                            <span onclick="MailModule.insertEmoji('😊')">😊</span>
+                            <span onclick="MailModule.insertEmoji('👍')">👍</span>
+                            <span onclick="MailModule.insertEmoji('🎉')">🎉</span>
+                            <span onclick="MailModule.insertEmoji('❤️')">❤️</span>
+                            <span onclick="MailModule.insertEmoji('💼')">💼</span>
+                            <span onclick="MailModule.insertEmoji('🚀')">🚀</span>
+                            <span onclick="MailModule.insertEmoji('✅')">✅</span>
+                            <span onclick="MailModule.insertEmoji('🔥')">🔥</span>
+                            <span onclick="MailModule.insertEmoji('🙏')">🙏</span>
+                            <span onclick="MailModule.insertEmoji('💡')">💡</span>
+                            <span onclick="MailModule.insertEmoji('📌')">📌</span>
+                            <span onclick="MailModule.insertEmoji('⭐')">⭐</span>
+                        </div>
+                    </div>
+
+                    <button type="button" class="gmail-tool-btn" onclick="MailModule.insertSignature()" title="Insert signature"><i class="fas fa-signature"></i></button>
+                </div>
+
+                <div class="gmail-footer-right">
+                    <button type="button" class="gmail-tool-btn danger" onclick="MailModule.closeComposeModal()" title="Discard draft"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script charset="utf-8" src="js/portal-access.js"></script>
     <script charset="utf-8" src="js/portal-session-guard.js"></script>
     <script src="js/portal-notify-sound.js?v=1"></script>
-    <script charset="utf-8" src="js/employee-hrms.js?v=76"></script>
+    <script charset="utf-8" src="js/employee-hrms.js?v=80"></script>
+    <script charset="utf-8" src="js/employee-mail.js?v=1"></script>
     <script charset="utf-8" src="js/employee-performance.js?v=1786990797"></script>
     <script charset="utf-8" src="js/portal-chat-fab.js"></script>
     <!-- Register new productivity views so showView() recognises them -->
@@ -2027,6 +2332,51 @@
         <div class="ess-modal-content" style="background:#fff; border-radius:16px; width:90%; max-width:650px; max-height:90vh; overflow-y:auto; padding:0; position:relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
             <button onclick="document.getElementById('payslipModal').style.display='none'" style="position:absolute; top:20px; right:20px; background:rgba(255,255,255,0.9); border:none; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:18px; color:#475569; cursor:pointer; z-index:10; box-shadow:0 4px 6px rgba(0,0,0,0.1);"><i class="fas fa-times"></i></button>
             <div id="payslipModalBody"></div>
+        </div>
+    </div>
+
+    <!-- Modal for Remove Reportee Confirmation & Reason -->
+    <div id="removeReporteeModal" class="modal-overlay hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.75); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); z-index:999999; display:none; align-items:center; justify-content:center; padding:16px;">
+        <div class="ess-modal-card" style="background:#0f172a; border:1px solid rgba(255,255,255,0.12); border-radius:20px; width:100%; max-width:480px; padding:24px; color:#fff; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); position:relative;">
+            <button type="button" onclick="closeRemoveReporteeModal()" style="position:absolute; top:18px; right:18px; background:rgba(255,255,255,0.08); border:none; border-radius:50%; width:32px; height:32px; color:#94a3b8; cursor:pointer; display:flex; align-items:center; justify-content:center;" title="Close"><i class="fas fa-times"></i></button>
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+                <div style="width:42px; height:42px; border-radius:12px; background:rgba(239,68,68,0.15); color:#ef4444; display:flex; align-items:center; justify-content:center; font-size:20px;"><i class="fas fa-user-minus"></i></div>
+                <div>
+                    <h3 style="font-size:18px; font-weight:700; margin:0;">Remove Reportee</h3>
+                    <p style="font-size:12px; color:#94a3b8; margin:2px 0 0 0;" id="removeReporteeModalSub">Select reason for removing employee from your team.</p>
+                </div>
+            </div>
+            <form id="formRemoveReportee" onsubmit="handleRemoveReporteeSubmit(event)">
+                <input type="hidden" id="removeReporteeUserId" value="">
+                <div style="margin-bottom:16px;">
+                    <label style="display:block; font-size:12px; font-weight:700; color:#cbd5e1; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">Removal Reason <span style="color:#ef4444;">*</span></label>
+                    <select id="removeReporteeReason" required onchange="onRemoveReasonChange(this.value)" style="width:100%; height:42px; background:rgba(30,41,59,0.9); border:1px solid rgba(255,255,255,0.15); border-radius:10px; padding:0 12px; color:#fff; font-size:13.5px; outline:none;" title="Select removal reason">
+                        <option value="resigned">Resigned</option>
+                        <option value="terminated">Terminated</option>
+                        <option value="moved_team">Move to another team</option>
+                    </select>
+                </div>
+                <div id="moveTeamGroup" style="margin-bottom:16px; display:none;">
+                    <label style="display:block; font-size:12px; font-weight:700; color:#cbd5e1; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">New Team Name <span style="color:#ef4444;">*</span></label>
+                    <select id="removeReporteeNewTeam" style="width:100%; height:42px; background:rgba(30,41,59,0.9); border:1px solid rgba(255,255,255,0.15); border-radius:10px; padding:0 12px; color:#fff; font-size:13.5px; outline:none; margin-bottom:8px;" title="Select new team" onchange="onRemoveTeamSelectChange(this.value)">
+                        <option value="">- Select New Team -</option>
+                        <option value="TEAM BRAD">TEAM BRAD</option>
+                        <option value="TEAM ADAM">TEAM ADAM</option>
+                        <option value="Team Awais Sajad">Team Awais Sajad</option>
+                        <option value="Work From Home">Work From Home</option>
+                        <option value="Other">Other (Custom Team)</option>
+                    </select>
+                    <input type="text" id="removeReporteeCustomTeam" placeholder="Type custom team name..." style="width:100%; height:40px; background:rgba(30,41,59,0.7); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:0 12px; color:#fff; font-size:13px; outline:none; display:none;" title="Type custom team name">
+                </div>
+                <div style="margin-bottom:20px;">
+                    <label style="display:block; font-size:12px; font-weight:700; color:#cbd5e1; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">Remarks / Notes</label>
+                    <textarea id="removeReporteeRemarks" rows="3" placeholder="Enter optional notes or context..." style="width:100%; background:rgba(30,41,59,0.7); border:1px solid rgba(255,255,255,0.15); border-radius:10px; padding:10px 12px; color:#fff; font-size:13px; outline:none; resize:none;" title="Enter remarks"></textarea>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                    <button type="button" onclick="closeRemoveReporteeModal()" class="ess-btn ess-btn-outline" style="padding:8px 18px;">Cancel</button>
+                    <button type="submit" id="btnConfirmRemoveReportee" class="ess-btn ess-btn-primary" style="padding:8px 20px; background:linear-gradient(135deg, #ef4444, #dc2626); border:none;"><i class="fas fa-trash"></i> Confirm Removal</button>
+                </div>
+            </form>
         </div>
     </div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -2292,30 +2642,13 @@
 
         if (!formBlock) return false;
 
-        var root = formBlock.parentElement;
-
-        while (root && root !== document.body) {
-            var txt = cleanText(root);
-
-            if (
-                txt.includes("AGENT CONSOLE") &&
-                (
-                    txt.includes("TOP 5 AGENTS TODAY") ||
-                    txt.includes("GOAL TARGET")
-                )
-            ) {
-                break;
-            }
-
-            root = root.parentElement;
-        }
-
-        if (!root || root === document.body) return false;
-
-        if (formBlock.dataset.dailyReportMoved === "1") return true;
+        var targetRoot = document.getElementById("view-performance");
+        if (!targetRoot) return false;
 
         formBlock.style.marginTop = "28px";
-        root.appendChild(formBlock);
+        if (formBlock.parentElement !== targetRoot) {
+            targetRoot.appendChild(formBlock);
+        }
         formBlock.dataset.dailyReportMoved = "1";
 
         return true;
@@ -2349,118 +2682,7 @@
 
 
 
-
-
-
-
-
-
-<script id="HRMS_REFRESH_STAY_ON_ACTIVE_MENU_PATCH">
-(function () {
-  const STORAGE_KEY = "hrms_employee_portal_active_menu";
-
-  const menuMap = [
-    { key: "dashboard", labels: ["Dashboard", "Home", "Overview"] },
-    { key: "daily-report", labels: ["Daily Report"] },
-    { key: "my-performance", labels: ["My Performance", "Performance"] },
-    { key: "attendance", labels: ["Attendance"] },
-    { key: "leaves", labels: ["Leaves"] },
-    { key: "time-tracker", labels: ["Time Tracker"] },
-    { key: "payroll", labels: ["Payroll"] },
-    { key: "payslips", labels: ["Payslips"] },
-    { key: "files", labels: ["Files"] },
-    { key: "chat", labels: ["Chat"] },
-    { key: "calendar", labels: ["Calendar"] },
-    { key: "onboarding", labels: ["Onboarding"] }
-  ];
-
-  function cleanText(value) {
-    return (value || "").replace(/\s+/g, " ").trim().toLowerCase();
-  }
-
-  function keyFromText(text) {
-    const t = cleanText(text);
-    for (const item of menuMap) {
-      for (const label of item.labels) {
-        const l = cleanText(label);
-        if (t === l || t.includes(l)) return item.key;
-      }
-    }
-    return "";
-  }
-
-  function findMenuElement(key) {
-    const item = menuMap.find(x => x.key === key);
-    if (!item) return null;
-
-    const selectors = [
-      "a",
-      "button",
-      "[role='button']",
-      "[onclick]",
-      "[data-page]",
-      "[data-section]",
-      ".nav-link",
-      ".sidebar-item",
-      ".menu-item",
-      ".menu-link"
-    ].join(",");
-
-    const nodes = Array.from(document.querySelectorAll(selectors));
-
-    for (const label of item.labels) {
-      const wanted = cleanText(label);
-
-      let exact = nodes.find(el => cleanText(el.innerText || el.textContent) === wanted);
-      if (exact) return exact;
-
-      let partial = nodes.find(el => cleanText(el.innerText || el.textContent).includes(wanted));
-      if (partial) return partial;
-    }
-
-    return null;
-  }
-
-  document.addEventListener("click", function (e) {
-    const el = e.target.closest("a,button,[role='button'],[onclick],[data-page],[data-section],.nav-link,.sidebar-item,.menu-item,.menu-link");
-    if (!el) return;
-
-    const key = keyFromText(el.innerText || el.textContent);
-    if (!key) return;
-
-    localStorage.setItem(STORAGE_KEY, key);
-    history.replaceState(null, "", "#" + key);
-  }, true);
-
-  function restoreLastMenu() {
-    const hashKey = (location.hash || "").replace("#", "").trim();
-    const savedKey = hashKey || localStorage.getItem(STORAGE_KEY);
-
-    if (!savedKey || savedKey === "dashboard") return;
-
-    const el = findMenuElement(savedKey);
-    if (!el) return;
-
-    el.click();
-    history.replaceState(null, "", "#" + savedKey);
-  }
-
-  function delayedRestore() {
-    setTimeout(restoreLastMenu, 250);
-    setTimeout(restoreLastMenu, 800);
-    setTimeout(restoreLastMenu, 1500);
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", delayedRestore);
-  } else {
-    delayedRestore();
-  }
-
-  window.addEventListener("load", delayedRestore);
-})();
-</script>
-
+
 <script id="DIALER_TOP_5_AGENTS_REALTIME_PATCH">
 (function () {
   if (window.__dialerTop5PatchStarted) return;
@@ -2556,6 +2778,5 @@
   }
 })();
 </script>
-
 </body>
 </html>
