@@ -42,8 +42,8 @@ if (stripos($contentType, 'application/json') !== false) {
     }
 }
 
-chat_touch_user_active($conn, $me_id);
-
+// Presence activity is maintained by the dedicated heartbeat endpoint.
+// Do not write chat_participants.last_active_at on every API request.
 try {
 
 switch ($action) {
@@ -85,38 +85,136 @@ switch ($action) {
 
     case 'getPresence':
         $cid = (int)($_GET['conversation_id'] ?? $input['conversation_id'] ?? 0);
-        if (!$cid || !chat_user_is_participant($conn, $cid, $me_id)) {
+
+        if (!$cid) {
             chat_json(false, null, 'Conversation not found');
         }
-        $convStmt = $conn->prepare('SELECT type FROM chat_conversations WHERE id = ?');
-        $convStmt->bind_param('i', $cid);
+
+        /*
+         * HOT PATH OPTIMIZATION:
+         * participant validation + conversation type in ONE query.
+         */
+        $convStmt = $conn->prepare("
+            SELECT c.type
+            FROM chat_conversations c
+            INNER JOIN chat_participants p
+                ON p.conversation_id = c.id
+               AND p.user_id = ?
+            WHERE c.id = ?
+            LIMIT 1
+        ");
+        $convStmt->bind_param('ii', $me_id, $cid);
         $convStmt->execute();
         $conv = $convStmt->get_result()->fetch_assoc();
-        $presence = chat_peer_presence($conn, $cid, $me_id, $conv['type'] ?? 'direct');
-        $seen = chat_last_seen_read_info($conn, $cid, $me_id, $conv['type'] ?? 'direct');
-        chat_json(true, ['presence' => $presence, 'last_read' => $seen]);
+
+        if (!$conv) {
+            chat_json(false, null, 'Conversation not found');
+        }
+
+        $convType = $conv['type'] ?? 'direct';
+
+        $presence = chat_peer_presence(
+            $conn,
+            $cid,
+            $me_id,
+            $convType
+        );
+
+        $seen = chat_last_seen_read_info(
+            $conn,
+            $cid,
+            $me_id,
+            $convType
+        );
+
+        chat_json(true, [
+            'presence' => $presence,
+            'last_read' => $seen
+        ]);
         break;
 
     case 'messageStatuses':
         $cid = (int)($_GET['conversation_id'] ?? 0);
         $ids = $_GET['ids'] ?? '';
+
         if (!$cid || !chat_user_is_participant($conn, $cid, $me_id)) {
             chat_json(false, null, 'Conversation not found');
         }
-        $idList = array_filter(array_map('intval', explode(',', (string)$ids)));
+
+        $idList = array_values(array_unique(array_filter(
+            array_map('intval', explode(',', (string)$ids)),
+            static fn($id) => $id > 0
+        )));
+
+        // Safety: frontend should never need hundreds of status checks at once.
+        $idList = array_slice($idList, 0, 200);
+
         $statuses = [];
+
         if (!empty($idList)) {
             $inClause = implode(',', $idList);
-            $res = $conn->query("SELECT id, sender_id FROM chat_messages WHERE id IN ($inClause) AND conversation_id = $cid");
+
+            /*
+             * OLD:
+             * 1 query to fetch messages
+             * + 1 chat_receipt_status() query PER message.
+             *
+             * NEW:
+             * All delivery/read statuses calculated in ONE aggregate query.
+             */
+            $sql = "
+                SELECT
+                    m.id,
+                    COUNT(r.message_id) AS total,
+                    COALESCE(
+                        SUM(
+                            CASE
+                                WHEN r.delivered_at IS NOT NULL
+                                THEN 1 ELSE 0
+                            END
+                        ),
+                        0
+                    ) AS delivered,
+                    COALESCE(
+                        SUM(
+                            CASE
+                                WHEN r.read_at IS NOT NULL
+                                THEN 1 ELSE 0
+                            END
+                        ),
+                        0
+                    ) AS read_count
+                FROM chat_messages m
+                LEFT JOIN chat_message_receipts r
+                    ON r.message_id = m.id
+                WHERE m.conversation_id = $cid
+                  AND m.sender_id = $me_id
+                  AND m.id IN ($inClause)
+                GROUP BY m.id
+            ";
+
+            $res = $conn->query($sql);
+
             if ($res) {
                 while ($row = $res->fetch_assoc()) {
                     $mid = (int)$row['id'];
-                    if ((int)$row['sender_id'] === $me_id) {
-                        $statuses[$mid] = chat_receipt_status($conn, $mid);
+                    $total = (int)$row['total'];
+                    $delivered = (int)$row['delivered'];
+                    $read = (int)$row['read_count'];
+
+                    if ($total === 0) {
+                        $statuses[$mid] = 'sent';
+                    } elseif ($read >= $total) {
+                        $statuses[$mid] = 'read';
+                    } elseif ($delivered >= $total) {
+                        $statuses[$mid] = 'delivered';
+                    } else {
+                        $statuses[$mid] = 'sent';
                     }
                 }
             }
         }
+
         chat_json(true, $statuses);
         break;
 

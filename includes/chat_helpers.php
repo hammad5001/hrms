@@ -710,20 +710,51 @@ function chat_mark_delivered_for_viewer(mysqli $conn, int $conversation_id, int 
     if (empty($message_ids)) {
         return;
     }
-    chat_backfill_receipts($conn, $conversation_id);
-    $ids = array_map('intval', $message_ids);
-    $placeholders = implode(',', array_fill(0, count($ids), '?'));
-    $types = str_repeat('i', count($ids));
-    $sql = "UPDATE chat_message_receipts r
-            INNER JOIN chat_messages m ON m.id = r.message_id
-            SET r.delivered_at = COALESCE(r.delivered_at, NOW())
-            WHERE r.user_id = ? AND r.message_id IN ($placeholders)
-            AND m.sender_id != ? AND r.delivered_at IS NULL";
-    $stmt = $conn->prepare($sql);
-    $bindTypes = 'i' . $types . 'i';
-    $params = array_merge([$viewer_id], $ids, [$viewer_id]);
-    $stmt->bind_param($bindTypes, ...$params);
-    $stmt->execute();
+
+    /*
+     * Receipt backfill is intentionally disabled in production.
+     * New messages already create recipient receipt rows.
+     *
+     * No JOIN with chat_messages is required here:
+     * chat_create_message_receipts() never creates a receipt
+     * for the message sender, so a receipt belonging to viewer_id
+     * is necessarily an incoming message.
+     */
+
+    $ids = array_values(array_unique(array_filter(
+        array_map('intval', $message_ids),
+        static fn($id) => $id > 0
+    )));
+
+    if (empty($ids)) {
+        return;
+    }
+
+    // Keep individual update batches reasonably small.
+    foreach (array_chunk($ids, 100) as $chunk) {
+        $placeholders = implode(',', array_fill(0, count($chunk), '?'));
+
+        $sql = "
+            UPDATE chat_message_receipts
+            SET delivered_at = NOW()
+            WHERE user_id = ?
+              AND message_id IN ($placeholders)
+              AND delivered_at IS NULL
+        ";
+
+        $stmt = $conn->prepare($sql);
+
+        if (!$stmt) {
+            continue;
+        }
+
+        $types = 'i' . str_repeat('i', count($chunk));
+        $params = array_merge([$viewer_id], $chunk);
+
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $stmt->close();
+    }
 }
 
 function chat_mark_conversation_read(mysqli $conn, int $conversation_id, int $user_id): void {
@@ -838,19 +869,27 @@ function chat_set_typing(mysqli $conn, int $conversation_id, int $user_id, bool 
 /** @return array{status:string,label:string,typing:bool,last_seen:?string} */
 function chat_peer_presence(mysqli $conn, int $conversation_id, int $me_id, string $conv_type): array {
     require_once __DIR__ . '/chat_redis.php';
+
     if ($conv_type !== 'direct') {
         $isTyping = chat_redis_available()
             ? chat_redis_group_any_typing($conversation_id, $me_id)
             : false;
+
         if (!$isTyping) {
             $typing = $conn->prepare("
-                SELECT COUNT(*) AS c FROM chat_participants
-                WHERE conversation_id = ? AND user_id != ? AND typing_until > NOW()
+                SELECT COUNT(*) AS c
+                FROM chat_participants
+                WHERE conversation_id = ?
+                  AND user_id != ?
+                  AND typing_until > NOW()
             ");
             $typing->bind_param('ii', $conversation_id, $me_id);
             $typing->execute();
-            $isTyping = (int)($typing->get_result()->fetch_assoc()['c'] ?? 0) > 0;
+
+            $isTyping =
+                (int)($typing->get_result()->fetch_assoc()['c'] ?? 0) > 0;
         }
+
         return [
             'status' => $isTyping ? 'typing' : 'group',
             'label' => $isTyping ? 'Someone is typing…' : 'Group chat',
@@ -859,72 +898,139 @@ function chat_peer_presence(mysqli $conn, int $conversation_id, int $me_id, stri
         ];
     }
 
+    /*
+     * Get peer id + activity in ONE query.
+     * Previously peer id was fetched in a second SQL query.
+     */
     $stmt = $conn->prepare("
-        SELECT p.last_active_at, p.typing_until, u.full_name
+        SELECT
+            p.user_id AS peer_id,
+            p.last_active_at,
+            p.typing_until,
+            u.full_name
         FROM chat_participants p
-        INNER JOIN users u ON u.id = p.user_id
-        WHERE p.conversation_id = ? AND p.user_id != ?
+        INNER JOIN users u
+            ON u.id = p.user_id
+        WHERE p.conversation_id = ?
+          AND p.user_id != ?
         LIMIT 1
     ");
+
     $stmt->bind_param('ii', $conversation_id, $me_id);
     $stmt->execute();
+
     $peer = $stmt->get_result()->fetch_assoc();
+
     if (!$peer) {
-        return ['status' => 'offline', 'label' => '', 'typing' => false, 'last_seen' => null];
+        return [
+            'status' => 'offline',
+            'label' => '',
+            'typing' => false,
+            'last_seen' => null
+        ];
     }
 
-    $peer_id_stmt = $conn->prepare('SELECT user_id FROM chat_participants WHERE conversation_id = ? AND user_id != ? LIMIT 1');
-    $peer_id_stmt->bind_param('ii', $conversation_id, $me_id);
-    $peer_id_stmt->execute();
-    $peer_id = (int)($peer_id_stmt->get_result()->fetch_assoc()['user_id'] ?? 0);
+    $peer_id = (int)($peer['peer_id'] ?? 0);
 
-    $isTyping = $peer_id && chat_redis_is_typing($conversation_id, $peer_id);
-    if (!$isTyping && !empty($peer['typing_until']) && strtotime($peer['typing_until']) > time()) {
+    $isTyping =
+        $peer_id
+        && chat_redis_is_typing($conversation_id, $peer_id);
+
+    if (
+        !$isTyping
+        && !empty($peer['typing_until'])
+        && strtotime($peer['typing_until']) > time()
+    ) {
         $isTyping = true;
     }
+
     if ($isTyping) {
-        return ['status' => 'typing', 'label' => 'typing…', 'typing' => true, 'last_seen' => null];
+        return [
+            'status' => 'typing',
+            'label' => 'typing…',
+            'typing' => true,
+            'last_seen' => null
+        ];
     }
 
     if ($peer_id && chat_redis_is_online($peer_id)) {
-        return ['status' => 'online', 'label' => 'online', 'typing' => false, 'last_seen' => $peer['last_active_at'] ?? null];
+        return [
+            'status' => 'online',
+            'label' => 'online',
+            'typing' => false,
+            'last_seen' => $peer['last_active_at'] ?? null
+        ];
     }
 
     $last = $peer['last_active_at'] ?? null;
+
     if ($last && (time() - strtotime($last)) < 120) {
-        return ['status' => 'online', 'label' => 'online', 'typing' => false, 'last_seen' => $last];
+        return [
+            'status' => 'online',
+            'label' => 'online',
+            'typing' => false,
+            'last_seen' => $last
+        ];
     }
+
     if ($last) {
         $ts = strtotime($last);
-        $label = 'last seen ' . date('M j, g:i A', $ts);
-        return ['status' => 'offline', 'label' => $label, 'typing' => false, 'last_seen' => $last];
+
+        return [
+            'status' => 'offline',
+            'label' => 'last seen ' . date('M j, g:i A', $ts),
+            'typing' => false,
+            'last_seen' => $last
+        ];
     }
-    return ['status' => 'offline', 'label' => 'offline', 'typing' => false, 'last_seen' => null];
+
+    return [
+        'status' => 'offline',
+        'label' => 'offline',
+        'typing' => false,
+        'last_seen' => null
+    ];
 }
 
 function chat_last_seen_read_info(mysqli $conn, int $conversation_id, int $me_id, string $conv_type): ?array {
     if ($conv_type !== 'direct') {
         return null;
     }
+
+    /*
+     * Previous query:
+     * receipts + messages + users JOIN
+     * ORDER BY read_at DESC LIMIT 1
+     *
+     * full_name wasn't used.
+     * MAX(read_at) gives the same result without sorting.
+     */
     $stmt = $conn->prepare("
-        SELECT r.read_at, u.full_name
-        FROM chat_message_receipts r
-        INNER JOIN chat_messages m ON m.id = r.message_id
-        INNER JOIN users u ON u.id = r.user_id
-        WHERE m.conversation_id = ? AND m.sender_id = ?
-        AND r.read_at IS NOT NULL
-        ORDER BY r.read_at DESC
-        LIMIT 1
+        SELECT MAX(r.read_at) AS read_at
+        FROM chat_messages m
+        INNER JOIN chat_message_receipts r
+            ON r.message_id = m.id
+        WHERE m.conversation_id = ?
+          AND m.sender_id = ?
+          AND r.read_at IS NOT NULL
     ");
+
     $stmt->bind_param('ii', $conversation_id, $me_id);
     $stmt->execute();
+
     $row = $stmt->get_result()->fetch_assoc();
-    if (!$row) {
+    $readAt = $row['read_at'] ?? null;
+
+    if (!$readAt) {
         return null;
     }
+
     return [
-        'read_at' => $row['read_at'],
-        'label' => 'Seen ' . date('M j, g:i A', strtotime($row['read_at'])),
+        'read_at' => $readAt,
+        'label' => 'Seen ' . date(
+            'M j, g:i A',
+            strtotime($readAt)
+        ),
     ];
 }
 

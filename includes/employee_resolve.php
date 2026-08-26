@@ -97,34 +97,123 @@ function find_employee_code_by_attendance_name(mysqli $conn, string $fullName, ?
     if ($want === '') {
         return null;
     }
+
     $table = branch_attendance_table($branch);
-    $stmt = $conn->prepare("
-        SELECT user_id, name FROM `$table`
-        WHERE name IS NOT NULL AND name != ''
-        AND timestamp >= DATE_SUB(NOW(), INTERVAL 90 DAY)
-        GROUP BY user_id, name
-        LIMIT 500
-    ");
-    if (!$stmt || !$stmt->execute()) {
-        return null;
+
+    /*
+     * This lookup used to scan 90 days of attendance on every call:
+     * GROUP BY user_id, name -> temporary table + filesort.
+     *
+     * Cache the lookup rows for 5 minutes across PHP-FPM requests.
+     * Main and commercial attendance tables get separate cache files.
+     */
+    static $requestCache = [];
+
+    if (!array_key_exists($table, $requestCache)) {
+        $cacheFile = sys_get_temp_dir()
+            . '/hrms_attendance_name_map_'
+            . sha1($table)
+            . '.json';
+
+        $lockFile = $cacheFile . '.lock';
+        $cacheTtl = 300;
+        $rows = null;
+
+        // Fast path: valid shared cache.
+        if (
+            is_file($cacheFile)
+            && (time() - (int)@filemtime($cacheFile)) < $cacheTtl
+        ) {
+            $decoded = json_decode((string)@file_get_contents($cacheFile), true);
+            if (is_array($decoded)) {
+                $rows = $decoded;
+            }
+        }
+
+        if (!is_array($rows)) {
+            $lock = @fopen($lockFile, 'c');
+
+            if ($lock) {
+                @flock($lock, LOCK_EX);
+            }
+
+            // Another PHP worker may have populated it while we waited.
+            if (
+                is_file($cacheFile)
+                && (time() - (int)@filemtime($cacheFile)) < $cacheTtl
+            ) {
+                $decoded = json_decode((string)@file_get_contents($cacheFile), true);
+                if (is_array($decoded)) {
+                    $rows = $decoded;
+                }
+            }
+
+            if (!is_array($rows)) {
+                $rows = [];
+
+                $stmt = $conn->prepare("
+                    SELECT user_id, name
+                    FROM `$table`
+                    WHERE name IS NOT NULL
+                      AND name != ''
+                      AND timestamp >= DATE_SUB(NOW(), INTERVAL 90 DAY)
+                    GROUP BY user_id, name
+                    LIMIT 500
+                ");
+
+                if ($stmt && $stmt->execute()) {
+                    $res = $stmt->get_result();
+
+                    while ($row = $res->fetch_assoc()) {
+                        $rows[] = [
+                            'user_id' => (string)($row['user_id'] ?? ''),
+                            'name'    => (string)($row['name'] ?? '')
+                        ];
+                    }
+
+                    @file_put_contents(
+                        $cacheFile,
+                        json_encode($rows),
+                        LOCK_EX
+                    );
+                }
+
+                if ($stmt) {
+                    $stmt->close();
+                }
+            }
+
+            if ($lock) {
+                @flock($lock, LOCK_UN);
+                @fclose($lock);
+            }
+        }
+
+        $requestCache[$table] = $rows;
     }
-    $res = $stmt->get_result();
+
     $bestId = null;
     $bestPct = 0.0;
-    while ($row = $res->fetch_assoc()) {
+
+    foreach ($requestCache[$table] as $row) {
         $got = normalize_person_name($row['name'] ?? '');
+
         if ($got === '') {
             continue;
         }
+
         if ($got === $want) {
             return (string)$row['user_id'];
         }
+
         similar_text($want, $got, $pct);
+
         if ($pct > $bestPct && $pct >= 82.0) {
             $bestPct = $pct;
             $bestId = (string)$row['user_id'];
         }
     }
+
     return $bestId;
 }
 

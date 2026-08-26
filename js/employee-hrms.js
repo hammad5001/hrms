@@ -557,6 +557,7 @@ const ESS_DEFAULT_NAV = {
     profile: 'nav-tab-profile',
     notifications: 'nav-tab-notifications',
     chat: 'nav-side-chat',
+    mail: 'nav-tab-mail',
     'coming-soon': null,
 };
 
@@ -574,6 +575,7 @@ const ESS_VIEW_TITLES = {
     profile: ['My Profile', 'Your employee record and work information'],
     notifications: ['Notifications', 'Alerts from HR and managers'],
     chat: ['Workspace Chat', 'Messages with your team - secure internal chat'],
+    mail: ['Internal Mail', 'Communicate internally with company employees'],
     'coming-soon': ['Coming soon', 'This module is under development'],
 };
 
@@ -590,6 +592,7 @@ function showComingSoon(label, navId) {
     document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
     document.getElementById('view-coming-soon')?.classList.add('active');
     document.body.classList.remove('ess-chat-active');
+    document.body.classList.remove('ess-mail-active');
 
     const title = label ? `${label}` : 'This section';
     setText('comingSoonTitle', `Working on ${title}`);
@@ -639,8 +642,11 @@ function showView(id, navId = null) {
 
     const isChat = (id === 'chat');
     const isDashboard = (id === 'dashboard');
+    const isMail = (id === 'mail');
+
     document.body.classList.toggle('ess-chat-active', isChat);
     document.body.classList.toggle('ess-dashboard-active', isDashboard);
+    document.body.classList.toggle('ess-mail-active', isMail);
     if (isChat) {
         ensureChatFrameLoaded();
     } else {

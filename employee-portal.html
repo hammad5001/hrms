@@ -12,11 +12,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/portal-ui-polish.css?v=qa-clean-2">
     <link rel="stylesheet" href="css/employee-hrms.css?v=64">
-    <link rel="stylesheet" href="css/employee-performance.css?v=12">
+    <link rel="stylesheet" href="css/employee-performance.css?v=20260826-clean-1">
     <link rel="stylesheet" href="css/dropdown-fix.css?v=3">
     <link rel="stylesheet" href="css/hr-productivity.css?v=2">
     <link rel="stylesheet" href="css/advanced-analytics.css?v=1">
-    <link rel="stylesheet" href="css/employee-mail.css?v=3">
+    <link rel="stylesheet" href="css/employee-mail.css?v=20260825-mail-final">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -491,7 +491,7 @@
                                         </button>
                                     </div>
                                 </div>
-    
+
 
                                 <p class="ess-profile-lock-note"><i class="fas fa-lock"></i> Biometric ID, name, and department are managed by HR and cannot be changed here.</p>
 
@@ -798,7 +798,7 @@
                                     color: white;
                                     font-weight: 700;
                                 }
-                                
+
                                 .sal-main-accrual-glow {
                                     background: linear-gradient(135deg, rgba(249, 115, 22, 0.08), rgba(30, 36, 54, 0.75));
                                     -webkit-backdrop-filter: blur(20px);
@@ -830,7 +830,7 @@
                                     text-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
                                     margin-bottom: 16px;
                                 }
-                                
+
                                 .sal-progress-track {
                                     height: 10px;
                                     background: rgba(255, 255, 255, 0.05);
@@ -853,7 +853,7 @@
                                     color: #94a3b8;
                                     font-weight: 500;
                                 }
-                                
+
                                 .sal-chart-card {
                                     background: rgba(30, 36, 54, 0.45);
                                     -webkit-backdrop-filter: blur(16px);
@@ -878,7 +878,7 @@
                                     align-items: center;
                                     gap: 8px;
                                 }
-                                
+
                                 .sal-list-card {
                                     background: rgba(30, 36, 54, 0.45);
                                     -webkit-backdrop-filter: blur(16px);
@@ -916,7 +916,7 @@
                                     color: white;
                                     font-weight: 600;
                                 }
-                                
+
                                 /* Utilities */
                                 .text-orange { color: #f97316 !important; }
                                 .text-emerald { color: #10b981 !important; }
@@ -966,7 +966,7 @@
                                 <div class="sal-main-accrual-glow">
                                     <span class="accrual-title">Earning Till Today (After Deductions)</span>
                                     <strong class="accrual-value" id="salEarningsTillToday">Rs. 0</strong>
-                                    
+
                                     <div class="sal-progress-track">
                                         <div class="sal-progress-fill" id="salProgressFill" style="width: 0%;"></div>
                                     </div>
@@ -1402,7 +1402,7 @@
                                 <!-- Form Container -->
                                 <form id="dailyReportingForm" autocomplete="off" class="drc-entry-form">
                                     <div class="drc-form-grid">
-                                        
+
                                         <div class="drc-input-group">
                                             <label class="drc-field-label" for="drpCustomerNumber">Phone Number <span class="drc-req">*</span></label>
                                             <div class="drc-input-wrap">
@@ -1512,7 +1512,7 @@
                             <!-- PERFORMANCE METRICS & LIVE CONSOLE BAR -->
                             <div class="drc-panel drc-stats-banner">
                                 <div class="drc-stats-banner-inner">
-                                    
+
                                     <!-- Agent DID & Live Status -->
                                     <div class="drc-agent-status-col">
                                         <div class="drc-agent-avatar-icon">
@@ -1606,7 +1606,7 @@
 
                                 <!-- LEFT COLUMN: SIDE WIDGETS -->
                                 <div class="drc-side-panel">
-                                    
+
                                     <!-- Top 5 Agents Card -->
                                     <div class="drc-panel drc-widget-card">
                                         <div class="drc-widget-card-header">
@@ -1746,7 +1746,7 @@
 
                         <!-- My Performance Analytics View -->
                          <section id="view-performance-analytics" class="view-section ess-perf-view">
-                             
+
                              <!-- CINEMATIC HERO COMMAND BAR FOR ANALYTICS -->
                              <div class="drc-command-bar" style="margin-bottom: 24px;">
                                  <div class="drc-cb-mesh"></div>
@@ -1776,7 +1776,7 @@
 
                              <!-- MEGA KPI STATS CARDS GRID (Neon Glowing & Glassmorphic) -->
                              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 24px;">
-                                 
+
                                  <!-- QA Sales Card -->
                                  <div class="drc-card-widget" style="border-left: 4px solid #10b981; transition: transform 0.2s;">
                                      <div class="drc-widget-body" style="display: flex; align-items: center; justify-content: space-between; padding: 20px 22px;">
@@ -1833,7 +1833,7 @@
 
                              <!-- CHARTS GRID (Glassmorphic panels) -->
                              <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
-                                 
+
                                  <!-- 30-Day Trend Panel -->
                                  <div class="drc-card-widget">
                                      <div class="drc-widget-head">
@@ -2232,7 +2232,7 @@
                         <input type="file" id="essMailFileInput" hidden onchange="MailModule.handleFileUpload(this)">
                     </label>
                     <button type="button" class="gmail-tool-btn" onclick="MailModule.promptInsertLink()" title="Insert link"><i class="fas fa-link"></i></button>
-                    
+
                     <div style="position:relative;display:inline-block;">
                         <button type="button" class="gmail-tool-btn" onclick="MailModule.toggleEmojiPicker(event)" title="Insert emoji"><i class="far fa-smile"></i></button>
                         <div class="gmail-emoji-picker hidden" id="gmailEmojiPicker">
@@ -2264,8 +2264,8 @@
     <script charset="utf-8" src="js/portal-access.js"></script>
     <script charset="utf-8" src="js/portal-session-guard.js"></script>
     <script src="js/portal-notify-sound.js?v=1"></script>
-    <script charset="utf-8" src="js/employee-hrms.js?v=80"></script>
-    <script charset="utf-8" src="js/employee-mail.js?v=1"></script>
+    <script charset="utf-8" src="js/employee-hrms.js?v=20260825-mail-layout-final-1"></script>
+    <script charset="utf-8" src="js/employee-mail.js?v=20260826-compose-fix-1"></script>
     <script charset="utf-8" src="js/employee-performance.js?v=1786990797"></script>
     <script charset="utf-8" src="js/portal-chat-fab.js"></script>
     <!-- Register new productivity views so showView() recognises them -->
@@ -2290,7 +2290,7 @@
             const annual = inputVal * 12;
             let tax = 0;
             let bracket = 'No Tax';
-            
+
             if (annual <= 600000) {
                 tax = 0;
                 bracket = 'Up to Rs. 600k (0%)';
@@ -2316,7 +2316,7 @@
                 tax = 1424000 + (annual - 7000000) * 0.35;
                 bracket = 'Above Rs. 7.0M (35%)';
             }
-            
+
             document.getElementById('estAnnualIncome').innerText = 'Rs. ' + Math.round(annual).toLocaleString();
             document.getElementById('estTaxBracket').innerText = bracket;
             document.getElementById('estAnnualTax').innerText = 'Rs. ' + Math.round(tax).toLocaleString();
@@ -2386,7 +2386,7 @@
             if (branch === 'workfromhome') {
                 document.getElementById('standardAttendanceContainer').style.display = 'none';
                 document.getElementById('wfhAttendanceContainer').classList.remove('hidden');
-                
+
                 const leftBtn = document.querySelector('.ess-bio-btn');
                 if (leftBtn) {
                     leftBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Web Check-In';
@@ -2411,7 +2411,7 @@
             const btn = document.getElementById('webCheckInBtn');
             const mainBtn = document.getElementById('wfhMainCheckBtn');
             const statusText = document.getElementById('wfhCurrentStatusText');
-            
+
             if (wfhCheckedIn) {
                 if (btn) {
                     btn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Web Check-Out';
@@ -2512,7 +2512,7 @@
                 async (position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
-                    
+
                     try {
                         const response = await fetch('api/wfh_attendance_api.php', {
                             method: 'POST',
@@ -2520,7 +2520,7 @@
                             body: JSON.stringify({ lat, lng })
                         });
                         const data = await response.json();
-                        
+
                         if (data.success) {
                             let city = 'your location';
                             try {
@@ -2540,7 +2540,7 @@
                                 wfhCheckedIn = false;
                             }
                             updateWFHUI();
-                            
+
                             if (document.getElementById('view-attendance').classList.contains('active')) {
                                 loadMyAttendance();
                             }
@@ -2587,7 +2587,7 @@
             t.style.display = 'flex';
             t.style.alignItems = 'center';
             t.style.gap = '10px';
-            
+
             const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
             const color = type === 'success' ? '#10b981' : '#ef4444';
             t.innerHTML = `<div><i class="fas ${icon}" style="color:${color}"></i></div><div><div style="font-size:14px;">${msg}</div></div>`;
@@ -2596,81 +2596,6 @@
         }
     </script>
 
-<!-- DAILY REPORT FORM ORDER PATCH START -->
-<script>
-(function () {
-    if (window.__dailyReportFormOrderPatchInstalled) return;
-    window.__dailyReportFormOrderPatchInstalled = true;
-
-    function cleanText(el) {
-        return (el && el.textContent ? el.textContent : "")
-            .replace(/\s+/g, " ")
-            .trim()
-            .toUpperCase();
-    }
-
-    function findSmallestContainer(requiredTexts) {
-        var nodes = Array.from(document.querySelectorAll("div, section, form"));
-        var matches = nodes.filter(function (el) {
-            var txt = cleanText(el);
-            return requiredTexts.every(function (t) {
-                return txt.includes(t);
-            });
-        });
-
-        matches.sort(function (a, b) {
-            return cleanText(a).length - cleanText(b).length;
-        });
-
-        return matches[0] || null;
-    }
-
-    function reorderDailyReportLayout() {
-        /*
-          Required:
-          - Agent Console / Top 5 / Goal Target should stay above
-          - Log Medicare Transfer form should move below
-          - No ID/API/functionality changes
-        */
-
-        var formBlock = findSmallestContainer([
-            "LOG MEDICARE TRANSFER",
-            "CUX FIRST NAME",
-            "ZIPCODE",
-            "AGE"
-        ]);
-
-        if (!formBlock) return false;
-
-        var targetRoot = document.getElementById("view-performance");
-        if (!targetRoot) return false;
-
-        formBlock.style.marginTop = "28px";
-        if (formBlock.parentElement !== targetRoot) {
-            targetRoot.appendChild(formBlock);
-        }
-        formBlock.dataset.dailyReportMoved = "1";
-
-        return true;
-    }
-
-    window.reorderDailyReportLayout = reorderDailyReportLayout;
-
-    document.addEventListener("DOMContentLoaded", function () {
-        [200, 700, 1500, 3000].forEach(function (delay) {
-            setTimeout(reorderDailyReportLayout, delay);
-        });
-    });
-
-    document.addEventListener("click", function () {
-        setTimeout(reorderDailyReportLayout, 500);
-        setTimeout(reorderDailyReportLayout, 1500);
-    }, true);
-
-    setInterval(reorderDailyReportLayout, 4000);
-})();
-</script>
-<!-- DAILY REPORT FORM ORDER PATCH END -->
 
 
 
@@ -2682,7 +2607,10 @@
 
 
 
-
+
+
+
+
 <script id="DIALER_TOP_5_AGENTS_REALTIME_PATCH">
 (function () {
   if (window.__dialerTop5PatchStarted) return;
@@ -2778,5 +2706,9 @@
   }
 })();
 </script>
+
+
+
+
 </body>
 </html>

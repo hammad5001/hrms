@@ -37,8 +37,13 @@ const MailModule = {
         this.updateFolderCounts();
         this.loadUserSettings();
         this.loadFolderMails();
-        // Periodically refresh folder counts
-        setInterval(() => this.updateFolderCounts(), 20000);
+        // CPU/DB protection:
+        // refresh counts every 2 minutes and never poll while tab is hidden.
+        setInterval(() => {
+            if (!document.hidden) {
+                this.updateFolderCounts();
+            }
+        }, 120000);
     },
 
     async loadUserSettings() {

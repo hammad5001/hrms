@@ -548,6 +548,15 @@ function showTypingIndicator(show) {
 }
 
 async function refreshPresence() {
+    // HRMS CHAT DB THROTTLE 20260826
+    // Presence may be requested by several websocket/UI events together.
+    // Allow at most one presence refresh every 3 seconds per browser tab.
+    const __presenceNow = Date.now();
+    if (__presenceNow - (refreshPresence._lastRunAt || 0) < 3000) {
+        return;
+    }
+    refreshPresence._lastRunAt = __presenceNow;
+
     if (!Chat.activeId) return;
     const res = await chatApi('getPresence', { params: { conversation_id: Chat.activeId } });
     if (res.success) {
@@ -560,6 +569,15 @@ async function refreshPresence() {
 }
 
 async function refreshMessageStatuses() {
+    // HRMS CHAT DB THROTTLE 20260826
+    // Read/delivery events can arrive in bursts; DB status does not need
+    // to be queried multiple times within the same few seconds.
+    const __statusNow = Date.now();
+    if (__statusNow - (refreshMessageStatuses._lastRunAt || 0) < 5000) {
+        return;
+    }
+    refreshMessageStatuses._lastRunAt = __statusNow;
+
     if (!Chat.activeId) return;
     const mineIds = Chat.messages.filter(m => m.is_mine && m.id && !String(m.id).startsWith('tmp')).map(m => m.id);
     if (!mineIds.length) return;
