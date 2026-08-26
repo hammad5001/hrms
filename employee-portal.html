@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/portal-ui-polish.css?v=qa-clean-2">
     <link rel="stylesheet" href="css/employee-hrms.css?v=64">
-    <link rel="stylesheet" href="css/employee-performance.css?v=12">
+    <link rel="stylesheet" href="css/employee-performance.css?v=16">
     <link rel="stylesheet" href="css/dropdown-fix.css?v=3">
     <link rel="stylesheet" href="css/hr-productivity.css?v=2">
     <link rel="stylesheet" href="css/advanced-analytics.css?v=1">
@@ -1380,7 +1380,242 @@
                         <!-- DAILY REPORTING CONSOLE - MODERN ENTERPRISE DASHBOARD -->
                         <!-- ======================================================= -->
                         <section id="view-performance" class="view-section ess-perf-view">
+                            <!-- PERFORMANCE METRICS & LIVE CONSOLE BAR -->
+                            <div class="drc-panel drc-stats-banner">
+                                <div class="drc-stats-banner-inner">
+                                    
+                                    <!-- Agent DID & Live Status -->
+                                    <div class="drc-agent-status-col">
+                                        <div class="drc-agent-avatar-icon">
+                                            <i class="fas fa-headset"></i>
+                                        </div>
+                                        <div class="drc-agent-meta">
+                                            <div class="drc-live-indicator">
+                                                <span class="drc-live-dot"></span>
+                                                <span class="drc-live-text">AGENT CONSOLE &bull; LIVE</span>
+                                            </div>
+                                            <div class="drc-did-display">
+                                                <span class="drc-did-label">DID:</span>
+                                                <strong id="drpBiometricId" class="drc-did-code">-</strong>
+                                            </div>
+                                            <div class="drc-offline-link-wrap">
+                                                <a href="daily-report-offline.html" target="_blank" class="drc-offline-chip">
+                                                    <i class="fas fa-wifi-slash"></i> Offline Mode
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
 
+                                    <!-- Performance Counters -->
+                                    <div class="drc-kpi-group">
+                                        <div class="drc-kpi-card drc-kpi-today">
+                                            <div class="drc-kpi-icon-box">
+                                                <i class="fas fa-sun"></i>
+                                            </div>
+                                            <div class="drc-kpi-text">
+                                                <div id="drpMiniToday" class="drc-kpi-number">0</div>
+                                                <div class="drc-kpi-caption">Today</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="drc-kpi-divider"></div>
+
+                                        <div class="drc-kpi-card drc-kpi-week">
+                                            <div class="drc-kpi-icon-box">
+                                                <i class="fas fa-calendar-week"></i>
+                                            </div>
+                                            <div class="drc-kpi-text">
+                                                <div id="drpMiniWeek" class="drc-kpi-number">0</div>
+                                                <div class="drc-kpi-caption">This Week</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="drc-kpi-divider"></div>
+
+                                        <div class="drc-kpi-card drc-kpi-month">
+                                            <div class="drc-kpi-icon-box">
+                                                <i class="fas fa-calendar-alt"></i>
+                                            </div>
+                                            <div class="drc-kpi-text">
+                                                <div id="drpMiniMonth" class="drc-kpi-number">0</div>
+                                                <div class="drc-kpi-caption">This Month</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Lines Breakdown & Live Clock -->
+                                    <div class="drc-status-right-col">
+                                        <div class="drc-dispo-chips-stack">
+                                            <div class="drc-chip drc-chip-d1">
+                                                <span class="drc-chip-name">D1</span>
+                                                <strong id="drpMiniD1Today" class="drc-chip-val">0</strong>
+                                            </div>
+                                            <div class="drc-chip drc-chip-d2">
+                                                <span class="drc-chip-name">D2</span>
+                                                <strong id="drpMiniD2Today" class="drc-chip-val">0</strong>
+                                            </div>
+                                        </div>
+
+                                        <div id="drpLiveTime" class="drc-clock-badge">
+                                            00:00:00
+                                        </div>
+
+                                        <div class="drc-refresh-ring" id="drcRefreshRing" title="Auto-refreshes every 60s">
+                                            <svg viewBox="0 0 36 36" class="drc-ring-svg">
+                                                <circle class="drc-ring-bg" cx="18" cy="18" r="15.9"/>
+                                                <circle class="drc-ring-prog" cx="18" cy="18" r="15.9" id="drcRingProgress"/>
+                                            </svg>
+                                            <i class="fas fa-rotate-right drc-ring-icon"></i>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+
+                            <!-- MAIN WORKSPACE: WIDGETS + TRANSFERS TABLE -->
+                            <div class="drc-workspace">
+
+                                <!-- LEFT COLUMN: SIDE WIDGETS -->
+                                <div class="drc-side-panel">
+                                    
+                                    <!-- Top 5 Agents Card -->
+                                    <div class="drc-panel drc-widget-card">
+                                        <div class="drc-widget-card-header">
+                                            <i class="fas fa-trophy text-amber"></i>
+                                            <span>Top 5 Agents Today</span>
+                                        </div>
+                                        <div class="drc-widget-card-body" id="drcLeaderboardBody">
+                                            <div class="drc-leaderboard-loading">Loading...</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- MTD Transfers Goal Target Card -->
+                                    <div class="drc-panel drc-widget-card">
+                                        <div class="drc-widget-card-header">
+                                            <i class="fas fa-bullseye text-rose"></i>
+                                            <span>Goal Target (MTD)</span>
+                                        </div>
+                                        <div class="drc-widget-card-body drc-goal-body">
+                                            <div class="drc-goal-large" id="drcGoalMTD">0</div>
+                                            <div class="drc-goal-label">Month-to-Date Logged</div>
+                                            <div class="drc-progress-track">
+                                                <div class="drc-progress-fill" id="drcGoalProgressBar" style="width: 0%;"></div>
+                                            </div>
+                                            <div class="drc-goal-subtext">Target: 360 transfers / month</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Speed & SLA Status Card -->
+                                    <div class="drc-panel drc-widget-card">
+                                        <div class="drc-widget-card-header">
+                                            <i class="fas fa-user-clock text-indigo"></i>
+                                            <span>Speed &amp; SLA Status</span>
+                                        </div>
+                                        <div class="drc-widget-card-body drc-sla-body">
+                                            <div class="drc-sla-row">
+                                                <span class="drc-sla-title">Avg. Duration:</span>
+                                                <strong id="drcSlaDuration" class="drc-sla-val">0 min</strong>
+                                            </div>
+                                            <div class="drc-progress-track drc-progress-track-sm">
+                                                <div class="drc-progress-fill drc-progress-fill-emerald" id="drcSlaProgressBar" style="width: 0%;"></div>
+                                            </div>
+                                            <div class="drc-sla-footer">
+                                                <span>Goal: &lt; 5 mins</span>
+                                                <span id="drcSlaStatusText" class="drc-sla-badge">Within SLA</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <!-- RIGHT COLUMN: TRANSFERS LOG TABLE -->
+                                <div class="drc-panel drc-table-card">
+
+                                    <!-- Period Tabs & Actions Bar -->
+                                    <div class="drc-table-header-bar">
+                                        <div class="drc-period-tabs">
+                                            <button type="button" class="drc-tab drc-tab-active" id="drpTabToday" onclick="drpSwitchPeriod('today')">
+                                                <i class="fas fa-sun"></i>
+                                                <span>Today</span>
+                                                <span class="drc-tab-count" id="drcTabCountToday">0</span>
+                                            </button>
+                                            <button type="button" class="drc-tab" id="drpTabWeek" onclick="drpSwitchPeriod('week')">
+                                                <i class="fas fa-calendar-week"></i>
+                                                <span>This Week</span>
+                                                <span class="drc-tab-count" id="drcTabCountWeek">0</span>
+                                            </button>
+                                            <button type="button" class="drc-tab" id="drpTabMonth" onclick="drpSwitchPeriod('month')">
+                                                <i class="fas fa-calendar-alt"></i>
+                                                <span>This Month</span>
+                                                <span class="drc-tab-count" id="drcTabCountMonth">0</span>
+                                            </button>
+                                        </div>
+                                        <div class="drc-table-actions">
+                                            <button type="button" class="drc-btn-secondary" title="Refresh Performance Data" onclick="loadPerformanceView()">
+                                                <i class="fas fa-rotate-right"></i>
+                                            </button>
+                                            <button type="button" class="drc-btn-secondary drc-btn-export" title="Export Data" onclick="drpExportCSV()">
+                                                <i class="fas fa-download"></i>
+                                                <span>Export</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Table Summary Strip -->
+                                    <div class="drc-summary-strip" id="drcSummaryBar">
+                                        <div class="drc-sum-pill drc-sum-total">
+                                            <i class="fas fa-list-check"></i>
+                                            <span><span id="drpTableCount">0</span> transfers</span>
+                                        </div>
+                                        <div class="drc-sum-pill drc-sum-d1">
+                                            <span class="drc-dot drc-dot-d1"></span>
+                                            <span>D1: <strong id="drcSumD1">0</strong></span>
+                                        </div>
+                                        <div class="drc-sum-pill drc-sum-d2">
+                                            <span class="drc-dot drc-dot-d2"></span>
+                                            <span>D2: <strong id="drcSumD2">0</strong></span>
+                                        </div>
+                                        <div class="drc-sum-pill drc-sum-extra" id="drpTableSummary"></div>
+                                    </div>
+
+                                    <!-- Transfers Table View -->
+                                    <div class="drc-table-responsive">
+                                        <table class="drc-data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th class="drc-th-num">#</th>
+                                                    <th>Time</th>
+                                                    <th>Phone Number</th>
+                                                    <th>Customer Name</th>
+                                                    <th>State / Zip</th>
+                                                    <th>Age</th>
+                                                    <th>Line</th>
+                                                    <th>Real Name (HRMS)</th>
+                                                    <th>Pseudo / Team</th>
+                                                    <th>QA Status</th>
+                                                    <th>Source</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="todayTransfersTableBody">
+                                                <tr class="drc-loading-row">
+                                                    <td colspan="11">
+                                                        <div class="drc-spinner-wrap">
+                                                            <div class="drc-spinner"></div>
+                                                            <span>Loading transfers...</span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                </div><!-- /drc-table-card -->
+
+                            </div><!-- /drc-workspace -->
+
+                            <!-- LOG MEDICARE TRANSFER FORM (below workspace) -->
                             <!-- LOG TRANSFER FORM CARD -->
                             <div class="drc-panel drc-form-card">
                                 <div class="drc-card-header">
@@ -1508,238 +1743,6 @@
                                     </div>
                                 </form>
                             </div>
-
-                            <!-- PERFORMANCE METRICS & LIVE CONSOLE BAR -->
-                            <div class="drc-panel drc-stats-banner">
-                                <div class="drc-stats-banner-inner">
-                                    
-                                    <!-- Agent DID & Live Status -->
-                                    <div class="drc-agent-status-col">
-                                        <div class="drc-agent-avatar-icon">
-                                            <i class="fas fa-headset"></i>
-                                        </div>
-                                        <div class="drc-agent-meta">
-                                            <div class="drc-live-indicator">
-                                                <span class="drc-live-dot"></span>
-                                                <span class="drc-live-text">AGENT CONSOLE &bull; LIVE</span>
-                                            </div>
-                                            <div class="drc-did-display">
-                                                <span class="drc-did-label">DID:</span>
-                                                <strong id="drpBiometricId" class="drc-did-code">-</strong>
-                                            </div>
-                                            <div class="drc-offline-link-wrap">
-                                                <a href="daily-report-offline.html" target="_blank" class="drc-offline-chip">
-                                                    <i class="fas fa-wifi-slash"></i> Offline Mode
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Performance Counters -->
-                                    <div class="drc-kpi-group">
-                                        <div class="drc-kpi-card drc-kpi-today">
-                                            <div class="drc-kpi-icon-box">
-                                                <i class="fas fa-sun"></i>
-                                            </div>
-                                            <div class="drc-kpi-text">
-                                                <div id="drpMiniToday" class="drc-kpi-number">0</div>
-                                                <div class="drc-kpi-caption">Today</div>
-                                            </div>
-                                        </div>
-
-                                        <div class="drc-kpi-divider"></div>
-
-                                        <div class="drc-kpi-card drc-kpi-week">
-                                            <div class="drc-kpi-icon-box">
-                                                <i class="fas fa-calendar-week"></i>
-                                            </div>
-                                            <div class="drc-kpi-text">
-                                                <div id="drpMiniWeek" class="drc-kpi-number">0</div>
-                                                <div class="drc-kpi-caption">This Week</div>
-                                            </div>
-                                        </div>
-
-                                        <div class="drc-kpi-divider"></div>
-
-                                        <div class="drc-kpi-card drc-kpi-month">
-                                            <div class="drc-kpi-icon-box">
-                                                <i class="fas fa-calendar-alt"></i>
-                                            </div>
-                                            <div class="drc-kpi-text">
-                                                <div id="drpMiniMonth" class="drc-kpi-number">0</div>
-                                                <div class="drc-kpi-caption">This Month</div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Lines Breakdown & Live Clock -->
-                                    <div class="drc-status-right-col">
-                                        <div class="drc-dispo-chips-stack">
-                                            <div class="drc-chip drc-chip-d1">
-                                                <span class="drc-chip-name">D1</span>
-                                                <strong id="drpMiniD1Today" class="drc-chip-val">0</strong>
-                                            </div>
-                                            <div class="drc-chip drc-chip-d2">
-                                                <span class="drc-chip-name">D2</span>
-                                                <strong id="drpMiniD2Today" class="drc-chip-val">0</strong>
-                                            </div>
-                                        </div>
-
-                                        <div id="drpLiveTime" class="drc-clock-badge">
-                                            00:00:00
-                                        </div>
-
-                                        <div class="drc-refresh-ring" id="drcRefreshRing" title="Auto-refreshes every 60s">
-                                            <svg viewBox="0 0 36 36" class="drc-ring-svg">
-                                                <circle class="drc-ring-bg" cx="18" cy="18" r="15.9"/>
-                                                <circle class="drc-ring-prog" cx="18" cy="18" r="15.9" id="drcRingProgress"/>
-                                            </svg>
-                                            <i class="fas fa-rotate-right drc-ring-icon"></i>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-
-                            <!-- MAIN WORKSPACE: WIDGETS + TRANSFERS TABLE -->
-                            <div class="drc-workspace">
-
-                                <!-- LEFT COLUMN: SIDE WIDGETS -->
-                                <div class="drc-side-panel">
-                                    
-                                    <!-- Top 5 Agents Card -->
-                                    <div class="drc-panel drc-widget-card">
-                                        <div class="drc-widget-card-header">
-                                            <i class="fas fa-trophy text-amber"></i>
-                                            <span>Top 5 Agents Today</span>
-                                        </div>
-                                        <div class="drc-widget-card-body" id="drcLeaderboardBody">
-                                            <div class="drc-leaderboard-loading">Loading...</div>
-                                        </div>
-                                    </div>
-
-                                    <!-- MTD Transfers Goal Target Card -->
-                                    <div class="drc-panel drc-widget-card">
-                                        <div class="drc-widget-card-header">
-                                            <i class="fas fa-bullseye text-rose"></i>
-                                            <span>Goal Target (MTD)</span>
-                                        </div>
-                                        <div class="drc-widget-card-body drc-goal-body">
-                                            <div class="drc-goal-large" id="drcGoalMTD">0</div>
-                                            <div class="drc-goal-label">Month-to-Date Logged</div>
-                                            <div class="drc-progress-track">
-                                                <div class="drc-progress-fill" id="drcGoalProgressBar" style="width: 0%;"></div>
-                                            </div>
-                                            <div class="drc-goal-subtext">Target: 360 transfers / month</div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Speed & SLA Status Card -->
-                                    <div class="drc-panel drc-widget-card">
-                                        <div class="drc-widget-card-header">
-                                            <i class="fas fa-user-clock text-indigo"></i>
-                                            <span>Speed &amp; SLA Status</span>
-                                        </div>
-                                        <div class="drc-widget-card-body drc-sla-body">
-                                            <div class="drc-sla-row">
-                                                <span class="drc-sla-title">Avg. Duration:</span>
-                                                <strong id="drcSlaDuration" class="drc-sla-val">0 min</strong>
-                                            </div>
-                                            <div class="drc-progress-track drc-progress-track-sm">
-                                                <div class="drc-progress-fill drc-progress-fill-emerald" id="drcSlaProgressBar" style="width: 0%;"></div>
-                                            </div>
-                                            <div class="drc-sla-footer">
-                                                <span>Goal: &lt; 5 mins</span>
-                                                <span id="drcSlaStatusText" class="drc-sla-badge">Within SLA</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                                <!-- RIGHT COLUMN: TRANSFERS LOG TABLE -->
-                                <div class="drc-panel drc-table-card">
-
-                                    <!-- Period Tabs & Actions Bar -->
-                                    <div class="drc-table-header-bar">
-                                        <div class="drc-period-tabs">
-                                            <button type="button" class="drc-tab drc-tab-active" id="drpTabToday" onclick="drpSwitchPeriod('today')">
-                                                <i class="fas fa-sun"></i>
-                                                <span>Today</span>
-                                                <span class="drc-tab-count" id="drcTabCountToday">0</span>
-                                            </button>
-                                            <button type="button" class="drc-tab" id="drpTabWeek" onclick="drpSwitchPeriod('week')">
-                                                <i class="fas fa-calendar-week"></i>
-                                                <span>This Week</span>
-                                                <span class="drc-tab-count" id="drcTabCountWeek">0</span>
-                                            </button>
-                                            <button type="button" class="drc-tab" id="drpTabMonth" onclick="drpSwitchPeriod('month')">
-                                                <i class="fas fa-calendar-alt"></i>
-                                                <span>This Month</span>
-                                                <span class="drc-tab-count" id="drcTabCountMonth">0</span>
-                                            </button>
-                                        </div>
-                                        <div class="drc-table-actions">
-                                            <button type="button" class="drc-btn-secondary" title="Refresh Performance Data" onclick="loadPerformanceView()">
-                                                <i class="fas fa-rotate-right"></i>
-                                            </button>
-                                            <button type="button" class="drc-btn-secondary drc-btn-export" title="Export Data" onclick="drpExportCSV()">
-                                                <i class="fas fa-download"></i>
-                                                <span>Export</span>
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <!-- Table Summary Strip -->
-                                    <div class="drc-summary-strip" id="drcSummaryBar">
-                                        <div class="drc-sum-pill drc-sum-total">
-                                            <i class="fas fa-list-check"></i>
-                                            <span><span id="drpTableCount">0</span> transfers</span>
-                                        </div>
-                                        <div class="drc-sum-pill drc-sum-d1">
-                                            <span class="drc-dot drc-dot-d1"></span>
-                                            <span>D1: <strong id="drcSumD1">0</strong></span>
-                                        </div>
-                                        <div class="drc-sum-pill drc-sum-d2">
-                                            <span class="drc-dot drc-dot-d2"></span>
-                                            <span>D2: <strong id="drcSumD2">0</strong></span>
-                                        </div>
-                                        <div class="drc-sum-pill drc-sum-extra" id="drpTableSummary"></div>
-                                    </div>
-
-                                    <!-- Transfers Table View -->
-                                    <div class="drc-table-responsive">
-                                        <table class="drc-data-table">
-                                            <thead>
-                                                <tr>
-                                                    <th class="drc-th-num">#</th>
-                                                    <th>Time</th>
-                                                    <th>Phone Number</th>
-                                                    <th>Customer Name</th>
-                                                    <th>State / Zip</th>
-                                                    <th>Age</th>
-                                                    <th>Line</th>
-                                                    <th>Real Name (HRMS)</th>
-                                                    <th>Pseudo / Team</th>
-                                                    <th>QA Status</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="todayTransfersTableBody">
-                                                <tr class="drc-loading-row">
-                                                    <td colspan="10">
-                                                        <div class="drc-spinner-wrap">
-                                                            <div class="drc-spinner"></div>
-                                                            <span>Loading transfers...</span>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-
-                                </div><!-- /drc-table-card -->
-
-                            </div><!-- /drc-workspace -->
 
                         </section>
                         <!-- ============================================== END DAILY REPORTING ============================================== -->
@@ -2596,81 +2599,6 @@
         }
     </script>
 
-<!-- DAILY REPORT FORM ORDER PATCH START -->
-<script>
-(function () {
-    if (window.__dailyReportFormOrderPatchInstalled) return;
-    window.__dailyReportFormOrderPatchInstalled = true;
-
-    function cleanText(el) {
-        return (el && el.textContent ? el.textContent : "")
-            .replace(/\s+/g, " ")
-            .trim()
-            .toUpperCase();
-    }
-
-    function findSmallestContainer(requiredTexts) {
-        var nodes = Array.from(document.querySelectorAll("div, section, form"));
-        var matches = nodes.filter(function (el) {
-            var txt = cleanText(el);
-            return requiredTexts.every(function (t) {
-                return txt.includes(t);
-            });
-        });
-
-        matches.sort(function (a, b) {
-            return cleanText(a).length - cleanText(b).length;
-        });
-
-        return matches[0] || null;
-    }
-
-    function reorderDailyReportLayout() {
-        /*
-          Required:
-          - Agent Console / Top 5 / Goal Target should stay above
-          - Log Medicare Transfer form should move below
-          - No ID/API/functionality changes
-        */
-
-        var formBlock = findSmallestContainer([
-            "LOG MEDICARE TRANSFER",
-            "CUX FIRST NAME",
-            "ZIPCODE",
-            "AGE"
-        ]);
-
-        if (!formBlock) return false;
-
-        var targetRoot = document.getElementById("view-performance");
-        if (!targetRoot) return false;
-
-        formBlock.style.marginTop = "28px";
-        if (formBlock.parentElement !== targetRoot) {
-            targetRoot.appendChild(formBlock);
-        }
-        formBlock.dataset.dailyReportMoved = "1";
-
-        return true;
-    }
-
-    window.reorderDailyReportLayout = reorderDailyReportLayout;
-
-    document.addEventListener("DOMContentLoaded", function () {
-        [200, 700, 1500, 3000].forEach(function (delay) {
-            setTimeout(reorderDailyReportLayout, delay);
-        });
-    });
-
-    document.addEventListener("click", function () {
-        setTimeout(reorderDailyReportLayout, 500);
-        setTimeout(reorderDailyReportLayout, 1500);
-    }, true);
-
-    setInterval(reorderDailyReportLayout, 4000);
-})();
-</script>
-<!-- DAILY REPORT FORM ORDER PATCH END -->
 
 
 
@@ -2682,101 +2610,7 @@
 
 
 
-
-<script id="DIALER_TOP_5_AGENTS_REALTIME_PATCH">
-(function () {
-  if (window.__dialerTop5PatchStarted) return;
-  window.__dialerTop5PatchStarted = true;
 
-  const API_URL = "/api/get_dialer_top_agents_today.php";
-  const HOST_ATTR = "data-dialer-top5-host";
 
-  function esc(v) {
-    return String(v ?? "").replace(/[&<>"']/g, function (m) {
-      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[m];
-    });
-  }
-
-  function findTopAgentsCard() {
-    const existing = document.querySelector("[" + HOST_ATTR + "='1']");
-    if (existing) return existing;
-
-    const nodes = Array.from(document.querySelectorAll("div,section,aside"))
-      .filter(el => !el.closest(".dialer-top5-live-root"))
-      .filter(el => /TOP\s*5\s*AGENTS\s*TODAY/i.test(el.innerText || ""))
-      .map(el => {
-        const r = el.getBoundingClientRect();
-        return { el, area: r.width * r.height, w: r.width, h: r.height };
-      })
-      .filter(x => x.w >= 250 && x.w <= 700 && x.h >= 120);
-
-    nodes.sort((a, b) => a.area - b.area);
-    const card = nodes[0]?.el || null;
-
-    if (card) card.setAttribute(HOST_ATTR, "1");
-    return card;
-  }
-
-  function renderRows(card, agents) {
-    card.setAttribute(HOST_ATTR, "1");
-
-    const rows = agents.length ? agents.map((a, i) => {
-      return `
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.07);">
-          <div style="display:flex;align-items:center;gap:12px;min-width:0;">
-            <span style="width:26px;height:26px;border-radius:8px;background:rgba(243,149,41,.22);color:#F39529;display:flex;align-items:center;justify-content:center;font-weight:900;">${i + 1}</span>
-            <div style="min-width:0;">
-              <div style="font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(a.agent_name)}</div>
-              <div style="font-size:11px;color:rgba(255,255,255,.55);font-weight:800;">${esc(a.employee_code)} · USA Today</div>
-            </div>
-          </div>
-          <div style="font-weight:900;color:#8c8cff;">${Number(a.total_transfers || 0)}</div>
-        </div>
-      `;
-    }).join("") : `
-      <div style="padding:18px;color:rgba(255,255,255,.6);font-weight:800;">No dialer transfers today</div>
-    `;
-
-    card.innerHTML = `
-      <div class="dialer-top5-live-root" style="width:100%;overflow:hidden;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.08);">
-          <div style="font-weight:900;color:#fff;">🏆 TOP 5 AGENTS TODAY</div>
-          <div style="font-size:11px;color:#20e0b0;font-weight:900;">Sales</div>
-        </div>
-        <div>${rows}</div>
-      </div>
-    `;
-  }
-
-  async function loadTopAgents() {
-    const card = findTopAgentsCard();
-    if (!card) return;
-
-    const res = await fetch(API_URL + "?_=" + Date.now(), {
-      credentials: "same-origin",
-      cache: "no-store"
-    });
-
-    const data = await res.json();
-    if (!data || !data.success) return;
-
-    renderRows(card, data.agents || []);
-  }
-
-  function start() {
-    loadTopAgents();
-    setTimeout(loadTopAgents, 1000);
-
-    if (window.__dialerTop5Interval) clearInterval(window.__dialerTop5Interval);
-    window.__dialerTop5Interval = setInterval(loadTopAgents, 30000);
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", start);
-  } else {
-    start();
-  }
-})();
-</script>
 </body>
 </html>

@@ -560,6 +560,54 @@ const ESS_DEFAULT_NAV = {
     'coming-soon': null,
 };
 
+const ESS_VIEW_TO_HASH = {
+    dashboard: '',
+    performance: 'daily-report',
+    'performance-analytics': 'my-performance',
+    attendance: 'attendance',
+    leave: 'leaves',
+    halfday: 'leaves',
+    'leave-policy': 'leave-policy',
+    approvals: 'approvals',
+    reportees: 'reportees',
+    salary: 'payroll',
+    timelogs: 'time-tracker',
+    timesheets: 'timesheets',
+    payslips: 'payslips',
+    chat: 'chat',
+    profile: 'profile',
+    notifications: 'notifications',
+    feeds: 'feeds',
+    'active-members': 'active-members'
+};
+
+const ESS_HASH_TO_VIEW = {
+    'dashboard':             ['dashboard',             'nav-tab-activities'],
+    'home':                  ['dashboard',             'nav-tab-activities'],
+    'daily-report':          ['performance',           'nav-side-performance'],
+    'performance':           ['performance',           'nav-side-performance'],
+    'my-performance':        ['performance-analytics', 'nav-side-performance-analytics'],
+    'performance-analytics': ['performance-analytics', 'nav-side-performance-analytics'],
+    'attendance':            ['attendance',            'nav-side-attendance'],
+    'leaves':                ['leave',                 'nav-side-leave'],
+    'leave':                 ['leave',                 'nav-side-leave'],
+    'time-tracker':          ['timelogs',              'nav-side-timelogs'],
+    'timelogs':              ['timelogs',              'nav-side-timelogs'],
+    'timesheets':            ['timesheets',            'nav-tab-timesheets'],
+    'payroll':               ['salary',                'nav-side-payroll'],
+    'salary':                ['salary',                'nav-side-payroll'],
+    'payslips':              ['payslips',              'nav-side-payslips'],
+    'chat':                  ['chat',                  'nav-side-chat'],
+    'mail':                  ['mail',                  'nav-side-mail'],
+    'profile':               ['profile',               'nav-tab-profile'],
+    'notifications':         ['notifications',         'nav-side-more'],
+    'feeds':                 ['feeds',                 'nav-tab-feeds'],
+    'reportees':             ['reportees',             'nav-tab-reportees'],
+    'approvals':             ['approvals',             'nav-tab-approvals'],
+    'leave-policy':          ['leave-policy',          'nav-side-leave-policy'],
+    'active-members':        ['active-members',        'nav-side-active-members']
+};
+
 const ESS_VIEW_TITLES = {
     dashboard: ['Dashboard', 'Employee Self Service overview'],
     attendance: ['Attendance', 'Punch history and weekly summary'],
@@ -574,6 +622,7 @@ const ESS_VIEW_TITLES = {
     profile: ['My Profile', 'Your employee record and work information'],
     notifications: ['Notifications', 'Alerts from HR and managers'],
     chat: ['Workspace Chat', 'Messages with your team - secure internal chat'],
+    mail: ['Internal Mail', 'Communicate internally with company employees'],
     'coming-soon': ['Coming soon', 'This module is under development'],
 };
 
@@ -611,7 +660,7 @@ function navigateFromEl(el) {
     showView(view, navId);
 }
 
-function showView(id, navId = null) {
+function showView(id, navId = null, syncHash = true) {
     if (id === 'coming-soon') {
         showComingSoon('This section', navId);
         return;
@@ -639,8 +688,11 @@ function showView(id, navId = null) {
 
     const isChat = (id === 'chat');
     const isDashboard = (id === 'dashboard');
+    const isMail = (id === 'mail');
     document.body.classList.toggle('ess-chat-active', isChat);
     document.body.classList.toggle('ess-dashboard-active', isDashboard);
+    document.body.classList.toggle('ess-mail-active', isMail);
+    document.body.classList.toggle('perf-view-active', id === 'performance');
     if (isChat) {
         ensureChatFrameLoaded();
     } else {
@@ -648,9 +700,26 @@ function showView(id, navId = null) {
         pollChatUnread();
     }
 
+    if (id === 'mail' && window.MailModule) {
+        window.MailModule.switchFolder('inbox');
+    }
+
     const t = ESS_VIEW_TITLES[id] || ['HRMS', ''];
     setText('pageTitle', t[0]);
     setText('pageSubtitle', t[1]);
+
+    if (syncHash && Object.prototype.hasOwnProperty.call(ESS_VIEW_TO_HASH, id)) {
+        const targetHash = ESS_VIEW_TO_HASH[id];
+        if (targetHash) {
+            if (location.hash !== '#' + targetHash) {
+                history.replaceState(null, '', '#' + targetHash);
+            }
+        } else {
+            if (location.hash && location.hash !== '#dashboard') {
+                history.replaceState(null, '', location.pathname + location.search);
+            }
+        }
+    }
 
     if (id === 'dashboard') {
         renderSidebarHierarchy(HRMS.reporting);
@@ -2677,22 +2746,102 @@ function renderReporteesTable(rows) {
     });
 
     tbody.querySelectorAll('.ess-reportee-remove-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
+        btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (!confirm('Are you sure you want to remove this reportee?')) return;
             const employeeUserId = btn.dataset.removeId;
-            btn.disabled = true;
-            const res = await apiPost('api/reportees_api.php?action=removeReportee', { employee_user_id: employeeUserId });
-            if (res.success) {
-                toast(res.data?.message || 'Reportee removed.');
-                renderReportingHierarchy(res.data?.hierarchy);
-                await loadReporteesView();
-            } else {
-                toast(res.error || 'Could not remove reportee', 'error');
-                btn.disabled = false;
-            }
+            const reportee = rows.find(r => String(r.user_id) === String(employeeUserId));
+            openRemoveReporteeModal(employeeUserId, reportee);
         });
     });
+}
+
+function openRemoveReporteeModal(employeeUserId, reportee) {
+    const modal = document.getElementById('removeReporteeModal');
+    if (!modal) return;
+    document.getElementById('removeReporteeUserId').value = employeeUserId || '';
+    document.getElementById('removeReporteeReason').value = 'resigned';
+    document.getElementById('removeReporteeNewTeam').value = '';
+    document.getElementById('removeReporteeCustomTeam').value = '';
+    document.getElementById('removeReporteeCustomTeam').style.display = 'none';
+    document.getElementById('moveTeamGroup').style.display = 'none';
+    document.getElementById('removeReporteeRemarks').value = '';
+    
+    const sub = document.getElementById('removeReporteeModalSub');
+    if (sub) {
+        const empName = reportee?.full_name ? `${reportee.full_name} (${reportee.employee_code || ''})` : 'this reportee';
+        sub.textContent = `Select reason for removing ${empName} from your team.`;
+    }
+    
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+}
+
+function closeRemoveReporteeModal() {
+    const modal = document.getElementById('removeReporteeModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
+}
+
+function onRemoveReasonChange(val) {
+    const moveGroup = document.getElementById('moveTeamGroup');
+    if (moveGroup) {
+        moveGroup.style.display = val === 'moved_team' ? 'block' : 'none';
+    }
+}
+
+function onRemoveTeamSelectChange(val) {
+    const customInp = document.getElementById('removeReporteeCustomTeam');
+    if (customInp) {
+        customInp.style.display = val === 'Other' ? 'block' : 'none';
+    }
+}
+
+async function handleRemoveReporteeSubmit(e) {
+    e.preventDefault();
+    const employeeUserId = document.getElementById('removeReporteeUserId').value;
+    const reason = document.getElementById('removeReporteeReason').value;
+    const teamSel = document.getElementById('removeReporteeNewTeam').value;
+    const customTeam = document.getElementById('removeReporteeCustomTeam').value;
+    const remarks = document.getElementById('removeReporteeRemarks').value;
+    
+    let newTeam = teamSel;
+    if (reason === 'moved_team') {
+        if (teamSel === 'Other') {
+            newTeam = customTeam.trim();
+        }
+        if (!newTeam) {
+            toast('Please select or specify the new team.', 'error');
+            return;
+        }
+    }
+    
+    const btn = document.getElementById('btnConfirmRemoveReportee');
+    if (btn) btn.disabled = true;
+    
+    try {
+        const res = await apiPost('api/reportees_api.php?action=removeReportee', {
+            employee_user_id: employeeUserId,
+            removal_reason: reason,
+            new_team: newTeam,
+            remarks: remarks
+        });
+        
+        if (res.success) {
+            toast(res.data?.message || 'Reportee removed successfully.');
+            closeRemoveReporteeModal();
+            renderReportingHierarchy(res.data?.hierarchy);
+            await loadReporteesView();
+        } else {
+            toast(res.error || 'Could not remove reportee', 'error');
+        }
+    } catch (err) {
+        console.error('Remove reportee failed', err);
+        toast('Failed to remove reportee. Please try again.', 'error');
+    } finally {
+        if (btn) btn.disabled = false;
+    }
 }
 
 async function loadReporteesView() {
@@ -3570,13 +3719,21 @@ function setupWorkPortalLink() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    try { localStorage.removeItem('hrms_employee_portal_active_menu'); } catch (e) {}
+
     bindNavigation();
     initLeaveForms();
     initLeaveYearNav();
     initLeavePolicyDefForm();
-    if (location.hash === '#chat') showView('chat', 'nav-side-chat');
-    else if (location.hash === '#profile') showView('profile', 'nav-tab-profile');
-    else showView('dashboard', 'nav-tab-activities');
+
+    const _startHash = (location.hash || '').replace('#', '').trim().toLowerCase();
+    const _startTarget = ESS_HASH_TO_VIEW[_startHash];
+    if (_startTarget) {
+        showView(_startTarget[0], _startTarget[1], false);
+    } else {
+        showView('dashboard', 'nav-tab-activities', false);
+    }
+
     loadProfile().then(() => {
         setupWorkPortalLink();
         startAttendanceRefresh();
@@ -3593,6 +3750,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 history.replaceState(null, '', location.pathname + location.search);
             }
             showView(e.data.view, ESS_DEFAULT_NAV[e.data.view] || null);
+        }
+    });
+    window.addEventListener('hashchange', () => {
+        const rawHash = (location.hash || '').replace('#', '').trim().toLowerCase();
+        const target = ESS_HASH_TO_VIEW[rawHash];
+        if (target && target[0] !== HRMS.currentView) {
+            showView(target[0], target[1], false);
+        } else if (!rawHash && HRMS.currentView !== 'dashboard') {
+            showView('dashboard', 'nav-tab-activities', false);
         }
     });
     document.addEventListener('click', () => window.PortalNotifySound?.unlock?.(), { once: true, capture: true });

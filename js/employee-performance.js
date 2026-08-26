@@ -145,7 +145,7 @@ function drpRenderTable(transfers) {
     if (!tbody) return;
 
     if (!transfers || transfers.length === 0) {
-        tbody.innerHTML = `<tr class="drc-empty-row"><td colspan="12">
+        tbody.innerHTML = `<tr class="drc-empty-row"><td colspan="11">
             <i class="fas fa-phone-slash drc-empty-icon"></i>
             <strong class="drc-empty-title">No Medicare transfers logged yet</strong>
             <span class="drc-empty-sub">Log your first transfer call using the form above</span>
@@ -189,6 +189,11 @@ function drpRenderTable(transfers) {
             qaBadge = `<span style="background:rgba(245,158,11,0.15); color:#f59e0b; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:800; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-clock"></i> Pending</span>`;
         }
 
+        // Source badge
+        const sourceBadge = (r.source === 'dialer')
+            ? `<span style="background:rgba(243,149,41,0.15);color:#F39529;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:0.04em;display:inline-flex;align-items:center;gap:3px;"><i class="fas fa-phone-volume" style="font-size:9px;"></i>Dialer/QA</span>`
+            : `<span style="background:rgba(148,163,184,0.12);color:#94a3b8;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:0.04em;">Manual</span>`;
+
         return `<tr>
             <td class="drc-num-col">${transfers.length - i}</td>
             <td><span class="drc-time-strong">${time}</span>${dateStr}${offline}</td>
@@ -200,6 +205,7 @@ function drpRenderTable(transfers) {
             <td>${verifier}</td>
             <td style="font-size:11px; color:rgba(255,255,255,0.5);">${pseudoTeam}</td>
             <td>${qaBadge}</td>
+            <td>${sourceBadge}</td>
         </tr>`;
     }).join('');
 
@@ -421,16 +427,17 @@ function drpRenderMiniStats(miniStats, streak) {
     }
 }
 
-// ─── Render Leaderboard List ──────────────────────────────────────────────────
+// ─── Render Leaderboard List (compatibility stub — drpLoadTopAgents is the live source) ──
 function drpRenderLeaderboard(list) {
+    // Dialer Top 5 is loaded by drpLoadTopAgents; this stub is kept for compatibility.
+    // Only fall back to HRMS list if no dialer data has been loaded yet.
     const box = document.getElementById('drcLeaderboardBody');
     if (!box) return;
-
+    if (box.dataset.dialerLoaded === '1') return; // dialer data already shown
     if (!list || list.length === 0) {
         box.innerHTML = `<div style="text-align:center; padding:20px; color:rgba(255,255,255,0.25); font-size:11px;">No agent logged calls yet.</div>`;
         return;
     }
-
     box.innerHTML = list.map((item, i) => {
         return `<div class="drc-leaderboard-row">
             <div class="drc-leaderboard-rank">${i + 1}</div>
@@ -438,6 +445,66 @@ function drpRenderLeaderboard(list) {
             <div class="drc-leaderboard-val">${item.cnt}</div>
         </div>`;
     }).join('');
+}
+
+// ─── Dialer Top 5 Agents Today ────────────────────────────────────────────────
+let drpTop5Timer = null;
+
+async function drpLoadTopAgents() {
+    const box = document.getElementById('drcLeaderboardBody');
+    if (!box) return;
+
+    // Update card header to show Sales badge
+    const cardHeader = box.closest('.drc-panel, .drc-widget-card')?.querySelector('.drc-widget-card-header, .drc-card-header');
+    if (cardHeader && !cardHeader.dataset.dialerBadgeAdded) {
+        cardHeader.dataset.dialerBadgeAdded = '1';
+        const badge = document.createElement('span');
+        badge.style.cssText = 'margin-left:auto;background:rgba(243,149,41,0.18);color:#F39529;padding:2px 9px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:0.04em;';
+        badge.textContent = 'Sales';
+        cardHeader.appendChild(badge);
+    }
+
+    try {
+        const res = await fetch(`api/get_dialer_top_agents_today.php?_=${Date.now()}`, { credentials: 'include', cache: 'no-store' });
+        const data = await res.json();
+        if (!data || !data.success) return;
+
+        const agents = data.agents || [];
+        box.dataset.dialerLoaded = '1';
+
+        if (!agents.length) {
+            box.innerHTML = `<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.3);font-size:12px;font-weight:600;">No sales data found for today.</div>`;
+            return;
+        }
+
+        box.innerHTML = agents.map((a, i) => {
+            const medals = ['🥇','🥈','🥉'];
+            const rank = medals[i] ? `<span style="font-size:15px;">${medals[i]}</span>` : `<span style="width:24px;height:24px;border-radius:7px;background:rgba(243,149,41,0.15);color:#F39529;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">${i+1}</span>`;
+            const d5 = parseInt(a.d5_total)||0;
+            const d4 = parseInt(a.d4_total)||0;
+            return `<div class="drc-leaderboard-row" style="flex-direction:column;align-items:flex-start;gap:4px;padding:10px 14px;">
+                <div style="display:flex;align-items:center;gap:8px;width:100%;">
+                    ${rank}
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-weight:800;color:#f8fafc;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${String(a.agent_name||'').replace(/</g,'&lt;')}</div>
+                        <div style="font-size:10px;color:rgba(255,255,255,0.45);font-weight:700;">${String(a.employee_code||'').replace(/</g,'&lt;')}</div>
+                    </div>
+                    <div style="font-size:18px;font-weight:900;color:#818cf8;">${parseInt(a.total_transfers)||0}</div>
+                </div>
+                <div style="display:flex;gap:8px;padding-left:32px;">
+                    <span style="font-size:10px;background:rgba(16,185,129,0.12);color:#10b981;padding:1px 7px;border-radius:999px;font-weight:700;">D5: ${d5}</span>
+                    <span style="font-size:10px;background:rgba(99,102,241,0.12);color:#818cf8;padding:1px 7px;border-radius:999px;font-weight:700;">D4: ${d4}</span>
+                </div>
+            </div>`;
+        }).join('');
+    } catch (err) {
+        console.warn('drpLoadTopAgents error:', err);
+    }
+}
+
+function drpStartTop5AutoRefresh() {
+    if (drpTop5Timer) clearInterval(drpTop5Timer);
+    drpTop5Timer = setInterval(drpLoadTopAgents, 60000);
 }
 
 // ─── Calculate Speed/SLA average ──────────────────────────────────────────────
@@ -479,6 +546,8 @@ function drpCalculateSLA(transfers) {
 
 // ─── Load Performance Dashboard ───────────────────────────────────────────────
 window.loadPerformanceView = async function() {
+    // Toggle body class for biometric button hide (CSS :has() fallback)
+    document.body.classList.add('perf-view-active');
     const res = await drpApi('load_dashboard', `&period=${drpCurrentPeriod}`);
     if (res.success) {
         const data = res.data || res;
@@ -505,6 +574,10 @@ window.loadPerformanceView = async function() {
 
         drpStartLiveClock();
         drpStartAutoRefresh();
+
+        // Load dialer Top 5 Agents (separate from HRMS leaderboard)
+        drpLoadTopAgents();
+        drpStartTop5AutoRefresh();
     } else {
         window.showToast?.(res.message || 'Failed to load performance data', 'error');
     }
