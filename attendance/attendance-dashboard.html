@@ -1422,13 +1422,27 @@
     <div class="modal" id="employeeDetailModal"><div class="modal-content"><div class="modal-header"><h2><i class="fas fa-id-card"></i> Employee Profile</h2><div class="modal-close" onclick="closeEmployeeModal()">&times;</div></div><div class="modal-body" id="employeeDetailContent"><div class="loading-state"><div class="loading-spinner"></div><p>Loading employee details...</p></div></div></div></div>
 
     <div class="modal" id="manualPunchModal">
-        <div class="modal-content" style="max-width: 560px;">
+        <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
                 <h2><i class="fas fa-pen-fancy"></i> Manual Attendance</h2>
                 <div class="modal-close" onclick="closeManualPunchModal()">&times;</div>
             </div>
 
             <div class="modal-body">
+                <!-- Tabs: Single Entry vs Bulk Sheet Upload vs Revert History -->
+                <div style="display: flex; gap: 8px; margin-bottom: 20px; background: rgba(255,255,255,0.04); padding: 4px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                    <button type="button" id="tabBtnManualSingle" onclick="switchManualPunchTab('single')" style="flex: 1; padding: 10px; border-radius: 8px; border: none; font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all 0.2s; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white;">
+                        <i class="fas fa-user"></i> Single Entry
+                    </button>
+                    <button type="button" id="tabBtnManualBulk" onclick="switchManualPunchTab('bulk')" style="flex: 1; padding: 10px; border-radius: 8px; border: none; font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all 0.2s; background: transparent; color: rgba(255,255,255,0.6);">
+                        <i class="fas fa-file-excel"></i> Bulk Upload
+                    </button>
+                    <button type="button" id="tabBtnManualHistory" onclick="switchManualPunchTab('history')" style="flex: 1; padding: 10px; border-radius: 8px; border: none; font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all 0.2s; background: transparent; color: rgba(255,255,255,0.6);">
+                        <i class="fas fa-rotate-left"></i> Revert Sheets
+                    </button>
+                </div>
+
+                <!-- SINGLE EMPLOYEE PUNCH FORM -->
                 <form id="manualPunchForm" onsubmit="submitManualPunch(event)">
 
                     <div style="margin-bottom:16px; position:relative;">
@@ -1506,6 +1520,122 @@
                     </div>
 
                 </form>
+
+                <!-- BULK SHEET UPLOAD FORM -->
+                <form id="bulkAttendanceSheetForm" onsubmit="submitBulkAttendanceSheet(event)" style="display: none;">
+
+                    <div style="margin-bottom:16px;">
+                        <label style="display:block;margin-bottom:8px;color:white;font-weight:600;">
+                            Select Month & Year <span style="color:#ef4444;">*</span>
+                        </label>
+                        <input
+                            type="month"
+                            id="bulkSheetMonth"
+                            required
+                            style="width:100%;padding:12px;background:rgba(255,255,255,0.05);
+                                   border:1px solid rgba(255,255,255,0.12);border-radius:12px;
+                                   color:white;box-sizing:border-box;"
+                        >
+                    </div>
+
+                    <div style="margin-bottom:16px;">
+                        <label style="display:block;margin-bottom:8px;color:white;font-weight:600;">
+                            Upload Monthly Attendance Sheet (.xlsx, .xls, .csv) <span style="color:#ef4444;">*</span>
+                        </label>
+                        <div style="border: 2px dashed rgba(255,255,255,0.15); border-radius: 14px; padding: 20px; text-align: center; background: rgba(255,255,255,0.02); transition: all 0.2s;">
+                            <i class="fas fa-file-excel" style="font-size: 32px; color: #10b981; margin-bottom: 8px;"></i>
+                            <p style="color: rgba(255,255,255,0.8); font-size: 13px; margin-bottom: 8px;">Drag & drop your Excel (.xlsx / .xls) or CSV (.csv) file here or click to browse</p>
+                            <input
+                                type="file"
+                                id="bulkSheetFile"
+                                accept=".xlsx,.xls,.csv,.txt"
+                                required
+                                style="color: white; font-size: 12px; margin: 0 auto; max-width: 100%;"
+                            >
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                        <div>
+                            <label style="display:block;margin-bottom:6px;font-size:12px;color:rgba(255,255,255,0.7);">
+                                Default In-Time (for 'P')
+                            </label>
+                            <input
+                                type="time"
+                                id="bulkDefaultInTime"
+                                value="09:00"
+                                style="width:100%;padding:10px;background:rgba(255,255,255,0.05);
+                                       border:1px solid rgba(255,255,255,0.1);border-radius:10px;
+                                       color:white;box-sizing:border-box;font-size:13px;"
+                            >
+                        </div>
+                        <div>
+                            <label style="display:block;margin-bottom:6px;font-size:12px;color:rgba(255,255,255,0.7);">
+                                Default Out-Time (for 'P')
+                            </label>
+                            <input
+                                type="time"
+                                id="bulkDefaultOutTime"
+                                value="18:00"
+                                style="width:100%;padding:10px;background:rgba(255,255,255,0.05);
+                                       border:1px solid rgba(255,255,255,0.1);border-radius:10px;
+                                       color:white;box-sizing:border-box;font-size:13px;"
+                            >
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); border-radius: 12px; padding: 12px 14px; margin-bottom: 18px;">
+                        <div style="font-size: 11.5px; color: #c7d2fe;">
+                            <i class="fas fa-info-circle"></i> <strong>Sheet Structure:</strong> Row per Biometric ID, Columns: <code>1, 2, 3... 31</code> with values <code>P</code> (Present) or times (e.g. <code>09:00, 18:00</code>).
+                        </div>
+                        <button type="button" onclick="downloadSampleAttendanceCSV()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; margin-left: 10px;">
+                            <i class="fas fa-download"></i> Sample CSV
+                        </button>
+                    </div>
+
+                    <div style="display:flex;justify-content:flex-end;gap:12px;">
+                        <button
+                            type="button"
+                            class="clear-filters"
+                            onclick="closeManualPunchModal()"
+                            style="background:transparent;">
+                            Cancel
+                        </button>
+
+                        <button
+                            type="submit"
+                            class="export-btn"
+                            id="bulkSheetSubmitBtn"
+                            style="background:linear-gradient(135deg, #10b981, #059669);border:none;">
+                            <i class="fas fa-cloud-arrow-up"></i> Upload & Mark Attendance
+                        </button>
+                    </div>
+
+                </form>
+
+                <!-- UPLOAD HISTORY & REVERT PANEL -->
+                <div id="bulkUploadHistoryPanel" style="display: none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <span style="font-size:12px; color:rgba(255,255,255,0.6); font-weight:600;">
+                            <i class="fas fa-history"></i> Recent Uploaded Sheets
+                        </span>
+                        <button type="button" onclick="loadBulkUploadBatches()" style="background:none; border:none; color:var(--primary); font-size:11.5px; font-weight:700; cursor:pointer;">
+                            <i class="fas fa-rotate"></i> Refresh List
+                        </button>
+                    </div>
+
+                    <div id="bulkBatchesListContainer" style="max-height:300px; overflow-y:auto; border:1px solid rgba(255,255,255,0.08); border-radius:12px; background:rgba(0,0,0,0.2); padding:8px;">
+                        <div style="text-align:center; padding:20px; color:rgba(255,255,255,0.4); font-size:12px;">
+                            <i class="fas fa-spinner fa-spin"></i> Loading upload history...
+                        </div>
+                    </div>
+
+                    <div style="margin-top:16px; display:flex; justify-content:flex-end;">
+                        <button type="button" class="clear-filters" onclick="closeManualPunchModal()" style="background:transparent;">
+                            Close
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -2096,6 +2226,225 @@
                     btn.disabled = false;
                     btn.innerHTML =
                         '<i class="fas fa-check"></i> Add Attendance';
+                }
+            }
+        }
+
+        function switchManualPunchTab(mode) {
+            const singleForm = document.getElementById('manualPunchForm');
+            const bulkForm = document.getElementById('bulkAttendanceSheetForm');
+            const historyPanel = document.getElementById('bulkUploadHistoryPanel');
+            const btnSingle = document.getElementById('tabBtnManualSingle');
+            const btnBulk = document.getElementById('tabBtnManualBulk');
+            const btnHistory = document.getElementById('tabBtnManualHistory');
+
+            // Reset tabs UI
+            if (singleForm) singleForm.style.display = 'none';
+            if (bulkForm) bulkForm.style.display = 'none';
+            if (historyPanel) historyPanel.style.display = 'none';
+
+            if (btnSingle) { btnSingle.style.background = 'transparent'; btnSingle.style.color = 'rgba(255,255,255,0.6)'; }
+            if (btnBulk) { btnBulk.style.background = 'transparent'; btnBulk.style.color = 'rgba(255,255,255,0.6)'; }
+            if (btnHistory) { btnHistory.style.background = 'transparent'; btnHistory.style.color = 'rgba(255,255,255,0.6)'; }
+
+            if (mode === 'bulk') {
+                if (bulkForm) bulkForm.style.display = 'block';
+                if (btnBulk) {
+                    btnBulk.style.background = 'linear-gradient(135deg, var(--primary), var(--primary-dark))';
+                    btnBulk.style.color = 'white';
+                }
+
+                // Set default month in bulkSheetMonth
+                const monthInput = document.getElementById('bulkSheetMonth');
+                if (monthInput && !monthInput.value) {
+                    const now = new Date();
+                    monthInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                }
+            } else if (mode === 'history') {
+                if (historyPanel) historyPanel.style.display = 'block';
+                if (btnHistory) {
+                    btnHistory.style.background = 'linear-gradient(135deg, #6366f1, #4f46e5)';
+                    btnHistory.style.color = 'white';
+                }
+                loadBulkUploadBatches();
+            } else {
+                if (singleForm) singleForm.style.display = 'block';
+                if (btnSingle) {
+                    btnSingle.style.background = 'linear-gradient(135deg, var(--primary), var(--primary-dark))';
+                    btnSingle.style.color = 'white';
+                }
+            }
+        }
+
+        async function loadBulkUploadBatches() {
+            const container = document.getElementById('bulkBatchesListContainer');
+            if (!container) return;
+
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:rgba(255,255,255,0.4); font-size:12px;"><i class="fas fa-spinner fa-spin"></i> Fetching upload batches...</div>';
+
+            try {
+                const res = await fetch('attendance-api.php?action=getBulkAttendanceBatches', { credentials: 'include' });
+                const data = await res.json();
+                const batches = (data.success && data.data && data.data.batches) ? data.data.batches : [];
+
+                if (batches.length === 0) {
+                    container.innerHTML = '<div style="text-align:center; padding:24px; color:rgba(255,255,255,0.4); font-size:12.5px;"><i class="fas fa-file-circle-question" style="font-size:24px; margin-bottom:8px; display:block;"></i> No uploaded attendance sheets found yet.</div>';
+                    return;
+                }
+
+                container.innerHTML = batches.map(b => {
+                    const isReverted = (b.status === 'reverted');
+                    const badge = isReverted
+                        ? '<span style="background:rgba(239,68,68,0.15); color:#ef4444; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:700;">REVERTED</span>'
+                        : '<span style="background:rgba(16,185,129,0.15); color:#10b981; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:700;">ACTIVE</span>';
+
+                    const revertBtn = isReverted
+                        ? `<span style="font-size:11px; color:rgba(255,255,255,0.3); font-style:italic;">Reverted on ${b.reverted_at ? b.reverted_at.slice(0, 16) : 'N/A'}</span>`
+                        : `<button type="button" onclick="revertBulkAttendanceBatch('${b.batch_id}', '${escapeManualHtml(b.file_name)}')" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:white; border:none; padding:5px 12px; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:5px; transition:all 0.2s;">
+                            <i class="fas fa-rotate-left"></i> Revert Sheet
+                           </button>`;
+
+                    return `
+                        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                            <div style="flex:1; min-width:0;">
+                                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                                    <strong style="color:#fff; font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeManualHtml(b.file_name)}">${escapeManualHtml(b.file_name)}</strong>
+                                    ${badge}
+                                </div>
+                                <div style="font-size:11px; color:rgba(255,255,255,0.5); display:flex; gap:12px; flex-wrap:wrap;">
+                                    <span><i class="fas fa-calendar-alt"></i> Month: <strong>${b.month_year}</strong></span>
+                                    <span><i class="fas fa-fingerprint"></i> Punches: <strong>${b.punches_inserted}</strong></span>
+                                    <span><i class="fas fa-clock"></i> Uploaded: ${b.created_at ? b.created_at.slice(0, 16) : ''}</span>
+                                </div>
+                            </div>
+                            <div>
+                                ${revertBtn}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:#ef4444; font-size:12px;">Failed to load upload history.</div>';
+            }
+        }
+
+        async function revertBulkAttendanceBatch(batchId, fileName) {
+            if (!confirm(`Are you sure you want to REVERT and REMOVE all attendance punches for sheet "${fileName}"?\n\nThis action will delete all recorded punches from this specific upload.`)) {
+                return;
+            }
+
+            const fd = new FormData();
+            fd.append('batch_id', batchId);
+
+            try {
+                const res = await fetch('attendance-api.php?action=revertBulkAttendanceBatch', {
+                    method: 'POST',
+                    body: fd,
+                    credentials: 'include'
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast(data.message || 'Sheet reverted successfully!', 'success');
+                    loadBulkUploadBatches();
+                    await loadLiveAttendance();
+                } else {
+                    showToast(data.message || 'Failed to revert sheet', 'error');
+                }
+            } catch (err) {
+                console.error('Revert failed:', err);
+                showToast('Revert request failed', 'error');
+            }
+        }
+
+        function downloadSampleAttendanceCSV() {
+            // Build a sample CSV with headers: Biometric ID, Name, 1, 2, 3... 31
+            const days = [];
+            for (let i = 1; i <= 31; i++) days.push(i);
+            const headers = ['Biometric ID', 'Employee Name', ...days];
+
+            const sampleRows = [
+                ['5053', 'Muhammad Shabbir', 'P', 'P', 'P', 'P', 'P', 'A', 'P', 'P', 'P', 'P', 'P', 'P', 'A', 'P', 'P', 'P', 'P', 'P', 'P', 'A', 'P', 'P', 'P', 'P', 'P', 'P', 'A', 'P', 'P', 'P', 'P'],
+                ['5054', 'John Doe', '09:00, 18:00', '09:15, 18:30', 'P', 'P', 'P', 'A', 'P', 'P', 'P', 'P', 'P', 'P', 'A', 'P', 'P', 'P', 'P', 'P', 'P', 'A', 'P', 'P', 'P', 'P', 'P', 'P', 'A', 'P', 'P', 'P', 'P'],
+                ['5055', 'Jane Smith', 'P', 'P', 'P', 'P', 'P', 'A', 'P', 'P', 'P', 'P', 'P', 'P', 'A', 'P', 'P', 'P', 'P', 'P', 'P', 'A', 'P', 'P', 'P', 'P', 'P', 'P', 'A', 'P', 'P', 'P', 'P']
+            ];
+
+            let csvContent = headers.join(',') + '\n';
+            sampleRows.forEach(r => {
+                const escaped = r.map(c => `"${String(c).replace(/"/g, '""')}"`);
+                csvContent += escaped.join(',') + '\n';
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `attendance_monthly_matrix_sample_${new Date().getFullYear()}_${String(new Date().getMonth() + 1).padStart(2, '0')}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        async function submitBulkAttendanceSheet(e) {
+            e.preventDefault();
+
+            const month = document.getElementById('bulkSheetMonth').value;
+            const fileInput = document.getElementById('bulkSheetFile');
+            const inTime = document.getElementById('bulkDefaultInTime').value || '09:00';
+            const outTime = document.getElementById('bulkDefaultOutTime').value || '18:00';
+            const btn = document.getElementById('bulkSheetSubmitBtn');
+
+            if (!month) {
+                showToast('Please select Month & Year', 'warning');
+                return;
+            }
+
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showToast('Please select a CSV sheet file to upload', 'warning');
+                return;
+            }
+
+            const fd = new FormData();
+            fd.append('month_year', month);
+            fd.append('sheet_file', fileInput.files[0]);
+            fd.append('default_in_time', inTime);
+            fd.append('default_out_time', outTime);
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing Attendance Sheet...';
+            }
+
+            try {
+                const res = await fetch('attendance-api.php?action=bulkUploadMonthlyAttendance', {
+                    method: 'POST',
+                    body: fd,
+                    credentials: 'include'
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast(data.message || 'Bulk attendance uploaded successfully!', 'success');
+                    closeManualPunchModal();
+
+                    // Reset form
+                    document.getElementById('bulkAttendanceSheetForm')?.reset();
+
+                    // Reload dashboard data
+                    await loadLiveAttendance();
+                } else {
+                    showToast(data.message || 'Bulk upload failed', 'error');
+                }
+            } catch (err) {
+                console.error('Bulk attendance upload failed:', err);
+                showToast('Bulk upload request failed. Check your file format.', 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-cloud-arrow-up"></i> Upload & Mark Attendance';
                 }
             }
         }

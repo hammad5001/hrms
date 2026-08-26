@@ -75,7 +75,45 @@ function ensure_qa_schema(mysqli $conn): void
             `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             UNIQUE KEY `uq_qa_bio_date` (`biometric_id`, `report_date`),
             INDEX `idx_qa_bio` (`biometric_id`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+        "CREATE TABLE IF NOT EXISTS `dialer_agent_map` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `dialer_agent_code` VARCHAR(100) NOT NULL,
+            `dialer_agent_name` VARCHAR(150) NULL,
+            `hrms_user_id` INT NOT NULL,
+            `employee_code` VARCHAR(50) NULL,
+            `is_active` TINYINT(1) DEFAULT 1,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY `uq_dialer_agent_code` (`dialer_agent_code`),
+            INDEX `idx_hrms_user_id` (`hrms_user_id`),
+            INDEX `idx_agent_name` (`dialer_agent_name`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+        "CREATE TABLE IF NOT EXISTS `dialer_daily_transfers` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `lead_id` VARCHAR(100) NOT NULL,
+            `hrms_user_id` INT NULL,
+            `employee_code` VARCHAR(50) NULL,
+            `dialer_agent_code` VARCHAR(100) NULL,
+            `dialer_agent_name` VARCHAR(150) NULL,
+            `phone_number` VARCHAR(50) NULL,
+            `customer_name` VARCHAR(150) NULL,
+            `team` VARCHAR(100) NULL,
+            `disposition` VARCHAR(50) NULL,
+            `qa_status` VARCHAR(50) DEFAULT 'pending',
+            `qa_notes` TEXT NULL,
+            `last_call_at` DATETIME NULL,
+            `raw_payload` LONGTEXT NULL,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY `uq_lead_id` (`lead_id`),
+            INDEX `idx_hrms_user_date` (`hrms_user_id`, `last_call_at`),
+            INDEX `idx_agent_code` (`dialer_agent_code`),
+            INDEX `idx_disposition` (`disposition`),
+            INDEX `idx_qa_status` (`qa_status`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
     ];
 
     foreach ($queries as $sql) {

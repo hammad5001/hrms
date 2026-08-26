@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/portal-ui-polish.css?v=qa-clean-2">
     <link rel="stylesheet" href="css/employee-hrms.css?v=64">
-    <link rel="stylesheet" href="css/employee-performance.css?v=20260826-clean-1">
+    <link rel="stylesheet" href="css/employee-performance.css?v=20260827-merge-1">
     <link rel="stylesheet" href="css/dropdown-fix.css?v=3">
     <link rel="stylesheet" href="css/hr-productivity.css?v=2">
     <link rel="stylesheet" href="css/advanced-analytics.css?v=1">
@@ -1380,135 +1380,6 @@
                         <!-- DAILY REPORTING CONSOLE - MODERN ENTERPRISE DASHBOARD -->
                         <!-- ======================================================= -->
                         <section id="view-performance" class="view-section ess-perf-view">
-
-                            <!-- LOG TRANSFER FORM CARD -->
-                            <div class="drc-panel drc-form-card">
-                                <div class="drc-card-header">
-                                    <div class="drc-card-title-group">
-                                        <div class="drc-icon-badge">
-                                            <i class="fas fa-phone-arrow-up-right"></i>
-                                        </div>
-                                        <div>
-                                            <h2 class="drc-card-title">Log Medicare Transfer</h2>
-                                            <p class="drc-card-subtitle">BT-C Medicare Sales Posting Form</p>
-                                        </div>
-                                    </div>
-                                    <div class="drc-call-badge">
-                                        <span class="drc-call-badge-label">Today's Calls</span>
-                                        <strong id="drcCallCounter" class="drc-call-badge-val">-</strong>
-                                    </div>
-                                </div>
-
-                                <!-- Form Container -->
-                                <form id="dailyReportingForm" autocomplete="off" class="drc-entry-form">
-                                    <div class="drc-form-grid">
-
-                                        <div class="drc-input-group">
-                                            <label class="drc-field-label" for="drpCustomerNumber">Phone Number <span class="drc-req">*</span></label>
-                                            <div class="drc-input-wrap">
-                                                <i class="fas fa-phone drc-input-icon"></i>
-                                                <input type="text" id="drpCustomerNumber" required placeholder="699-558-7896" class="drc-form-input">
-                                            </div>
-                                        </div>
-
-                                        <div class="drc-input-group">
-                                            <label class="drc-field-label" for="drpTransferOn">Line <span class="drc-req">*</span></label>
-                                            <div class="drc-input-wrap">
-                                                <i class="fas fa-satellite-dish drc-input-icon"></i>
-                                                <select id="drpTransferOn" title="Select Line" required class="drc-form-select">
-                                                    <option value="D1">D1</option>
-                                                    <option value="D4">D4</option>
-                                                    <option value="D5">D5</option>
-                                                    <option value="D6 CPL">D6 CPL</option>
-                                                    <option value="D6 CPA">D6 CPA</option>
-                                                    <option value="HI">HI</option>
-                                                    <option value="Other Lines">Other Lines</option>
-                                                    <option value="HI Main">HI Main</option>
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <div class="drc-input-group">
-                                            <label class="drc-field-label" for="drpTeamName">Teams</label>
-                                            <div class="drc-input-wrap">
-                                                <i class="fas fa-users drc-input-icon"></i>
-                                                <select id="drpTeamName" title="Select Team" class="drc-form-select">
-                                                    <option value="">- Select Team -</option>
-                                                    <option value="TEAM BRAD">TEAM BRAD</option>
-                                                    <option value="TEAM ADAM">TEAM ADAM</option>
-                                                    <option value="Team Awais Sajad">Team Awais Sajad</option>
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <div class="drc-input-group">
-                                            <label class="drc-field-label drc-label-verified" for="drpVerifierRealName"><i class="fas fa-shield-check"></i> Real Name (HRMS Account)</label>
-                                            <div class="drc-input-wrap">
-                                                <i class="fas fa-user-check drc-input-icon drc-icon-verified"></i>
-                                                <input type="text" id="drpVerifierRealName" readonly placeholder="Auto-detected from HRMS" class="drc-form-input drc-input-verified">
-                                            </div>
-                                        </div>
-
-                                        <div class="drc-input-group">
-                                            <label class="drc-field-label" for="drpAgentPseudo">Pseudo</label>
-                                            <div class="drc-input-wrap">
-                                                <i class="fas fa-id-badge drc-input-icon"></i>
-                                                <input type="text" id="drpAgentPseudo" placeholder="Agent pseudo name" class="drc-form-input">
-                                            </div>
-                                        </div>
-
-                                        <div class="drc-input-group">
-                                            <label class="drc-field-label" for="drpCustomerState">State</label>
-                                            <div class="drc-input-wrap">
-                                                <i class="fas fa-map-location-dot drc-input-icon"></i>
-                                                <input type="text" id="drpCustomerState" placeholder="e.g. CA, TX, FL" maxlength="50" class="drc-form-input">
-                                            </div>
-                                        </div>
-
-                                        <div class="drc-input-group">
-                                            <label class="drc-field-label" for="drpCustomerFirstName">Cux First Name</label>
-                                            <div class="drc-input-wrap">
-                                                <i class="fas fa-user drc-input-icon"></i>
-                                                <input type="text" id="drpCustomerFirstName" placeholder="First name" class="drc-form-input">
-                                            </div>
-                                        </div>
-
-                                        <div class="drc-input-group">
-                                            <label class="drc-field-label" for="drpCustomerLastName">Last Name</label>
-                                            <div class="drc-input-wrap">
-                                                <i class="fas fa-user drc-input-icon"></i>
-                                                <input type="text" id="drpCustomerLastName" placeholder="Last name" class="drc-form-input">
-                                            </div>
-                                        </div>
-
-                                        <div class="drc-input-group">
-                                            <label class="drc-field-label" for="drpCustomerZip">Zipcode</label>
-                                            <div class="drc-input-wrap">
-                                                <i class="fas fa-mail-bulk drc-input-icon"></i>
-                                                <input type="text" id="drpCustomerZip" placeholder="e.g. 90210" class="drc-form-input">
-                                            </div>
-                                        </div>
-
-                                        <div class="drc-input-group">
-                                            <label class="drc-field-label" for="drpCustomerAge">Age</label>
-                                            <div class="drc-input-wrap">
-                                                <i class="fas fa-cake-candles drc-input-icon"></i>
-                                                <input type="number" id="drpCustomerAge" placeholder="45" min="18" max="120" class="drc-form-input">
-                                            </div>
-                                        </div>
-
-                                    </div>
-
-                                    <!-- Submit Button Action Bar -->
-                                    <div class="drc-form-actions">
-                                        <button type="submit" id="drcSubmitBtn" class="drc-btn-primary">
-                                            <i class="fas fa-paper-plane"></i>
-                                            <span>Log Medicare Transfer</span>
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-
                             <!-- PERFORMANCE METRICS & LIVE CONSOLE BAR -->
                             <div class="drc-panel drc-stats-banner">
                                 <div class="drc-stats-banner-inner">
@@ -1722,11 +1593,12 @@
                                                     <th>Real Name (HRMS)</th>
                                                     <th>Pseudo / Team</th>
                                                     <th>QA Status</th>
+                                                    <th>Source</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="todayTransfersTableBody">
                                                 <tr class="drc-loading-row">
-                                                    <td colspan="10">
+                                                    <td colspan="11">
                                                         <div class="drc-spinner-wrap">
                                                             <div class="drc-spinner"></div>
                                                             <span>Loading transfers...</span>
@@ -1740,6 +1612,135 @@
                                 </div><!-- /drc-table-card -->
 
                             </div><!-- /drc-workspace -->
+
+                            <!-- LOG MEDICARE TRANSFER FORM (below workspace) -->
+                            <!-- LOG TRANSFER FORM CARD -->
+                            <div class="drc-panel drc-form-card">
+                                <div class="drc-card-header">
+                                    <div class="drc-card-title-group">
+                                        <div class="drc-icon-badge">
+                                            <i class="fas fa-phone-arrow-up-right"></i>
+                                        </div>
+                                        <div>
+                                            <h2 class="drc-card-title">Log Medicare Transfer</h2>
+                                            <p class="drc-card-subtitle">BT-C Medicare Sales Posting Form</p>
+                                        </div>
+                                    </div>
+                                    <div class="drc-call-badge">
+                                        <span class="drc-call-badge-label">Today's Calls</span>
+                                        <strong id="drcCallCounter" class="drc-call-badge-val">-</strong>
+                                    </div>
+                                </div>
+
+                                <!-- Form Container -->
+                                <form id="dailyReportingForm" autocomplete="off" class="drc-entry-form">
+                                    <div class="drc-form-grid">
+
+                                        <div class="drc-input-group">
+                                            <label class="drc-field-label" for="drpCustomerNumber">Phone Number <span class="drc-req">*</span></label>
+                                            <div class="drc-input-wrap">
+                                                <i class="fas fa-phone drc-input-icon"></i>
+                                                <input type="text" id="drpCustomerNumber" required placeholder="699-558-7896" class="drc-form-input">
+                                            </div>
+                                        </div>
+
+                                        <div class="drc-input-group">
+                                            <label class="drc-field-label" for="drpTransferOn">Line <span class="drc-req">*</span></label>
+                                            <div class="drc-input-wrap">
+                                                <i class="fas fa-satellite-dish drc-input-icon"></i>
+                                                <select id="drpTransferOn" title="Select Line" required class="drc-form-select">
+                                                    <option value="D1">D1</option>
+                                                    <option value="D4">D4</option>
+                                                    <option value="D5">D5</option>
+                                                    <option value="D6 CPL">D6 CPL</option>
+                                                    <option value="D6 CPA">D6 CPA</option>
+                                                    <option value="HI">HI</option>
+                                                    <option value="Other Lines">Other Lines</option>
+                                                    <option value="HI Main">HI Main</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="drc-input-group">
+                                            <label class="drc-field-label" for="drpTeamName">Teams</label>
+                                            <div class="drc-input-wrap">
+                                                <i class="fas fa-users drc-input-icon"></i>
+                                                <select id="drpTeamName" title="Select Team" class="drc-form-select">
+                                                    <option value="">- Select Team -</option>
+                                                    <option value="TEAM BRAD">TEAM BRAD</option>
+                                                    <option value="TEAM ADAM">TEAM ADAM</option>
+                                                    <option value="Team Awais Sajad">Team Awais Sajad</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="drc-input-group">
+                                            <label class="drc-field-label drc-label-verified" for="drpVerifierRealName"><i class="fas fa-shield-check"></i> Real Name (HRMS Account)</label>
+                                            <div class="drc-input-wrap">
+                                                <i class="fas fa-user-check drc-input-icon drc-icon-verified"></i>
+                                                <input type="text" id="drpVerifierRealName" readonly placeholder="Auto-detected from HRMS" class="drc-form-input drc-input-verified">
+                                            </div>
+                                        </div>
+
+                                        <div class="drc-input-group">
+                                            <label class="drc-field-label" for="drpAgentPseudo">Pseudo</label>
+                                            <div class="drc-input-wrap">
+                                                <i class="fas fa-id-badge drc-input-icon"></i>
+                                                <input type="text" id="drpAgentPseudo" placeholder="Agent pseudo name" class="drc-form-input">
+                                            </div>
+                                        </div>
+
+                                        <div class="drc-input-group">
+                                            <label class="drc-field-label" for="drpCustomerState">State</label>
+                                            <div class="drc-input-wrap">
+                                                <i class="fas fa-map-location-dot drc-input-icon"></i>
+                                                <input type="text" id="drpCustomerState" placeholder="e.g. CA, TX, FL" maxlength="50" class="drc-form-input">
+                                            </div>
+                                        </div>
+
+                                        <div class="drc-input-group">
+                                            <label class="drc-field-label" for="drpCustomerFirstName">Cux First Name</label>
+                                            <div class="drc-input-wrap">
+                                                <i class="fas fa-user drc-input-icon"></i>
+                                                <input type="text" id="drpCustomerFirstName" placeholder="First name" class="drc-form-input">
+                                            </div>
+                                        </div>
+
+                                        <div class="drc-input-group">
+                                            <label class="drc-field-label" for="drpCustomerLastName">Last Name</label>
+                                            <div class="drc-input-wrap">
+                                                <i class="fas fa-user drc-input-icon"></i>
+                                                <input type="text" id="drpCustomerLastName" placeholder="Last name" class="drc-form-input">
+                                            </div>
+                                        </div>
+
+                                        <div class="drc-input-group">
+                                            <label class="drc-field-label" for="drpCustomerZip">Zipcode</label>
+                                            <div class="drc-input-wrap">
+                                                <i class="fas fa-mail-bulk drc-input-icon"></i>
+                                                <input type="text" id="drpCustomerZip" placeholder="e.g. 90210" class="drc-form-input">
+                                            </div>
+                                        </div>
+
+                                        <div class="drc-input-group">
+                                            <label class="drc-field-label" for="drpCustomerAge">Age</label>
+                                            <div class="drc-input-wrap">
+                                                <i class="fas fa-cake-candles drc-input-icon"></i>
+                                                <input type="number" id="drpCustomerAge" placeholder="45" min="18" max="120" class="drc-form-input">
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    <!-- Submit Button Action Bar -->
+                                    <div class="drc-form-actions">
+                                        <button type="submit" id="drcSubmitBtn" class="drc-btn-primary">
+                                            <i class="fas fa-paper-plane"></i>
+                                            <span>Log Medicare Transfer</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
 
                         </section>
                         <!-- ============================================== END DAILY REPORTING ============================================== -->
@@ -2264,7 +2265,7 @@
     <script charset="utf-8" src="js/portal-access.js"></script>
     <script charset="utf-8" src="js/portal-session-guard.js"></script>
     <script src="js/portal-notify-sound.js?v=1"></script>
-    <script charset="utf-8" src="js/employee-hrms.js?v=20260825-mail-layout-final-1"></script>
+    <script charset="utf-8" src="js/employee-hrms.js?v=20260827-merge-1"></script>
     <script charset="utf-8" src="js/employee-mail.js?v=20260826-compose-fix-1"></script>
     <script charset="utf-8" src="js/employee-performance.js?v=1786990797"></script>
     <script charset="utf-8" src="js/portal-chat-fab.js"></script>
@@ -2605,107 +2606,6 @@
 
 
 
-
-
-
-
-
-
-<script id="DIALER_TOP_5_AGENTS_REALTIME_PATCH">
-(function () {
-  if (window.__dialerTop5PatchStarted) return;
-  window.__dialerTop5PatchStarted = true;
-
-  const API_URL = "/api/get_dialer_top_agents_today.php";
-  const HOST_ATTR = "data-dialer-top5-host";
-
-  function esc(v) {
-    return String(v ?? "").replace(/[&<>"']/g, function (m) {
-      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[m];
-    });
-  }
-
-  function findTopAgentsCard() {
-    const existing = document.querySelector("[" + HOST_ATTR + "='1']");
-    if (existing) return existing;
-
-    const nodes = Array.from(document.querySelectorAll("div,section,aside"))
-      .filter(el => !el.closest(".dialer-top5-live-root"))
-      .filter(el => /TOP\s*5\s*AGENTS\s*TODAY/i.test(el.innerText || ""))
-      .map(el => {
-        const r = el.getBoundingClientRect();
-        return { el, area: r.width * r.height, w: r.width, h: r.height };
-      })
-      .filter(x => x.w >= 250 && x.w <= 700 && x.h >= 120);
-
-    nodes.sort((a, b) => a.area - b.area);
-    const card = nodes[0]?.el || null;
-
-    if (card) card.setAttribute(HOST_ATTR, "1");
-    return card;
-  }
-
-  function renderRows(card, agents) {
-    card.setAttribute(HOST_ATTR, "1");
-
-    const rows = agents.length ? agents.map((a, i) => {
-      return `
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.07);">
-          <div style="display:flex;align-items:center;gap:12px;min-width:0;">
-            <span style="width:26px;height:26px;border-radius:8px;background:rgba(243,149,41,.22);color:#F39529;display:flex;align-items:center;justify-content:center;font-weight:900;">${i + 1}</span>
-            <div style="min-width:0;">
-              <div style="font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(a.agent_name)}</div>
-              <div style="font-size:11px;color:rgba(255,255,255,.55);font-weight:800;">${esc(a.employee_code)} · USA Today</div>
-            </div>
-          </div>
-          <div style="font-weight:900;color:#8c8cff;">${Number(a.total_transfers || 0)}</div>
-        </div>
-      `;
-    }).join("") : `
-      <div style="padding:18px;color:rgba(255,255,255,.6);font-weight:800;">No dialer transfers today</div>
-    `;
-
-    card.innerHTML = `
-      <div class="dialer-top5-live-root" style="width:100%;overflow:hidden;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.08);">
-          <div style="font-weight:900;color:#fff;">🏆 TOP 5 AGENTS TODAY</div>
-          <div style="font-size:11px;color:#20e0b0;font-weight:900;">Sales</div>
-        </div>
-        <div>${rows}</div>
-      </div>
-    `;
-  }
-
-  async function loadTopAgents() {
-    const card = findTopAgentsCard();
-    if (!card) return;
-
-    const res = await fetch(API_URL + "?_=" + Date.now(), {
-      credentials: "same-origin",
-      cache: "no-store"
-    });
-
-    const data = await res.json();
-    if (!data || !data.success) return;
-
-    renderRows(card, data.agents || []);
-  }
-
-  function start() {
-    loadTopAgents();
-    setTimeout(loadTopAgents, 1000);
-
-    if (window.__dialerTop5Interval) clearInterval(window.__dialerTop5Interval);
-    window.__dialerTop5Interval = setInterval(loadTopAgents, 30000);
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", start);
-  } else {
-    start();
-  }
-})();
-</script>
 
 
 
