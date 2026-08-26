@@ -1121,6 +1121,447 @@ switch ($action) {
         
         sendJSON(true, null, '✅ Punch recorded successfully');
         break;
+
+    // =================================================
+    // 7.1 BULK UPLOAD MONTHLY ATTENDANCE SHEET (MATRIX / ROW FORMAT - XLSX, XLS, CSV)
+    // =================================================
+    case 'bulkUploadMonthlyAttendance':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            sendJSON(false, null, 'Bulk upload requires POST method');
+        }
+
+        if (!isset($_FILES['sheet_file']) || $_FILES['sheet_file']['error'] !== UPLOAD_ERR_OK) {
+            sendJSON(false, null, 'Please select a valid Excel (.xlsx / .xls) or CSV (.csv) sheet file to upload');
+        }
+
+        $fileTmp = $_FILES['sheet_file']['tmp_name'];
+        $fileName = $_FILES['sheet_file']['name'];
+        $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+
+        if (!in_array($ext, ['csv', 'txt', 'xlsx', 'xls'])) {
+            sendJSON(false, null, 'Supported formats: Excel (.xlsx, .xls) and CSV (.csv). Please upload a supported file format.');
+        }
+
+        require_once __DIR__ . '/SimpleSpreadsheetReader.php';
+
+        try {
+            $allRows = SimpleSpreadsheetReader::parse($fileTmp, $ext);
+        } catch (Exception $ex) {
+            sendJSON(false, null, 'Failed to parse sheet: ' . $ex->getMessage());
+        }
+
+        if (empty($allRows)) {
+            sendJSON(false, null, 'The uploaded sheet contains no data');
+        }
+
+        $monthYear = isset($_POST['month_year']) && preg_match('/^\d{4}-\d{2}$/', $_POST['month_year']) 
+            ? $_POST['month_year'] 
+            : date('Y-m');
+
+        $defaultInTime = isset($_POST['default_in_time']) && preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $_POST['default_in_time'])
+            ? (strlen($_POST['default_in_time']) === 5 ? $_POST['default_in_time'] . ':00' : $_POST['default_in_time'])
+            : '09:00:00';
+
+        $defaultOutTime = isset($_POST['default_out_time']) && preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $_POST['default_out_time'])
+            ? (strlen($_POST['default_out_time']) === 5 ? $_POST['default_out_time'] . ':00' : $_POST['default_out_time'])
+            : '18:00:00';
+
+        // Preload employee map: employee_code => full_name
+        $empMap = [];
+        $empQuery = $conn->query("SELECT employee_code, full_name FROM " . TABLE_EMPLOYEES);
+        if ($empQuery) {
+            while ($er = $empQuery->fetch_assoc()) {
+                $codeKey = trim(strval($er['employee_code']));
+                if ($codeKey !== '') {
+                    $empMap[$codeKey] = $er['full_name'];
+                    $empMap[ltrim($codeKey, '0')] = $er['full_name']; // also without leading zeros
+                }
+            }
+        }
+
+        $insertedCount = 0;
+        $skippedCount = 0;
+        $unmappedCodes = [];
+        $processedRows = 0;
+
+        // Intelligent header search: find the row that contains 'biometric', 'emp', 'user_id', 'code', or 'sr no'
+        $headerRowIdx = -1;
+        $bioColIdx = -1;
+        $nameColIdx = -1;
+        $statusColIdx = -1;
+        $checkInColIdx = -1;
+        $checkOutColIdx = -1;
+        $dateColIdx = -1;
+        $dayCols = []; // day_number => col_index
+
+        foreach ($allRows as $rIdx => $r) {
+            if ($rIdx > 15) break; // header should be within first 15 rows
+            
+            $tempBio = -1;
+            $tempName = -1;
+            $tempStatus = -1;
+            $tempIn = -1;
+            $tempOut = -1;
+            $tempDate = -1;
+            $tempDays = [];
+
+            foreach ($r as $cIdx => $cell) {
+                $cClean = trim(preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strval($cell)));
+                $cLower = strtolower($cClean);
+
+                if ($tempBio === -1 && (
+                    stripos($cLower, 'biometric') !== false ||
+                    stripos($cLower, 'bio_id') !== false ||
+                    stripos($cLower, 'employee_code') !== false ||
+                    stripos($cLower, 'emp_code') !== false ||
+                    stripos($cLower, 'user_id') !== false ||
+                    $cLower === 'code' ||
+                    $cLower === 'id' ||
+                    $cLower === 'emp id' ||
+                    $cLower === 'bio id'
+                )) {
+                    $tempBio = $cIdx;
+                }
+
+                if ($tempName === -1 && (
+                    stripos($cLower, 'name') !== false ||
+                    stripos($cLower, 'employee') !== false ||
+                    stripos($cLower, 'agent') !== false
+                )) {
+                    $tempName = $cIdx;
+                }
+
+                if ($tempStatus === -1 && (
+                    $cLower === 'status' ||
+                    stripos($cLower, 'attendance') !== false ||
+                    stripos($cLower, 'att status') !== false
+                )) {
+                    $tempStatus = $cIdx;
+                }
+
+                if ($tempIn === -1 && (
+                    stripos($cLower, 'check in') !== false ||
+                    stripos($cLower, 'in time') !== false ||
+                    stripos($cLower, 'time in') !== false ||
+                    $cLower === 'in'
+                )) {
+                    $tempIn = $cIdx;
+                }
+
+                if ($tempOut === -1 && (
+                    stripos($cLower, 'check out') !== false ||
+                    stripos($cLower, 'out time') !== false ||
+                    stripos($cLower, 'time out') !== false ||
+                    $cLower === 'out'
+                )) {
+                    $tempOut = $cIdx;
+                }
+
+                if ($tempDate === -1 && (
+                    $cLower === 'date' ||
+                    stripos($cLower, 'att date') !== false ||
+                    stripos($cLower, 'attendance date') !== false
+                )) {
+                    $tempDate = $cIdx;
+                }
+
+                // Detect Day matrix columns: "1", "2", ... "31", "Day 1", "01", "2026-08-01"
+                if (preg_match('/^(?:day\s*)?([1-9]|[12]\d|3[01])$/i', $cClean, $m)) {
+                    $tempDays[intval($m[1])] = $cIdx;
+                } elseif (preg_match('/^\d{4}-\d{2}-([0-3]\d)$/', $cClean, $m)) {
+                    $tempDays[intval($m[1])] = $cIdx;
+                }
+            }
+
+            // If we found a biometric ID column OR multiple day columns, this is our header row!
+            if ($tempBio !== -1 || count($tempDays) >= 2) {
+                $headerRowIdx = $rIdx;
+                $bioColIdx = $tempBio;
+                $nameColIdx = $tempName;
+                $statusColIdx = $tempStatus;
+                $checkInColIdx = $tempIn;
+                $checkOutColIdx = $tempOut;
+                $dateColIdx = $tempDate;
+                $dayCols = $tempDays;
+                break;
+            }
+        }
+
+        if ($headerRowIdx === -1) {
+            // Default fallback to first row
+            $headerRowIdx = 0;
+            $bioColIdx = 0;
+        }
+
+        // Data rows are everything after the detected header row
+        $dataRows = array_slice($allRows, $headerRowIdx + 1);
+
+        if (empty($dataRows)) {
+            sendJSON(false, null, 'The uploaded sheet contains no data rows below the header');
+        }
+
+        $batchId = 'BATCH_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4));
+
+        // Prepare insert statement with bulk_batch_id
+        $insertStmt = $conn->prepare("
+            INSERT INTO " . TABLE_ATTENDANCE . " (user_id, name, timestamp, date, time, sync_status, bulk_batch_id)
+            VALUES (?, ?, ?, ?, ?, 'manual', ?)
+        ");
+
+        if (!$insertStmt) {
+            sendJSON(false, null, 'Database prepare error: ' . $conn->error);
+        }
+
+        $conn->begin_transaction();
+
+        try {
+            foreach ($dataRows as $row) {
+                if (empty($row)) continue;
+
+                $rawBioId = isset($row[$bioColIdx]) ? trim(strval($row[$bioColIdx])) : '';
+                
+                // If cell is empty or header repetition, check if any column has a valid numeric ID
+                if ($rawBioId === '' || !preg_match('/^[a-zA-Z0-9_\-]+$/', $rawBioId) || strtolower($rawBioId) === 'biometric id') {
+                    // Try to search for ID in first 3 columns
+                    $foundBio = '';
+                    for ($ci = 0; $ci < min(4, count($row)); $ci++) {
+                        $cand = trim(strval($row[$ci]));
+                        if (is_numeric($cand) && intval($cand) > 0 && intval($cand) < 999999) {
+                            $foundBio = $cand;
+                            break;
+                        }
+                    }
+                    if ($foundBio !== '') {
+                        $rawBioId = $foundBio;
+                    } else {
+                        $skippedCount++;
+                        continue;
+                    }
+                }
+
+                $processedRows++;
+
+                // Resolve employee name (from map or sheet)
+                $sheetName = ($nameColIdx !== -1 && isset($row[$nameColIdx])) ? trim(strval($row[$nameColIdx])) : '';
+                $empName = $empMap[$rawBioId] ?? ($empMap[ltrim($rawBioId, '0')] ?? ($sheetName ?: 'Employee ' . $rawBioId));
+                
+                if (!isset($empMap[$rawBioId]) && !isset($empMap[ltrim($rawBioId, '0')])) {
+                    if (!in_array($rawBioId, $unmappedCodes)) {
+                        $unmappedCodes[] = $rawBioId;
+                    }
+                }
+
+                // ── CASE 1: MATRIX FORMAT (Columns for Day 1..Day 31) ──
+                if (!empty($dayCols)) {
+                    foreach ($dayCols as $dayNum => $colIdx) {
+                        if (!isset($row[$colIdx])) continue;
+                        $cellVal = trim(strval($row[$colIdx]));
+                        if ($cellVal === '' || $cellVal === '-' || $cellVal === '0') continue;
+
+                        $dayFormatted = sprintf('%02d', $dayNum);
+                        $targetDate = $monthYear . '-' . $dayFormatted;
+
+                        // Check valid date for the month (e.g. Feb 30 guard)
+                        if (!checkdate(intval(substr($monthYear, 5, 2)), $dayNum, intval(substr($monthYear, 0, 4)))) {
+                            continue;
+                        }
+
+                        $vLower = strtolower($cellVal);
+
+                        // If status is Present / P / Late / L / Yes / 1
+                        if (in_array($vLower, ['p', 'present', '1', 'yes', 'y', 'late', 'l', 'half day', 'hd'])) {
+                            // Insert IN punch
+                            $inTimestamp = $targetDate . ' ' . $defaultInTime;
+                            $insertStmt->bind_param("ssssss", $rawBioId, $empName, $inTimestamp, $targetDate, $defaultInTime, $batchId);
+                            $insertStmt->execute();
+                            $insertedCount++;
+
+                            // Insert OUT punch
+                            $outTimestamp = $targetDate . ' ' . $defaultOutTime;
+                            $insertStmt->bind_param("ssssss", $rawBioId, $empName, $outTimestamp, $targetDate, $defaultOutTime, $batchId);
+                            $insertStmt->execute();
+                            $insertedCount++;
+                        }
+                        // If cell contains explicit time (e.g. "09:15" or "09:15, 18:30")
+                        elseif (preg_match_all('/(\d{1,2}:\d{2}(?::\d{2})?(?:\s*[ap]m)?)/i', $cellVal, $timeMatches)) {
+                            foreach ($timeMatches[1] as $tm) {
+                                $parsedTime = date('H:i:s', strtotime($tm));
+                                $fullTimestamp = $targetDate . ' ' . $parsedTime;
+                                $insertStmt->bind_param("ssssss", $rawBioId, $empName, $fullTimestamp, $targetDate, $parsedTime, $batchId);
+                                $insertStmt->execute();
+                                $insertedCount++;
+                            }
+                        }
+                    }
+                } 
+                // ── CASE 2: ROSTER / ROW-LIST / DAILY REPORT FORMAT ──
+                else {
+                    // Extract date (if date column exists, otherwise use monthYear + today or 1st)
+                    $rowDate = '';
+                    if ($dateColIdx !== -1 && isset($row[$dateColIdx]) && trim($row[$dateColIdx]) !== '') {
+                        $rawDate = trim($row[$dateColIdx]);
+                        if (strtotime($rawDate)) {
+                            $rowDate = date('Y-m-d', strtotime($rawDate));
+                        }
+                    }
+
+                    if (!$rowDate) {
+                        // Default to current date if in same month, or first day of selected month
+                        $rowDate = (substr(date('Y-m-d'), 0, 7) === $monthYear) ? date('Y-m-d') : ($monthYear . '-01');
+                    }
+
+                    $statusVal = ($statusColIdx !== -1 && isset($row[$statusColIdx])) ? strtolower(trim($row[$statusColIdx])) : '';
+                    $checkInVal = ($checkInColIdx !== -1 && isset($row[$checkInColIdx])) ? trim($row[$checkInColIdx]) : '';
+                    $checkOutVal = ($checkOutColIdx !== -1 && isset($row[$checkOutColIdx])) ? trim($row[$checkOutColIdx]) : '';
+
+                    // Clean check-in / out values (remove "--:--" or "missing")
+                    if (stripos($checkInVal, 'missing') !== false || stripos($checkInVal, '--') !== false) $checkInVal = '';
+                    if (stripos($checkOutVal, 'missing') !== false || stripos($checkOutVal, '--') !== false) $checkOutVal = '';
+
+                    $hasSpecificTimes = false;
+
+                    // If explicit Check In time exists
+                    if ($checkInVal && strtotime($checkInVal)) {
+                        $parsedIn = date('H:i:s', strtotime($checkInVal));
+                        $inTs = $rowDate . ' ' . $parsedIn;
+                        $insertStmt->bind_param("ssssss", $rawBioId, $empName, $inTs, $rowDate, $parsedIn, $batchId);
+                        $insertStmt->execute();
+                        $insertedCount++;
+                        $hasSpecificTimes = true;
+                    }
+
+                    // If explicit Check Out time exists
+                    if ($checkOutVal && strtotime($checkOutVal)) {
+                        $parsedOut = date('H:i:s', strtotime($checkOutVal));
+                        $outTs = $rowDate . ' ' . $parsedOut;
+                        $insertStmt->bind_param("ssssss", $rawBioId, $empName, $outTs, $rowDate, $parsedOut, $batchId);
+                        $insertStmt->execute();
+                        $insertedCount++;
+                        $hasSpecificTimes = true;
+                    }
+
+                    // If no explicit times, but status is Present or Late
+                    if (!$hasSpecificTimes && (in_array($statusVal, ['present', 'p', 'late', 'l', 'half day', 'hd', '1', 'yes']))) {
+                        // Insert standard In punch
+                        $inTs = $rowDate . ' ' . $defaultInTime;
+                        $insertStmt->bind_param("ssssss", $rawBioId, $empName, $inTs, $rowDate, $defaultInTime, $batchId);
+                        $insertStmt->execute();
+                        $insertedCount++;
+
+                        // Insert standard Out punch
+                        $outTs = $rowDate . ' ' . $defaultOutTime;
+                        $insertStmt->bind_param("ssssss", $rawBioId, $empName, $outTs, $rowDate, $defaultOutTime, $batchId);
+                        $insertStmt->execute();
+                        $insertedCount++;
+                    }
+                }
+            }
+
+            // Record upload batch in tracking table
+            $logStmt = $conn->prepare("
+                INSERT INTO bulk_attendance_batches (batch_id, file_name, month_year, total_rows, punches_inserted, status)
+                VALUES (?, ?, ?, ?, ?, 'active')
+            ");
+            if ($logStmt) {
+                $logStmt->bind_param("sssii", $batchId, $fileName, $monthYear, $processedRows, $insertedCount);
+                $logStmt->execute();
+                $logStmt->close();
+            }
+
+            $conn->commit();
+        } catch (Exception $ex) {
+            $conn->rollback();
+            sendJSON(false, null, 'Error during bulk insertion: ' . $ex->getMessage());
+        }
+
+        $insertStmt->close();
+
+        sendJSON(true, [
+            'batch_id' => $batchId,
+            'file_name' => $fileName,
+            'total_rows' => $processedRows,
+            'punches_inserted' => $insertedCount,
+            'month_year' => $monthYear,
+            'unmapped_count' => count($unmappedCodes),
+            'unmapped_biometric_ids' => array_slice($unmappedCodes, 0, 10)
+        ], "✅ Bulk attendance uploaded successfully! $insertedCount attendance punches recorded for $processedRows employees.");
+        break;
+
+    // =================================================
+    // 7.2 GET RECENT BULK UPLOAD BATCHES
+    // =================================================
+    case 'getBulkAttendanceBatches':
+        $res = $conn->query("
+            SELECT id, batch_id, file_name, month_year, total_rows, punches_inserted, status, reverted_at, created_at
+            FROM bulk_attendance_batches
+            ORDER BY id DESC
+            LIMIT 15
+        ");
+        $batches = [];
+        if ($res) {
+            while ($b = $res->fetch_assoc()) {
+                $batches[] = $b;
+            }
+        }
+        sendJSON(true, ['batches' => $batches]);
+        break;
+
+    // =================================================
+    // 7.3 REVERT BULK ATTENDANCE BATCH
+    // =================================================
+    case 'revertBulkAttendanceBatch':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            sendJSON(false, null, 'Revert requires POST method');
+        }
+
+        $batchId = isset($_POST['batch_id']) ? trim($_POST['batch_id']) : '';
+        if (!$batchId) {
+            sendJSON(false, null, 'Batch ID required to revert attendance sheet');
+        }
+
+        // Check if batch exists
+        $bCheck = $conn->prepare("SELECT id, status, punches_inserted, file_name FROM bulk_attendance_batches WHERE batch_id = ? LIMIT 1");
+        $bCheck->bind_param("s", $batchId);
+        $bCheck->execute();
+        $batchRes = $bCheck->get_result();
+        $batch = $batchRes ? $batchRes->fetch_assoc() : null;
+        $bCheck->close();
+
+        if (!$batch) {
+            sendJSON(false, null, 'Batch record not found');
+        }
+
+        if ($batch['status'] === 'reverted') {
+            sendJSON(false, null, 'This bulk sheet has already been reverted');
+        }
+
+        $conn->begin_transaction();
+
+        try {
+            // Delete all attendance punches created by this batch
+            $delStmt = $conn->prepare("DELETE FROM " . TABLE_ATTENDANCE . " WHERE bulk_batch_id = ?");
+            $delStmt->bind_param("s", $batchId);
+            $delStmt->execute();
+            $deletedCount = $delStmt->affected_rows;
+            $delStmt->close();
+
+            // Mark batch as reverted
+            $updStmt = $conn->prepare("UPDATE bulk_attendance_batches SET status = 'reverted', reverted_at = NOW() WHERE batch_id = ?");
+            $updStmt->bind_param("s", $batchId);
+            $updStmt->execute();
+            $updStmt->close();
+
+            $conn->commit();
+
+            sendJSON(true, [
+                'batch_id' => $batchId,
+                'deleted_punches' => $deletedCount
+            ], "✅ Successfully reverted attendance sheet '{$batch['file_name']}'! ($deletedCount punches removed).");
+        } catch (Exception $ex) {
+            $conn->rollback();
+            sendJSON(false, null, 'Failed to revert batch: ' . $ex->getMessage());
+        }
+        break;
     
     // =================================================
     // 8. GET STATISTICS
@@ -1510,6 +1951,6 @@ switch ($action) {
     // DEFAULT: Invalid action
     // =================================================
     default:
-        sendJSON(false, null, 'Invalid action. Available actions: weekly, getLiveAttendance, getEmployeeHistory, getAttendanceForHR, getDateRange, importFromPython, searchEmployees, manualPunch, getStatistics, getFilterOptions, searchEmployeesCSV, getTeamStats, fetchDevices');
+        sendJSON(false, null, 'Invalid action. Available actions: weekly, getLiveAttendance, getEmployeeHistory, getAttendanceForHR, getDateRange, importFromPython, searchEmployees, manualPunch, bulkUploadMonthlyAttendance, getStatistics, getFilterOptions, searchEmployeesCSV, getTeamStats, fetchDevices');
 }
 ?>
