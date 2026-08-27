@@ -37,6 +37,28 @@ CREATE TABLE IF NOT EXISTS `chat_messages` (
     INDEX `idx_conv_created` (`conversation_id`, `created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- HRMS CHAT PERFORMANCE INDEXES 20260827
+-- Required by unread-count and pinned-message hot paths.
+ALTER TABLE `chat_messages`
+    ADD COLUMN IF NOT EXISTS `is_deleted` TINYINT(1) NOT NULL DEFAULT 0;
+
+ALTER TABLE `chat_messages`
+    ADD COLUMN IF NOT EXISTS `is_pinned` TINYINT(1) NOT NULL DEFAULT 0;
+
+ALTER TABLE `chat_messages`
+    ADD COLUMN IF NOT EXISTS `pinned_by` INT DEFAULT NULL;
+
+ALTER TABLE `chat_messages`
+    ADD COLUMN IF NOT EXISTS `pinned_at` DATETIME DEFAULT NULL;
+
+ALTER TABLE `chat_messages`
+    ADD INDEX IF NOT EXISTS `idx_unread_lookup`
+        (`conversation_id`, `is_deleted`, `created_at`, `sender_id`);
+
+ALTER TABLE `chat_messages`
+    ADD INDEX IF NOT EXISTS `idx_pinned_lookup`
+        (`conversation_id`, `is_pinned`, `is_deleted`, `pinned_at`);
+
 ALTER TABLE `users` ADD INDEX IF NOT EXISTS `idx_employee_code` (`employee_code`);
 
 CREATE TABLE IF NOT EXISTS `chat_message_receipts` (

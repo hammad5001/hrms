@@ -91,6 +91,8 @@ function ensure_chat_schema(mysqli $conn): void {
 
     @$conn->query("ALTER TABLE `chat_messages` ADD INDEX IF NOT EXISTS `idx_conv_id` (`conversation_id`, `id`)");
     @$conn->query("ALTER TABLE `chat_messages` ADD INDEX IF NOT EXISTS `idx_conv_deleted` (`conversation_id`, `is_deleted`, `id`)");
+    @$conn->query("ALTER TABLE `chat_messages` ADD INDEX IF NOT EXISTS `idx_unread_lookup` (`conversation_id`, `is_deleted`, `created_at`, `sender_id`)");
+    @$conn->query("ALTER TABLE `chat_messages` ADD INDEX IF NOT EXISTS `idx_pinned_lookup` (`conversation_id`, `is_pinned`, `is_deleted`, `pinned_at`)");
     @$conn->query("ALTER TABLE `chat_participants` ADD INDEX IF NOT EXISTS `idx_user_conv` (`user_id`, `conversation_id`)");
     @$conn->query("ALTER TABLE `chat_message_receipts` ADD INDEX IF NOT EXISTS `idx_msg_read` (`message_id`, `read_at`)");
     @$conn->query("ALTER TABLE `users` ADD COLUMN IF NOT EXISTS `chat_avatar` VARCHAR(255) DEFAULT NULL");
