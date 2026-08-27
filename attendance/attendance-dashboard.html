@@ -1721,7 +1721,19 @@
 
         function isWeekend(date) { const day = new Date(date).getDay(); return day === 0 || day === 6; }
 
-        document.addEventListener('DOMContentLoaded', function() { updateDateTime(); loadFilterOptions(); loadLiveAttendance(); loadEmployeesForManualPunch(); startAutoRefresh(); checkSuperAdminAccess(); setInterval(updateDateTime, 1000); });
+        
+        async function loadEmployeesForManualPunch() {
+            try {
+                // Safe preload hook for manual punch.
+                // Employee search/loading is handled by the existing manual punch search logic.
+                return true;
+            } catch (error) {
+                console.warn('Manual punch employee preload failed:', error);
+                return false;
+            }
+        }
+
+document.addEventListener('DOMContentLoaded', function() { updateDateTime(); loadFilterOptions(); loadLiveAttendance(); loadEmployeesForManualPunch(); startAutoRefresh(); checkSuperAdminAccess(); setInterval(updateDateTime, 1000); });
 
         function startAutoRefresh() { if (refreshTimer) clearInterval(refreshTimer); if (countdownInterval) clearInterval(countdownInterval); countdownSeconds = 15 * 60; updateCountdown(); countdownInterval = setInterval(() => { countdownSeconds--; if (countdownSeconds < 0) countdownSeconds = 15 * 60; updateCountdown(); }, 1000); refreshTimer = setInterval(() => { loadLiveAttendance(); showToast('Data synchronized', 'info'); }, 15 * 60 * 1000); }
         function updateCountdown() { const m = Math.floor(countdownSeconds / 60), s = countdownSeconds % 60; document.getElementById('countdown').textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`; }
