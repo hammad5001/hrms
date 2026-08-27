@@ -849,6 +849,18 @@ function renderConversationList() {
 }
 
 async function loadConversations() {
+    // HRMS CHAT LIST THROTTLE 20260827
+    // Many WebSocket/UI events can request the full conversation list
+    // at the same time. Limit the expensive DB-backed refresh to once
+    // every 3 seconds per browser tab.
+    const __listNow = Date.now();
+
+    if (__listNow - (loadConversations._lastRunAt || 0) < 3000) {
+        return;
+    }
+
+    loadConversations._lastRunAt = __listNow;
+
     const res = await chatApi('listConversations');
     if (!res.success) return;
     const payload = res.data;

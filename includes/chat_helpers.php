@@ -848,7 +848,13 @@ function chat_attach_message_meta(mysqli $conn, array &$messages, int $me_id): v
 function chat_touch_user_active(mysqli $conn, int $user_id): void {
     require_once __DIR__ . '/chat_redis.php';
     chat_redis_online_touch($user_id);
-    $stmt = $conn->prepare('UPDATE chat_participants SET last_active_at = NOW() WHERE user_id = ?');
+    $stmt = $conn->prepare('UPDATE chat_participants
+        SET last_active_at = NOW()
+        WHERE user_id = ?
+          AND (
+              last_active_at IS NULL
+              OR last_active_at < NOW() - INTERVAL 15 SECOND
+          )');
     $stmt->bind_param('i', $user_id);
     $stmt->execute();
 }
