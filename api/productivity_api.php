@@ -213,24 +213,147 @@ switch ($action) {
         break;
 
     // ════════════════════════════════════════════════════════════════════════
-    // ACTIVITY FEED
+    // ACTIVITY FEED (BIRTHDAYS + OFFICIAL ANNOUNCEMENTS)
     // ════════════════════════════════════════════════════════════════════════
 
     case 'feed':
         $limit = max(1, min(100, (int)($_GET['limit'] ?? 50)));
-        $filter = $conn->real_escape_string($_GET['filter'] ?? '');
-        $whereClause = $filter ? "AND a.event_type LIKE '%$filter%'" : '';
-        $res = $conn->query("
-            SELECT a.id, a.employee_id, a.event_type, a.title, a.description, a.created_at,
-                   u.full_name AS employee_name, u.chat_avatar
-            FROM activity_feed a
-            JOIN users u ON a.employee_id = u.id
-            WHERE 1=1 $whereClause
-            ORDER BY a.created_at DESC LIMIT $limit
+        $canPost = prod_is_manager($user);
+
+        // Ensure announcements table exists
+        $conn->query("
+            CREATE TABLE IF NOT EXISTS `announcements` (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `posted_by_id` INT NOT NULL,
+                `title` VARCHAR(255) NOT NULL,
+                `content` TEXT NOT NULL,
+                `category` ENUM('general', 'urgent', 'policy', 'event', 'holiday') DEFAULT 'general',
+                `is_pinned` TINYINT(1) DEFAULT 0,
+                `company_branch` VARCHAR(32) NOT NULL DEFAULT 'all',
+                `status` ENUM('active', 'archived') DEFAULT 'active',
+                `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX `idx_ann_created` (`created_at`),
+                INDEX `idx_ann_status` (`status`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         ");
-        $feed = [];
-        if ($res) while ($row = $res->fetch_assoc()) $feed[] = $row;
-        prod_respond(true, ['feed' => $feed]);
+
+        $birthdays = [];
+        $announcements = [];
+
+        // 1. Fetch Birthday Celebrations for Today (matches month and day)
+        $bdayRes = $conn->query("
+            SELECT u.id AS employee_id, u.full_name AS employee_name, u.department, u.designation,
+                   u.team, u.chat_avatar, epd.date_of_birth,
+                   COALESCE(epm.designation, u.designation) AS effective_designation
+            FROM users u
+            JOIN employee_profile_details epd ON epd.user_id = u.id
+            LEFT JOIN employee_payroll_meta epm ON CONVERT(epm.employee_code USING utf8mb4) = CONVERT(u.employee_code USING utf8mb4)
+            WHERE u.status = 'active'
+              AND epd.date_of_birth IS NOT NULL
+              AND DATE_FORMAT(epd.date_of_birth, '%m-%d') = DATE_FORMAT(CURDATE(), '%m-%d')
+            ORDER BY u.full_name ASC
+        ");
+        if ($bdayRes) {
+            while ($bRow = $bdayRes->fetch_assoc()) {
+                $empName = $bRow['employee_name'];
+                $birthdays[] = [
+                    'id'            => 'bday_' . $bRow['employee_id'] . '_' . date('Ymd'),
+                    'employee_id'   => (int)$bRow['employee_id'],
+                    'event_type'    => 'birthday',
+                    'title'         => 'Birthday Celebration! 🎂🎉',
+                    'description'   => "Wishing a very Happy Birthday to {$empName}!",
+                    'employee_name' => $empName,
+                    'chat_avatar'   => $bRow['chat_avatar'] ?? null,
+                    'department'    => $bRow['department'] ?? '',
+                    'designation'   => $bRow['effective_designation'] ?? ($bRow['designation'] ?? ''),
+                    'team'          => $bRow['team'] ?? '',
+                    'created_at'    => date('Y-m-d 00:00:00'),
+                    'is_birthday'   => true,
+                ];
+            }
+        }
+
+        // 2. Fetch Active Announcements from HR / Super Admin
+        $annRes = $conn->query("
+            SELECT a.id, a.posted_by_id, a.title, a.content, a.category, a.is_pinned, a.created_at,
+                   u.full_name AS author_name, u.portal_role AS author_role, u.department AS author_department,
+                   u.chat_avatar AS author_avatar
+            FROM announcements a
+            JOIN users u ON a.posted_by_id = u.id
+            WHERE a.status = 'active'
+            ORDER BY a.is_pinned DESC, a.created_at DESC
+            LIMIT $limit
+        ");
+        if ($annRes) {
+            while ($annRow = $annRes->fetch_assoc()) {
+                $announcements[] = [
+                    'id'                => (int)$annRow['id'],
+                    'posted_by_id'      => (int)$annRow['posted_by_id'],
+                    'title'             => $annRow['title'],
+                    'content'           => $annRow['content'],
+                    'category'          => $annRow['category'],
+                    'is_pinned'         => (bool)$annRow['is_pinned'],
+                    'created_at'        => $annRow['created_at'],
+                    'author_name'       => $annRow['author_name'],
+                    'author_role'       => $annRow['author_role'],
+                    'author_department' => $annRow['author_department'] ?? '',
+                    'author_avatar'     => $annRow['author_avatar'] ?? null,
+                ];
+            }
+        }
+
+        prod_respond(true, [
+            'birthdays'              => $birthdays,
+            'announcements'          => $announcements,
+            'can_post_announcement'  => $canPost,
+            'user_role'              => $user['portal_role'] ?? 'user',
+        ]);
+        break;
+
+    case 'create_announcement':
+        if (!prod_is_manager($user)) {
+            prod_respond(false, null, 'Access denied. Only HR and Super Admin can post announcements.');
+        }
+        $title    = trim($input['title'] ?? '');
+        $content  = trim($input['content'] ?? '');
+        $category = trim($input['category'] ?? 'general');
+        $isPinned = !empty($input['is_pinned']) ? 1 : 0;
+
+        if ($title === '' || $content === '') {
+            prod_respond(false, null, 'Title and content are required.');
+        }
+
+        $validCats = ['general', 'urgent', 'policy', 'event', 'holiday'];
+        if (!in_array($category, $validCats, true)) {
+            $category = 'general';
+        }
+
+        $tEsc = $conn->real_escape_string($title);
+        $cEsc = $conn->real_escape_string($content);
+        $catEsc = $conn->real_escape_string($category);
+
+        $sql = "INSERT INTO announcements (posted_by_id, title, content, category, is_pinned, company_branch, status)
+                VALUES ($userId, '$tEsc', '$cEsc', '$catEsc', $isPinned, 'all', 'active')";
+
+        if ($conn->query($sql)) {
+            $annId = (int)$conn->insert_id;
+            prod_respond(true, ['id' => $annId, 'message' => 'Announcement posted successfully.']);
+        } else {
+            prod_respond(false, null, 'Database error: ' . $conn->error);
+        }
+        break;
+
+    case 'delete_announcement':
+        if (!prod_is_manager($user)) {
+            prod_respond(false, null, 'Access denied. Only HR and Super Admin can delete announcements.');
+        }
+        $annId = (int)($input['id'] ?? $_GET['id'] ?? 0);
+        if (!$annId) {
+            prod_respond(false, null, 'Invalid announcement ID.');
+        }
+        $conn->query("UPDATE announcements SET status = 'archived' WHERE id = $annId");
+        prod_respond(true, ['message' => 'Announcement removed.']);
         break;
 
     // ════════════════════════════════════════════════════════════════════════

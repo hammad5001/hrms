@@ -446,6 +446,7 @@ img, video {
     }
 }
 
+
 /* —— Print —— */
 @media print {
     .sidebar,
@@ -461,3 +462,104 @@ img, video {
         margin-left: 0 !important;
     }
 }
+
+/* —— ESS & Portal Premium UI Aesthetic Polish —— */
+.ess-card,
+.prod-glass-card,
+.sal-glass-card,
+.sal-chart-card,
+.sal-list-card,
+.drc-card-widget {
+    background: rgba(15, 23, 42, 0.65) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    backdrop-filter: blur(20px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.09) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease !important;
+}
+
+.ess-card:hover,
+.prod-glass-card:hover,
+.sal-glass-card:hover,
+.sal-chart-card:hover,
+.sal-list-card:hover {
+    border-color: rgba(249, 115, 22, 0.3) !important;
+    box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.5), 0 0 25px rgba(249, 115, 22, 0.12) !important;
+}
+
+/* —— Polished Buttons & Controls —— */
+.ess-btn-primary,
+.prod-btn-emerald,
+.prod-btn-primary {
+    background: linear-gradient(135deg, #f97316, #ea580c) !important;
+    box-shadow: 0 4px 15px rgba(249, 115, 22, 0.35) !important;
+    border: none !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.ess-btn-primary:hover,
+.prod-btn-emerald:hover,
+.prod-btn-primary:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 22px rgba(249, 115, 22, 0.5) !important;
+}
+
+/* —— Premium Tables —— */
+.ess-table,
+.data-table,
+.table-scroll table {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+}
+
+.ess-table th,
+.data-table th,
+.table-scroll th {
+    background: rgba(255, 255, 255, 0.04) !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+    font-size: 11px !important;
+    padding: 14px 16px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.ess-table td,
+.data-table td,
+.table-scroll td {
+    padding: 14px 16px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+    transition: background 0.2s ease !important;
+}
+
+.ess-table tr:hover td,
+.data-table tr:hover td,
+.table-scroll tr:hover td {
+    background: rgba(249, 115, 22, 0.04) !important;
+}
+
+/* —— Tab bar indicators —— */
+.ess-tab {
+    position: relative;
+    transition: color 0.2s ease, background 0.2s ease;
+}
+
+.ess-tab.active {
+    color: #f97316 !important;
+    font-weight: 700 !important;
+}
+
+.ess-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 20%;
+    right: 20%;
+    height: 3px;
+    background: linear-gradient(90deg, #f97316, #ea580c);
+    border-radius: 3px;
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.7);
+}
+

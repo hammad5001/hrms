@@ -22,7 +22,9 @@ const ProdState = {
 // API HELPER
 // ─────────────────────────────────────────────────────────────────────────────
 async function prodApi(action, payload = null) {
-    const url  = `api/productivity_api.php?action=${encodeURIComponent(action)}`;
+    const isSubdir = window.location.pathname.includes('/workfromhome/');
+    const baseUrl = isSubdir ? '../api/productivity_api.php' : 'api/productivity_api.php';
+    const url  = `${baseUrl}?action=${encodeURIComponent(action)}`;
     const opts = { credentials: 'include' };
     if (payload) {
         opts.method  = 'POST';
@@ -156,44 +158,168 @@ async function prodHandleBreak() {
 // ─────────────────────────────────────────────────────────────────────────────
 // ② ACTIVITY FEED
 // ─────────────────────────────────────────────────────────────────────────────
-const FEED_ICONS = {
-    clock_in:         { icon: 'fa-play-circle',   color: '#10B981' },
-    clock_out:        { icon: 'fa-stop-circle',   color: '#6B7280' },
-    break_start:      { icon: 'fa-coffee',         color: '#F59E0B' },
-    break_end:        { icon: 'fa-play',            color: '#3B82F6' },
-    timesheet_submit: { icon: 'fa-file-alt',        color: '#8B5CF6' },
-    timesheet_approved: { icon: 'fa-check-circle',  color: '#10B981' },
-    timesheet_rejected: { icon: 'fa-times-circle',  color: '#EF4444' },
+const ANN_CATEGORIES = {
+    general: { label: 'General Notice', icon: 'fa-bullhorn', color: '#3B82F6', bg: 'rgba(59, 130, 246, 0.15)' },
+    urgent:  { label: 'Urgent',         icon: 'fa-exclamation-triangle', color: '#EF4444', bg: 'rgba(239, 68, 68, 0.15)' },
+    policy:  { label: 'Policy Update',  icon: 'fa-scroll',   color: '#8B5CF6', bg: 'rgba(139, 92, 246, 0.15)' },
+    holiday: { label: 'Holiday',        icon: 'fa-calendar-check', color: '#10B981', bg: 'rgba(16, 185, 129, 0.15)' },
+    event:   { label: 'Company Event',  icon: 'fa-star',     color: '#F59E0B', bg: 'rgba(245, 158, 11, 0.15)' },
 };
+
 function prodTimeAgo(dateStr) {
-    const sec = Math.floor((Date.now() - new Date(dateStr.replace(' ','T')).getTime()) / 1000);
+    if (!dateStr) return '';
+    const d = new Date(String(dateStr).replace(' ', 'T'));
+    if (isNaN(d.getTime())) return String(dateStr);
+    const sec = Math.max(0, Math.floor((Date.now() - d.getTime()) / 1000));
     if (sec < 60)      return `${sec}s ago`;
-    if (sec < 3600)    return `${Math.floor(sec/60)}m ago`;
-    if (sec < 86400)   return `${Math.floor(sec/3600)}h ago`;
-    if (sec < 2592000) return `${Math.floor(sec/86400)}d ago`;
-    return new Date(dateStr.replace(' ','T')).toLocaleDateString();
+    if (sec < 3600)    return `${Math.floor(sec / 60)}m ago`;
+    if (sec < 86400)   return `${Math.floor(sec / 3600)}h ago`;
+    if (sec < 2592000) return `${Math.floor(sec / 86400)}d ago`;
+    return d.toLocaleDateString();
 }
 
 async function prodLoadFeed() {
     const list = document.getElementById('prodFeedList');
+    const composer = document.getElementById('prodAnnComposer');
     if (!list) return;
+
     const res = await prodApi('feed');
-    if (!res.success || !res.data.feed.length) {
-        list.innerHTML = `<div class="prod-feed-empty"><i class="fas fa-stream"></i><p>${res.success ? 'No activity yet. Clock in to get started!' : 'Could not load feed.'}</p></div>`;
+    if (!res.success) {
+        list.innerHTML = `<div class="prod-feed-empty"><i class="fas fa-exclamation-circle"></i><p>Could not load announcements.</p></div>`;
         return;
     }
-    list.innerHTML = res.data.feed.map(item => {
-        const cfg  = FEED_ICONS[item.event_type] || { icon: 'fa-circle-dot', color: '#9CA3AF' };
-        const init = (item.employee_name || '?').charAt(0).toUpperCase();
-        return `<div class="prod-feed-item">
-            <div class="prod-feed-avatar" style="background:linear-gradient(135deg,${cfg.color}22,${cfg.color}44);border-color:${cfg.color}44;color:${cfg.color}">${init}</div>
-            <div class="prod-feed-content">
-                <div class="prod-feed-title"><strong>${escH(item.employee_name)}</strong> - ${escH(item.title)}</div>
-                <div class="prod-feed-desc">${escH(item.description)}</div>
-                <div class="prod-feed-meta"><i class="fas ${cfg.icon}" style="color:${cfg.color}"></i> ${prodTimeAgo(item.created_at)}</div>
+
+    const birthdays = res.data.birthdays || [];
+    const announcements = res.data.announcements || [];
+    const canPost = !!res.data.can_post_announcement;
+
+    // Toggle Composer visibility based on role
+    if (composer) {
+        if (canPost) {
+            composer.classList.remove('hidden');
+            composer.style.display = 'block';
+        } else {
+            composer.classList.add('hidden');
+            composer.style.display = 'none';
+        }
+    }
+
+    let html = '';
+
+    // 1. Render Birthday Celebrations
+    if (birthdays.length > 0) {
+        html += birthdays.map(item => `
+            <div class="prod-feed-item prod-feed-item--birthday">
+                <div class="prod-feed-avatar prod-feed-avatar--birthday">🎂</div>
+                <div class="prod-feed-content prod-feed-content--birthday">
+                    <div class="prod-bday-header">
+                        <span class="prod-bday-badge"><i class="fas fa-sparkles"></i> 🎉 Birthday Celebration! 🎂</span>
+                        <span class="prod-bday-today-tag">Today</span>
+                    </div>
+                    <div class="prod-bday-name">${escH(item.employee_name)}</div>
+                    <div class="prod-bday-wishes">Wishing you a fantastic birthday filled with happiness and success! 🎈✨</div>
+                    <div class="prod-bday-details">
+                        ${item.designation ? `<span class="prod-bday-tag prod-bday-tag--role"><i class="fas fa-id-badge"></i> ${escH(item.designation)}</span>` : ''}
+                        ${item.department ? `<span class="prod-bday-tag prod-bday-tag--dept"><i class="fas fa-building"></i> ${escH(item.department)}</span>` : ''}
+                        ${item.team ? `<span class="prod-bday-tag prod-bday-tag--team"><i class="fas fa-users"></i> ${escH(item.team)}</span>` : ''}
+                    </div>
+                </div>
             </div>
+        `).join('');
+    }
+
+    // 2. Render Official Announcements
+    if (announcements.length > 0) {
+        html += announcements.map(ann => {
+            const cat = ANN_CATEGORIES[ann.category] || ANN_CATEGORIES.general;
+            const init = (ann.author_name || 'HR').charAt(0).toUpperCase();
+            const pinnedBadge = ann.is_pinned
+                ? `<span class="prod-ann-pinned-badge"><i class="fas fa-thumbtack"></i> Pinned</span>`
+                : '';
+            const deleteBtn = canPost
+                ? `<button type="button" class="prod-ann-del-btn" onclick="prodDeleteAnnouncement(${ann.id})" title="Delete announcement"><i class="fas fa-trash-alt"></i></button>`
+                : '';
+
+            return `
+                <div class="prod-ann-card ${ann.is_pinned ? 'prod-ann-card--pinned' : ''}">
+                    <div class="prod-ann-top">
+                        <div class="prod-ann-author-wrap">
+                            <div class="prod-ann-avatar" style="background:linear-gradient(135deg, ${cat.color}33, ${cat.color}66); border-color:${cat.color}66; color:#fff;">${init}</div>
+                            <div class="prod-ann-author-info">
+                                <div class="prod-ann-author-name">
+                                    <strong>${escH(ann.author_name)}</strong>
+                                    <span class="prod-ann-role-pill">${escH(ann.author_role.toUpperCase())}</span>
+                                </div>
+                                <div class="prod-ann-time"><i class="far fa-clock"></i> ${prodTimeAgo(ann.created_at)}</div>
+                            </div>
+                        </div>
+                        <div class="prod-ann-actions">
+                            <span class="prod-ann-cat-badge" style="background:${cat.bg}; color:${cat.color}; border:1px solid ${cat.color}44;">
+                                <i class="fas ${cat.icon}"></i> ${cat.label}
+                            </span>
+                            ${pinnedBadge}
+                            ${deleteBtn}
+                        </div>
+                    </div>
+                    <div class="prod-ann-body">
+                        <h4 class="prod-ann-title">${escH(ann.title)}</h4>
+                        <div class="prod-ann-content">${escH(ann.content).replace(/\n/g, '<br>')}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    if (!birthdays.length && !announcements.length) {
+        html = `<div class="prod-feed-empty">
+            <i class="fas fa-bullhorn" style="font-size:32px; color:var(--prod-indigo); margin-bottom:10px;"></i>
+            <p>No active announcements or birthday celebrations today.</p>
         </div>`;
-    }).join('');
+    }
+
+    list.innerHTML = html;
+}
+
+async function prodSubmitAnnouncement() {
+    const titleEl = document.getElementById('annTitle');
+    const contentEl = document.getElementById('annContent');
+    const catEl = document.getElementById('annCategory');
+    const pinEl = document.getElementById('annPinned');
+    const btn = document.getElementById('btnPublishAnn');
+
+    if (!titleEl || !contentEl) return;
+    const title = titleEl.value.trim();
+    const content = contentEl.value.trim();
+    const category = catEl ? catEl.value : 'general';
+    const is_pinned = pinEl ? pinEl.checked : false;
+
+    if (!title || !content) {
+        alert('Please provide both title and announcement content.');
+        return;
+    }
+
+    if (btn) btn.disabled = true;
+    const res = await prodApi('create_announcement', { title, content, category, is_pinned });
+    if (btn) btn.disabled = false;
+
+    if (res.success) {
+        titleEl.value = '';
+        contentEl.value = '';
+        if (pinEl) pinEl.checked = false;
+        await prodLoadFeed();
+    } else {
+        alert(res.error || 'Failed to post announcement.');
+    }
+}
+
+async function prodDeleteAnnouncement(id) {
+    if (!confirm('Are you sure you want to delete this announcement?')) return;
+    const res = await prodApi('delete_announcement', { id });
+    if (res.success) {
+        await prodLoadFeed();
+    } else {
+        alert(res.error || 'Failed to remove announcement.');
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -703,6 +829,17 @@ document.addEventListener('DOMContentLoaded', () => {
     prodLoadStatus();
     prodLoadDashScore();
     prodCheckAlerts();
+    prodLoadFeed();
+    prodLoadLeaderboard();
+
+    document.querySelectorAll('[data-view="feeds"], [data-nav-id="nav-tab-feeds"]').forEach(el => {
+        el.addEventListener('click', () => {
+            setTimeout(() => {
+                prodLoadFeed();
+                prodLoadLeaderboard();
+            }, 50);
+        });
+    });
 
     document.getElementById('btnClockInOut')  ?.addEventListener('click', prodHandleClockInOut);
     document.getElementById('btnBreakToggle') ?.addEventListener('click', prodHandleBreak);

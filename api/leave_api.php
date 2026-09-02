@@ -15,7 +15,7 @@ if (!$user) {
 
 $action = $_GET['action'] ?? '';
 $input = json_decode(file_get_contents('php://input'), true) ?: [];
-$branch = get_active_company_branch();
+$branch = normalize_company_branch($user['company_branch'] ?? get_active_company_branch());
 $user_id = (int)$user['id'];
 
 switch ($action) {
@@ -36,6 +36,80 @@ switch ($action) {
                 LIMIT 20";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param('sssss', $branch, $like, $like, $like, $like);
+        $stmt->execute();
+        $rows = [];
+        $res = $stmt->get_result();
+        while ($row = $res->fetch_assoc()) {
+            $rows[] = [
+                'id' => (int)$row['id'],
+                'full_name' => $row['full_name'],
+                'email' => $row['email'],
+                'portal_role' => $row['portal_role'],
+                'designation' => $row['designation'],
+                'team' => $row['team'],
+                'department' => $row['department'],
+                'employee_code' => $row['employee_code'],
+                'role_label' => ucfirst(str_replace('_', ' ', $row['portal_role'] ?? '')),
+            ];
+        }
+        leave_respond(true, $rows);
+        break;
+
+    case 'searchHrApprovers':
+        $q = trim($_GET['q'] ?? '');
+        $like = '%' . $conn->real_escape_string($q) . '%';
+        $roles = "'hr','admin','super_admin'";
+        $sql = "SELECT id, full_name, email, portal_role, designation, team, department, employee_code
+                FROM users
+                WHERE status = 'active' AND company_branch = ?
+                AND (portal_role IN ($roles) OR designation LIKE '%HR%' OR designation LIKE '%Human Resource%')";
+        if (strlen($q) >= 1) {
+            $sql .= " AND (full_name LIKE ? OR email LIKE ? OR employee_code LIKE ? OR designation LIKE ?)";
+            $sql .= " ORDER BY full_name ASC LIMIT 20";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param('sssss', $branch, $like, $like, $like, $like);
+        } else {
+            $sql .= " ORDER BY full_name ASC LIMIT 20";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param('s', $branch);
+        }
+        $stmt->execute();
+        $rows = [];
+        $res = $stmt->get_result();
+        while ($row = $res->fetch_assoc()) {
+            $rows[] = [
+                'id' => (int)$row['id'],
+                'full_name' => $row['full_name'],
+                'email' => $row['email'],
+                'portal_role' => $row['portal_role'],
+                'designation' => $row['designation'],
+                'team' => $row['team'],
+                'department' => $row['department'],
+                'employee_code' => $row['employee_code'],
+                'role_label' => ucfirst(str_replace('_', ' ', $row['portal_role'] ?? '')),
+            ];
+        }
+        leave_respond(true, $rows);
+        break;
+
+    case 'searchTlApprovers':
+        $q = trim($_GET['q'] ?? '');
+        $like = '%' . $conn->real_escape_string($q) . '%';
+        $roles = "'team_lead','floor_manager','management','admin','super_admin'";
+        $sql = "SELECT id, full_name, email, portal_role, designation, team, department, employee_code
+                FROM users
+                WHERE status = 'active' AND company_branch = ?
+                AND (portal_role IN ($roles) OR designation LIKE '%Team Lead%' OR designation LIKE '%team lead%' OR designation LIKE '%Floor Manager%' OR designation LIKE '%floor manager%')";
+        if (strlen($q) >= 1) {
+            $sql .= " AND (full_name LIKE ? OR email LIKE ? OR employee_code LIKE ? OR designation LIKE ?)";
+            $sql .= " ORDER BY full_name ASC LIMIT 20";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param('sssss', $branch, $like, $like, $like, $like);
+        } else {
+            $sql .= " ORDER BY full_name ASC LIMIT 20";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param('s', $branch);
+        }
         $stmt->execute();
         $rows = [];
         $res = $stmt->get_result();
@@ -442,9 +516,12 @@ switch ($action) {
         $end_date = $input['end_date'] ?? $start_date;
         $half_day_slot = $input['half_day_slot'] ?? null;
         $reason = trim($input['reason'] ?? '');
-        $approver_user_id = (int)($input['approver_user_id'] ?? 0);
-        $apply_through = $input['apply_through'] ?? 'team_lead';
-        $approver_name = null;
+        
+        $hr_user_id = (int)($input['hr_user_id'] ?? $input['approver_user_id'] ?? 0);
+        $tl_user_id = (int)($input['tl_user_id'] ?? 0);
+        
+        $hr_user = null;
+        $tl_user = null;
 
         $subject_user = $user;
         $subject_user_id = $user_id;
@@ -464,19 +541,37 @@ switch ($action) {
             $subject_user_id = (int)$picked['id'];
         }
 
-        if ($approver_user_id > 0) {
-            $approver = fetch_user_by_id($conn, $approver_user_id);
-            if (!$approver || !user_can_be_leave_approver($approver)) {
-                leave_respond(false, null, 'Selected approver is not valid');
+        // Validate HR (Mandatory)
+        if ($hr_user_id > 0) {
+            $hr_user = fetch_user_by_id($conn, $hr_user_id);
+            if (!$hr_user || !in_array($hr_user['portal_role'], ['hr', 'admin', 'super_admin'], true)) {
+                leave_respond(false, null, 'Please select a valid HR / Admin user');
             }
-            if (normalize_company_branch($approver['company_branch'] ?? '') !== $branch) {
-                leave_respond(false, null, 'Approver is not in your branch');
+            if (normalize_company_branch($hr_user['company_branch'] ?? '') !== $branch) {
+                leave_respond(false, null, 'Tagged HR is not in your branch');
             }
-            $apply_through = apply_through_for_approver($approver);
-            $approver_name = $approver['full_name'];
-        } elseif (!in_array($apply_through, ['team_lead', 'floor_manager', 'hr'], true)) {
-            leave_respond(false, null, 'Select an approver from the search');
+        } else {
+            // Find default HR if not explicitly provided
+            $hrs = find_managers_for_leave($conn, 'hr', '', $branch);
+            if (!empty($hrs)) {
+                $hr_user = $hrs[0];
+                $hr_user_id = (int)$hr_user['id'];
+            } else {
+                leave_respond(false, null, 'Tagging HR is mandatory. Please select an HR person.');
+            }
         }
+
+        // Validate TL (Optional but recommended)
+        if ($tl_user_id > 0) {
+            $tl_user = fetch_user_by_id($conn, $tl_user_id);
+            if (!$tl_user || !user_can_be_leave_approver($tl_user)) {
+                leave_respond(false, null, 'Selected Team Lead / Manager is not valid');
+            }
+            if (normalize_company_branch($tl_user['company_branch'] ?? '') !== $branch) {
+                leave_respond(false, null, 'Tagged Team Lead / Manager is not in your branch');
+            }
+        }
+
         if (!in_array($duration_type, ['full_day', 'half_day'], true)) {
             leave_respond(false, null, 'Invalid duration');
         }
@@ -516,28 +611,31 @@ switch ($action) {
             leave_respond(false, null, $balanceError);
         }
 
-        $tl_status = 'none';
+        $tl_status = ($tl_user_id > 0) ? 'pending' : 'none';
         $fm_status = 'none';
-        $hr_status = 'none';
-        if ($apply_through === 'team_lead') {
-            $tl_status = 'pending';
-        } elseif ($apply_through === 'floor_manager') {
-            $fm_status = 'pending';
-        } else {
-            $hr_status = 'pending';
-        }
+        $hr_status = 'pending';
+        $apply_through = ($tl_user_id > 0) ? 'team_lead' : 'hr';
+
+        $tl_name = $tl_user ? ($tl_user['full_name'] ?? '') : null;
+        $hr_name = $hr_user ? ($hr_user['full_name'] ?? '') : null;
+        $primary_approver_id = $hr_user_id;
+        $primary_approver_name = $hr_name;
 
         $emp_code = $subject_user['employee_code'] ?: ('U' . $subject_user_id);
         $stmt = $conn->prepare("INSERT INTO leave_requests (
             user_id, employee_code, employee_name, team, department, company_branch,
             leave_type, duration_type, start_date, end_date, half_day_slot, reason, apply_through,
             approver_user_id, approver_name,
-            status, tl_status, fm_status, hr_status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)");
-        $aid = $approver_user_id > 0 ? $approver_user_id : 0;
-        $aname = $approver_name ?? '';
+            tl_user_id, tl_name, tl_status,
+            hr_user_id, hr_name, hr_status,
+            fm_status, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'none', 'pending')");
+        
+        $tl_uid_val = ($tl_user_id > 0) ? $tl_user_id : null;
+        $hr_uid_val = ($hr_user_id > 0) ? $hr_user_id : null;
+
         $stmt->bind_param(
-            'issssssssssssissss',
+            'issssssssssssisississ',
             $subject_user_id,
             $emp_code,
             $subject_user['full_name'],
@@ -551,10 +649,13 @@ switch ($action) {
             $half_day_slot,
             $reason,
             $apply_through,
-            $aid,
-            $aname,
+            $primary_approver_id,
+            $primary_approver_name,
+            $tl_uid_val,
+            $tl_name,
             $tl_status,
-            $fm_status,
+            $hr_uid_val,
+            $hr_name,
             $hr_status
         );
         if (!$stmt->execute()) {
@@ -563,39 +664,27 @@ switch ($action) {
         $leave_id = (int)$conn->insert_id;
 
         $recipient_ids = [];
-        if ($approver_user_id > 0) {
-            $recipient_ids[] = $approver_user_id;
-        } else {
-            $managers = find_managers_for_leave($conn, $apply_through, $subject_user['team'] ?? '', $branch);
-            $recipient_ids = array_map(fn($m) => (int)$m['id'], $managers);
-        }
-        $route_label = $approver_name ?: (['team_lead' => 'Team Lead', 'floor_manager' => 'Floor Manager', 'hr' => 'HR'][$apply_through]);
+        if ($hr_user_id > 0) $recipient_ids[] = $hr_user_id;
+        if ($tl_user_id > 0) $recipient_ids[] = $tl_user_id;
+        $recipient_ids = array_values(array_unique(array_filter($recipient_ids)));
+
         $dur = $duration_type === 'half_day' ? "Half day ($half_day_slot)" : 'Full day';
         $date_label = $start_date . ($end_date !== $start_date ? " to {$end_date}" : '');
         $applicant_label = $subject_user['full_name'];
         if ($subject_user_id !== $user_id) {
             $applicant_label .= " (submitted by {$user['full_name']})";
         }
+        $tagged_msg = "HR: {$hr_name}" . ($tl_name ? " | TL: {$tl_name}" : "");
+        
         create_leave_notifications(
             $conn,
             $leave_id,
             $recipient_ids,
             'New leave request',
-            "{$applicant_label} ({$emp_code}) applied for {$dur} leave. Approver: {$route_label}. Dates: {$start_date}" . ($end_date !== $start_date ? " to {$end_date}" : '')
+            "{$applicant_label} ({$emp_code}) applied for {$dur} leave ({$date_label}). Tagged: {$tagged_msg}. Please review in Approvals."
         );
-        $portalApprovers = fetch_portal_approver_user_ids($conn, $branch);
-        $portalApprovers = array_values(array_diff($portalApprovers, [$user_id]));
-        if (!empty($portalApprovers)) {
-            create_leave_notifications(
-                $conn,
-                $leave_id,
-                $portalApprovers,
-                'Leave pending approval',
-                "{$applicant_label} ({$emp_code}) submitted leave for {$date_label}. Review in Approvals."
-            );
-        }
 
-        leave_respond(true, ['id' => $leave_id], 'Leave request submitted');
+        leave_respond(true, ['id' => $leave_id], 'Leave request submitted successfully');
         break;
 
     case 'myRequests':
@@ -654,14 +743,41 @@ switch ($action) {
         if (!user_can_access_portal_approvals($user)) {
             leave_respond(false, null, 'You are not authorized to view approvals');
         }
-        $stmt = $conn->prepare("
-            SELECT * FROM leave_requests
-            WHERE status = 'pending' AND company_branch = ?
-              AND (policy_credit_value IS NULL OR policy_credit_value <= 0)
-            ORDER BY created_at ASC
-            LIMIT 200
-        ");
-        $stmt->bind_param('s', $branch);
+        $role = $user['portal_role'] ?? '';
+        $isSuperAdmin = ($role === 'super_admin');
+        
+        if ($isSuperAdmin) {
+            $stmt = $conn->prepare("
+                SELECT * FROM leave_requests
+                WHERE status = 'pending' AND company_branch = ?
+                  AND (policy_credit_value IS NULL OR policy_credit_value <= 0)
+                ORDER BY created_at ASC
+                LIMIT 200
+            ");
+            $stmt->bind_param('s', $branch);
+        } elseif ($role === 'hr' || $role === 'admin') {
+            // HR/Admin: sees requests tagged to them or where HR is pending in this branch
+            $stmt = $conn->prepare("
+                SELECT * FROM leave_requests
+                WHERE status = 'pending' AND company_branch = ?
+                  AND (hr_user_id = ? OR (hr_user_id IS NULL AND hr_status = 'pending'))
+                  AND (policy_credit_value IS NULL OR policy_credit_value <= 0)
+                ORDER BY created_at ASC
+                LIMIT 200
+            ");
+            $stmt->bind_param('si', $branch, $user_id);
+        } else {
+            // Team Lead / Floor Manager / Management: ONLY sees requests where they are explicitly tagged
+            $stmt = $conn->prepare("
+                SELECT * FROM leave_requests
+                WHERE status = 'pending' AND company_branch = ?
+                  AND tl_user_id = ?
+                  AND (policy_credit_value IS NULL OR policy_credit_value <= 0)
+                ORDER BY created_at ASC
+                LIMIT 200
+            ");
+            $stmt->bind_param('si', $branch, $user_id);
+        }
         $stmt->execute();
         $rows = [];
         $res = $stmt->get_result();
@@ -720,106 +836,125 @@ switch ($action) {
             leave_respond(false, null, 'Request already finalized');
         }
 
-        $level = approver_level_for_user($user);
-        $new_status = $approve ? 'approved' : 'rejected';
-        $final_status = $approve ? 'approved' : 'rejected';
+        $tl_status = $request['tl_status'] ?? 'none';
+        $hr_status = $request['hr_status'] ?? 'none';
+        $tl_uid = $request['tl_user_id'] ? (int)$request['tl_user_id'] : null;
+        $hr_uid = $request['hr_user_id'] ? (int)$request['hr_user_id'] : null;
+        $tl_note = $request['tl_note'] ?? null;
+        $hr_note = $request['hr_note'] ?? null;
+        $tl_name = $request['tl_name'] ?? null;
+        $hr_name = $request['hr_name'] ?? null;
 
-        $tl_status = $request['tl_status'];
-        $fm_status = $request['fm_status'];
-        $hr_status = $request['hr_status'];
-        $tl_uid = $request['tl_user_id'];
-        $fm_uid = $request['fm_user_id'];
-        $hr_uid = $request['hr_user_id'];
-        $tl_note = $request['tl_note'];
-        $fm_note = $request['fm_note'];
-        $hr_note = $request['hr_note'];
+        $isHrUser = in_array($user['portal_role'], ['hr', 'admin', 'super_admin'], true);
+        $isTlUser = in_array($user['portal_role'], ['team_lead', 'floor_manager', 'management'], true)
+                    || ((int)($request['tl_user_id'] ?? 0) === $user_id);
 
-        $assigned_approver = (int)($request['approver_user_id'] ?? 0);
-        $handled = false;
-        if ($assigned_approver > 0 && $assigned_approver === $user_id) {
-            if ($tl_status === 'pending') {
-                $tl_status = $new_status;
+        $action_taken_by = '';
+
+        if (!$approve) {
+            // Rejection by either TL or HR immediately rejects the leave
+            if ($tl_uid === $user_id || ($isTlUser && $tl_status === 'pending' && !$isHrUser)) {
+                $tl_status = 'rejected';
                 $tl_uid = $user_id;
-                $tl_note = $note;
-                $handled = true;
-            } elseif ($fm_status === 'pending') {
-                $fm_status = $new_status;
-                $fm_uid = $user_id;
-                $fm_note = $note;
-                $handled = true;
-            } elseif ($hr_status === 'pending') {
-                $hr_status = $new_status;
-                $hr_uid = $user_id;
-                $hr_note = $note;
-                $handled = true;
-            }
-        }
-
-        $route = $request['apply_through'];
-        if (!$handled && $route === 'team_lead' && $tl_status === 'pending') {
-            $tl_status = $new_status;
-            $tl_uid = $user_id;
-            $tl_note = $note;
-        } elseif (!$handled && $route === 'floor_manager' && $fm_status === 'pending') {
-            $fm_status = $new_status;
-            $fm_uid = $user_id;
-            $fm_note = $note;
-        } elseif (!$handled && $route === 'hr' && $hr_status === 'pending') {
-            $hr_status = $new_status;
-            $hr_uid = $user_id;
-            $hr_note = $note;
-        } elseif (!$handled && in_array($user['portal_role'], ['admin', 'hr', 'super_admin'], true)) {
-            if ($hr_status === 'pending') {
-                $hr_status = $new_status;
-                $hr_uid = $user_id;
-                $hr_note = $note;
-            } elseif ($fm_status === 'pending') {
-                $fm_status = $new_status;
-                $fm_uid = $user_id;
-                $fm_note = $note;
-            } elseif ($tl_status === 'pending') {
-                $tl_status = $new_status;
-                $tl_uid = $user_id;
-                $tl_note = $note;
+                $tl_name = $user['full_name'];
+                $tl_note = $note ?: 'Rejected by Team Lead';
+                $action_taken_by = 'Team Lead';
             } else {
-                $hr_status = $new_status;
+                $hr_status = 'rejected';
                 $hr_uid = $user_id;
-                $hr_note = $note;
+                $hr_name = $user['full_name'];
+                $hr_note = $note ?: 'Rejected by HR';
+                $action_taken_by = 'HR';
             }
-            $handled = true;
-        } elseif (!$handled) {
-            leave_respond(false, null, 'This request is not awaiting your approval');
+            $final_status = 'rejected';
+        } else {
+            // Approval flow
+            if ($tl_uid === $user_id || ($isTlUser && $tl_status === 'pending' && !$isHrUser)) {
+                // Team Lead approving
+                $tl_status = 'approved';
+                $tl_uid = $user_id;
+                $tl_name = $user['full_name'];
+                if ($note) $tl_note = $note;
+                $action_taken_by = 'Team Lead';
+            } elseif ($isHrUser) {
+                // HR approving
+                $hr_status = 'approved';
+                $hr_uid = $user_id;
+                $hr_name = $user['full_name'];
+                if ($note) $hr_note = $note;
+                $action_taken_by = 'HR';
+            } else {
+                leave_respond(false, null, 'You are not assigned as an approver for this request');
+            }
+
+            // Dual approval check:
+            // If TL was tagged (tl_status != 'none'), BOTH TL and HR must be 'approved'.
+            // If TL was NOT tagged (tl_status == 'none'), then HR approval is sufficient.
+            $tl_satisfied = ($tl_status === 'none' || $tl_status === 'approved');
+            $hr_satisfied = ($hr_status === 'approved');
+
+            if ($tl_satisfied && $hr_satisfied) {
+                $final_status = 'approved';
+            } else {
+                $final_status = 'pending';
+            }
         }
 
-        $upd = $conn->prepare("UPDATE leave_requests SET status=?, tl_status=?, fm_status=?, hr_status=?, tl_user_id=?, fm_user_id=?, hr_user_id=?, tl_note=?, fm_note=?, hr_note=?, updated_at=NOW() WHERE id=?");
-        $upd->bind_param('ssssiiisssi', $final_status, $tl_status, $fm_status, $hr_status, $tl_uid, $fm_uid, $hr_uid, $tl_note, $fm_note, $hr_note, $leave_id);
+        $upd = $conn->prepare("UPDATE leave_requests SET 
+            status=?, tl_status=?, hr_status=?, 
+            tl_user_id=?, tl_name=?, tl_note=?, 
+            hr_user_id=?, hr_name=?, hr_note=?, 
+            updated_at=NOW() 
+            WHERE id=?");
+        $upd->bind_param(
+            'sssisssssi', 
+            $final_status, $tl_status, $hr_status, 
+            $tl_uid, $tl_name, $tl_note, 
+            $hr_uid, $hr_name, $hr_note, 
+            $leave_id
+        );
         $upd->execute();
 
         $request = get_leave_request($conn, $leave_id);
-        if (!$approve && $request) {
-            remove_synced_leave_days($conn, $request);
-        } elseif ($approve && $request) {
+
+        if ($final_status === 'approved' && $request) {
             $credit = (float) ($request['policy_credit_value'] ?? 0);
             if ($credit > 0) {
                 apply_approved_policy_credit($conn, $request);
             } else {
                 sync_leave_to_employee_leaves($conn, $request);
             }
+
+            create_leave_notifications(
+                $conn,
+                $leave_id,
+                [(int)$request['user_id']],
+                'Leave fully approved',
+                "Your leave request #{$leave_id} ({$request['start_date']}) has been approved by both Team Lead and HR."
+            );
+            leave_respond(true, ['status' => 'approved'], 'Leave fully approved');
+        } elseif ($final_status === 'rejected' && $request) {
+            remove_synced_leave_days($conn, $request);
+            create_leave_notifications(
+                $conn,
+                $leave_id,
+                [(int)$request['user_id']],
+                'Leave rejected',
+                "Your leave request #{$leave_id} was rejected by {$action_taken_by}." . ($note ? " Note: {$note}" : '')
+            );
+            leave_respond(true, ['status' => 'rejected'], 'Leave rejected');
+        } else {
+            // Partially approved (e.g. TL approved, HR pending or vice-versa)
+            $pendingRole = ($tl_status === 'pending') ? 'Team Lead' : 'HR';
+            create_leave_notifications(
+                $conn,
+                $leave_id,
+                [(int)$request['user_id']],
+                "Leave {$action_taken_by} approved",
+                "Your leave request #{$leave_id} was approved by {$action_taken_by}. Awaiting final approval from {$pendingRole}."
+            );
+            leave_respond(true, ['status' => 'pending'], "Approved by {$action_taken_by}. Awaiting {$pendingRole} approval.");
         }
-
-        $rejectTitle = 'Leave rejected';
-        $rejectMsg = 'Your leave request #' . $leave_id . ' was rejected.' . ($note ? ": $note" : '');
-        create_leave_notifications(
-            $conn,
-            $leave_id,
-            [(int)$request['user_id']],
-            $approve ? 'Leave approved' : $rejectTitle,
-            $approve
-                ? ('Your leave request #' . $leave_id . ' was approved' . ($note ? ": $note" : ''))
-                : $rejectMsg
-        );
-
-        leave_respond(true, null, $approve ? 'Leave approved' : 'Leave rejected');
         break;
 
     case 'revert':
@@ -840,28 +975,16 @@ switch ($action) {
             leave_respond(false, null, 'Policy credits are managed on the Leave Policy page');
         }
         remove_synced_leave_days($conn, $request);
-        $route = $request['apply_through'] ?? 'hr';
-        $tl_status = 'none';
-        $fm_status = 'none';
-        $hr_status = 'none';
-        if ($route === 'team_lead') {
-            $tl_status = 'pending';
-        } elseif ($route === 'floor_manager') {
-            $fm_status = 'pending';
-        } else {
-            $hr_status = 'pending';
-        }
         $revertNote = $note !== '' ? $note : 'Reverted to pending by HR';
         $upd = $conn->prepare("
             UPDATE leave_requests SET
                 status = 'pending',
-                tl_status = ?, fm_status = ?, hr_status = ?,
-                tl_user_id = NULL, fm_user_id = NULL, hr_user_id = NULL,
-                tl_note = NULL, fm_note = NULL, hr_note = ?,
+                hr_status = 'pending',
+                hr_note = ?,
                 updated_at = NOW()
             WHERE id = ? AND company_branch = ?
         ");
-        $upd->bind_param('ssssis', $tl_status, $fm_status, $hr_status, $revertNote, $leave_id, $branch);
+        $upd->bind_param('sis', $revertNote, $leave_id, $branch);
         if (!$upd->execute()) {
             leave_respond(false, null, 'Could not revert leave request');
         }
@@ -873,6 +996,46 @@ switch ($action) {
             'Your leave request #' . $leave_id . ' was reverted for review.' . ($note ? " Note: {$note}" : '')
         );
         leave_respond(true, null, 'Leave reverted to pending');
+        break;
+
+    case 'monthlyLeaveRecords':
+        if (!user_can_view_leave_policy($user)) {
+            leave_respond(false, null, 'Not authorized to view leave policy records');
+        }
+        $year = (int)($_GET['year'] ?? date('Y'));
+        $month = (int)($_GET['month'] ?? date('n'));
+        $status = trim($_GET['status'] ?? 'all');
+        $search = trim($_GET['search'] ?? '');
+
+        $sql = "SELECT * FROM leave_requests 
+                WHERE company_branch = ? 
+                AND YEAR(start_date) = ?";
+        if ($month > 0 && $month <= 12) {
+            $sql .= " AND MONTH(start_date) = " . (int)$month;
+        }
+        if ($status !== 'all' && in_array($status, ['approved', 'pending', 'rejected', 'cancelled'], true)) {
+            $sql .= " AND status = '" . $conn->real_escape_string($status) . "'";
+        }
+        if (strlen($search) > 0) {
+            $s = '%' . $conn->real_escape_string($search) . '%';
+            $sql .= " AND (employee_name LIKE '$s' OR employee_code LIKE '$s' OR reason LIKE '$s' OR tl_name LIKE '$s' OR hr_name LIKE '$s')";
+        }
+        $sql .= " ORDER BY start_date DESC, id DESC LIMIT 500";
+
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param('si', $branch, $year);
+        $stmt->execute();
+        $rows = [];
+        $res = $stmt->get_result();
+        while ($row = $res->fetch_assoc()) {
+            $rows[] = leave_request_row_to_array($row);
+        }
+        leave_respond(true, [
+            'year' => $year,
+            'month' => $month,
+            'total' => count($rows),
+            'records' => $rows
+        ]);
         break;
 
     case 'notifications':
@@ -904,11 +1067,23 @@ switch ($action) {
         if (!in_array($status, ['approved', 'rejected', 'all'], true)) {
             $status = 'approved';
         }
+        $role = $user['portal_role'] ?? '';
+        $isSuperAdmin = ($role === 'super_admin');
+        
         $sql = "SELECT * FROM leave_requests WHERE company_branch = ?
             AND (policy_credit_value IS NULL OR policy_credit_value <= 0)";
         if ($status !== 'all') {
             $sql .= " AND status = '" . $conn->real_escape_string($status) . "'";
         }
+        
+        if (!$isSuperAdmin) {
+            if ($role === 'hr' || $role === 'admin') {
+                $sql .= " AND (hr_user_id = " . (int)$user_id . " OR hr_user_id IS NULL)";
+            } else {
+                $sql .= " AND tl_user_id = " . (int)$user_id;
+            }
+        }
+
         $sql .= " ORDER BY updated_at DESC LIMIT 80";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param('s', $branch);
@@ -921,12 +1096,64 @@ switch ($action) {
         leave_respond(true, $rows);
         break;
 
+    case 'getApprovedLeaves':
+        if (!user_can_view_leave_policy($user)) {
+            leave_respond(false, null, 'Not authorized to view approved leaves');
+        }
+        $year = (int)($_GET['year'] ?? date('Y'));
+        $month = (int)($_GET['month'] ?? 0);
+        $search = trim($_GET['search'] ?? '');
+
+        $sql = "SELECT * FROM leave_requests 
+                WHERE company_branch = ? 
+                AND status = 'approved'
+                AND (policy_credit_value IS NULL OR policy_credit_value <= 0)";
+        if ($year >= 2000 && $year <= 2100) {
+            $sql .= " AND YEAR(start_date) = " . (int)$year;
+        }
+        if ($month > 0 && $month <= 12) {
+            $sql .= " AND MONTH(start_date) = " . (int)$month;
+        }
+        if (strlen($search) > 0) {
+            $s = '%' . $conn->real_escape_string($search) . '%';
+            $sql .= " AND (employee_name LIKE '$s' OR employee_code LIKE '$s' OR reason LIKE '$s' OR tl_name LIKE '$s' OR hr_name LIKE '$s')";
+        }
+        $sql .= " ORDER BY updated_at DESC, start_date DESC LIMIT 500";
+
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param('s', $branch);
+        $stmt->execute();
+        $rows = [];
+        $res = $stmt->get_result();
+        while ($row = $res->fetch_assoc()) {
+            $rows[] = leave_request_row_to_array($row);
+        }
+        leave_respond(true, [
+            'total' => count($rows),
+            'records' => $rows
+        ]);
+        break;
+
     case 'summary':
         $pending_approvals = 0;
         if (user_can_access_portal_approvals($user)) {
-            $r = $conn->prepare("SELECT COUNT(*) AS c FROM leave_requests WHERE status='pending' AND company_branch = ?
-                AND (policy_credit_value IS NULL OR policy_credit_value <= 0)");
-            $r->bind_param('s', $branch);
+            $role = $user['portal_role'] ?? '';
+            $isSuperAdmin = ($role === 'super_admin');
+            if ($isSuperAdmin) {
+                $r = $conn->prepare("SELECT COUNT(*) AS c FROM leave_requests WHERE status='pending' AND company_branch = ?
+                    AND (policy_credit_value IS NULL OR policy_credit_value <= 0)");
+                $r->bind_param('s', $branch);
+            } elseif ($role === 'hr' || $role === 'admin') {
+                $r = $conn->prepare("SELECT COUNT(*) AS c FROM leave_requests WHERE status='pending' AND company_branch = ?
+                    AND (hr_user_id = ? OR (hr_user_id IS NULL AND hr_status = 'pending'))
+                    AND (policy_credit_value IS NULL OR policy_credit_value <= 0)");
+                $r->bind_param('si', $branch, $user_id);
+            } else {
+                $r = $conn->prepare("SELECT COUNT(*) AS c FROM leave_requests WHERE status='pending' AND company_branch = ?
+                    AND tl_user_id = ?
+                    AND (policy_credit_value IS NULL OR policy_credit_value <= 0)");
+                $r->bind_param('si', $branch, $user_id);
+            }
             $r->execute();
             $pending_approvals = (int) ($r->get_result()->fetch_assoc()['c'] ?? 0);
         }

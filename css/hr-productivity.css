@@ -179,6 +179,420 @@
     font-size: 12px;
     color: var(--prod-text-muted);
 }
+.prod-feed-subtags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 6px 0;
+}
+.prod-feed-subtag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--prod-text-muted);
+    border: 1px solid var(--prod-border);
+}
+
+/* 🎂 Birthday Celebration Card in Activity Feed */
+.prod-feed-item--birthday {
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.12), rgba(245, 158, 11, 0.12), rgba(139, 92, 246, 0.12));
+    border: 1px solid rgba(236, 72, 153, 0.35);
+    border-radius: 16px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 24px rgba(236, 72, 153, 0.15), 0 0 15px rgba(245, 158, 11, 0.08);
+    position: relative;
+    overflow: hidden;
+    animation: bdayGlow 4s ease-in-out infinite alternate;
+}
+@keyframes bdayGlow {
+    0% { border-color: rgba(236, 72, 153, 0.35); box-shadow: 0 8px 24px rgba(236, 72, 153, 0.15); }
+    50% { border-color: rgba(245, 158, 11, 0.45); box-shadow: 0 8px 28px rgba(245, 158, 11, 0.22); }
+    100% { border-color: rgba(139, 92, 246, 0.4); box-shadow: 0 8px 24px rgba(139, 92, 246, 0.18); }
+}
+.prod-feed-item--birthday::after {
+    display: none;
+}
+.prod-feed-avatar--birthday {
+    width: 48px;
+    height: 48px;
+    font-size: 26px;
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.25), rgba(245, 158, 11, 0.25));
+    border: 2px solid rgba(236, 72, 153, 0.5);
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
+    animation: bdayBounce 2s ease infinite;
+}
+@keyframes bdayBounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-4px) scale(1.05); }
+}
+.prod-bday-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+.prod-bday-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #F472B6;
+    background: rgba(236, 72, 153, 0.15);
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(236, 72, 153, 0.3);
+}
+.prod-bday-today-tag {
+    font-size: 11px;
+    font-weight: 700;
+    color: #F59E0B;
+    background: rgba(245, 158, 11, 0.15);
+    padding: 2px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.prod-bday-name {
+    font-size: 18px;
+    font-weight: 800;
+    color: #FFFFFF;
+    letter-spacing: 0.3px;
+    margin-bottom: 4px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+.prod-bday-wishes {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+.prod-bday-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.prod-bday-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 8px;
+}
+.prod-bday-tag--role {
+    background: rgba(99, 102, 241, 0.2);
+    color: #A5B4FC;
+    border: 1px solid rgba(99, 102, 241, 0.35);
+}
+.prod-bday-tag--dept {
+    background: rgba(16, 185, 129, 0.2);
+    color: #6EE7B7;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+}
+.prod-bday-tag--team {
+    background: rgba(245, 158, 11, 0.2);
+    color: #FCD34D;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   📢 HR & SUPER ADMIN ANNOUNCEMENTS SYSTEM
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.prod-feed-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--prod-border);
+}
+.prod-feed-section-header h3 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--prod-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.prod-btn-refresh {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--prod-border);
+    color: var(--prod-text-muted);
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.prod-btn-refresh:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--prod-text);
+    border-color: var(--primary);
+}
+
+/* Announcement Composer (HR / Super Admin only) */
+.prod-announcement-composer {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(249, 115, 22, 0.08));
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 18px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+.prod-composer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+.prod-composer-header h4 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--prod-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.prod-composer-badge {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    background: rgba(99, 102, 241, 0.2);
+    color: #A5B4FC;
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    padding: 3px 10px;
+    border-radius: 999px;
+}
+.prod-composer-row {
+    margin-bottom: 12px;
+}
+.prod-composer-input {
+    width: 100%;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--prod-border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--prod-text);
+    outline: none;
+    transition: border-color 0.2s;
+}
+.prod-composer-input:focus {
+    border-color: var(--primary);
+    background: rgba(255, 255, 255, 0.07);
+}
+.prod-composer-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--prod-border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--prod-text);
+    outline: none;
+    resize: vertical;
+    min-height: 70px;
+    transition: border-color 0.2s;
+}
+.prod-composer-textarea:focus {
+    border-color: var(--primary);
+    background: rgba(255, 255, 255, 0.07);
+}
+.prod-composer-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 6px;
+}
+.prod-composer-opts {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+.prod-opt-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--prod-text-muted);
+}
+.prod-composer-select {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--prod-border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--prod-text);
+    outline: none;
+    cursor: pointer;
+}
+.prod-composer-select option {
+    background: #1e202c;
+    color: #fff;
+}
+.prod-opt-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--prod-text-muted);
+    cursor: pointer;
+}
+.prod-opt-checkbox input {
+    cursor: pointer;
+    accent-color: var(--primary);
+}
+
+/* Announcement Cards in Feed */
+.prod-ann-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--prod-border);
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    position: relative;
+}
+.prod-ann-card:hover {
+    background: rgba(255, 255, 255, 0.045);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+.prod-ann-card--pinned {
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.08), rgba(99, 102, 241, 0.06));
+    border: 1px solid rgba(249, 115, 22, 0.35);
+    box-shadow: 0 6px 20px rgba(249, 115, 22, 0.12);
+}
+.prod-ann-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.prod-ann-author-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.prod-ann-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.prod-ann-author-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--prod-text);
+}
+.prod-ann-role-pill {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--prod-text-muted);
+    letter-spacing: 0.4px;
+}
+.prod-ann-time {
+    font-size: 11px;
+    color: var(--prod-text-muted);
+    margin-top: 2px;
+}
+.prod-ann-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.prod-ann-cat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    text-transform: capitalize;
+}
+.prod-ann-pinned-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(249, 115, 22, 0.18);
+    color: #FB923C;
+    border: 1px solid rgba(249, 115, 22, 0.35);
+}
+.prod-ann-del-btn {
+    background: transparent;
+    border: none;
+    color: #F87171;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+.prod-ann-del-btn:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #EF4444;
+}
+.prod-ann-body {
+    padding-left: 50px;
+}
+@media (max-width: 640px) {
+    .prod-ann-body {
+        padding-left: 0;
+    }
+}
+.prod-ann-title {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #FFFFFF;
+    letter-spacing: 0.2px;
+}
+.prod-ann-content {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.88);
+    word-break: break-word;
+}
 
 /* Timesheet Grid */
 .prod-ts-table {

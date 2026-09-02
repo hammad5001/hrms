@@ -523,3 +523,85 @@ function fetch_reportee_shift_history(mysqli $conn, string $empCode, string $bra
 
     return $history;
 }
+
+function remove_manager_reportee_with_reason(mysqli $conn, array $manager, int $employee_user_id, string $reason, string $new_team = '', string $remarks = '', string $branch = 'main'): array {
+    $manager_id = (int)($manager['id'] ?? 0);
+    $manager_name = (string)($manager['full_name'] ?? 'Manager');
+
+    $empStmt = $conn->prepare("SELECT id, full_name, employee_code, team, department, portal_role FROM users WHERE id = ? LIMIT 1");
+    if (!$empStmt) {
+        return ['ok' => false, 'error' => 'Database query preparation failed'];
+    }
+    $empStmt->bind_param("i", $employee_user_id);
+    $empStmt->execute();
+    $employee = $empStmt->get_result()->fetch_assoc();
+
+    if (!$employee) {
+        return ['ok' => false, 'error' => 'Employee not found'];
+    }
+
+    $emp_name = (string)($employee['full_name'] ?? 'Employee');
+    $emp_code = (string)($employee['employee_code'] ?? '');
+    $old_team = (string)($employee['team'] ?? '');
+
+    $delStmt = $conn->prepare("DELETE FROM employee_reporting WHERE manager_user_id = ? AND employee_user_id = ? AND company_branch = ?");
+    if ($delStmt) {
+        $delStmt->bind_param("iis", $manager_id, $employee_user_id, $branch);
+        $delStmt->execute();
+    }
+
+    $reason_labels = [
+        'resigned' => 'Resigned',
+        'terminated' => 'Terminated',
+        'moved_team' => 'Moved to another team'
+    ];
+    $reason_label = $reason_labels[$reason] ?? ucfirst(str_replace('_', ' ', $reason));
+
+    $team_info = "";
+    if ($reason === 'moved_team' && trim($new_team) !== '') {
+        $cleanTeam = trim($new_team);
+        $updTeam = $conn->prepare("UPDATE users SET team = ? WHERE id = ?");
+        if ($updTeam) {
+            $updTeam->bind_param("si", $cleanTeam, $employee_user_id);
+            $updTeam->execute();
+        }
+        $team_info = " (Shifted team from '{$old_team}' to '{$cleanTeam}')";
+    }
+
+    $msg = "Manager {$manager_name} removed reportee {$emp_name} ({$emp_code}). Reason: {$reason_label}{$team_info}.";
+    if (trim($remarks) !== '') {
+        $msg .= " Remarks: " . trim($remarks);
+    }
+
+    $payload = json_encode([
+        'type' => 'reportee_removal',
+        'manager_id' => $manager_id,
+        'manager_name' => $manager_name,
+        'employee_id' => $employee_user_id,
+        'employee_name' => $emp_name,
+        'employee_code' => $emp_code,
+        'reason' => $reason,
+        'reason_label' => $reason_label,
+        'old_team' => $old_team,
+        'new_team' => trim($new_team),
+        'remarks' => trim($remarks),
+        'message' => $msg,
+        'timestamp' => date('Y-m-d H:i:s')
+    ]);
+
+    $target_portals = ['hr', 'admin', 'super_admin'];
+    foreach ($target_portals as $portal) {
+        $notifStmt = $conn->prepare("INSERT INTO portal_notifications (notification_type, target_portal, payload, company_branch) VALUES ('reportee_removal', ?, ?, ?)");
+        if ($notifStmt) {
+            $notifStmt->bind_param("sss", $portal, $payload, $branch);
+            $notifStmt->execute();
+        }
+    }
+
+    return [
+        'ok' => true,
+        'message' => "Reportee {$emp_name} removed ({$reason_label}). Notification sent to HR & Admin.",
+        'employee_name' => $emp_name
+    ];
+}
+

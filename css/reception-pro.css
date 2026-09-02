@@ -235,8 +235,8 @@ select.form-control:hover {
 /* Voice panel */
 .voice-panel {
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
 }
 
 /* Toasts */
@@ -245,8 +245,8 @@ select.form-control:hover {
 }
 
 .toast {
-    backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
     border: 1px solid var(--border-light);
     font-weight: 500;
@@ -255,6 +255,7 @@ select.form-control:hover {
 
 /* Modals */
 .modal-overlay {
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
 }
 

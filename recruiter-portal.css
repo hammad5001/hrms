@@ -204,6 +204,7 @@ body {
 .sidebar {
   width: var(--sidebar-w);
   background: rgba(12, 16, 26, 0.98);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   border-right: 1px solid var(--border-primary);
   position: fixed;
@@ -272,6 +273,7 @@ body {
   font-weight: 800;
   background: linear-gradient(135deg, #fff, var(--primary));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.5px;
 }
@@ -469,6 +471,7 @@ body {
 /* Top Bar */
 .top-bar {
   background: var(--bg-card);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   border-radius: 20px;
   padding: 20px 28px;
@@ -499,6 +502,7 @@ body {
   font-weight: 800;
   background: linear-gradient(135deg, #fff, var(--primary));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.5px;
 }
@@ -556,6 +560,7 @@ body {
 
 .stat-card {
   background: var(--bg-card);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   border-radius: 20px;
   padding: 20px;
@@ -731,6 +736,7 @@ body {
 /* ==================== TABLES ==================== */
 .table-wrap {
   background: var(--bg-card);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   border-radius: 20px;
   border: 1px solid var(--border-light);
@@ -933,6 +939,7 @@ textarea.form-control {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.85);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
@@ -943,6 +950,7 @@ textarea.form-control {
 
 .modal {
   background: var(--bg-card);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   border-radius: 24px;
   width: 90%;
@@ -1027,6 +1035,7 @@ textarea.form-control {
 
 .toast {
   background: var(--bg-card);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   border-radius: 12px;
   padding: 12px 20px;
@@ -1411,6 +1420,7 @@ textarea.form-control {
 /* Chart Containers */
 .chart-container {
   background: var(--bg-card);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   border-radius: 20px;
   padding: 20px;
@@ -1716,6 +1726,7 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
 }
 
 .modal-overlay {
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
 }
 

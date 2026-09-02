@@ -64,11 +64,17 @@ switch ($action) {
         if ($employee_id <= 0) {
             reportees_respond(false, null, 'Please select an employee');
         }
-        $stmt = $conn->prepare('DELETE FROM employee_reporting WHERE manager_user_id = ? AND employee_user_id = ? AND company_branch = ?');
-        $stmt->bind_param('iis', $user_id, $employee_id, $branch);
-        $stmt->execute();
+        $reason = trim((string)($input['removal_reason'] ?? 'resigned'));
+        $new_team = trim((string)($input['new_team'] ?? ''));
+        $remarks = trim((string)($input['remarks'] ?? ''));
+
+        $res = remove_manager_reportee_with_reason($conn, $user, $employee_id, $reason, $new_team, $remarks, $branch);
+        if (!$res['ok']) {
+            reportees_respond(false, null, $res['error'] ?? 'Could not remove reportee');
+        }
+
         reportees_respond(true, [
-            'message' => 'Reportee removed successfully.',
+            'message' => $res['message'] ?? 'Reportee removed successfully.',
             'hierarchy' => fetch_reporting_hierarchy($conn, $user, $branch),
         ]);
         break;

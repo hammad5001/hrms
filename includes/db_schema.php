@@ -553,6 +553,21 @@ function ensure_productivity_schema(mysqli $conn): void {
             `status` ENUM('active', 'inactive') DEFAULT 'active',
             `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
             `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+        "CREATE TABLE IF NOT EXISTS `announcements` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `posted_by_id` INT NOT NULL,
+            `title` VARCHAR(255) NOT NULL,
+            `content` TEXT NOT NULL,
+            `category` ENUM('general', 'urgent', 'policy', 'event', 'holiday') DEFAULT 'general',
+            `is_pinned` TINYINT(1) DEFAULT 0,
+            `company_branch` VARCHAR(32) NOT NULL DEFAULT 'all',
+            `status` ENUM('active', 'archived') DEFAULT 'active',
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX `idx_ann_created` (`created_at`),
+            INDEX `idx_ann_status` (`status`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
     ];
 

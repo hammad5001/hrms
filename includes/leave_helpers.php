@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/company_branches.php';
 
 function leave_respond(bool $success, $data = null, ?string $error = null): void {
     header('Content-Type: application/json');
@@ -30,18 +31,22 @@ function user_can_be_leave_approver(array $user): bool {
     return in_array($role, ['super_admin', 'admin', 'hr', 'team_lead', 'floor_manager', 'management'], true);
 }
 
-/** Managers may apply leave on behalf of another employee. */
+/** Employees apply leave strictly for their own account in employee portal. */
 function user_can_select_employee_for_leave(array $user): bool {
-    return user_can_be_leave_approver($user);
+    return false;
 }
 
-/** Admin, HR, and Super Admin may view the leave policy screen. */
+/** Leadership and HR roles may view the leave policy screen. */
 function user_can_view_leave_policy(array $user): bool {
     $role = $user['portal_role'] ?? '';
-    return in_array($role, ['admin', 'hr', 'super_admin'], true);
+    if (in_array($role, ['admin', 'hr', 'super_admin', 'team_lead', 'floor_manager', 'management'], true)) {
+        return true;
+    }
+    $des = strtolower($user['designation'] ?? '');
+    return str_contains($des, 'lead') || str_contains($des, 'manager') || str_contains($des, 'hr');
 }
 
-/** Portal leave approvals queue — HR, Admin, Super Admin only. */
+/** Portal leave approvals queue — HR, Admin, Super Admin, TL, FM, Management. */
 function user_can_access_portal_approvals(array $user): bool {
     return user_can_view_leave_policy($user);
 }
@@ -185,10 +190,19 @@ function leave_request_row_to_array(array $row): array {
         'apply_through' => $row['apply_through'],
         'approver_user_id' => isset($row['approver_user_id']) ? (int)$row['approver_user_id'] : null,
         'approver_name' => $row['approver_name'] ?? null,
+        'tl_user_id' => isset($row['tl_user_id']) ? (int)$row['tl_user_id'] : null,
+        'tl_name' => $row['tl_name'] ?? null,
+        'tl_status' => $row['tl_status'] ?? 'none',
+        'tl_note' => $row['tl_note'] ?? null,
+        'fm_user_id' => isset($row['fm_user_id']) ? (int)$row['fm_user_id'] : null,
+        'fm_name' => $row['fm_name'] ?? null,
+        'fm_status' => $row['fm_status'] ?? 'none',
+        'fm_note' => $row['fm_note'] ?? null,
+        'hr_user_id' => isset($row['hr_user_id']) ? (int)$row['hr_user_id'] : null,
+        'hr_name' => $row['hr_name'] ?? null,
+        'hr_status' => $row['hr_status'] ?? 'none',
+        'hr_note' => $row['hr_note'] ?? null,
         'status' => $row['status'],
-        'tl_status' => $row['tl_status'],
-        'fm_status' => $row['fm_status'],
-        'hr_status' => $row['hr_status'],
         'created_at' => $row['created_at'],
         'updated_at' => $row['updated_at'],
         'is_policy_allotment' => !empty($row['is_policy_allotment']),
@@ -417,58 +431,13 @@ function approver_level_for_user(array $user): ?string {
 function leave_type_catalog(): array {
     return [
         'casual' => [
-            'label' => 'Casual Leave',
+            'label' => 'Casual / Annual Leave',
             'quota' => 12,
-            'icon' => 'fa-calendar-days',
+            'icon' => 'fa-calendar-check',
             'group' => 'balance',
             'apply' => true,
             'allot' => true,
             'half_day' => true,
-        ],
-        'sick' => [
-            'label' => 'Sick Leave',
-            'quota' => 10,
-            'icon' => 'fa-notes-medical',
-            'group' => 'balance',
-            'apply' => true,
-            'allot' => true,
-            'half_day' => true,
-        ],
-        'annual' => [
-            'label' => 'Annual Leave',
-            'quota' => 14,
-            'icon' => 'fa-umbrella-beach',
-            'group' => 'balance',
-            'apply' => true,
-            'allot' => true,
-            'half_day' => true,
-        ],
-        'compensatory' => [
-            'label' => 'Compensatory Off',
-            'quota' => 0,
-            'icon' => 'fa-clock-rotate-left',
-            'group' => 'balance',
-            'apply' => true,
-            'allot' => true,
-            'half_day' => false,
-        ],
-        'on_duty' => [
-            'label' => 'On Duty',
-            'quota' => 5,
-            'icon' => 'fa-user-check',
-            'group' => 'balance',
-            'apply' => true,
-            'allot' => true,
-            'half_day' => false,
-        ],
-        'wfh' => [
-            'label' => 'Work From Home',
-            'quota' => 0,
-            'icon' => 'fa-house-laptop',
-            'group' => 'balance',
-            'apply' => true,
-            'allot' => true,
-            'half_day' => false,
         ],
         'eid' => [
             'label' => 'Eid Vacation',
@@ -506,19 +475,23 @@ function leave_normalize_type_key(string $type): string {
     $raw = preg_replace('/[^a-z0-9]+/', '_', $raw) ?? $raw;
     $raw = trim($raw, '_');
     $aliases = [
-        'emergency' => 'on_duty',
-        'on_duty' => 'on_duty',
-        'unpaid' => 'compensatory',
-        'comp_off' => 'compensatory',
-        'compensatory_off' => 'compensatory',
-        'work_from_home' => 'wfh',
-        'workfromhome' => 'wfh',
+        'annual' => 'casual',
+        'sick' => 'casual',
+        'emergency' => 'casual',
+        'on_duty' => 'casual',
+        'unpaid' => 'casual',
+        'comp_off' => 'casual',
+        'compensatory' => 'casual',
+        'compensatory_off' => 'casual',
+        'work_from_home' => 'casual',
+        'workfromhome' => 'casual',
+        'wfh' => 'casual',
         'other' => 'company_holiday',
     ];
     if (isset($aliases[$raw])) {
         return $aliases[$raw];
     }
-    return isset(leave_type_catalog()[$raw]) ? $raw : $raw;
+    return isset(leave_type_catalog()[$raw]) ? $raw : 'casual';
 }
 
 function leave_type_label(string $type): string {
@@ -714,14 +687,15 @@ function leave_balance_for_user(mysqli $conn, int $userId, ?int $year = null, ?s
     }
     $balances = [];
     foreach (leave_standard_quotas() as $key => $meta) {
+        $baseQuota = (float) ($meta['quota'] ?? 0);
         $balances[$key] = [
             'key' => $key,
             'label' => $meta['label'],
-            'allotted' => 0.0,
+            'allotted' => $baseQuota,
             'taken' => 0.0,
             'pending' => 0.0,
-            'available' => 0.0,
-            'quota' => 0.0,
+            'available' => $baseQuota,
+            'quota' => $baseQuota,
             'icon' => $meta['icon'],
         ];
     }

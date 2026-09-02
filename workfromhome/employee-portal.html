@@ -26,11 +26,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/portal-ui-polish.css?v=qa-clean-2">
-    <link rel="stylesheet" href="../css/employee-hrms.css?v=63">
-    <link rel="stylesheet" href="../css/employee-performance.css?v=4">
+    <link rel="stylesheet" href="../css/employee-hrms.css?v=64">
+    <link rel="stylesheet" href="../css/employee-performance.css?v=12">
     <link rel="stylesheet" href="../css/dropdown-fix.css?v=3">
-    <link rel="stylesheet" href="../css/hr-productivity.css?v=2">
+    <link rel="stylesheet" href="../css/hr-productivity.css?v=4">
     <link rel="stylesheet" href="../css/advanced-analytics.css?v=1">
+    <link rel="stylesheet" href="../css/employee-mail.css?v=3">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -49,6 +50,7 @@
                 <button type="button" class="ess-header-link" data-nav-id="nav-header-dashboard" data-view="dashboard">Dashboard</button>
                 <button type="button" class="ess-header-link" data-nav-id="nav-header-calendar" data-view="attendance">Calendar</button>
                 <button type="button" class="ess-header-link hidden" data-nav-id="nav-header-approvals" data-view="approvals" id="headerApprovals">Approvals</button>
+                <button type="button" class="ess-header-link" data-nav-id="nav-header-mail" data-view="mail"><i class="fas fa-envelope"></i> Mail<span class="ess-badge hidden" id="badgeHeaderMail">0</span></button>
                 <button type="button" class="ess-header-link ess-header-chat" data-nav-id="nav-header-chat" data-view="chat"><i class="fas fa-comments"></i> Chat<span class="ess-badge hidden" id="badgeHeaderChat">0</span></button>
             </nav>
             </div>
@@ -90,6 +92,7 @@
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-timelogs" data-view="timelogs"><i class="fas fa-clock"></i><span>Time Tracker</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-payroll" data-view="salary"><i class="fas fa-wallet"></i><span>Payroll</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-files" data-view="coming-soon" data-nav-label="Files"><i class="fas fa-folder-open"></i><span>Files</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-mail" data-view="mail"><i class="fas fa-envelope"></i><span>Mail</span><span class="ess-side-badge hidden" id="badgeSideMail">0</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-chat" data-view="chat"><i class="fas fa-comments"></i><span>Chat</span><span class="ess-side-badge hidden" id="badgeSideChat">0</span></button>
                     <button type="button" class="ess-side-item hidden" data-nav-id="nav-side-active-members" data-view="active-members" id="navSideActiveMembers"><i class="fas fa-users-viewfinder"></i><span>Active Members</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-more" data-view="notifications"><i class="fas fa-ellipsis"></i><span>More</span></button>
@@ -108,6 +111,7 @@
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-timelogs" data-view="timelogs">Time Tracking</button>
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-timesheets" data-view="timesheets">Timesheets</button>
                     <button type="button" class="ess-tab hidden" data-nav-id="nav-tab-leave-policy" data-view="leave-policy" id="tabLeavePolicy">Leave Policy</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-mail" data-view="mail">Internal Mail</button>
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-reportees" data-view="reportees" id="tabReportees">Manage Reportees</button>
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-notifications" data-view="notifications">Notifications</button>
                 </nav>
@@ -158,21 +162,52 @@
 
                     <div class="ess-content-col">
 
-                        <!-- Activity Feed View -->
+                        <!-- Activity Feed View (Birthdays & Announcements) -->
                         <section id="view-feeds" class="view-section">
-                            <div class="prod-two-col-grid">
-                                <div class="prod-glass-card">
-                                    <h3 style="margin-bottom: 20px; font-size: 18px; color: var(--prod-text);"><i class="fas fa-stream" style="margin-right:8px; color: var(--prod-indigo);"></i> HR Activity Feed</h3>
-                                    <div class="prod-feed-list" id="prodFeedList">
-                                        <div class="prod-feed-empty"><i class="fas fa-stream"></i><p>Loading feed...</p></div>
-                                    </div>
+                            <!-- HR / Super Admin Announcement Composer (Only visible to authorized roles) -->
+                            <div class="prod-glass-card prod-announcement-composer hidden" id="prodAnnComposer">
+                                <div class="prod-composer-header">
+                                    <h4><i class="fas fa-bullhorn" style="color: var(--primary);"></i> Post New Company Announcement</h4>
+                                    <span class="prod-composer-badge"><i class="fas fa-shield-alt"></i> HR / Admin Only</span>
                                 </div>
-                                <div class="prod-glass-card">
-                                    <h3 style="margin-bottom: 20px; font-size: 18px; color: var(--prod-text);"><i class="fas fa-trophy" style="margin-right:8px; color: var(--prod-orange);"></i> Weekly Leaderboard</h3>
-
-                                    <div id="prodLeaderboard" class="prod-leaderboard-list">
-                                        <div class="prod-feed-empty"><i class="fas fa-trophy"></i><p>Loading leaderboard...</p></div>
+                                <form id="formNewAnnouncement" onsubmit="event.preventDefault(); prodSubmitAnnouncement();">
+                                    <div class="prod-composer-row">
+                                        <input type="text" id="annTitle" class="prod-composer-input" placeholder="Announcement Title (e.g. Eid Holiday Schedule / Policy Update)" required maxlength="255">
                                     </div>
+                                    <div class="prod-composer-row">
+                                        <textarea id="annContent" class="prod-composer-textarea" placeholder="Write announcement details for all employees..." required rows="3"></textarea>
+                                    </div>
+                                    <div class="prod-composer-footer">
+                                        <div class="prod-composer-opts">
+                                            <label class="prod-opt-label">Category:</label>
+                                            <select id="annCategory" class="prod-composer-select" title="Select announcement category">
+                                                <option value="general">📢 General Notice</option>
+                                                <option value="urgent">🚨 Urgent / Important</option>
+                                                <option value="policy">📜 Company Policy</option>
+                                                <option value="holiday">🎉 Holiday Announcement</option>
+                                                <option value="event">🌟 Company Event</option>
+                                            </select>
+
+                                            <label class="prod-opt-checkbox">
+                                                <input type="checkbox" id="annPinned">
+                                                <span><i class="fas fa-thumbtack"></i> Pin to Top</span>
+                                            </label>
+                                        </div>
+                                        <button type="submit" class="prod-btn prod-btn-primary" id="btnPublishAnn">
+                                            <i class="fas fa-paper-plane"></i> Publish Announcement
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Birthdays & Announcements Feed List -->
+                            <div class="prod-glass-card" style="margin-top: 18px;">
+                                <div class="prod-feed-section-header">
+                                    <h3><i class="fas fa-stream" style="color: var(--prod-indigo);"></i> Company Feed & Announcements</h3>
+                                    <button type="button" class="prod-btn-refresh" onclick="prodLoadFeed()" title="Refresh Feed"><i class="fas fa-sync-alt"></i> Refresh</button>
+                                </div>
+                                <div class="prod-feed-list" id="prodFeedList">
+                                    <div class="prod-feed-empty"><i class="fas fa-stream"></i><p>Loading announcements & celebrations...</p></div>
                                 </div>
                             </div>
                         </section>
@@ -731,7 +766,7 @@
                             <div class="ess-leave-hero">
                                 <div class="ess-leave-hero-main">
                                     <h3>Leaves</h3>
-                                    <p class="ess-muted-line ess-leave-intro">Available leave is credited by HR from Leave Policy. Taken increases when your approved leave is recorded.</p>
+                                    <p class="ess-muted-line ess-leave-intro">Total 12 leaves allowed per year (1 leave per month). Apply leave below by tagging HR & Team Lead.</p>
                                 </div>
                                 <div class="ess-leave-hero-meta">
                                     <div class="ess-leave-year-nav" aria-label="Leave year">
@@ -770,36 +805,46 @@
                                         <div class="ess-selected-person hidden" id="halfEmployeeSelected"></div>
                                     </div>
                                 </div>
-                                <div class="form-field">
-                                    <label>Send to approver <span class="ess-req">*</span></label>
-                                    <div class="ess-person-search" data-search-type="approver-half">
-                                        <input type="text" class="ess-search-input" id="halfApproverSearch" placeholder="Search approver..." autocomplete="off">
-                                        <div class="ess-search-results hidden" id="halfApproverResults"></div>
-                                        <div class="ess-selected-person hidden" id="halfApproverSelected"></div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                                    <div class="form-field">
+                                        <label><i class="fas fa-user-shield" style="color:#6366f1;"></i> Tag HR <span class="ess-req">* (Mandatory)</span></label>
+                                        <div class="ess-person-search" data-search-type="hr-half">
+                                            <input type="text" class="ess-search-input" id="halfHrSearch" placeholder="Search HR..." autocomplete="off">
+                                            <div class="ess-search-results hidden" id="halfHrResults"></div>
+                                            <div class="ess-selected-person hidden" id="halfHrSelected"></div>
+                                        </div>
+                                    </div>
+                                    <div class="form-field">
+                                        <label><i class="fas fa-user-tie" style="color:#06b6d4;"></i> Tag Team Lead / Manager <small style="color:#94a3b8;">(Recommended)</small></label>
+                                        <div class="ess-person-search" data-search-type="tl-half">
+                                            <input type="text" class="ess-search-input" id="halfTlSearch" placeholder="Search Team Lead..." autocomplete="off">
+                                            <div class="ess-search-results hidden" id="halfTlResults"></div>
+                                            <div class="ess-selected-person hidden" id="halfTlSelected"></div>
+                                        </div>
                                     </div>
                                 </div>
                                 <form id="formHalfLeave">
                                     <div class="form-grid">
                                         <div class="form-field">
                                             <label>Date</label>
-                                            <input type="date" name="start_date" required>
+                                            <input type="date" name="start_date" required title="Leave date">
                                         </div>
                                         <div class="form-field" id="halfDayFields">
                                             <label>Session</label>
-                                            <select name="half_day_slot">
+                                            <select name="half_day_slot" title="Select half day session">
                                                 <option value="morning">Morning (1st half)</option>
                                                 <option value="afternoon">Afternoon (2nd half)</option>
                                             </select>
                                         </div>
                                         <div class="form-field">
                                             <label>Leave Type</label>
-                                            <select name="leave_type" data-leave-select="half_day"></select>
+                                            <select name="leave_type" data-leave-select="half_day" title="Select leave type"></select>
                                         </div>
                                     </div>
                                     <input type="hidden" name="end_date" value="">
                                     <div class="form-field">
                                         <label>Reason</label>
-                                        <textarea name="reason" required></textarea>
+                                        <textarea name="reason" placeholder="State reason for half-day leave..." required></textarea>
                                     </div>
                                     <button type="submit" class="ess-btn ess-btn-primary"><i class="fas fa-paper-plane"></i> Submit Half Day</button>
                                 </form>
@@ -826,11 +871,11 @@
                                         </div>
                                         <div class="form-field">
                                             <label>Leave type <span class="ess-req">*</span></label>
-                                            <select name="leave_type" id="policyDefLeaveType" required></select>
+                                            <select name="leave_type" id="policyDefLeaveType" required title="Select leave type"></select>
                                         </div>
                                         <div class="form-field">
                                             <label>Category</label>
-                                            <select name="leave_category" id="policyDefCategory">
+                                            <select name="leave_category" id="policyDefCategory" title="Select leave category">
                                                 <option value="paid">Paid</option>
                                                 <option value="unpaid">Unpaid</option>
                                                 <option value="compensatory">Compensatory</option>
@@ -838,7 +883,7 @@
                                         </div>
                                         <div class="form-field">
                                             <label>Unit</label>
-                                            <select name="unit" id="policyDefUnit">
+                                            <select name="unit" id="policyDefUnit" title="Select leave unit">
                                                 <option value="days">Days</option>
                                                 <option value="hours">Hours</option>
                                             </select>
@@ -849,18 +894,18 @@
                                         </div>
                                         <div class="form-field">
                                             <label>Valid from</label>
-                                            <input type="date" name="valid_from" id="policyDefValidFrom">
+                                            <input type="date" name="valid_from" id="policyDefValidFrom" title="Valid from date">
                                         </div>
                                         <div class="form-field">
                                             <label>Expires on</label>
-                                            <input type="date" name="expires_on" id="policyDefExpiresOn">
+                                            <input type="date" name="expires_on" id="policyDefExpiresOn" title="Expiry date">
                                         </div>
                                     </div>
                                     <div class="ess-policy-def-checks">
                                         <label class="ess-check-inline"><input type="checkbox" name="reset_enabled" id="policyDefReset"> Enable yearly reset</label>
                                         <div class="form-field ess-policy-def-reset-extra">
                                             <label>Reset frequency</label>
-                                            <select name="reset_frequency" id="policyDefResetFreq">
+                                            <select name="reset_frequency" id="policyDefResetFreq" title="Select reset frequency">
                                                 <option value="yearly">Yearly</option>
                                                 <option value="monthly">Monthly</option>
                                             </select>
@@ -926,6 +971,116 @@
                                         </thead>
                                         <tbody id="leavePolicyAllotmentsBody">
                                             <tr><td colspan="8">Loading...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Approved Leaves History Section in Leave Policy -->
+                            <div class="ess-card" style="margin-top: 24px;">
+                                <div class="ess-card-head-row" style="flex-wrap: wrap; gap: 12px; align-items: center;">
+                                    <div>
+                                        <h3><i class="fas fa-check-circle" style="color: #10b981;"></i> Approved Leaves</h3>
+                                        <p class="ess-muted-line">Verified history of all leaves fully approved by Team Lead / HR for your branch.</p>
+                                    </div>
+                                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                                        <input type="text" id="approvedLeavesSearch" placeholder="Search employee, reason, TL, HR..." class="ess-search-input" style="width: 220px; font-size: 13px;" autocomplete="off">
+                                        <select id="approvedLeavesMonth" class="ess-select" style="padding: 6px 12px; border-radius: 6px; font-size: 13px;" title="Filter approved leaves by month">
+                                            <option value="0">All Months</option>
+                                            <option value="1">January</option>
+                                            <option value="2">February</option>
+                                            <option value="3">March</option>
+                                            <option value="4">April</option>
+                                            <option value="5">May</option>
+                                            <option value="6">June</option>
+                                            <option value="7">July</option>
+                                            <option value="8">August</option>
+                                            <option value="9">September</option>
+                                            <option value="10">October</option>
+                                            <option value="11">November</option>
+                                            <option value="12">December</option>
+                                        </select>
+                                        <select id="approvedLeavesYear" class="ess-select" style="padding: 6px 12px; border-radius: 6px; font-size: 13px;" title="Filter approved leaves by year">
+                                            <option value="2025">2025</option>
+                                            <option value="2026" selected>2026</option>
+                                            <option value="2027">2027</option>
+                                        </select>
+                                        <button type="button" class="ess-btn ess-btn-primary ess-btn-sm" id="btnRefreshApprovedLeaves"><i class="fas fa-sync-alt"></i> Refresh</button>
+                                    </div>
+                                </div>
+                                <div class="ess-table-wrap" style="margin-top: 16px;">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Leave ID</th>
+                                                <th>Employee</th>
+                                                <th>Leave Type</th>
+                                                <th>Duration / Dates</th>
+                                                <th>Reason</th>
+                                                <th>Approved By (TL)</th>
+                                                <th>Approved By (HR)</th>
+                                                <th>Approved At</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="approvedLeavesBody">
+                                            <tr><td colspan="8" style="text-align:center; padding: 20px;">Loading approved leaves...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Monthly Leave Audit & Records -->
+                            <div class="ess-card" style="margin-top: 24px;">
+                                <div class="ess-card-head-row" style="flex-wrap: wrap; gap: 12px; align-items: center;">
+                                    <div>
+                                        <h3><i class="fas fa-calendar-check" style="color: #6366f1;"></i> Monthly Leave Records & History</h3>
+                                        <p class="ess-muted-line">Complete record of leaves taken, tagged TL & HR, reasons, and dual approval breakdown for every month.</p>
+                                    </div>
+                                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                                        <select id="leaveRecordMonth" class="ess-select" style="padding: 6px 12px; border-radius: 6px; font-size: 13px;" title="Filter records by month">
+                                            <option value="1">January</option>
+                                            <option value="2">February</option>
+                                            <option value="3">March</option>
+                                            <option value="4">April</option>
+                                            <option value="5">May</option>
+                                            <option value="6">June</option>
+                                            <option value="7">July</option>
+                                            <option value="8">August</option>
+                                            <option value="9">September</option>
+                                            <option value="10">October</option>
+                                            <option value="11">November</option>
+                                            <option value="12">December</option>
+                                        </select>
+                                        <select id="leaveRecordYear" class="ess-select" style="padding: 6px 12px; border-radius: 6px; font-size: 13px;" title="Filter records by year">
+                                            <option value="2025">2025</option>
+                                            <option value="2026" selected>2026</option>
+                                            <option value="2027">2027</option>
+                                        </select>
+                                        <select id="leaveRecordStatus" class="ess-select" style="padding: 6px 12px; border-radius: 6px; font-size: 13px;" title="Filter records by status">
+                                            <option value="all">All Status</option>
+                                            <option value="approved">Approved</option>
+                                            <option value="pending">Pending</option>
+                                            <option value="rejected">Rejected</option>
+                                        </select>
+                                        <button type="button" class="ess-btn ess-btn-primary ess-btn-sm" id="btnRefreshLeaveRecords"><i class="fas fa-sync-alt"></i> Filter</button>
+                                    </div>
+                                </div>
+                                <div class="ess-table-wrap" style="margin-top: 16px;">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Applied Date</th>
+                                                <th>Employee</th>
+                                                <th>Leave Type</th>
+                                                <th>Dates / Duration</th>
+                                                <th>Reason</th>
+                                                <th>Tagged Team Lead</th>
+                                                <th>Tagged HR</th>
+                                                <th>Final Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="monthlyLeaveRecordsBody">
+                                            <tr><td colspan="8" style="text-align:center; padding: 20px;">Loading monthly records...</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -1184,6 +1339,124 @@
                                 <div class="notif-list" id="notifList"></div>
                             </div>
                         </section>
+
+                        <!-- Internal Mail View Section -->
+                        <section id="view-mail" class="view-section">
+                            <div class="ess-mail-container">
+                                <!-- 1. Left Folders Sidebar -->
+                                <aside class="ess-mail-sidebar">
+                                    <button type="button" class="ess-mail-compose-btn" onclick="MailModule.openComposeModal()">
+                                        <i class="fas fa-plus"></i> Compose Email
+                                    </button>
+                                    <ul class="ess-mail-nav-list">
+                                        <li class="ess-mail-nav-item active" data-folder="inbox" onclick="MailModule.switchFolder('inbox')">
+                                            <i class="fas fa-inbox"></i> <span>Inbox</span>
+                                            <span class="ess-mail-badge hidden" id="essMailInboxBadge">0</span>
+                                        </li>
+                                        <li class="ess-mail-nav-item" data-folder="starred" onclick="MailModule.switchFolder('starred')">
+                                            <i class="fas fa-star" style="color:#f59e0b;"></i> <span>Starred</span>
+                                            <span class="ess-mail-badge count-gray hidden" id="essMailStarredBadge">0</span>
+                                        </li>
+                                        <li class="ess-mail-nav-item" data-folder="important" onclick="MailModule.switchFolder('important')">
+                                            <i class="fas fa-bookmark" style="color:#ef4444;"></i> <span>Important</span>
+                                            <span class="ess-mail-badge count-gray hidden" id="essMailImportantBadge">0</span>
+                                        </li>
+                                        <li class="ess-mail-nav-item" data-folder="sent" onclick="MailModule.switchFolder('sent')">
+                                            <i class="fas fa-paper-plane"></i> <span>Sent</span>
+                                        </li>
+                                        <li class="ess-mail-nav-item" data-folder="drafts" onclick="MailModule.switchFolder('drafts')">
+                                            <i class="fas fa-file-alt"></i> <span>Drafts</span>
+                                            <span class="ess-mail-badge count-amber hidden" id="essMailDraftsBadge">0</span>
+                                        </li>
+                                        <li class="ess-mail-nav-item" data-folder="archive" onclick="MailModule.switchFolder('archive')">
+                                            <i class="fas fa-archive"></i> <span>Archive</span>
+                                        </li>
+                                        <li class="ess-mail-nav-item" data-folder="trash" onclick="MailModule.switchFolder('trash')">
+                                            <i class="fas fa-trash-alt"></i> <span>Trash</span>
+                                            <span class="ess-mail-badge count-gray hidden" id="essMailTrashBadge">0</span>
+                                        </li>
+                                        <li class="ess-mail-nav-item" data-folder="settings" onclick="MailModule.switchFolder('settings')">
+                                            <i class="fas fa-cog"></i> <span>Settings</span>
+                                        </li>
+                                    </ul>
+                                </aside>
+
+                                <!-- 2. Middle List Pane -->
+                                <div class="ess-mail-list-pane">
+                                    <!-- Metric Counters Bar -->
+                                    <div class="ess-mail-metrics-bar">
+                                        <div class="ess-mail-metric-card" onclick="MailModule.switchFolder('inbox')">
+                                            <span class="metric-num" id="metricNumInbox">0</span>
+                                            <span class="metric-lbl">Inbox</span>
+                                        </div>
+                                        <div class="ess-mail-metric-card" onclick="MailModule.switchFolder('inbox'); MailModule.setFilter('unread');">
+                                            <span class="metric-num text-blue" id="metricNumUnread">0</span>
+                                            <span class="metric-lbl">Unread</span>
+                                        </div>
+                                        <div class="ess-mail-metric-card" onclick="MailModule.switchFolder('starred')">
+                                            <span class="metric-num text-amber" id="metricNumStarred">0</span>
+                                            <span class="metric-lbl">Starred</span>
+                                        </div>
+                                        <div class="ess-mail-metric-card" onclick="MailModule.switchFolder('sent')">
+                                            <span class="metric-num text-green" id="metricNumSent">0</span>
+                                            <span class="metric-lbl">Sent</span>
+                                        </div>
+                                        <div class="ess-mail-metric-card" onclick="MailModule.switchFolder('drafts')">
+                                            <span class="metric-num text-purple" id="metricNumDrafts">0</span>
+                                            <span class="metric-lbl">Drafts</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="ess-mail-list-header">
+                                        <div class="ess-mail-search-row">
+                                            <div class="ess-mail-search-box">
+                                                <i class="fas fa-search"></i>
+                                                <input type="text" id="essMailSearchInput" placeholder="Search mail by subject, body or sender..." oninput="MailModule.handleSearchInput(this.value)">
+                                                <button type="button" class="ess-mail-search-clear hidden" id="essMailSearchClear" onclick="MailModule.clearSearch()" title="Clear search"><i class="fas fa-times"></i></button>
+                                            </div>
+                                            <div class="ess-mail-sort-wrap">
+                                                <select id="essMailSortSelect" onchange="MailModule.handleSortChange(this.value)" class="ess-mail-select-compact" title="Sort emails">
+                                                    <option value="newest">Newest First</option>
+                                                    <option value="oldest">Oldest First</option>
+                                                </select>
+                                                <button type="button" class="ess-icon-btn" onclick="MailModule.loadFolderMails()" title="Refresh Folder"><i class="fas fa-sync-alt"></i></button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Filter Pills -->
+                                        <div class="ess-mail-filter-pills">
+                                            <button type="button" class="ess-mail-pill active" data-filter="all" onclick="MailModule.setFilter('all')">All</button>
+                                            <button type="button" class="ess-mail-pill" data-filter="unread" onclick="MailModule.setFilter('unread')"><i class="fas fa-circle" style="font-size:8px;color:#3b82f6;"></i> Unread</button>
+                                            <button type="button" class="ess-mail-pill" data-filter="starred" onclick="MailModule.setFilter('starred')"><i class="fas fa-star" style="color:#f59e0b;"></i> Starred</button>
+                                            <button type="button" class="ess-mail-pill" data-filter="has_attachment" onclick="MailModule.setFilter('has_attachment')"><i class="fas fa-paperclip"></i> Attachments</button>
+                                            <button type="button" class="ess-mail-pill" data-filter="important" onclick="MailModule.setFilter('important')"><i class="fas fa-bookmark" style="color:#ef4444;"></i> Important</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="ess-mail-items" id="essMailItemsList">
+                                        <!-- Mail items rendered dynamically -->
+                                    </div>
+
+                                    <!-- Pagination Footer -->
+                                    <div class="ess-mail-pagination-footer" id="essMailPaginationFooter">
+                                        <div class="ess-mail-page-info" id="essMailPageInfo">Showing 0-0 of 0</div>
+                                        <div class="ess-mail-page-controls">
+                                            <button type="button" class="ess-mail-page-btn" id="essMailPrevBtn" onclick="MailModule.prevPage()" disabled title="Previous page"><i class="fas fa-chevron-left"></i></button>
+                                            <span class="ess-mail-page-num" id="essMailPageNum">Page 1</span>
+                                            <button type="button" class="ess-mail-page-btn" id="essMailNextBtn" onclick="MailModule.nextPage()" disabled title="Next page"><i class="fas fa-chevron-right"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 3. Right Reading Pane -->
+                                <div class="ess-mail-reading-pane" id="essMailReadingPane">
+                                    <div class="ess-mail-empty-state">
+                                        <i class="fas fa-envelope-open-text"></i>
+                                        <span>Select an email from the folder list to view its contents</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
                     </div>
                 </div>
             </main>
@@ -1205,69 +1478,123 @@
                 </div>
                 <button type="button" class="ess-modal-close ess-leave-modal-close" id="leaveApplyModalClose" aria-label="Close"><i class="fas fa-times"></i></button>
             </div>
-            <div class="ess-leave-modal-body">
-                <div class="ess-leave-block">
-                    <h4 class="ess-leave-block-title"><i class="fas fa-user-check"></i> Approval</h4>
-                    <div class="ess-leave-approval-grid">
-                        <div class="ess-leave-modal-field hidden" id="leaveEmployeeField">
-                            <label class="ess-leave-label" for="leaveEmployeeSearch">Employee</label>
-                            <div class="ess-person-search ess-leave-person-search">
-                                <input type="text" class="ess-search-input ess-leave-input" id="leaveEmployeeSearch" placeholder="Name or BID..." autocomplete="off">
-                                <div class="ess-search-results ess-leave-search-results hidden" id="leaveEmployeeResults"></div>
-                                <div class="ess-selected-person hidden" id="leaveEmployeeSelected"></div>
+            <form id="formFullLeave" class="ess-leave-modal-form">
+                <div class="ess-leave-modal-body">
+                    <!-- Left Column: Type Selection & Approvers -->
+                    <div class="ess-modal-col ess-modal-col--left">
+                        <!-- Leave Type 2x3 Grid Slider Cards -->
+                        <div class="ess-leave-section">
+                            <div class="ess-section-head">
+                                <span class="ess-section-label"><i class="fas fa-layer-group"></i> Leave Balance (1/Month · 12/Year)</span>
+                                <span class="ess-badge-pill" id="leaveTypeSelectedBadge">Casual / Annual</span>
+                            </div>
+                            <div class="ess-type-grid ess-type-grid--single" id="leaveTypeSliderContainer">
+                                <label class="ess-type-card active" data-type="casual">
+                                    <input type="radio" name="leave_type_radio" value="casual" checked>
+                                    <span class="ess-type-card-icon"><i class="fas fa-calendar-check"></i></span>
+                                    <span class="ess-type-card-text">
+                                        <strong>Casual / Annual Leave</strong>
+                                        <small id="badgeCasualBal">12d Total (1 Allowed / Month)</small>
+                                    </span>
+                                </label>
+                            </div>
+                            <input type="hidden" name="leave_type" id="leaveTypeSelect" value="casual">
+                        </div>
+
+                        <!-- Tagging Approvers (HR + TL) -->
+                        <div class="ess-leave-section">
+                            <div class="ess-section-head">
+                                <span class="ess-section-label"><i class="fas fa-shield-alt"></i> Approvers</span>
+                                <span class="ess-badge-pill ess-badge-pill--indigo">Dual Tagging</span>
+                            </div>
+                            <div class="ess-approver-row">
+                                <div class="ess-approver-field">
+                                    <div class="ess-approver-label-row">
+                                        <span class="ess-tag-title"><i class="fas fa-user-shield" style="color: #6366f1;"></i> HR <span class="ess-req-tag">Required</span></span>
+                                    </div>
+                                    <div class="ess-person-search ess-leave-person-search">
+                                        <input type="text" class="ess-search-input ess-leave-input" id="leaveHrSearch" placeholder="Search HR..." autocomplete="off">
+                                        <div class="ess-search-results ess-leave-search-results hidden" id="leaveHrResults"></div>
+                                        <div class="ess-selected-person hidden" id="leaveHrSelected"></div>
+                                    </div>
+                                </div>
+                                <div class="ess-approver-field">
+                                    <div class="ess-approver-label-row">
+                                        <span class="ess-tag-title"><i class="fas fa-user-tie" style="color: #06b6d4;"></i> Team Lead <span class="ess-opt-tag">Optional</span></span>
+                                    </div>
+                                    <div class="ess-person-search ess-leave-person-search">
+                                        <input type="text" class="ess-search-input ess-leave-input" id="leaveTlSearch" placeholder="Search Lead..." autocomplete="off">
+                                        <div class="ess-search-results ess-leave-search-results hidden" id="leaveTlResults"></div>
+                                        <div class="ess-selected-person hidden" id="leaveTlSelected"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ess-leave-modal-field hidden" id="leaveEmployeeField" style="margin-top: 6px;">
+                                <label class="ess-leave-label" for="leaveEmployeeSearch">Employee</label>
+                                <div class="ess-person-search ess-leave-person-search">
+                                    <input type="text" class="ess-search-input ess-leave-input" id="leaveEmployeeSearch" placeholder="Name or BID..." autocomplete="off">
+                                    <div class="ess-search-results ess-leave-search-results hidden" id="leaveEmployeeResults"></div>
+                                    <div class="ess-selected-person hidden" id="leaveEmployeeSelected"></div>
+                                </div>
                             </div>
                         </div>
-                        <div class="ess-leave-modal-field ess-leave-field-approver">
-                            <label class="ess-leave-label" for="leaveApproverSearch">Approver <span class="ess-req">*</span></label>
-                            <div class="ess-person-search ess-leave-person-search">
-                                <input type="text" class="ess-search-input ess-leave-input" id="leaveApproverSearch" placeholder="Name or role..." autocomplete="off">
-                                <div class="ess-search-results ess-leave-search-results hidden" id="leaveApproverResults"></div>
-                                <div class="ess-selected-person hidden" id="leaveApproverSelected"></div>
+                    </div>
+
+                    <!-- Right Column: Date Range, Days Badge & Reason -->
+                    <div class="ess-modal-col ess-modal-col--right">
+                        <!-- Dates & Duration Banner -->
+                        <div class="ess-leave-section">
+                            <div class="ess-section-head">
+                                <span class="ess-section-label"><i class="fas fa-calendar-alt"></i> Leave Dates</span>
+                                <span class="ess-leave-calc-badge" id="leaveDaysCountBadge"><i class="fas fa-clock"></i> 1 Day Selected</span>
+                            </div>
+                            <div class="ess-date-grid">
+                                <div class="ess-date-field">
+                                    <label class="ess-sub-label" for="leaveStartDate">From</label>
+                                    <div class="ess-leave-date-wrap">
+                                        <input type="date" name="start_date" id="leaveStartDate" class="ess-leave-input ess-leave-date" required>
+                                        <i class="fas fa-calendar-day ess-leave-date-icon" aria-hidden="true"></i>
+                                    </div>
+                                </div>
+                                <div class="ess-date-field">
+                                    <label class="ess-sub-label" for="leaveEndDate">To</label>
+                                    <div class="ess-leave-date-wrap">
+                                        <input type="date" name="end_date" id="leaveEndDate" class="ess-leave-input ess-leave-date" required>
+                                        <i class="fas fa-calendar-day ess-leave-date-icon" aria-hidden="true"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Reason Area -->
+                        <div class="ess-leave-section ess-leave-section--reason">
+                            <div class="ess-section-head">
+                                <span class="ess-section-label"><i class="fas fa-comment-dots"></i> Reason for Leave</span>
+                                <span class="ess-req-tag">Required</span>
+                            </div>
+                            <textarea name="reason" id="leaveReason" class="ess-leave-input ess-leave-textarea" rows="3" required placeholder="Write brief reason for leave application..."></textarea>
+                        </div>
+
+                        <!-- Quick Summary Footer Info -->
+                        <div class="ess-leave-summary-strip">
+                            <div class="ess-strip-item">
+                                <small>STATUS</small>
+                                <span><i class="fas fa-hourglass-half" style="color: #fbbf24;"></i> Auto-Pending</span>
+                            </div>
+                            <div class="ess-strip-item">
+                                <small>NOTIFY</small>
+                                <span><i class="fas fa-paper-plane" style="color: #60a5fa;"></i> Approvers</span>
                             </div>
                         </div>
                     </div>
                 </div>
-                <form id="formFullLeave" class="ess-leave-modal-form">
-                    <div class="ess-leave-block">
-                        <h4 class="ess-leave-block-title"><i class="fas fa-calendar-alt"></i> Leave details</h4>
-                        <div class="ess-leave-modal-field ess-leave-field-type">
-                            <label class="ess-leave-label" for="leaveTypeSelect">Leave type</label>
-                            <div class="ess-leave-select-wrap">
-                                <select name="leave_type" id="leaveTypeSelect" class="ess-leave-select" data-leave-select="apply"></select>
-                                <i class="fas fa-chevron-down ess-leave-select-chevron" aria-hidden="true"></i>
-                            </div>
-                        </div>
-                        <div class="ess-leave-date-row">
-                            <div class="ess-leave-modal-field">
-                                <label class="ess-leave-label" for="leaveStartDate">From</label>
-                                <div class="ess-leave-date-wrap">
-                                    <input type="date" name="start_date" id="leaveStartDate" class="ess-leave-input ess-leave-date" required>
-                                    <i class="fas fa-calendar-day ess-leave-date-icon" aria-hidden="true"></i>
-                                </div>
-                            </div>
-                            <div class="ess-leave-modal-field">
-                                <label class="ess-leave-label" for="leaveEndDate">To</label>
-                                <div class="ess-leave-date-wrap">
-                                    <input type="date" name="end_date" id="leaveEndDate" class="ess-leave-input ess-leave-date" required>
-                                    <i class="fas fa-calendar-day ess-leave-date-icon" aria-hidden="true"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="ess-leave-block ess-leave-block--last">
-                        <div class="ess-leave-modal-field">
-                            <label class="ess-leave-label" for="leaveReason">Reason</label>
-                            <textarea name="reason" id="leaveReason" class="ess-leave-input ess-leave-textarea" rows="2" required placeholder="Brief reason for your leave request..."></textarea>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="ess-modal-actions ess-leave-modal-actions">
-                <button type="button" class="ess-btn ess-btn-outline ess-leave-btn-cancel" id="leaveApplyModalCancel">Cancel</button>
-                <button type="submit" form="formFullLeave" class="ess-btn ess-btn-primary ess-leave-btn-submit" id="leaveApplyModalSubmit">
-                    <i class="fas fa-paper-plane"></i> Submit request
-                </button>
-            </div>
+                <div class="ess-modal-actions ess-leave-modal-actions">
+                    <button type="button" class="ess-btn ess-btn-outline ess-leave-btn-cancel" id="leaveApplyModalCancel">Cancel</button>
+                    <button type="submit" class="ess-btn ess-btn-primary ess-leave-btn-submit" id="leaveApplyModalSubmit">
+                        <i class="fas fa-paper-plane"></i> Submit Leave Request
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -1305,19 +1632,19 @@
     <div class="ess-modal-overlay hidden" id="approvalModal" aria-hidden="true">
         <div class="ess-modal" role="dialog" aria-labelledby="approvalModalTitle">
             <div class="ess-modal-header">
-                <h3 id="approvalModalTitle">Review leave request</h3>
-                <button type="button" class="ess-modal-close" id="approvalModalClose" aria-label="Close"><i class="fas fa-times"></i></button>
+                <h3 id="approvalModalTitle"><i class="fas fa-clipboard-check" style="color:#f97316;"></i> Review leave request</h3>
+                <button type="button" class="ess-modal-close" id="approvalModalClose" aria-label="Close" title="Close"><i class="fas fa-times"></i></button>
             </div>
             <div class="ess-modal-body" id="approvalModalBody"></div>
             <div class="ess-modal-field">
-                <label for="approvalModalNote">Note to employee <span id="approvalNoteRequired" class="hidden">(required for rejection)</span></label>
-                <textarea id="approvalModalNote" rows="3" placeholder="Optional approval note or rejection reason..."></textarea>
+                <label for="approvalModalNote"><i class="fas fa-comment-dots" style="color:#94a3b8; margin-right:4px;"></i> Note to employee <span id="approvalNoteRequired" class="hidden" style="color:#ef4444; font-weight:700;">(required for rejection)</span></label>
+                <textarea id="approvalModalNote" rows="3" placeholder="Add an optional approval note or rejection reason for the employee..."></textarea>
             </div>
             <div class="ess-modal-actions">
                 <button type="button" class="ess-btn ess-btn-outline" id="approvalModalCancel">Cancel</button>
                 <button type="button" class="ess-btn ess-btn-outline hidden" id="approvalModalRevert"><i class="fas fa-rotate-left"></i> Revert to pending</button>
-                <button type="button" class="ess-btn ess-btn-danger hidden" id="approvalModalReject"><i class="fas fa-times"></i> Reject</button>
-                <button type="button" class="ess-btn ess-btn-primary hidden" id="approvalModalApprove"><i class="fas fa-check"></i> Approve</button>
+                <button type="button" class="ess-btn ess-btn-danger hidden" id="approvalModalReject"><i class="fas fa-times"></i> Reject Request</button>
+                <button type="button" class="ess-btn ess-btn-primary hidden" id="approvalModalApprove"><i class="fas fa-check"></i> Approve Request</button>
             </div>
         </div>
     </div>
@@ -1325,7 +1652,144 @@
     <script charset="utf-8" src="../js/portal-access.js"></script>
     <script charset="utf-8" src="../js/portal-session-guard.js?v=2"></script>
     <script src="../js/portal-notify-sound.js?v=1"></script>
-    <script charset="utf-8" src="../js/employee-hrms.js?v=76"></script>
+    <!-- Authentic Google Gmail Floating Compose Popup Window -->
+    <div class="gmail-compose-popup" id="essMailComposeModal" style="display:none;">
+        <!-- Header Bar -->
+        <div class="gmail-compose-header" onclick="MailModule.toggleMinimizeCompose(event)">
+            <span id="essMailComposeTitle" class="gmail-compose-title">New Message</span>
+            <div class="gmail-compose-window-controls" onclick="event.stopPropagation()">
+                <button type="button" class="gmail-win-btn" onclick="MailModule.toggleMinimizeCompose()" title="Minimize"><i class="fas fa-minus"></i></button>
+                <button type="button" class="gmail-win-btn" onclick="MailModule.toggleMaximizeCompose()" title="Full screen"><i class="fas fa-expand-alt" id="gmailComposeExpandIcon"></i></button>
+                <button type="button" class="gmail-win-btn" onclick="MailModule.closeComposeModal()" title="Save & close"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+
+        <!-- Compose Body Container -->
+        <div class="gmail-compose-content" id="gmailComposeContent">
+            <!-- To Field -->
+            <div class="gmail-compose-field">
+                <span class="gmail-field-label">To</span>
+                <div class="ess-mail-recipients-wrap" id="essMailRecipientsWrap"></div>
+                <input type="text" id="essMailToInput" class="gmail-field-input" placeholder="Recipients" onkeyup="MailModule.handleEmployeeSearch(this.value)">
+                <div class="gmail-cc-bcc-toggles">
+                    <span onclick="MailModule.toggleCcBcc('cc')">Cc</span>
+                    <span onclick="MailModule.toggleCcBcc('bcc')">Bcc</span>
+                </div>
+                <div class="ess-mail-emp-dropdown" id="essMailEmpDropdown" style="display:none;"></div>
+            </div>
+
+            <!-- Cc Field -->
+            <div class="gmail-compose-field hidden" id="gmailCcRow">
+                <span class="gmail-field-label">Cc</span>
+                <div class="ess-mail-recipients-wrap" id="essMailCcWrap"></div>
+                <input type="text" id="essMailCcInput" class="gmail-field-input" placeholder="Cc Recipients" onkeyup="MailModule.handleCcSearch(this.value)">
+                <div class="ess-mail-emp-dropdown" id="essMailCcEmpDropdown" style="display:none;"></div>
+            </div>
+
+            <!-- Bcc Field -->
+            <div class="gmail-compose-field hidden" id="gmailBccRow">
+                <span class="gmail-field-label">Bcc</span>
+                <div class="ess-mail-recipients-wrap" id="essMailBccWrap"></div>
+                <input type="text" id="essMailBccInput" class="gmail-field-input" placeholder="Bcc Recipients" onkeyup="MailModule.handleBccSearch(this.value)">
+                <div class="ess-mail-emp-dropdown" id="essMailBccEmpDropdown" style="display:none;"></div>
+            </div>
+
+            <!-- Subject Line Row -->
+            <div class="gmail-compose-field">
+                <input type="text" id="essMailSubjectInput" class="gmail-field-input" placeholder="Subject">
+                <select id="essMailImportanceInput" style="font-size:11px;border:none;background:transparent;color:#5f6368;outline:none;cursor:pointer;">
+                    <option value="normal">Normal Priority</option>
+                    <option value="high">⚡ High Priority</option>
+                    <option value="low">Low Priority</option>
+                </select>
+            </div>
+
+            <!-- WYSIWYG Rich Text ContentEditable Editor -->
+            <div class="gmail-editor-wrap">
+                <div id="essMailBodyRich" class="gmail-rich-editor" contenteditable="true" placeholder="Write your message here..."></div>
+                <textarea id="essMailBodyInput" style="display:none;"></textarea>
+            </div>
+
+            <!-- Attachments Bar -->
+            <div id="essMailComposeAttachments" class="gmail-attachments-bar"></div>
+
+            <!-- Formatting Toolbar Bar -->
+            <div class="gmail-fmt-toolbar" id="gmailFmtToolbar">
+                <button type="button" class="fmt-btn" onclick="MailModule.formatDoc('undo')" title="Undo"><i class="fas fa-undo"></i></button>
+                <button type="button" class="fmt-btn" onclick="MailModule.formatDoc('redo')" title="Redo"><i class="fas fa-redo"></i></button>
+                <div class="fmt-divider"></div>
+                <select class="fmt-select" onchange="MailModule.formatDoc('fontName', this.value)" title="Font Family">
+                    <option value="Sans-Serif">Sans Serif</option>
+                    <option value="Serif">Serif</option>
+                    <option value="Monospace">Monospace</option>
+                    <option value="Roboto">Roboto</option>
+                    <option value="Google Sans">Google Sans</option>
+                </select>
+                <select class="fmt-select" onchange="MailModule.formatDoc('fontSize', this.value)" title="Font Size">
+                    <option value="3">Normal</option>
+                    <option value="1">Small</option>
+                    <option value="5">Large</option>
+                    <option value="7">Huge</option>
+                </select>
+                <div class="fmt-divider"></div>
+                <button type="button" class="fmt-btn" onclick="MailModule.formatDoc('bold')" title="Bold"><i class="fas fa-bold"></i></button>
+                <button type="button" class="fmt-btn" onclick="MailModule.formatDoc('italic')" title="Italic"><i class="fas fa-italic"></i></button>
+                <button type="button" class="fmt-btn" onclick="MailModule.formatDoc('underline')" title="Underline"><i class="fas fa-underline"></i></button>
+                <input type="color" class="fmt-color-picker" onchange="MailModule.formatDoc('foreColor', this.value)" title="Text Color">
+                <div class="fmt-divider"></div>
+                <button type="button" class="fmt-btn" onclick="MailModule.formatDoc('justifyLeft')" title="Align Left"><i class="fas fa-align-left"></i></button>
+                <button type="button" class="fmt-btn" onclick="MailModule.formatDoc('justifyCenter')" title="Align Center"><i class="fas fa-align-center"></i></button>
+                <button type="button" class="fmt-btn" onclick="MailModule.formatDoc('justifyRight')" title="Align Right"><i class="fas fa-align-right"></i></button>
+                <button type="button" class="fmt-btn" onclick="MailModule.formatDoc('insertOrderedList')" title="Numbered List"><i class="fas fa-list-ol"></i></button>
+                <button type="button" class="fmt-btn" onclick="MailModule.formatDoc('insertUnorderedList')" title="Bullet List"><i class="fas fa-list-ul"></i></button>
+                <button type="button" class="fmt-btn" onclick="MailModule.formatDoc('removeFormat')" title="Clear Formatting"><i class="fas fa-remove-format"></i></button>
+            </div>
+
+            <!-- Bottom Action Footer Bar -->
+            <div class="gmail-compose-footer">
+                <div class="gmail-footer-left">
+                    <div class="gmail-send-group">
+                        <button type="button" class="gmail-btn-send" id="btnSendMail" onclick="MailModule.sendMail()">Send</button>
+                        <button type="button" class="gmail-btn-send-dropdown" title="Schedule send"><i class="fas fa-caret-down"></i></button>
+                    </div>
+
+                    <button type="button" class="gmail-tool-btn" onclick="MailModule.toggleFmtBar()" title="Formatting options"><i class="fas fa-font"></i></button>
+                    <label class="gmail-tool-btn" title="Attach files" style="cursor:pointer;margin:0;">
+                        <i class="fas fa-paperclip"></i>
+                        <input type="file" id="essMailFileInput" hidden onchange="MailModule.handleFileUpload(this)">
+                    </label>
+                    <button type="button" class="gmail-tool-btn" onclick="MailModule.promptInsertLink()" title="Insert link"><i class="fas fa-link"></i></button>
+                    
+                    <div style="position:relative;display:inline-block;">
+                        <button type="button" class="gmail-tool-btn" onclick="MailModule.toggleEmojiPicker(event)" title="Insert emoji"><i class="far fa-smile"></i></button>
+                        <div class="gmail-emoji-picker hidden" id="gmailEmojiPicker">
+                            <span onclick="MailModule.insertEmoji('😊')">😊</span>
+                            <span onclick="MailModule.insertEmoji('👍')">👍</span>
+                            <span onclick="MailModule.insertEmoji('🎉')">🎉</span>
+                            <span onclick="MailModule.insertEmoji('❤️')">❤️</span>
+                            <span onclick="MailModule.insertEmoji('💼')">💼</span>
+                            <span onclick="MailModule.insertEmoji('🚀')">🚀</span>
+                            <span onclick="MailModule.insertEmoji('✅')">✅</span>
+                            <span onclick="MailModule.insertEmoji('🔥')">🔥</span>
+                            <span onclick="MailModule.insertEmoji('🙏')">🙏</span>
+                            <span onclick="MailModule.insertEmoji('💡')">💡</span>
+                            <span onclick="MailModule.insertEmoji('📌')">📌</span>
+                            <span onclick="MailModule.insertEmoji('⭐')">⭐</span>
+                        </div>
+                    </div>
+
+                    <button type="button" class="gmail-tool-btn" onclick="MailModule.insertSignature()" title="Insert signature"><i class="fas fa-signature"></i></button>
+                </div>
+
+                <div class="gmail-footer-right">
+                    <button type="button" class="gmail-tool-btn danger" onclick="MailModule.closeComposeModal()" title="Discard draft"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script charset="utf-8" src="../js/employee-hrms.js?v=999"></script>
+    <script charset="utf-8" src="../js/employee-mail.js?v=1"></script>
     <script charset="utf-8" src="../js/employee-performance.js?v=10"></script>
     <script charset="utf-8" src="../js/portal-chat-fab.js"></script>
     <!-- Register new productivity views so showView() recognises them -->
@@ -1344,7 +1808,7 @@
             }
         });
     </script>
-    <script charset="utf-8" src="../js/hr-productivity.js?v=3"></script>
+    <script charset="utf-8" src="../js/hr-productivity.js?v=6"></script>
     <script charset="utf-8" src="../js/employee-salary.js?v=6"></script>
 
     <!-- Modal for Payslip View -->

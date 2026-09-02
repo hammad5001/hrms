@@ -35,6 +35,7 @@
         .app-container { max-width: 1600px; margin: 0 auto; padding: 24px; }
         .header {
             background: rgba(10, 12, 21, 0.6);
+            -webkit-backdrop-filter: blur(20px);
             backdrop-filter: blur(20px);
             border-radius: 28px;
             padding: 20px 32px;
@@ -72,6 +73,7 @@
 
         .control-panel {
             background: rgba(255,255,255,0.03);
+            -webkit-backdrop-filter: blur(20px);
             backdrop-filter: blur(20px);
             border-radius: 28px;
             padding: 24px;
@@ -114,6 +116,7 @@
 
         .table-container {
             background: rgba(255,255,255,0.03);
+            -webkit-backdrop-filter: blur(20px);
             backdrop-filter: blur(20px);
             border-radius: 28px;
             padding: 24px;
@@ -151,7 +154,9 @@
 
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); backdrop-filter: blur(10px);
+            background: rgba(0,0,0,0.7);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
             display: none; justify-content: center; align-items: center; z-index: 1000;
         }
         .spinner {
@@ -180,25 +185,25 @@
             <div class="filter-group">
                 <div class="month-selector">
                     <i class="fas fa-calendar-alt"></i>
-                    <input type="month" id="monthPicker" onchange="fetchData()">
+                    <input type="month" id="monthPicker" title="Select Month" onchange="fetchData()">
                 </div>
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" placeholder="Search ID or name..." onkeyup="applyFilters()">
+                    <input type="text" id="searchInput" placeholder="Search ID or name..." title="Search ID or name" onkeyup="applyFilters()">
                 </div>
-                <select id="branchFilter" class="filter-select" onchange="applyFilters()">
+                <select id="branchFilter" class="filter-select" title="Filter by Branch" onchange="applyFilters()">
                     <option value="">All Branches</option>
                     <option value="main">Main</option>
                     <option value="commercial">Commercial</option>
                     <option value="workfromhome">WorkFromHome</option>
                 </select>
-                <select id="teamFilter" class="filter-select" onchange="applyFilters()">
+                <select id="teamFilter" class="filter-select" title="Filter by Team" onchange="applyFilters()">
                     <option value="">All Teams</option>
                 </select>
-                <select id="designationFilter" class="filter-select" onchange="applyFilters()">
+                <select id="designationFilter" class="filter-select" title="Filter by Designation" onchange="applyFilters()">
                     <option value="">All Designations</option>
                 </select>
-                <select id="departmentFilter" class="filter-select" onchange="applyFilters()">
+                <select id="departmentFilter" class="filter-select" title="Filter by Department" onchange="applyFilters()">
                     <option value="">All Departments</option>
                 </select>
             </div>

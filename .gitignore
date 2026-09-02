@@ -25,3 +25,5 @@ call-token-service/.env
 call-token-service/node_modules/
 *.backup-*
 *.save
+scratch/
+*.bak-before-*

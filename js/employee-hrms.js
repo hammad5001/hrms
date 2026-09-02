@@ -78,7 +78,57 @@ function leaveTypeOptionsForContext(context) {
     return HRMS.leaveApplyTypes || [];
 }
 
+function renderLeaveTypeSlider() {
+    const slider = document.getElementById('leaveTypeSliderContainer');
+    if (!slider) return;
+    const options = HRMS.leaveApplyTypes || [];
+    if (!options.length) return;
+
+    const currentVal = document.getElementById('leaveTypeSelect')?.value || 'casual';
+    
+    slider.innerHTML = options.map(opt => {
+        const key = opt.key;
+        const meta = HRMS.leaveTypeCatalog?.[key] || {};
+        const bal = (HRMS.leaveBalances || []).find(b => b.key === key);
+        const avail = bal ? formatLeaveDays(bal.available ?? bal.remaining) + 'd left' : (meta.group === 'holiday' ? 'Holiday' : 'Available');
+        const icon = meta.icon || 'fa-calendar-days';
+        const isSelected = key === currentVal;
+
+        return `
+            <label class="ess-type-card ${isSelected ? 'active' : ''}" data-type="${escHtml(key)}">
+                <input type="radio" name="leave_type_radio" value="${escHtml(key)}" ${isSelected ? 'checked' : ''}>
+                <span class="ess-type-card-icon"><i class="fas ${escHtml(icon)}"></i></span>
+                <span class="ess-type-card-text">
+                    <strong>${escHtml(opt.label)}</strong>
+                    <small>${escHtml(avail)}</small>
+                </span>
+            </label>
+        `;
+    }).join('');
+
+    // Attach click listeners to cards
+    slider.querySelectorAll('.ess-type-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const radio = card.querySelector('input[type="radio"]');
+            if (!radio) return;
+            radio.checked = true;
+            slider.querySelectorAll('.ess-type-card').forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+            
+            const val = radio.value;
+            const hiddenInput = document.getElementById('leaveTypeSelect');
+            if (hiddenInput) hiddenInput.value = val;
+            
+            const badge = document.getElementById('leaveTypeSelectedBadge');
+            if (badge) badge.textContent = leaveTypeLabel(val);
+            
+            updateLeaveDaysCalculation();
+        });
+    });
+}
+
 function renderLeaveTypeSelects() {
+    renderLeaveTypeSlider();
     document.querySelectorAll('[data-leave-select]').forEach(sel => {
         const ctx = sel.dataset.leaveSelect || 'apply';
         const options = leaveTypeOptionsForContext(ctx);
@@ -1822,11 +1872,12 @@ function validateLeaveForm(form, durationType) {
         return 'Please select morning or afternoon for half day';
     }
 
-    const meta = HRMS.leaveTypeCatalog[leaveType];
-    const bal = (HRMS.leaveBalances || []).find(b => b.key === leaveType);
-    if (meta?.group === 'balance') {
+    const normType = (leaveType === 'annual' || leaveType === 'sick' || !leaveType) ? 'casual' : leaveType;
+    const meta = HRMS.leaveTypeCatalog[normType] || HRMS.leaveTypeCatalog[leaveType];
+    const bal = (HRMS.leaveBalances || []).find(b => b.key === normType || b.key === leaveType) || (HRMS.leaveBalances || [])[0];
+    if (meta?.group === 'balance' || bal) {
         if (!bal || Number(bal.quota) <= 0) {
-            return `No ${leaveTypeLabel(leaveType)} leave has been allotted yet. Contact HR.`;
+            return `No leave quota available. Contact HR.`;
         }
         const startYear = parseInt(start.slice(0, 4), 10);
         if (startYear === HRMS.leaveBalanceYear) {
@@ -1835,7 +1886,7 @@ function validateLeaveForm(form, durationType) {
                 : leaveRequestDayUnits({ start_date: start, end_date: end });
             const available = Number(bal.available ?? bal.remaining) || 0;
             if (days > available) {
-                const label = leaveTypeLabel(leaveType);
+                const label = leaveTypeLabel(normType);
                 return `Not enough ${label} balance. Available: ${formatLeaveDays(available)} day(s).`;
             }
         }
@@ -1875,18 +1926,18 @@ function renderLeaveBalances() {
         const pending = Number(b.pending) || 0;
         const pool = available + taken + pending;
         const usedPct = pool > 0 ? Math.min(100, Math.round((taken / pool) * 100)) : 0;
-        const accent = LEAVE_BALANCE_ACCENTS[b.key] || '';
+        const accent = LEAVE_BALANCE_ACCENTS[b.key] || 'ess-leave-card--casual';
         const footHtml = taken > 0
-            ? `<span><strong>${formatLeaveDays(taken)}</strong> day${taken === 1 ? '' : 's'} taken</span>`
-            : '<span class="ess-muted-line">No leave taken yet</span>';
-        return `<article class="ess-leave-card ${accent}">
+            ? `<span><strong>${formatLeaveDays(taken)}</strong> taken · 1 allowed / month</span>`
+            : '<span class="ess-muted-line">1 allowed / month · 12 total / year</span>';
+        return `<article class="ess-leave-card ${accent}" style="max-width: 320px;">
             <div class="ess-leave-card-top">
-                <i class="fas ${escHtml(b.icon || 'fa-calendar')}"></i>
+                <i class="fas ${escHtml(b.icon || 'fa-calendar-check')}"></i>
                 <h4>${escHtml(b.label)}</h4>
             </div>
             <div class="ess-leave-card-stat">
                 <span class="ess-leave-card-num">${formatLeaveDays(available)}</span>
-                <span class="ess-leave-card-lbl">Available</span>
+                <span class="ess-leave-card-lbl">Available of 12</span>
             </div>
             <div class="ess-leave-usage" role="presentation" aria-hidden="true"><span style="width:${usedPct}%"></span></div>
             <div class="ess-leave-card-foot ess-leave-card-foot--simple">${footHtml}</div>
@@ -2136,6 +2187,23 @@ function initLeavePolicyDefForm() {
         null,
         { multi: true }
     );
+
+    // Monthly Leave Records filter bindings
+    const monthSel = document.getElementById('leaveRecordMonth');
+    if (monthSel) monthSel.value = String(new Date().getMonth() + 1);
+    document.getElementById('btnRefreshLeaveRecords')?.addEventListener('click', () => loadMonthlyLeaveRecords());
+    document.getElementById('leaveRecordMonth')?.addEventListener('change', () => loadMonthlyLeaveRecords());
+    document.getElementById('leaveRecordYear')?.addEventListener('change', () => loadMonthlyLeaveRecords());
+    document.getElementById('leaveRecordStatus')?.addEventListener('change', () => loadMonthlyLeaveRecords());
+
+    // Approved Leaves filter bindings
+    document.getElementById('btnRefreshApprovedLeaves')?.addEventListener('click', () => loadApprovedLeaves());
+    document.getElementById('approvedLeavesMonth')?.addEventListener('change', () => loadApprovedLeaves());
+    document.getElementById('approvedLeavesYear')?.addEventListener('change', () => loadApprovedLeaves());
+    document.getElementById('approvedLeavesSearch')?.addEventListener('input', () => {
+        clearTimeout(HRMS.searchTimers['approvedLeavesSearch']);
+        HRMS.searchTimers['approvedLeavesSearch'] = setTimeout(() => loadApprovedLeaves(), 250);
+    });
 }
 
 function initLeaveYearNav() {
@@ -2163,14 +2231,116 @@ async function loadLeavePolicy() {
     HRMS.policyAllotments = res.data.allotments || [];
     populatePolicyDefLeaveTypeSelect(res.data.policy_type_options);
     renderPolicyAllotments(HRMS.policyAllotments);
+    await loadApprovedLeaves();
+    await loadMonthlyLeaveRecords();
+}
+
+async function loadApprovedLeaves() {
+    const tbody = document.getElementById('approvedLeavesBody');
+    if (!tbody) return;
+    const month = document.getElementById('approvedLeavesMonth')?.value || 0;
+    const year = document.getElementById('approvedLeavesYear')?.value || new Date().getFullYear();
+    const search = (document.getElementById('approvedLeavesSearch')?.value || '').trim();
+
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px;">Loading approved leaves...</td></tr>';
+
+    const res = await apiGet(`api/leave_api.php?action=getApprovedLeaves&month=${encodeURIComponent(month)}&year=${encodeURIComponent(year)}&search=${encodeURIComponent(search)}`);
+    if (!res.success || !res.data?.records?.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px; color:#94a3b8;">No approved leaves found for this period.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = res.data.records.map(r => {
+        const emp = `<strong>${escHtml(r.employee_name)}</strong><br><small style="color:#94a3b8;">${escHtml(r.employee_code || '')}</small>`;
+        const dur = r.duration_type === 'half_day' ? `Half day (${r.half_day_slot || ''})` : 'Full day';
+        const dates = `${formatDate(r.start_date)}${r.end_date !== r.start_date ? ' to ' + formatDate(r.end_date) : ''} <span style="font-size:11px; color:#10b981; font-weight:600;">(${dur})</span>`;
+        
+        const tlInfo = r.tl_name ? `<strong>${escHtml(r.tl_name)}</strong><br><span class="ess-pill present ess-pill-sm">${escHtml(r.tl_note ? r.tl_note : 'APPROVED')}</span>` : '<span style="color:#94a3b8;">Not tagged</span>';
+        const hrInfo = r.hr_name ? `<strong>${escHtml(r.hr_name)}</strong><br><span class="ess-pill present ess-pill-sm">${escHtml(r.hr_note ? r.hr_note : 'APPROVED')}</span>` : '<span class="ess-pill present ess-pill-sm">APPROVED</span>';
+        const approvedAt = formatDate(r.updated_at || r.created_at);
+
+        return `<tr>
+            <td><strong style="color:#6366f1;">#${r.id}</strong></td>
+            <td>${emp}</td>
+            <td><span class="ess-pill ess-pill-sm">${escHtml(leaveTypeLabel(r.leave_type))}</span></td>
+            <td>${dates}</td>
+            <td style="max-width: 220px; font-size: 12px; color: #cbd5e1;">${escHtml(r.reason || '-')}</td>
+            <td>${tlInfo}</td>
+            <td>${hrInfo}</td>
+            <td style="font-size: 12px; color:#94a3b8;">${approvedAt}</td>
+        </tr>`;
+    }).join('');
+}
+
+async function loadMonthlyLeaveRecords() {
+    const tbody = document.getElementById('monthlyLeaveRecordsBody');
+    if (!tbody) return;
+    const month = document.getElementById('leaveRecordMonth')?.value || (new Date().getMonth() + 1);
+    const year = document.getElementById('leaveRecordYear')?.value || new Date().getFullYear();
+    const status = document.getElementById('leaveRecordStatus')?.value || 'all';
+    
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px;">Loading records for selected month...</td></tr>';
+
+    const res = await apiGet(`api/leave_api.php?action=monthlyLeaveRecords&month=${month}&year=${year}&status=${status}`);
+    if (!res.success || !res.data?.records?.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px; color:#94a3b8;">No leave records found for this period.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = res.data.records.map(r => {
+        const emp = `<strong>${escHtml(r.employee_name)}</strong><br><small style="color:#94a3b8;">${escHtml(r.employee_code || '')}</small>`;
+        const dur = r.duration_type === 'half_day' ? `Half day (${r.half_day_slot || ''})` : 'Full day';
+        const dates = `${formatDate(r.start_date)}${r.end_date !== r.start_date ? ' to ' + formatDate(r.end_date) : ''} <span style="font-size:11px; color:#6366f1;">(${dur})</span>`;
+        
+        const tlStatusClass = r.tl_status === 'approved' ? 'present' : (r.tl_status === 'rejected' ? 'absent' : 'pending');
+        const hrStatusClass = r.hr_status === 'approved' ? 'present' : (r.hr_status === 'rejected' ? 'absent' : 'pending');
+        
+        const tlInfo = r.tl_name ? `<strong>${escHtml(r.tl_name)}</strong><br><span class="ess-pill ${tlStatusClass} ess-pill-sm">${r.tl_status.toUpperCase()}</span>` : '<span style="color:#94a3b8;">Not tagged</span>';
+        const hrInfo = r.hr_name ? `<strong>${escHtml(r.hr_name)}</strong><br><span class="ess-pill ${hrStatusClass} ess-pill-sm">${r.hr_status.toUpperCase()}</span>` : '<span style="color:#94a3b8;">HR Pending</span>';
+
+        return `<tr>
+            <td style="font-size:12px;">${formatDate(r.created_at || r.start_date)}</td>
+            <td>${emp}</td>
+            <td><span class="ess-pill ess-pill-sm">${escHtml(leaveTypeLabel(r.leave_type))}</span></td>
+            <td>${dates}</td>
+            <td style="max-width: 200px; font-size: 12px; color: #cbd5e1;">${escHtml(r.reason || '-')}</td>
+            <td>${tlInfo}</td>
+            <td>${hrInfo}</td>
+            <td><span class="status-pill ${r.status}">${leaveStatusLabel(r.status)}</span></td>
+        </tr>`;
+    }).join('');
 }
 
 function toggleLeaveEmployeeFields() {
-    const show = HRMS.canSelectEmployee;
     ['leaveEmployeeField', 'halfLeaveEmployeeField'].forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.classList.toggle('hidden', !show);
+        if (el) el.classList.add('hidden');
     });
+}
+
+function updateLeaveDaysCalculation() {
+    const start = document.getElementById('leaveStartDate')?.value;
+    const end = document.getElementById('leaveEndDate')?.value;
+    const badge = document.getElementById('leaveDaysCountBadge');
+    if (!badge) return;
+
+    if (!start) {
+        badge.innerHTML = '<i class="fas fa-clock"></i> Select Dates';
+        badge.style.color = '#94a3b8';
+        return;
+    }
+
+    const s = new Date(start + 'T00:00:00');
+    const e = new Date((end || start) + 'T00:00:00');
+    if (isNaN(s.getTime()) || isNaN(e.getTime()) || e < s) {
+        badge.innerHTML = '<i class="fas fa-exclamation-circle"></i> Invalid Dates';
+        badge.style.color = '#f87171';
+        return;
+    }
+
+    const diffDays = Math.round((e - s) / 86400000) + 1;
+    badge.innerHTML = `<i class="fas fa-calendar-check"></i> ${diffDays} Day${diffDays > 1 ? 's' : ''} Selected`;
+    badge.style.color = '#34d399';
 }
 
 async function openLeaveApplyModal() {
@@ -2180,11 +2350,46 @@ async function openLeaveApplyModal() {
     modal.classList.remove('hidden');
     modal.setAttribute('aria-hidden', 'false');
     document.body.classList.add('ess-modal-open');
+
+    // Default dates to today
+    const today = new Date().toISOString().split('T')[0];
+    const startInput = document.getElementById('leaveStartDate');
+    const endInput = document.getElementById('leaveEndDate');
+    if (startInput && !startInput.value) startInput.value = today;
+    if (endInput && !endInput.value) endInput.value = today;
+
+    updateLeaveDaysCalculation();
+
     const submitBtn = document.getElementById('leaveApplyModalSubmit');
     if (submitBtn) submitBtn.disabled = true;
     await loadLeaveBalances();
+    renderLeaveTypeSlider();
+
+    // Pre-populate default HR if not already tagged
+    if (!HRMS.selectedHr) {
+        try {
+            const hrRes = await apiGet('api/leave_api.php?action=searchHrApprovers&q=');
+            if (hrRes.success && hrRes.data?.length) {
+                HRMS.selectedHr = hrRes.data[0];
+                renderSelectedPerson('leaveHrSelected', HRMS.selectedHr, () => {
+                    HRMS.selectedHr = null;
+                    renderSelectedPerson('leaveHrSelected', null);
+                });
+            }
+        } catch (e) {}
+    }
+
+    // Pre-populate Reporting Manager / Team Lead if available
+    if (!HRMS.selectedTl && HRMS.reporting?.reporting_to) {
+        HRMS.selectedTl = HRMS.reporting.reporting_to;
+        renderSelectedPerson('leaveTlSelected', HRMS.selectedTl, () => {
+            HRMS.selectedTl = null;
+            renderSelectedPerson('leaveTlSelected', null);
+        });
+    }
+
     if (submitBtn) submitBtn.disabled = false;
-    setTimeout(() => document.getElementById('leaveApproverSearch')?.focus(), 120);
+    setTimeout(() => document.getElementById('leaveReason')?.focus(), 120);
 }
 
 function closeLeaveApplyModal() {
@@ -2195,7 +2400,11 @@ function closeLeaveApplyModal() {
     document.body.classList.remove('ess-modal-open');
     document.getElementById('formFullLeave')?.reset();
     HRMS.selectedApprover = null;
+    HRMS.selectedHr = null;
+    HRMS.selectedTl = null;
     HRMS.selectedEmployee = null;
+    renderSelectedPerson('leaveHrSelected', null);
+    renderSelectedPerson('leaveTlSelected', null);
     renderSelectedPerson('leaveApproverSelected', null);
     renderSelectedPerson('leaveEmployeeSelected', null);
     const leaveEnd = document.getElementById('leaveEndDate');
@@ -2214,14 +2423,20 @@ function renderSelectedPerson(chipId, person, onClear) {
         chip.innerHTML = '';
         return;
     }
-    const meta = [person.role_label || person.portal_role, person.designation, person.team].filter(Boolean).join('  ·  ');
+    const meta = [person.role_label || person.portal_role, person.designation, person.team].filter(Boolean).join(' · ');
+    const initials = (person.full_name || 'U').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
     chip.classList.remove('hidden');
     chip.innerHTML = `
-        <span class="ess-person-chip">
-            <i class="fas fa-user-check"></i>
-            <span><strong>${escHtml(person.full_name)}</strong>${meta ? `<small>${escHtml(meta)}</small>` : ''}</span>
-            <button type="button" class="ess-chip-clear" title="Clear" aria-label="Clear selection"><i class="fas fa-times"></i></button>
-        </span>`;
+        <div class="ess-person-chip">
+            <div class="ess-person-chip-content">
+                <div class="ess-person-chip-avatar">${escHtml(initials)}</div>
+                <div class="ess-person-chip-info">
+                    <strong>${escHtml(person.full_name)}</strong>
+                    <small>${escHtml(meta || 'Team Member')}</small>
+                </div>
+            </div>
+            <button type="button" class="ess-chip-clear" title="Remove selection" aria-label="Clear selection"><i class="fas fa-times"></i></button>
+        </div>`;
     chip.querySelector('.ess-chip-clear')?.addEventListener('click', onClear);
 }
 
@@ -3053,21 +3268,43 @@ function initLeaveForms() {
     document.getElementById('btnDashReviewApprovals')?.addEventListener('click', () => {
         showView('approvals', 'nav-tab-approvals');
     });
-    bindPersonSearch('leaveApproverSearch', 'leaveApproverResults', 'leaveApproverSelected', 'searchApprovers',
-        p => { HRMS.selectedApprover = p; },
-        () => { HRMS.selectedApprover = null; renderSelectedPerson('leaveApproverSelected', null); }
+    
+    // Dual tagging search bindings for Full Day Leave
+    bindPersonSearch('leaveHrSearch', 'leaveHrResults', 'leaveHrSelected', 'searchHrApprovers',
+        p => { HRMS.selectedHr = p; },
+        () => { HRMS.selectedHr = null; renderSelectedPerson('leaveHrSelected', null); }
+    );
+    bindPersonSearch('leaveTlSearch', 'leaveTlResults', 'leaveTlSelected', 'searchTlApprovers',
+        p => { HRMS.selectedTl = p; },
+        () => { HRMS.selectedTl = null; renderSelectedPerson('leaveTlSelected', null); }
     );
     bindPersonSearch('leaveEmployeeSearch', 'leaveEmployeeResults', 'leaveEmployeeSelected', 'searchEmployees',
         p => { HRMS.selectedEmployee = p; },
         () => { HRMS.selectedEmployee = null; renderSelectedPerson('leaveEmployeeSelected', null); }
     );
-    bindPersonSearch('halfApproverSearch', 'halfApproverResults', 'halfApproverSelected', 'searchApprovers',
-        p => { HRMS.halfApprover = p; },
-        () => { HRMS.halfApprover = null; renderSelectedPerson('halfApproverSelected', null); }
+
+    // Dual tagging search bindings for Half Day Leave
+    bindPersonSearch('halfHrSearch', 'halfHrResults', 'halfHrSelected', 'searchHrApprovers',
+        p => { HRMS.halfHr = p; },
+        () => { HRMS.halfHr = null; renderSelectedPerson('halfHrSelected', null); }
+    );
+    bindPersonSearch('halfTlSearch', 'halfTlResults', 'halfTlSelected', 'searchTlApprovers',
+        p => { HRMS.halfTl = p; },
+        () => { HRMS.halfTl = null; renderSelectedPerson('halfTlSelected', null); }
     );
     bindPersonSearch('halfEmployeeSearch', 'halfEmployeeResults', 'halfEmployeeSelected', 'searchEmployees',
         p => { HRMS.halfEmployee = p; },
         () => { HRMS.halfEmployee = null; renderSelectedPerson('halfEmployeeSelected', null); }
+    );
+
+    // Fallback bindings if old elements exist
+    bindPersonSearch('leaveApproverSearch', 'leaveApproverResults', 'leaveApproverSelected', 'searchApprovers',
+        p => { HRMS.selectedApprover = p; HRMS.selectedHr = p; },
+        () => { HRMS.selectedApprover = null; HRMS.selectedHr = null; renderSelectedPerson('leaveApproverSelected', null); }
+    );
+    bindPersonSearch('halfApproverSearch', 'halfApproverResults', 'halfApproverSelected', 'searchApprovers',
+        p => { HRMS.halfApprover = p; HRMS.halfHr = p; },
+        () => { HRMS.halfApprover = null; HRMS.halfHr = null; renderSelectedPerson('halfApproverSelected', null); }
     );
 
     document.getElementById('btnOpenLeaveApply')?.addEventListener('click', () => openLeaveApplyModal());
@@ -3091,6 +3328,10 @@ function initLeaveForms() {
         if (leaveEnd.value && leaveEnd.value < leaveStart.value) {
             leaveEnd.value = leaveStart.value;
         }
+        updateLeaveDaysCalculation();
+    });
+    leaveEnd?.addEventListener('change', () => {
+        updateLeaveDaysCalculation();
     });
     document.getElementById('leaveApplyModal')?.addEventListener('click', e => {
         if (e.target.id === 'leaveApplyModal') closeLeaveApplyModal();
@@ -3107,6 +3348,15 @@ function initLeaveForms() {
     });
 
     document.getElementById('formFullLeave')?.addEventListener('submit', async e => {
+        e.preventDefault();
+        await submitLeave('full_day', 'formFullLeave');
+    });
+    document.getElementById('leaveApplyModalSubmit')?.addEventListener('click', async e => {
+        const form = document.getElementById('formFullLeave');
+        if (form && !form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
         e.preventDefault();
         await submitLeave('full_day', 'formFullLeave');
     });
@@ -3128,11 +3378,28 @@ async function submitLeave(durationType, formId) {
 
     const fd = new FormData(form);
     const start = fd.get('start_date');
-    const approver = durationType === 'half_day' ? HRMS.halfApprover : HRMS.selectedApprover;
+    let hr = durationType === 'half_day' ? (HRMS.halfHr || HRMS.halfApprover) : (HRMS.selectedHr || HRMS.selectedApprover);
+    const tl = durationType === 'half_day' ? HRMS.halfTl : HRMS.selectedTl;
     const employee = durationType === 'half_day' ? HRMS.halfEmployee : HRMS.selectedEmployee;
 
-    if (!approver?.id) {
-        toast('Please search and select an approver (Admin, Team Lead, or HR)', 'error');
+    if (!hr?.id) {
+        // Automatically fetch default HR for user branch so submission never blocks
+        try {
+            const hrRes = await apiGet('api/leave_api.php?action=searchHrApprovers&q=');
+            if (hrRes.success && hrRes.data?.length) {
+                hr = hrRes.data[0];
+                HRMS.selectedHr = hr;
+            }
+        } catch (e) {}
+    }
+
+    if (!hr?.id) {
+        toast('Please search and select an HR / Admin person.', 'error');
+        if (durationType === 'half_day') {
+            document.getElementById('halfHrSearch')?.focus();
+        } else {
+            document.getElementById('leaveHrSearch')?.focus();
+        }
         return;
     }
 
@@ -3142,14 +3409,16 @@ async function submitLeave(durationType, formId) {
     if (submitBtn) submitBtn.disabled = true;
 
     const payload = {
-        leave_type: fd.get('leave_type') || 'annual',
+        leave_type: fd.get('leave_type') || 'casual',
         duration_type: durationType,
         start_date: start,
         end_date: durationType === 'half_day' ? start : (fd.get('end_date') || start),
         half_day_slot: fd.get('half_day_slot'),
         reason: fd.get('reason'),
-        approver_user_id: approver.id,
-        apply_through: 'team_lead'
+        hr_user_id: hr.id,
+        tl_user_id: tl?.id ? tl.id : 0,
+        approver_user_id: hr.id,
+        apply_through: tl?.id ? 'team_lead' : 'hr'
     };
     if (employee?.id && HRMS.canSelectEmployee) {
         payload.for_user_id = employee.id;
@@ -3162,12 +3431,20 @@ async function submitLeave(durationType, formId) {
             form.reset();
             if (durationType === 'half_day') {
                 HRMS.halfApprover = null;
+                HRMS.halfHr = null;
+                HRMS.halfTl = null;
                 HRMS.halfEmployee = null;
+                renderSelectedPerson('halfHrSelected', null);
+                renderSelectedPerson('halfTlSelected', null);
                 renderSelectedPerson('halfApproverSelected', null);
                 renderSelectedPerson('halfEmployeeSelected', null);
             } else {
                 HRMS.selectedApprover = null;
+                HRMS.selectedHr = null;
+                HRMS.selectedTl = null;
                 HRMS.selectedEmployee = null;
+                renderSelectedPerson('leaveHrSelected', null);
+                renderSelectedPerson('leaveTlSelected', null);
                 renderSelectedPerson('leaveApproverSelected', null);
                 renderSelectedPerson('leaveEmployeeSelected', null);
                 closeLeaveApplyModal();
@@ -3223,13 +3500,38 @@ function renderLeaveRows(data, tbodyId) {
             ? escHtml(r.allotted_by_name || 'HR')
             : escHtml(r.approver_name || (r.apply_through || '').replace(/_/g, ' '));
         const days = isCredit ? creditVal : leaveRequestDayUnits(r);
+        
+        let approverDisplay = '';
+        if (allotted) {
+            approverDisplay = escHtml(r.allotted_by_name || 'HR (Allotted)');
+        } else {
+            const parts = [];
+            if (r.hr_name || r.hr_user_id) parts.push(`HR: ${escHtml(r.hr_name || 'HR')}`);
+            if (r.tl_name || r.tl_user_id) parts.push(`TL: ${escHtml(r.tl_name || 'Team Lead')}`);
+            approverDisplay = parts.length ? parts.join('<br>') : escHtml(r.approver_name || 'HR');
+        }
+
+        let dualStatusBadge = '';
+        if (r.status === 'approved') {
+            dualStatusBadge = `<span class="status-pill approved" title="Approved by both Team Lead and HR"><i class="fas fa-check-double"></i> Approved</span>`;
+        } else if (r.status === 'rejected') {
+            dualStatusBadge = `<span class="status-pill rejected"><i class="fas fa-times"></i> Rejected</span>`;
+        } else if (r.status === 'pending') {
+            const tlPill = (r.tl_status && r.tl_status !== 'none') ? `TL: <strong>${r.tl_status.toUpperCase()}</strong>` : '';
+            const hrPill = (r.hr_status && r.hr_status !== 'none') ? `HR: <strong>${r.hr_status.toUpperCase()}</strong>` : '';
+            const breakdown = [tlPill, hrPill].filter(Boolean).join(' | ');
+            dualStatusBadge = `<span class="status-pill pending" title="${breakdown}">${breakdown ? breakdown : 'Pending'}</span>`;
+        } else {
+            dualStatusBadge = `<span class="status-pill ${r.status}">${leaveStatusLabel(r.status)}</span>`;
+        }
+
         return `<tr class="${allotted ? 'ess-leave-row--allotted' : ''}">
         <td>${r.duration_type === 'half_day' ? 'Half (' + (r.half_day_slot || '') + ')' : 'Full'}</td>
         <td>${typeCell}</td>
         <td>${formatDate(r.start_date)}${r.end_date !== r.start_date ? ' - ' + formatDate(r.end_date) : ''}</td>
         <td>${formatLeaveDays(days)}</td>
-        <td>${viaCell}</td>
-        <td><span class="status-pill ${r.status}">${leaveStatusLabel(r.status)}</span></td>
+        <td style="font-size: 12px;">${approverDisplay}</td>
+        <td>${dualStatusBadge}</td>
         <td>${new Date(r.created_at).toLocaleString()}</td>
         ${leaveWithdrawActionCell(r)}
     </tr>`;
@@ -3377,24 +3679,22 @@ function renderApprovalCard(r) {
     const creditVal = parseFloat(r.policy_credit_value);
     const isCredit = Number.isFinite(creditVal) && creditVal > 0;
     const canAct = HRMS.canAccessPortalApprovals && (isPending || isApproved);
-    const actionOptions = [];
-    if (isPending) {
-        actionOptions.push('<option value="approve">Approve</option>', '<option value="reject">Reject</option>');
+    let actionBlock = '';
+    if (canAct) {
+        if (isPending) {
+            actionBlock = `
+                <div class="ess-approval-actions" style="margin-top:14px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.06); display:flex; gap:10px; justify-content:flex-end;">
+                    <button type="button" class="ess-btn ess-btn-danger ess-btn-sm" onclick="HRMS.approveLeave(${r.id}, false)" style="border-radius:8px; padding:7px 14px; font-weight:700;"><i class="fas fa-times"></i> Reject</button>
+                    <button type="button" class="ess-btn ess-btn-primary ess-btn-sm" onclick="HRMS.approveLeave(${r.id}, true)" style="border-radius:8px; padding:7px 18px; font-weight:700;"><i class="fas fa-check"></i> Approve</button>
+                </div>`;
+        } else if (isApproved) {
+            actionBlock = `
+                <div class="ess-approval-actions" style="margin-top:14px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.06); display:flex; gap:10px; justify-content:flex-end;">
+                    <button type="button" class="ess-btn ess-btn-outline ess-btn-sm" onclick="HRMS.openApprovalModal(${r.id}, 'revert')" style="border-radius:8px; padding:7px 14px; font-weight:600;"><i class="fas fa-rotate-left"></i> Revert to pending</button>
+                    <button type="button" class="ess-btn ess-btn-danger ess-btn-sm" onclick="HRMS.approveLeave(${r.id}, false)" style="border-radius:8px; padding:7px 14px; font-weight:700;"><i class="fas fa-times"></i> Reject</button>
+                </div>`;
+        }
     }
-    if (isApproved) {
-        actionOptions.push('<option value="revert">Revert to pending</option>', '<option value="reject">Reject</option>');
-    }
-    const actionBlock = canAct && actionOptions.length ? `
-            <div class="ess-approval-actions ess-approval-actions--dropdown">
-                <label class="ess-approval-action-label">Action</label>
-                <div class="ess-approval-action-row">
-                    <select class="ess-approval-action-select" id="approvalActionSelect_${r.id}" aria-label="Leave action for ${escHtml(name)}">
-                        <option value="" disabled selected>Select action...</option>
-                        ${actionOptions.join('')}
-                    </select>
-                    <button type="button" class="ess-btn ess-btn-primary ess-btn-sm" onclick="HRMS.runApprovalDropdown(${r.id})"><i class="fas fa-check"></i> Apply</button>
-                </div>
-            </div>` : '';
     return `
         <article class="ess-approval-card${isAllotted ? ' ess-approval-card--allotted' : ''}">
             <div class="ess-approval-card-head">
@@ -3417,8 +3717,11 @@ function renderApprovalCard(r) {
                 <div><span>Applied</span><strong>${r.created_at ? new Date(r.created_at).toLocaleString() : '-'}</strong></div>
             </div>
             ${r.reason ? `<div class="ess-approval-reason"><i class="fas fa-quote-left"></i> ${escHtml(r.reason)}</div>` : ''}
-            ${r.allotted_by_name ? `<small class="ess-muted-line">Allotted by: <strong>${escHtml(r.allotted_by_name)}</strong></small>` : ''}
-            ${r.approver_name && !isAllotted ? `<small style="color:var(--ess-muted)">Routed to: <strong>${escHtml(r.approver_name)}</strong></small>` : ''}
+            <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.06); font-size:12px;">
+                ${r.hr_name ? `<div><span style="color:#94a3b8;">HR:</span> <strong>${escHtml(r.hr_name)}</strong> <span class="ess-pill ${r.hr_status === 'approved' ? 'present' : (r.hr_status === 'rejected' ? 'absent' : 'pending')} ess-pill-sm">${(r.hr_status || 'pending').toUpperCase()}</span></div>` : ''}
+                ${r.tl_name ? `<div><span style="color:#94a3b8;">TL:</span> <strong>${escHtml(r.tl_name)}</strong> <span class="ess-pill ${r.tl_status === 'approved' ? 'present' : (r.tl_status === 'rejected' ? 'absent' : 'pending')} ess-pill-sm">${(r.tl_status || 'pending').toUpperCase()}</span></div>` : ''}
+                ${r.allotted_by_name ? `<div><span style="color:#94a3b8;">Allotted by:</span> <strong>${escHtml(r.allotted_by_name)}</strong></div>` : ''}
+            </div>
             ${actionBlock}
         </article>`;
 }
@@ -3472,12 +3775,54 @@ function openApprovalModal(id, mode) {
     const name = row?.employee_name || row?.full_name || 'this employee';
     const isApprove = HRMS.approvalModalMode === 'approve';
     const isRevert = HRMS.approvalModalMode === 'revert';
-    title.textContent = isRevert ? 'Revert leave to pending' : (isApprove ? 'Approve leave request' : 'Reject leave request');
-    body.innerHTML = row ? `
-        <p><strong>${escHtml(name)}</strong>  ·  ${escHtml(row.employee_code || '')}</p>
-        <p>${durationLabel(row)}  ·  ${formatDate(row.start_date)}${row.end_date !== row.start_date ? ' - ' + formatDate(row.end_date) : ''}</p>
-        ${isRevert ? '<p class="ess-muted-line">This removes attendance leave marks and sends the request back for review.</p>' : ''}
-    ` : '<p>Confirm your decision for this leave request.</p>';
+    const isReject = !isApprove && !isRevert;
+    
+    title.innerHTML = isRevert 
+        ? '<i class="fas fa-rotate-left" style="color:#6366f1;"></i> Revert leave to pending' 
+        : (isApprove 
+            ? '<i class="fas fa-circle-check" style="color:#10b981;"></i> Approve Leave Request' 
+            : '<i class="fas fa-circle-xmark" style="color:#ef4444;"></i> Reject Leave Request');
+            
+    if (row) {
+        const dur = durationLabel(row);
+        const dates = `${formatDate(row.start_date)}${row.end_date !== row.start_date ? ' — ' + formatDate(row.end_date) : ''}`;
+        const typeLabel = leaveTypeLabel(row.leave_type);
+        const empInitials = initials(name);
+        
+        body.innerHTML = `
+            <div class="ess-modal-card-preview">
+                <div class="ess-modal-preview-head">
+                    <div class="ess-modal-preview-avatar">${escHtml(empInitials)}</div>
+                    <div>
+                        <h4 style="margin:0; font-size:15px; font-weight:700; color:#fff;">${escHtml(name)}</h4>
+                        <small style="color:#94a3b8; font-size:12px;">${escHtml(row.employee_code || '-')}  ·  ${escHtml(row.team || row.department || 'Employee')}</small>
+                    </div>
+                </div>
+                <div class="ess-modal-preview-grid">
+                    <div>
+                        <span>Leave Type</span>
+                        <strong style="color:#fdba74;">${escHtml(typeLabel)}</strong>
+                    </div>
+                    <div>
+                        <span>Duration</span>
+                        <strong>${escHtml(dur)}</strong>
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <span>Scheduled Dates</span>
+                        <strong style="color:#60a5fa;"><i class="far fa-calendar-alt"></i> ${dates}</strong>
+                    </div>
+                    ${row.reason ? `
+                    <div style="grid-column: span 2; padding-top:4px; border-top:1px solid rgba(255,255,255,0.06);">
+                        <span>Employee Reason</span>
+                        <p style="margin:2px 0 0; color:#cbd5e1; font-style:italic; font-size:12px;">"${escHtml(row.reason)}"</p>
+                    </div>` : ''}
+                </div>
+            </div>
+            ${isRevert ? '<p class="ess-muted-line" style="margin:12px 0 0; font-size:12px; color:#fbbf24;"><i class="fas fa-triangle-exclamation"></i> This removes calendar leave marks and sends the request back to Pending review.</p>' : ''}
+        `;
+    } else {
+        body.innerHTML = '<p>Confirm your decision for this leave request.</p>';
+    }
     if (note) {
         note.value = '';
         note.placeholder = isRevert ? 'Optional note for the employee...' : (isApprove ? 'Optional approval note...' : 'Rejection reason...');
