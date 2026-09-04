@@ -178,6 +178,403 @@ function fetchLeaves(mysqli $conn, string $branch): array {
     return $leaves;
 }
 
+
+function payrollAuditNormalizeType(string $type): string {
+    $type = trim($type);
+
+    if ($type === 'punctuality') {
+        return 'manualPunctuality';
+    }
+
+    return $type;
+}
+
+function payrollAuditAllowedType(string $type): bool {
+    return in_array($type, [
+        'bonus',
+        'arrears',
+        'tada',
+        'halfDay',
+        'ncns',
+        'sd',
+        'qaHr',
+        'misspunch',
+        'manualLate',
+        'manualPunctuality',
+        'tax',
+        'advance'
+    ], true);
+}
+
+function payrollAuditSnapshot(
+    mysqli $conn,
+    string $employeeCode,
+    string $month,
+    string $adjType,
+    string $branch
+): array {
+    if ($adjType === 'advance') {
+        $stmt = $conn->prepare("
+            SELECT total_amount, per_month, paid_amount, skip_months
+            FROM payroll_advances
+            WHERE employee_code = ?
+              AND company_branch = ?
+            LIMIT 1
+        ");
+        $stmt->bind_param('ss', $employeeCode, $branch);
+        $stmt->execute();
+
+        $row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        return [
+            'kind' => 'advance',
+            'row' => $row ? [
+                'total_amount' => (float)$row['total_amount'],
+                'per_month' => (float)$row['per_month'],
+                'paid_amount' => (float)$row['paid_amount'],
+                'skip_months' => json_decode(
+                    $row['skip_months'] ?? '[]',
+                    true
+                ) ?: [],
+            ] : null,
+        ];
+    }
+
+    $stmt = $conn->prepare("
+        SELECT
+            amount,
+            COALESCE(reason, '') AS reason,
+            COALESCE(team, '') AS team,
+            DATE_FORMAT(adj_date, '%Y-%m-%d') AS adj_date,
+            COALESCE(created_by, '') AS created_by
+        FROM payroll_adjustments
+        WHERE employee_code = ?
+          AND month = ?
+          AND adj_type = ?
+          AND company_branch = ?
+        ORDER BY id ASC
+    ");
+
+    $stmt->bind_param(
+        'ssss',
+        $employeeCode,
+        $month,
+        $adjType,
+        $branch
+    );
+
+    $stmt->execute();
+    $res = $stmt->get_result();
+
+    $rows = [];
+
+    while ($row = $res->fetch_assoc()) {
+        $rows[] = [
+            'amount' => (float)$row['amount'],
+            'reason' => (string)$row['reason'],
+            'team' => (string)$row['team'],
+            'adj_date' => $row['adj_date'] ?: null,
+            'created_by' => (string)$row['created_by'],
+        ];
+    }
+
+    $stmt->close();
+
+    return [
+        'kind' => 'adjustment',
+        'rows' => $rows,
+    ];
+}
+
+function payrollAuditCanonical(array $state): string {
+    if (($state['kind'] ?? '') === 'advance') {
+        $row = $state['row'] ?? null;
+
+        if (!$row) {
+            return json_encode([
+                'kind' => 'advance',
+                'row' => null
+            ]);
+        }
+
+        $skip = $row['skip_months'] ?? [];
+
+        if (!is_array($skip)) {
+            $skip = [];
+        }
+
+        sort($skip);
+
+        return json_encode([
+            'kind' => 'advance',
+            'row' => [
+                'total_amount' => number_format(
+                    (float)$row['total_amount'],
+                    2,
+                    '.',
+                    ''
+                ),
+                'per_month' => number_format(
+                    (float)$row['per_month'],
+                    2,
+                    '.',
+                    ''
+                ),
+                'paid_amount' => number_format(
+                    (float)$row['paid_amount'],
+                    2,
+                    '.',
+                    ''
+                ),
+                'skip_months' => $skip,
+            ]
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    $rows = [];
+
+    foreach (($state['rows'] ?? []) as $row) {
+        $rows[] = [
+            'amount' => number_format(
+                (float)($row['amount'] ?? 0),
+                2,
+                '.',
+                ''
+            ),
+            'reason' => (string)($row['reason'] ?? ''),
+            'team' => (string)($row['team'] ?? ''),
+            'adj_date' => !empty($row['adj_date'])
+                ? (string)$row['adj_date']
+                : null,
+        ];
+    }
+
+    usort($rows, function ($a, $b) {
+        return strcmp(
+            json_encode(
+                $a,
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+            ),
+            json_encode(
+                $b,
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+            )
+        );
+    });
+
+    return json_encode([
+        'kind' => 'adjustment',
+        'rows' => $rows
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+}
+
+function payrollAuditRestore(
+    mysqli $conn,
+    string $employeeCode,
+    string $month,
+    string $adjType,
+    string $branch,
+    array $state
+): void {
+    if ($adjType === 'advance') {
+        $del = $conn->prepare("
+            DELETE FROM payroll_advances
+            WHERE employee_code = ?
+              AND company_branch = ?
+        ");
+        $del->bind_param('ss', $employeeCode, $branch);
+        $del->execute();
+        $del->close();
+
+        $row = $state['row'] ?? null;
+
+        if ($row) {
+            $total = (float)($row['total_amount'] ?? 0);
+            $perMonth = (float)($row['per_month'] ?? 0);
+            $paid = (float)($row['paid_amount'] ?? 0);
+            $skip = $row['skip_months'] ?? [];
+
+            if (!is_array($skip)) {
+                $skip = [];
+            }
+
+            $skipJson = json_encode(array_values($skip));
+
+            $ins = $conn->prepare("
+                INSERT INTO payroll_advances
+                (
+                    employee_code,
+                    total_amount,
+                    per_month,
+                    paid_amount,
+                    skip_months,
+                    company_branch
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+            ");
+
+            $ins->bind_param(
+                'sdddss',
+                $employeeCode,
+                $total,
+                $perMonth,
+                $paid,
+                $skipJson,
+                $branch
+            );
+
+            $ins->execute();
+            $ins->close();
+        }
+
+        return;
+    }
+
+    $del = $conn->prepare("
+        DELETE FROM payroll_adjustments
+        WHERE employee_code = ?
+          AND month = ?
+          AND adj_type = ?
+          AND company_branch = ?
+    ");
+
+    $del->bind_param(
+        'ssss',
+        $employeeCode,
+        $month,
+        $adjType,
+        $branch
+    );
+
+    $del->execute();
+    $del->close();
+
+    $rows = $state['rows'] ?? [];
+
+    if (!is_array($rows) || empty($rows)) {
+        return;
+    }
+
+    $ins = $conn->prepare("
+        INSERT INTO payroll_adjustments
+        (
+            employee_code,
+            month,
+            adj_type,
+            amount,
+            reason,
+            team,
+            adj_date,
+            company_branch,
+            created_by
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ");
+
+    foreach ($rows as $row) {
+        $amount = (float)($row['amount'] ?? 0);
+        $reason = (string)($row['reason'] ?? '');
+        $team = (string)($row['team'] ?? '');
+        $adjDate = !empty($row['adj_date'])
+            ? (string)$row['adj_date']
+            : null;
+
+        $createdBy = (string)($row['created_by'] ?? 'System');
+
+        $ins->bind_param(
+            'sssdsssss',
+            $employeeCode,
+            $month,
+            $adjType,
+            $amount,
+            $reason,
+            $team,
+            $adjDate,
+            $branch,
+            $createdBy
+        );
+
+        $ins->execute();
+    }
+
+    $ins->close();
+}
+
+function payrollAuditWriteLog(
+    mysqli $conn,
+    ?int $adjustmentId,
+    ?int $sourceLogId,
+    string $employeeCode,
+    string $employeeName,
+    string $month,
+    string $adjType,
+    string $actionType,
+    float $amount,
+    string $reason,
+    array $beforeState,
+    array $afterState,
+    int $performedById,
+    string $performedByName,
+    string $branch
+): int {
+    $beforeJson = json_encode(
+        $beforeState,
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+    );
+
+    $afterJson = json_encode(
+        $afterState,
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+    );
+
+    $stmt = $conn->prepare("
+        INSERT INTO payroll_adjustment_logs
+        (
+            adjustment_id,
+            source_log_id,
+            employee_code,
+            employee_name,
+            month,
+            adj_type,
+            action_type,
+            amount,
+            reason,
+            before_state_json,
+            after_state_json,
+            performed_by_id,
+            performed_by_name,
+            company_branch
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ");
+
+    $stmt->bind_param(
+        'iisssssdsssiss',
+        $adjustmentId,
+        $sourceLogId,
+        $employeeCode,
+        $employeeName,
+        $month,
+        $adjType,
+        $actionType,
+        $amount,
+        $reason,
+        $beforeJson,
+        $afterJson,
+        $performedById,
+        $performedByName,
+        $branch
+    );
+
+    $stmt->execute();
+
+    $id = (int)$conn->insert_id;
+    $stmt->close();
+
+    return $id;
+}
+
 function saveMonthBundle(mysqli $conn, string $month, string $branch, array $bundle, array $leaves): bool {
     global $LIST_ADJ_TYPES, $SCALAR_ADJ_TYPES, $STRING_SCALAR_ADJ_TYPES;
     $userName = getCurrentUserName();
@@ -753,6 +1150,766 @@ switch ($action) {
             respond(true, null, 'Metadata saved');
         }
         respond(false, null, $conn->error);
+        break;
+
+
+    case 'getAdjustmentLogs':
+        $month = trim((string)($_GET['month'] ?? date('Y-m')));
+        $adjType = payrollAuditNormalizeType(
+            trim((string)($_GET['type'] ?? ''))
+        );
+
+        $limit = min(
+            max((int)($_GET['limit'] ?? 100), 1),
+            200
+        );
+
+        if (!preg_match('/^\d{4}-\d{2}$/', $month)) {
+            respond(false, null, 'Invalid month');
+        }
+
+        if (
+            $adjType !== ''
+            && !payrollAuditAllowedType($adjType)
+        ) {
+            respond(false, null, 'Invalid adjustment type');
+        }
+
+        if ($adjType !== '') {
+            $stmt = $conn->prepare("
+                SELECT
+                    l.*,
+                    EXISTS(
+                        SELECT 1
+                        FROM payroll_adjustment_logs r
+                        WHERE r.source_log_id = l.id
+                          AND r.action_type = 'REVERT'
+                          AND r.company_branch = l.company_branch
+                    ) AS is_reverted
+                FROM payroll_adjustment_logs l
+                WHERE l.month = ?
+                  AND l.company_branch = ?
+                  AND l.adj_type = ?
+                ORDER BY l.id DESC
+                LIMIT ?
+            ");
+
+            $stmt->bind_param(
+                'sssi',
+                $month,
+                $branch,
+                $adjType,
+                $limit
+            );
+        } else {
+            $stmt = $conn->prepare("
+                SELECT
+                    l.*,
+                    EXISTS(
+                        SELECT 1
+                        FROM payroll_adjustment_logs r
+                        WHERE r.source_log_id = l.id
+                          AND r.action_type = 'REVERT'
+                          AND r.company_branch = l.company_branch
+                    ) AS is_reverted
+                FROM payroll_adjustment_logs l
+                WHERE l.month = ?
+                  AND l.company_branch = ?
+                ORDER BY l.id DESC
+                LIMIT ?
+            ");
+
+            $stmt->bind_param(
+                'ssi',
+                $month,
+                $branch,
+                $limit
+            );
+        }
+
+        $stmt->execute();
+        $res = $stmt->get_result();
+
+        $logs = [];
+
+        while ($row = $res->fetch_assoc()) {
+            $logs[] = [
+                'id' => (int)$row['id'],
+                'adjustment_id' =>
+                    $row['adjustment_id'] !== null
+                        ? (int)$row['adjustment_id']
+                        : null,
+                'source_log_id' =>
+                    $row['source_log_id'] !== null
+                        ? (int)$row['source_log_id']
+                        : null,
+                'employee_code' => $row['employee_code'],
+                'employee_name' => $row['employee_name'] ?? '',
+                'month' => $row['month'],
+                'adj_type' => $row['adj_type'],
+                'action_type' => $row['action_type'],
+                'amount' => (float)$row['amount'],
+                'reason' => $row['reason'] ?? '',
+                'performed_by_id' =>
+                    $row['performed_by_id'] !== null
+                        ? (int)$row['performed_by_id']
+                        : null,
+                'performed_by_name' =>
+                    $row['performed_by_name'] ?? '',
+                'company_branch' => $row['company_branch'],
+                'created_at' => $row['created_at'],
+                'is_reverted' => (bool)$row['is_reverted'],
+            ];
+        }
+
+        $stmt->close();
+
+        respond(true, ['logs' => $logs]);
+        break;
+
+    case 'saveSingleOverrideAdjustment':
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            respond(false, null, 'POST request required');
+        }
+
+        $employeeCode = trim(
+            (string)($input['employee_code'] ?? '')
+        );
+
+        $employeeName = trim(
+            (string)($input['employee_name'] ?? '')
+        );
+
+        $month = trim(
+            (string)($input['month'] ?? date('Y-m'))
+        );
+
+        $adjType = payrollAuditNormalizeType(
+            trim((string)($input['adj_type'] ?? ''))
+        );
+
+        $actionType = strtoupper(
+            trim((string)($input['action_type'] ?? 'ADD'))
+        );
+
+        $amount = (float)($input['amount'] ?? 0);
+        $reason = trim((string)($input['reason'] ?? ''));
+        $team = trim((string)($input['team'] ?? ''));
+
+        $adjDate = !empty($input['adj_date'])
+            ? (string)$input['adj_date']
+            : null;
+
+        if (
+            $employeeCode === ''
+            || !preg_match('/^\d{4}-\d{2}$/', $month)
+            || !payrollAuditAllowedType($adjType)
+        ) {
+            respond(false, null, 'Missing or invalid parameters');
+        }
+
+        if (
+            !in_array(
+                $actionType,
+                ['ADD', 'DEDUCT', 'OVERRIDE'],
+                true
+            )
+        ) {
+            respond(false, null, 'Invalid action mode');
+        }
+
+        if ($reason === '') {
+            respond(false, null, 'Reason / audit note is required');
+        }
+
+        if ($employeeName === '') {
+            $nameStmt = $conn->prepare("
+                SELECT full_name
+                FROM users
+                WHERE employee_code = ?
+                LIMIT 1
+            ");
+
+            $nameStmt->bind_param('s', $employeeCode);
+            $nameStmt->execute();
+
+            if (
+                $nameRow =
+                    $nameStmt->get_result()->fetch_assoc()
+            ) {
+                $employeeName =
+                    (string)($nameRow['full_name'] ?? '');
+            }
+
+            $nameStmt->close();
+        }
+
+        $listTypes = [
+            'bonus',
+            'arrears',
+            'tada',
+            'halfDay',
+            'ncns',
+            'sd',
+            'qaHr',
+            'misspunch'
+        ];
+
+        $scalarTypes = [
+            'manualLate',
+            'manualPunctuality',
+            'tax'
+        ];
+
+        if (in_array($adjType, $scalarTypes, true)) {
+            if ($actionType !== 'OVERRIDE') {
+                respond(
+                    false,
+                    null,
+                    'Scalar adjustment requires OVERRIDE mode'
+                );
+            }
+
+            if ($amount < 0) {
+                respond(
+                    false,
+                    null,
+                    'Override amount cannot be negative'
+                );
+            }
+        }
+
+        if (
+            in_array(
+                $adjType,
+                ['halfDay', 'ncns', 'sd', 'qaHr', 'misspunch'],
+                true
+            )
+        ) {
+            if ($actionType !== 'DEDUCT') {
+                respond(
+                    false,
+                    null,
+                    'This adjustment only supports DEDUCT mode'
+                );
+            }
+
+            $amount = abs($amount);
+        }
+
+        if (
+            in_array(
+                $adjType,
+                ['bonus', 'arrears', 'tada'],
+                true
+            )
+        ) {
+            if (
+                !in_array(
+                    $actionType,
+                    ['ADD', 'DEDUCT'],
+                    true
+                )
+            ) {
+                respond(
+                    false,
+                    null,
+                    'This adjustment supports ADD or DEDUCT'
+                );
+            }
+
+            $amount = abs($amount);
+
+            if ($actionType === 'DEDUCT') {
+                $amount = -$amount;
+            }
+        }
+
+        if (
+            $adjType === 'advance'
+            && $actionType !== 'OVERRIDE'
+        ) {
+            respond(
+                false,
+                null,
+                'Advance requires OVERRIDE mode'
+            );
+        }
+
+        $before = payrollAuditSnapshot(
+            $conn,
+            $employeeCode,
+            $month,
+            $adjType,
+            $branch
+        );
+
+        $userId = (int)getCurrentUserId();
+        $userName = getCurrentUserName();
+
+        $conn->begin_transaction();
+
+        try {
+            $adjustmentId = null;
+
+            if ($adjType === 'advance') {
+                $total = (float)(
+                    $input['total_amount'] ?? $amount
+                );
+
+                $perMonth = (float)(
+                    $input['per_month'] ?? 0
+                );
+
+                $paid = (float)(
+                    $input['paid_amount'] ?? 0
+                );
+
+                $skip = $input['skip_months'] ?? [];
+
+                if (
+                    $total <= 0
+                    || $perMonth <= 0
+                    || $paid < 0
+                ) {
+                    throw new RuntimeException(
+                        'Invalid advance values'
+                    );
+                }
+
+                if (!is_array($skip)) {
+                    $skip = [];
+                }
+
+                $existingStmt = $conn->prepare("
+                    SELECT company_branch
+                    FROM payroll_advances
+                    WHERE employee_code = ?
+                    LIMIT 1
+                ");
+
+                $existingStmt->bind_param(
+                    's',
+                    $employeeCode
+                );
+
+                $existingStmt->execute();
+
+                $existing =
+                    $existingStmt
+                        ->get_result()
+                        ->fetch_assoc();
+
+                $existingStmt->close();
+
+                if (
+                    $existing
+                    && strtolower(
+                        (string)$existing['company_branch']
+                    ) !== strtolower($branch)
+                ) {
+                    throw new RuntimeException(
+                        'Advance exists under another branch'
+                    );
+                }
+
+                $del = $conn->prepare("
+                    DELETE FROM payroll_advances
+                    WHERE employee_code = ?
+                      AND company_branch = ?
+                ");
+
+                $del->bind_param(
+                    'ss',
+                    $employeeCode,
+                    $branch
+                );
+
+                $del->execute();
+                $del->close();
+
+                $skipJson = json_encode(
+                    array_values($skip)
+                );
+
+                $ins = $conn->prepare("
+                    INSERT INTO payroll_advances
+                    (
+                        employee_code,
+                        total_amount,
+                        per_month,
+                        paid_amount,
+                        skip_months,
+                        company_branch
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ");
+
+                $ins->bind_param(
+                    'sdddss',
+                    $employeeCode,
+                    $total,
+                    $perMonth,
+                    $paid,
+                    $skipJson,
+                    $branch
+                );
+
+                $ins->execute();
+                $ins->close();
+
+                $amount = $total;
+
+            } elseif (
+                in_array(
+                    $adjType,
+                    $scalarTypes,
+                    true
+                )
+            ) {
+                $del = $conn->prepare("
+                    DELETE FROM payroll_adjustments
+                    WHERE employee_code = ?
+                      AND month = ?
+                      AND adj_type = ?
+                      AND company_branch = ?
+                ");
+
+                $del->bind_param(
+                    'ssss',
+                    $employeeCode,
+                    $month,
+                    $adjType,
+                    $branch
+                );
+
+                $del->execute();
+                $del->close();
+
+                $ins = $conn->prepare("
+                    INSERT INTO payroll_adjustments
+                    (
+                        employee_code,
+                        month,
+                        adj_type,
+                        amount,
+                        reason,
+                        team,
+                        adj_date,
+                        company_branch,
+                        created_by
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ");
+
+                $ins->bind_param(
+                    'sssdsssss',
+                    $employeeCode,
+                    $month,
+                    $adjType,
+                    $amount,
+                    $reason,
+                    $team,
+                    $adjDate,
+                    $branch,
+                    $userName
+                );
+
+                $ins->execute();
+                $adjustmentId = (int)$conn->insert_id;
+                $ins->close();
+
+            } elseif (
+                in_array(
+                    $adjType,
+                    $listTypes,
+                    true
+                )
+            ) {
+                $ins = $conn->prepare("
+                    INSERT INTO payroll_adjustments
+                    (
+                        employee_code,
+                        month,
+                        adj_type,
+                        amount,
+                        reason,
+                        team,
+                        adj_date,
+                        company_branch,
+                        created_by
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ");
+
+                $ins->bind_param(
+                    'sssdsssss',
+                    $employeeCode,
+                    $month,
+                    $adjType,
+                    $amount,
+                    $reason,
+                    $team,
+                    $adjDate,
+                    $branch,
+                    $userName
+                );
+
+                $ins->execute();
+                $adjustmentId = (int)$conn->insert_id;
+                $ins->close();
+            }
+
+            $after = payrollAuditSnapshot(
+                $conn,
+                $employeeCode,
+                $month,
+                $adjType,
+                $branch
+            );
+
+            $logId = payrollAuditWriteLog(
+                $conn,
+                $adjustmentId,
+                null,
+                $employeeCode,
+                $employeeName,
+                $month,
+                $adjType,
+                $actionType,
+                $amount,
+                $reason,
+                $before,
+                $after,
+                $userId,
+                $userName,
+                $branch
+            );
+
+            $conn->commit();
+
+            respond(true, [
+                'adjustment_id' => $adjustmentId,
+                'log_id' => $logId,
+                'adj_type' => $adjType,
+                'action_type' => $actionType,
+            ], 'Adjustment recorded successfully');
+
+        } catch (Throwable $e) {
+            $conn->rollback();
+
+            respond(
+                false,
+                null,
+                'Adjustment failed: ' . $e->getMessage()
+            );
+        }
+
+        break;
+
+    case 'revertAdjustment':
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            respond(false, null, 'POST request required');
+        }
+
+        $logId = (int)($input['log_id'] ?? 0);
+
+        if ($logId <= 0) {
+            respond(
+                false,
+                null,
+                'Valid audit log ID required'
+            );
+        }
+
+        $stmt = $conn->prepare("
+            SELECT *
+            FROM payroll_adjustment_logs
+            WHERE id = ?
+              AND company_branch = ?
+            LIMIT 1
+        ");
+
+        $stmt->bind_param(
+            'is',
+            $logId,
+            $branch
+        );
+
+        $stmt->execute();
+        $log = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if (!$log) {
+            respond(false, null, 'Audit log not found');
+        }
+
+        if ($log['action_type'] === 'REVERT') {
+            respond(
+                false,
+                null,
+                'A REVERT entry cannot be reverted'
+            );
+        }
+
+        $already = $conn->prepare("
+            SELECT id
+            FROM payroll_adjustment_logs
+            WHERE source_log_id = ?
+              AND action_type = 'REVERT'
+              AND company_branch = ?
+            LIMIT 1
+        ");
+
+        $already->bind_param(
+            'is',
+            $logId,
+            $branch
+        );
+
+        $already->execute();
+
+        if (
+            $already
+                ->get_result()
+                ->fetch_assoc()
+        ) {
+            $already->close();
+
+            respond(
+                false,
+                null,
+                'This adjustment was already reverted'
+            );
+        }
+
+        $already->close();
+
+        $before = json_decode(
+            $log['before_state_json'] ?? '',
+            true
+        );
+
+        $after = json_decode(
+            $log['after_state_json'] ?? '',
+            true
+        );
+
+        if (
+            !is_array($before)
+            || !is_array($after)
+        ) {
+            respond(
+                false,
+                null,
+                'Audit snapshot is missing or invalid'
+            );
+        }
+
+        $employeeCode =
+            (string)$log['employee_code'];
+
+        $employeeName =
+            (string)($log['employee_name'] ?? '');
+
+        $month =
+            (string)$log['month'];
+
+        $adjType = payrollAuditNormalizeType(
+            (string)$log['adj_type']
+        );
+
+        if (!payrollAuditAllowedType($adjType)) {
+            respond(
+                false,
+                null,
+                'Unsupported adjustment type'
+            );
+        }
+
+        $current = payrollAuditSnapshot(
+            $conn,
+            $employeeCode,
+            $month,
+            $adjType,
+            $branch
+        );
+
+        if (
+            payrollAuditCanonical($current)
+            !== payrollAuditCanonical($after)
+        ) {
+            respond(
+                false,
+                null,
+                'Current payroll state changed after this entry. Revert blocked to protect newer changes.'
+            );
+        }
+
+        $userId = (int)getCurrentUserId();
+        $userName = getCurrentUserName();
+
+        $conn->begin_transaction();
+
+        try {
+            payrollAuditRestore(
+                $conn,
+                $employeeCode,
+                $month,
+                $adjType,
+                $branch,
+                $before
+            );
+
+            $restored = payrollAuditSnapshot(
+                $conn,
+                $employeeCode,
+                $month,
+                $adjType,
+                $branch
+            );
+
+            $reason =
+                'Reverted audit log #' .
+                $logId .
+                ': ' .
+                (string)($log['reason'] ?? '');
+
+            $newLogId = payrollAuditWriteLog(
+                $conn,
+                null,
+                $logId,
+                $employeeCode,
+                $employeeName,
+                $month,
+                $adjType,
+                'REVERT',
+                (float)$log['amount'],
+                $reason,
+                $current,
+                $restored,
+                $userId,
+                $userName,
+                $branch
+            );
+
+            $conn->commit();
+
+            respond(true, [
+                'revert_log_id' => $newLogId,
+                'source_log_id' => $logId,
+            ], 'Adjustment successfully reverted');
+
+        } catch (Throwable $e) {
+            $conn->rollback();
+
+            respond(
+                false,
+                null,
+                'Revert failed: ' . $e->getMessage()
+            );
+        }
+
         break;
 
     case 'addAdjustment':
