@@ -12,6 +12,42 @@ ini_set('display_errors', 1);
 
 require_once 'config.php';
 
+
+// =====================================================
+// ATTENDANCE BRANCH READ ACCESS
+// Super Admin + Finance can VIEW Main + Commercial.
+// Writes continue using TABLE_ATTENDANCE/current branch.
+// =====================================================
+function attendanceCanViewAllBranches(): bool {
+    $role = strtolower(trim((string)($_SESSION['portal_role'] ?? '')));
+    return in_array($role, ['super_admin', 'finance'], true);
+}
+
+function attendanceReadTableForBranch($branch): string {
+    if (!attendanceCanViewAllBranches()) {
+        return TABLE_ATTENDANCE;
+    }
+
+    $branch = strtolower(trim((string)$branch));
+
+    if (strpos($branch, 'commercial') !== false) {
+        return 'attendance_commercial_raw';
+    }
+
+    return 'attendance_raw';
+}
+
+function attendanceBulkReadSource(): string {
+    if (!attendanceCanViewAllBranches()) {
+        return TABLE_ATTENDANCE;
+    }
+
+    return "(SELECT user_id, timestamp FROM attendance_raw
+             UNION ALL
+             SELECT user_id, timestamp FROM attendance_commercial_raw) AS attendance_read";
+}
+
+
 // =====================================================
 // NEW: Load Employee Data from CSV (Sheet4)
 // =====================================================
@@ -475,6 +511,7 @@ switch ($action) {
             $department = !empty($csv_emp['department']) ? $csv_emp['department'] : ($emp['department'] ?: 'General');
             $designation = !empty($csv_emp['designation']) ? $csv_emp['designation'] : 'Employee';
             $branch = !empty($csv_emp['branch']) ? $csv_emp['branch'] : ($active_branch === 'commercial' ? 'Commercial' : ($active_branch === 'workfromhome' ? 'workfromhome' : 'Main'));
+            $attendance_read_table = attendanceReadTableForBranch($branch);
             $team = !empty($csv_emp['team']) ? $csv_emp['team'] : (!empty($emp['team']) ? $emp['team'] : '');
             
             // Initialize stats counters for department
@@ -505,7 +542,7 @@ switch ($action) {
 
             // Get check-in punches (2PM to midnight of selected date)
             $checkin_punches = $conn->query("
-                SELECT timestamp FROM " . TABLE_ATTENDANCE . " 
+                SELECT timestamp FROM " . $attendance_read_table . "
                 WHERE user_id = '$emp_code' 
                 AND timestamp BETWEEN '{$windows['checkin_start']}' AND '{$windows['checkin_end']}'
                 ORDER BY timestamp
@@ -513,7 +550,7 @@ switch ($action) {
 
             // Get check-out punches (midnight to noon of next day)
             $checkout_punches = $conn->query("
-                SELECT timestamp FROM " . TABLE_ATTENDANCE . " 
+                SELECT timestamp FROM " . $attendance_read_table . "
                 WHERE user_id = '$emp_code' 
                 AND timestamp BETWEEN '{$windows['checkout_start']}' AND '{$windows['checkout_end']}'
                 ORDER BY timestamp
@@ -769,10 +806,12 @@ switch ($action) {
             $emp_code = $conn->real_escape_string($emp['employee_code']);
             $csv_emp = $csv_employees[$emp_code] ?? null;
             $team_name = !empty($csv_emp['team']) ? $csv_emp['team'] : (!empty($emp['team']) ? $emp['team'] : '');
+            $employee_branch = !empty($csv_emp['branch']) ? $csv_emp['branch'] : ($active_branch === 'commercial' ? 'Commercial' : 'Main');
+            $attendance_read_table = attendanceReadTableForBranch($employee_branch);
 
             // Get first check-in of the shift
             $punch = $conn->query("
-                SELECT timestamp FROM " . TABLE_ATTENDANCE . " 
+                SELECT timestamp FROM " . $attendance_read_table . "
                 WHERE user_id = '$emp_code' 
                 AND timestamp BETWEEN '{$windows['checkin_start']}' AND '{$windows['checkin_end']}'
                 ORDER BY timestamp LIMIT 1
@@ -871,7 +910,7 @@ switch ($action) {
         // Fetch ALL punches for the entire range for ALL employees in ONE query to be efficient
         $all_punches_query = $conn->query("
             SELECT user_id, timestamp 
-            FROM " . TABLE_ATTENDANCE . " 
+            FROM " . attendanceBulkReadSource() . "
             WHERE timestamp BETWEEN '$start_date 14:00:00' AND '" . date('Y-m-d', strtotime($end_date . ' +1 day')) . " 12:00:00'
             ORDER BY timestamp ASC
         ");
@@ -1585,7 +1624,7 @@ switch ($action) {
                 COUNT(DISTINCT DATE(timestamp)) as days,
                 COUNT(DISTINCT user_id) as unique_users,
                 COUNT(*) as total_punches
-            FROM " . TABLE_ATTENDANCE . " 
+            FROM " . attendanceBulkReadSource() . "
             WHERE DATE(timestamp) BETWEEN '$start_date' AND '$end_date'
         ");
         
@@ -1601,7 +1640,7 @@ switch ($action) {
             SELECT 
                 DATE(timestamp) as date,
                 COUNT(*) as punches
-            FROM " . TABLE_ATTENDANCE . " 
+            FROM " . attendanceBulkReadSource() . "
             WHERE DATE(timestamp) BETWEEN '$start_date' AND '$end_date'
             GROUP BY DATE(timestamp)
             ORDER BY punches DESC
@@ -1734,7 +1773,7 @@ switch ($action) {
         // Fetch ALL punches for the entire month for ALL employees in ONE query to be efficient
         $all_punches_query = $conn->query("
             SELECT user_id, timestamp 
-            FROM " . TABLE_ATTENDANCE . " 
+            FROM " . attendanceBulkReadSource() . "
             WHERE timestamp BETWEEN '$start_date 14:00:00' AND '" . date('Y-m-d', strtotime($end_date . ' +1 day')) . " 12:00:00'
             ORDER BY timestamp
         ");

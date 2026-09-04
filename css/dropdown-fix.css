@@ -165,3 +165,22 @@ select.form-control option,
     background-color: #161b2e !important;
     color: #ffffff !important;
 }
+
+/* Employee profile select dropdown fix */
+.ess-profile-field select {
+    color-scheme: dark !important;
+}
+
+.ess-profile-field select option {
+    background: #1a1c2c !important;
+    color: #ffffff !important;
+}
+
+[data-theme="light"] .ess-profile-field select {
+    color-scheme: light !important;
+}
+
+[data-theme="light"] .ess-profile-field select option {
+    background: #ffffff !important;
+    color: #0f172a !important;
+}
