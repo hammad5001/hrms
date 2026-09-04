@@ -4862,44 +4862,822 @@ require_once 'config.php';
             loadAttendanceData();
         }
 
-        function renderManualTab() {
+        let manualAdjustmentLogs = [];
+        let manualAdjustmentLogsLoading = false;
+
+        function payrollAuditTypeLabel(type) {
+            const labels = {
+                bonus: 'Bonus',
+                arrears: 'Arrears',
+                tada: 'TA / DA',
+                manualLate: 'Late Deduction Override',
+                manualPunctuality: 'Punctuality Reward Override',
+                tax: 'Tax Override',
+                advance: 'Advance Salary',
+                halfDay: 'Half Day',
+                sd: 'SandWich (SD)',
+                ncns: 'NCNS',
+                misspunch: 'Miss Punch',
+                qaHr: 'QA / HR Deduction'
+            };
+
+            return labels[type] || type;
+        }
+
+        function onManualOverrideTypeChange(typeVal) {
+            const mode = document.getElementById('mo-action-mode');
+            const amount = document.getElementById('mo-amt');
+            const advanceFields = document.getElementById('mo-adv-extra-fields');
+
+            if (advanceFields) {
+                advanceFields.style.display =
+                    typeVal === 'advance' ? 'grid' : 'none';
+            }
+
+            if (amount) {
+                amount.readOnly = false;
+
+                if (typeVal === 'ncns') {
+                    amount.value = NCNS_PENALTY;
+                    amount.readOnly = true;
+                } else if (typeVal === 'misspunch') {
+                    amount.value = MISSPUNCH_DEDUCTION;
+                    amount.readOnly = true;
+                }
+            }
+
+            if (!mode) return;
+
+            if (
+                ['manualLate', 'manualPunctuality', 'tax', 'advance']
+                    .includes(typeVal)
+            ) {
+                mode.innerHTML =
+                    '<option value="OVERRIDE">Override</option>';
+                return;
+            }
+
+            if (
+                ['halfDay', 'sd', 'ncns', 'misspunch', 'qaHr']
+                    .includes(typeVal)
+            ) {
+                mode.innerHTML =
+                    '<option value="DEDUCT">Deduction</option>';
+                return;
+            }
+
+            mode.innerHTML = `
+                <option value="ADD">Addition (+ Salary)</option>
+                <option value="DEDUCT">Deduction (- Salary)</option>
+            `;
+        }
+
+        async function fetchManualAdjustmentLogs() {
+            manualAdjustmentLogsLoading = true;
+
+            try {
+                const response = await fetch(
+                    `${PAYROLL_API}?action=getAdjustmentLogs&month=${encodeURIComponent(payrollMonthStr())}&limit=100`,
+                    { credentials: 'include' }
+                );
+
+                const data = await response.json();
+
+                if (
+                    data.success &&
+                    data.data &&
+                    Array.isArray(data.data.logs)
+                ) {
+                    manualAdjustmentLogs = data.data.logs;
+                } else {
+                    manualAdjustmentLogs = [];
+                }
+            } catch (error) {
+                console.error(
+                    'Failed to load payroll adjustment audit logs:',
+                    error
+                );
+
+                manualAdjustmentLogs = [];
+            } finally {
+                manualAdjustmentLogsLoading = false;
+            }
+        }
+
+        function renderManualAdjustmentLogsHtml() {
+            if (manualAdjustmentLogsLoading) {
+                return `
+                    <div style="text-align:center;padding:28px;color:var(--text-muted);">
+                        Loading audit history...
+                    </div>
+                `;
+            }
+
+            if (!manualAdjustmentLogs.length) {
+                return `
+                    <div style="
+                        text-align:center;
+                        padding:28px;
+                        border:1px dashed var(--border-color);
+                        border-radius:10px;
+                        color:var(--text-muted);
+                    ">
+                        No audited payroll adjustments recorded for this month.
+                    </div>
+                `;
+            }
+
+            const rows = manualAdjustmentLogs.map(log => {
+                const reverted =
+                    log.action_type === 'REVERT' ||
+                    Boolean(log.is_reverted);
+
+                const actionColor =
+                    log.action_type === 'REVERT'
+                        ? '#f87171'
+                        : log.action_type === 'DEDUCT'
+                            ? '#fbbf24'
+                            : log.action_type === 'OVERRIDE'
+                                ? '#60a5fa'
+                                : '#34d399';
+
+                const amountValue =
+                    Number(log.amount || 0);
+
+                const amountPrefix =
+                    amountValue < 0 ? '-' : '';
+
+                const dateValue = log.created_at
+                    ? new Date(log.created_at).toLocaleString()
+                    : '-';
+
+                return `
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                        <td style="padding:10px;">${payrollAuditEscapeHtml(log.employee_code || '')}</td>
+
+                        <td style="padding:10px;font-weight:600;">
+                            ${payrollAuditEscapeHtml(log.employee_name || '-')}
+                        </td>
+
+                        <td style="padding:10px;">
+                            ${payrollAuditEscapeHtml(payrollAuditTypeLabel(log.adj_type))}
+                        </td>
+
+                        <td style="padding:10px;color:${actionColor};font-weight:700;">
+                            ${payrollAuditEscapeHtml(log.action_type)}
+                        </td>
+
+                        <td style="padding:10px;font-weight:700;">
+                            ${amountPrefix}PKR ${Math.abs(amountValue).toLocaleString()}
+                        </td>
+
+                        <td style="padding:10px;max-width:220px;">
+                            ${payrollAuditEscapeHtml(log.reason || '-')}
+                        </td>
+
+                        <td style="padding:10px;color:#60a5fa;">
+                            ${payrollAuditEscapeHtml(log.performed_by_name || 'System')}
+                        </td>
+
+                        <td style="padding:10px;color:var(--text-muted);font-size:11px;">
+                            ${payrollAuditEscapeHtml(dateValue)}
+                        </td>
+
+                        <td style="padding:10px;text-align:center;">
+                            ${
+                                reverted
+                                    ? '<span style="color:var(--text-muted);font-size:11px;">Reverted</span>'
+                                    : `
+                                        <button
+                                            class="btn btn-secondary"
+                                            onclick="revertManualAdjustment(${Number(log.id)})"
+                                            style="
+                                                padding:5px 9px;
+                                                font-size:11px;
+                                                color:#f87171;
+                                                border:1px solid rgba(248,113,113,0.3);
+                                                background:rgba(248,113,113,0.08);
+                                            ">
+                                            <i class="fas fa-undo"></i> Revert
+                                        </button>
+                                    `
+                            }
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
             return `
-                <div class="adj-section">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                        <h3>Manual Adjustments Overrides</h3>
-                        <button class="btn btn-secondary" onclick="showTaxSlabsInfoModal()" style="font-size:11px; padding:6px 12px; background:rgba(255,255,255,0.05); border:1px solid var(--border-color); color:white;"><i class="fas fa-info-circle"></i> FBR Tax Slabs 2026-27 Info</button>
-                    </div>
-                    <div class="adj-form-grid">
-                        <div class="search-input-wrapper">
-                            <label class="adj-label">Search Employee</label>
-                            <input type="text" class="adj-input" id="ml-emp-search" placeholder="Type name or ID..." onkeyup="renderEmployeeSearchResults('ml-emp-search', this.value)">
-                        </div>
-                        <div><label class="adj-label">Late Deduction Override (₨)</label><input type="number" class="adj-input" id="ml-amt" placeholder="e.g. 1500"></div>
-                        <div><label class="adj-label">Manual Tax Override (₨)</label><input type="number" class="adj-input" id="ml-tax" placeholder="e.g. 2000"></div>
-                    </div>
-                    <button class="btn btn-primary" onclick="saveManualOverridesFromSearch()"><i class="fas fa-save"></i> Save Overrides</button>
-                    <button class="btn btn-secondary" onclick="triggerCSVUpload('manualLate')" style="margin-left:8px; background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--border-color);"><i class="fas fa-file-upload"></i> Bulk Upload CSV</button>
-                    <a href="#" onclick="downloadCSVTemplate('manualLate'); return false;" style="margin-left:12px; font-size:12px; color: var(--primary); text-decoration: none; display: inline-block; vertical-align: middle;"><i class="fas fa-download"></i> Template</a>
-                    <input type="file" id="csv-file-input-manualLate" style="display:none;" accept=".csv" onchange="handleCSVFileSelected(event, 'manualLate')">
+                <div style="
+                    border:1px solid var(--border-color);
+                    border-radius:12px;
+                    overflow:auto;
+                    max-height:430px;
+                ">
+                    <table style="
+                        width:100%;
+                        border-collapse:collapse;
+                        min-width:1050px;
+                        font-size:12px;
+                    ">
+                        <thead>
+                            <tr style="
+                                background:rgba(255,255,255,0.03);
+                                color:var(--text-muted);
+                                text-transform:uppercase;
+                                font-size:10px;
+                            ">
+                                <th style="padding:10px;text-align:left;">B-ID</th>
+                                <th style="padding:10px;text-align:left;">Employee</th>
+                                <th style="padding:10px;text-align:left;">Category</th>
+                                <th style="padding:10px;text-align:left;">Action</th>
+                                <th style="padding:10px;text-align:left;">Amount</th>
+                                <th style="padding:10px;text-align:left;">Reason</th>
+                                <th style="padding:10px;text-align:left;">Logged By</th>
+                                <th style="padding:10px;text-align:left;">Time</th>
+                                <th style="padding:10px;text-align:center;">Control</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            ${rows}
+                        </tbody>
+                    </table>
                 </div>
             `;
         }
 
-        function saveManualOverridesFromSearch() {
-            const searchInput = document.getElementById('ml-emp-search');
-            const searchValue = searchInput?.value.trim();
-            const employee = allData.find(emp => emp.id === searchValue || emp.name.toLowerCase() === searchValue.toLowerCase());
-            if (!employee) { showToast('Select employee first', 'warning'); return; }
-            
-            const amt = parseFloat(document.getElementById('ml-amt').value) || 0;
-            const taxAmt = parseFloat(document.getElementById('ml-tax').value) || 0;
-            
-            if (amt > 0) payrollAdj.manualLate[employee.id] = amt;
-            if (taxAmt > 0) payrollAdj.tax[employee.id] = taxAmt;
-            
-            persistAllAdj();
-            showToast('✅ Overrides saved successfully', 'success');
-            loadAttendanceData();
+        function payrollAuditEscapeHtml(value) {
+            return String(value ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        async function refreshManualLogsView(showMessage = true) {
+            await fetchManualAdjustmentLogs();
+
+            const container =
+                document.getElementById('manual-logs-table-container');
+
+            if (container) {
+                container.innerHTML =
+                    renderManualAdjustmentLogsHtml();
+            }
+
+            if (showMessage) {
+                showToast('Audit logs refreshed', 'info');
+            }
+        }
+
+        function resetUnifiedManualForm() {
+            const ids = [
+                'mo-emp-search',
+                'mo-amt',
+                'mo-reason',
+                'mo-adv-total',
+                'mo-adv-monthly'
+            ];
+
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+
+            const paid =
+                document.getElementById('mo-adv-paid');
+
+            if (paid) {
+                paid.value = '0';
+            }
+
+            const type =
+                document.getElementById('mo-adj-type');
+
+            if (type) {
+                type.value = 'bonus';
+            }
+
+            onManualOverrideTypeChange('bonus');
+        }
+
+        async function submitUnifiedManualAdjustment() {
+            const searchValue =
+                document.getElementById('mo-emp-search')
+                    ?.value
+                    ?.trim();
+
+            const employee = allData.find(emp =>
+                String(emp.id) === String(searchValue) ||
+                String(emp.name || '').toLowerCase() ===
+                    String(searchValue || '').toLowerCase()
+            );
+
+            if (!employee) {
+                showToast(
+                    'Select an employee first',
+                    'warning'
+                );
+                return;
+            }
+
+            const adjType =
+                document.getElementById('mo-adj-type')?.value;
+
+            const actionType =
+                document.getElementById('mo-action-mode')?.value;
+
+            const reason =
+                document.getElementById('mo-reason')
+                    ?.value
+                    ?.trim();
+
+            const adjDate =
+                document.getElementById('mo-date')?.value ||
+                `${payrollMonthStr()}-01`;
+
+            let amount =
+                parseFloat(
+                    document.getElementById('mo-amt')?.value
+                ) || 0;
+
+            if (!reason) {
+                showToast(
+                    'Reason / audit note is required',
+                    'warning'
+                );
+                return;
+            }
+
+            if (adjType === 'ncns') {
+                amount = NCNS_PENALTY;
+            }
+
+            if (adjType === 'misspunch') {
+                amount = MISSPUNCH_DEDUCTION;
+            }
+
+            const payload = {
+                employee_code: employee.id,
+                employee_name: employee.name,
+                month: payrollMonthStr(),
+                adj_type: adjType,
+                action_type: actionType,
+                amount,
+                reason,
+                adj_date: adjDate,
+                team: employee.team || ''
+            };
+
+            if (adjType === 'advance') {
+                const total =
+                    parseFloat(
+                        document.getElementById('mo-adv-total')?.value
+                    ) || 0;
+
+                const monthly =
+                    parseFloat(
+                        document.getElementById('mo-adv-monthly')?.value
+                    ) || 0;
+
+                const paid =
+                    parseFloat(
+                        document.getElementById('mo-adv-paid')?.value
+                    ) || 0;
+
+                if (total <= 0 || monthly <= 0 || paid < 0) {
+                    showToast(
+                        'Enter valid advance amounts',
+                        'warning'
+                    );
+                    return;
+                }
+
+                payload.total_amount = total;
+                payload.per_month = monthly;
+                payload.paid_amount = paid;
+                payload.amount = total;
+            } else if (amount < 0) {
+                showToast(
+                    'Enter a positive amount; Action Mode controls addition or deduction',
+                    'warning'
+                );
+                return;
+            }
+
+            try {
+                showToast(
+                    'Saving payroll adjustment...',
+                    'info'
+                );
+
+                const response = await fetch(
+                    `${PAYROLL_API}?action=saveSingleOverrideAdjustment`,
+                    {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    }
+                );
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(
+                        data.error ||
+                        'Adjustment could not be saved'
+                    );
+                }
+
+                showToast(
+                    `Adjustment saved for ${employee.name}`,
+                    'success'
+                );
+
+                resetUnifiedManualForm();
+
+                await loadAttendanceData();
+                await refreshManualLogsView(false);
+
+            } catch (error) {
+                console.error(
+                    'Manual payroll adjustment failed:',
+                    error
+                );
+
+                showToast(
+                    `Save failed: ${error.message}`,
+                    'error'
+                );
+            }
+        }
+
+        async function revertManualAdjustment(logId) {
+            if (
+                !confirm(
+                    'Revert this payroll adjustment to its previous audited state?'
+                )
+            ) {
+                return;
+            }
+
+            try {
+                showToast(
+                    'Reverting payroll adjustment...',
+                    'info'
+                );
+
+                const response = await fetch(
+                    `${PAYROLL_API}?action=revertAdjustment`,
+                    {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            log_id: Number(logId)
+                        })
+                    }
+                );
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(
+                        data.error ||
+                        'Adjustment could not be reverted'
+                    );
+                }
+
+                showToast(
+                    'Adjustment reverted successfully',
+                    'success'
+                );
+
+                await loadAttendanceData();
+                await refreshManualLogsView(false);
+
+            } catch (error) {
+                console.error(
+                    'Payroll adjustment revert failed:',
+                    error
+                );
+
+                showToast(
+                    `Revert failed: ${error.message}`,
+                    'error'
+                );
+            }
+        }
+
+        function renderManualTab() {
+            if (!manualAdjustmentLogsLoading) {
+                fetchManualAdjustmentLogs().then(() => {
+                    const container =
+                        document.getElementById(
+                            'manual-logs-table-container'
+                        );
+
+                    if (container) {
+                        container.innerHTML =
+                            renderManualAdjustmentLogsHtml();
+                    }
+                });
+            }
+
+            return `
+                <div class="adj-section">
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                        gap:12px;
+                        flex-wrap:wrap;
+                        margin-bottom:18px;
+                    ">
+                        <div>
+                            <h3 style="margin:0;">
+                                <i class="fas fa-sliders-h"></i>
+                                Manual Adjustments & Overrides
+                            </h3>
+
+                            <div style="
+                                margin-top:5px;
+                                font-size:12px;
+                                color:var(--text-muted);
+                            ">
+                                Audited payroll changes with user, reason,
+                                timestamp and safe revert history.
+                            </div>
+                        </div>
+
+                        <button
+                            class="btn btn-secondary"
+                            onclick="showTaxSlabsInfoModal()">
+                            <i class="fas fa-info-circle"></i>
+                            FBR Tax Slabs 2026-27
+                        </button>
+                    </div>
+
+                    <div style="
+                        padding:18px;
+                        background:rgba(255,255,255,0.02);
+                        border:1px solid var(--border-color);
+                        border-radius:12px;
+                    ">
+
+                        <div class="adj-form-grid">
+
+                            <div class="search-input-wrapper">
+                                <label class="adj-label">
+                                    Search Employee
+                                </label>
+
+                                <input
+                                    type="text"
+                                    class="adj-input"
+                                    id="mo-emp-search"
+                                    placeholder="Type name or B-ID..."
+                                    onkeyup="renderEmployeeSearchResults('mo-emp-search', this.value)">
+                            </div>
+
+                            <div>
+                                <label class="adj-label">
+                                    Category
+                                </label>
+
+                                <select
+                                    class="adj-input"
+                                    id="mo-adj-type"
+                                    onchange="onManualOverrideTypeChange(this.value)"
+                                    style="background:#0f1524;color:white;">
+
+                                    <option value="bonus">Bonus</option>
+                                    <option value="arrears">Arrears</option>
+                                    <option value="tada">TA / DA</option>
+
+                                    <option value="manualPunctuality">
+                                        Punctuality Reward Override
+                                    </option>
+
+                                    <option value="manualLate">
+                                        Late Deduction Override
+                                    </option>
+
+                                    <option value="tax">
+                                        Tax Override
+                                    </option>
+
+                                    <option value="advance">
+                                        Advance Salary
+                                    </option>
+
+                                    <option value="halfDay">
+                                        Half Day
+                                    </option>
+
+                                    <option value="sd">
+                                        SandWich (SD)
+                                    </option>
+
+                                    <option value="ncns">
+                                        NCNS
+                                    </option>
+
+                                    <option value="misspunch">
+                                        Miss Punch
+                                    </option>
+
+                                    <option value="qaHr">
+                                        QA / HR Deduction
+                                    </option>
+
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="adj-label">
+                                    Action Mode
+                                </label>
+
+                                <select
+                                    class="adj-input"
+                                    id="mo-action-mode"
+                                    style="background:#0f1524;color:white;">
+
+                                    <option value="ADD">
+                                        Addition (+ Salary)
+                                    </option>
+
+                                    <option value="DEDUCT">
+                                        Deduction (- Salary)
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="adj-label">
+                                    Amount (PKR)
+                                </label>
+
+                                <input
+                                    type="number"
+                                    class="adj-input"
+                                    id="mo-amt"
+                                    min="0"
+                                    step="any"
+                                    placeholder="e.g. 5000">
+                            </div>
+
+                            <div>
+                                <label class="adj-label">
+                                    Effective Date
+                                </label>
+
+                                <input
+                                    type="date"
+                                    class="adj-input"
+                                    id="mo-date"
+                                    value="${payrollMonthStr()}-01">
+                            </div>
+
+                        </div>
+
+                        <div
+                            id="mo-adv-extra-fields"
+                            style="
+                                display:none;
+                                grid-template-columns:
+                                    repeat(auto-fit,minmax(180px,1fr));
+                                gap:14px;
+                                margin-top:16px;
+                                padding-top:16px;
+                                border-top:
+                                    1px dashed var(--border-color);
+                            ">
+
+                            <div>
+                                <label class="adj-label">
+                                    Total Advance
+                                </label>
+
+                                <input
+                                    type="number"
+                                    class="adj-input"
+                                    id="mo-adv-total"
+                                    min="0">
+                            </div>
+
+                            <div>
+                                <label class="adj-label">
+                                    Monthly Deduction
+                                </label>
+
+                                <input
+                                    type="number"
+                                    class="adj-input"
+                                    id="mo-adv-monthly"
+                                    min="0">
+                            </div>
+
+                            <div>
+                                <label class="adj-label">
+                                    Paid So Far
+                                </label>
+
+                                <input
+                                    type="number"
+                                    class="adj-input"
+                                    id="mo-adv-paid"
+                                    min="0"
+                                    value="0">
+                            </div>
+                        </div>
+
+                        <div style="margin-top:16px;">
+                            <label class="adj-label">
+                                Reason / Audit Note
+                            </label>
+
+                            <input
+                                type="text"
+                                class="adj-input"
+                                id="mo-reason"
+                                style="width:100%;"
+                                placeholder="Required reason for this payroll change...">
+                        </div>
+
+                        <div style="
+                            display:flex;
+                            gap:10px;
+                            margin-top:18px;
+                            flex-wrap:wrap;
+                        ">
+                            <button
+                                class="btn btn-primary"
+                                onclick="submitUnifiedManualAdjustment()">
+
+                                <i class="fas fa-check-circle"></i>
+                                Apply & Save Adjustment
+                            </button>
+
+                            <button
+                                class="btn btn-secondary"
+                                onclick="resetUnifiedManualForm()">
+
+                                Clear Form
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:28px;">
+
+                        <div style="
+                            display:flex;
+                            justify-content:space-between;
+                            align-items:center;
+                            gap:10px;
+                            margin-bottom:12px;
+                        ">
+                            <div>
+                                <h3 style="margin:0;">
+                                    <i class="fas fa-history"></i>
+                                    Adjustment Audit History
+                                </h3>
+
+                                <div style="
+                                    font-size:11px;
+                                    color:var(--text-muted);
+                                    margin-top:4px;
+                                ">
+                                    Selected month:
+                                    ${payrollMonthStr()}
+                                </div>
+                            </div>
+
+                            <button
+                                class="btn btn-secondary"
+                                onclick="refreshManualLogsView()">
+
+                                <i class="fas fa-sync-alt"></i>
+                                Refresh
+                            </button>
+                        </div>
+
+                        <div id="manual-logs-table-container">
+                            ${renderManualAdjustmentLogsHtml()}
+                        </div>
+
+                    </div>
+                </div>
+            `;
         }
 
         function renderSettingsTab() {
