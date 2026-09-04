@@ -53,7 +53,7 @@ function loadEmployeeDataFromCSV() {
     }
     fclose($file);
     $db = $conn->query("
-        SELECT e.employee_code, e.full_name, e.department, COALESCE(NULLIF(u.team, ''), NULLIF(e.team, ''), '') as team 
+        SELECT e.employee_code, e.full_name, e.department, COALESCE(NULLIF(u.team, ''), NULLIF(e.team, ''), '') as team
         FROM employees e
         LEFT JOIN users u ON (e.employee_code IS NOT NULL AND e.employee_code != '' AND e.employee_code COLLATE utf8mb4_unicode_ci = u.employee_code COLLATE utf8mb4_unicode_ci)
         WHERE e.is_active = 1
@@ -260,7 +260,7 @@ function saveMonthBundle(mysqli $conn, string $month, string $branch, array $bun
         }
 
         if (!empty($bundle['empMeta']) && is_array($bundle['empMeta'])) {
-            $metaStmt = $conn->prepare("INSERT INTO employee_payroll_meta 
+            $metaStmt = $conn->prepare("INSERT INTO employee_payroll_meta
                 (employee_code, basic_salary, punctuality_enabled, punctuality_amount, sudo_name, designation, cnic, bank_name, account_no, account_title, appointment_date, company_branch)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
@@ -532,7 +532,7 @@ switch ($action) {
         // Prepare statements
         $findCodeStmt = $conn->prepare("SELECT employee_code, full_name FROM users WHERE employee_code = ? AND COALESCE(NULLIF(company_branch, ''), 'main') = ? LIMIT 1");
         $findNameStmt = $conn->prepare("SELECT employee_code, full_name FROM users WHERE LOWER(full_name) = LOWER(?) AND COALESCE(NULLIF(company_branch, ''), 'main') = ? LIMIT 1");
-        
+
         $metaStmt = $conn->prepare("INSERT INTO employee_payroll_meta
             (employee_code, basic_salary, punctuality_enabled, punctuality_amount, appointment_date, bank_name, account_no, account_title, cnic, company_branch)
             VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?)
@@ -730,10 +730,10 @@ switch ($action) {
         if (!$empCode) {
             respond(false, null, 'Employee code required');
         }
-        $stmt = $conn->prepare("INSERT INTO employee_payroll_meta 
+        $stmt = $conn->prepare("INSERT INTO employee_payroll_meta
             (employee_code, basic_salary, punctuality_enabled, cnic, bank_name, account_no, account_title, appointment_date, company_branch)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE 
+            ON DUPLICATE KEY UPDATE
             basic_salary = VALUES(basic_salary),
             punctuality_enabled = VALUES(punctuality_enabled),
             cnic = VALUES(cnic),
@@ -753,6 +753,216 @@ switch ($action) {
             respond(true, null, 'Metadata saved');
         }
         respond(false, null, $conn->error);
+        break;
+
+    case 'getAdjustmentLogs':
+        $month = $_GET['month'] ?? date('Y-m');
+        $adjType = trim($_GET['type'] ?? '');
+        $limit = min(max(intval($_GET['limit'] ?? 50), 1), 200);
+
+        if ($adjType !== '') {
+            $logStmt = $conn->prepare("
+                SELECT id, adjustment_id, employee_code, employee_name, month, adj_type, action_type, amount, reason, performed_by_id, performed_by_name, company_branch, created_at
+                FROM payroll_adjustment_logs
+                WHERE month = ? AND company_branch = ? AND adj_type = ?
+                ORDER BY created_at DESC, id DESC
+                LIMIT ?
+            ");
+            $logStmt->bind_param('sssi', $month, $branch, $adjType, $limit);
+        } else {
+            $logStmt = $conn->prepare("
+                SELECT id, adjustment_id, employee_code, employee_name, month, adj_type, action_type, amount, reason, performed_by_id, performed_by_name, company_branch, created_at
+                FROM payroll_adjustment_logs
+                WHERE month = ? AND company_branch = ?
+                ORDER BY created_at DESC, id DESC
+                LIMIT ?
+            ");
+            $logStmt->bind_param('ssi', $month, $branch, $limit);
+        }
+        $logStmt->execute();
+        $logRes = $logStmt->get_result();
+        $logs = [];
+        if ($logRes) {
+            while ($lRow = $logRes->fetch_assoc()) {
+                $logs[] = [
+                    'id' => (int)$lRow['id'],
+                    'adjustment_id' => $lRow['adjustment_id'] ? (int)$lRow['adjustment_id'] : null,
+                    'employee_code' => $lRow['employee_code'],
+                    'employee_name' => $lRow['employee_name'] ?? '',
+                    'month' => $lRow['month'],
+                    'adj_type' => $lRow['adj_type'],
+                    'action_type' => $lRow['action_type'],
+                    'amount' => (float)$lRow['amount'],
+                    'reason' => $lRow['reason'] ?? '',
+                    'performed_by_id' => $lRow['performed_by_id'] ? (int)$lRow['performed_by_id'] : null,
+                    'performed_by_name' => $lRow['performed_by_name'],
+                    'company_branch' => $lRow['company_branch'],
+                    'created_at' => $lRow['created_at'],
+                ];
+            }
+        }
+        respond(true, ['logs' => $logs]);
+        break;
+
+    case 'saveSingleOverrideAdjustment':
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            respond(false, null, 'POST request required');
+        }
+        $data = $input;
+        $empCode = trim($data['employee_code'] ?? '');
+        $empName = trim($data['employee_name'] ?? '');
+        $month = trim($data['month'] ?? date('Y-m'));
+        $adjType = trim($data['adj_type'] ?? '');
+        $actionType = strtoupper(trim($data['action_type'] ?? 'ADD')); // ADD, DEDUCT, OVERRIDE
+        $amount = (float)($data['amount'] ?? 0);
+        $reason = trim($data['reason'] ?? '');
+        $adjDate = !empty($data['adj_date']) ? $data['adj_date'] : null;
+        $team = trim($data['team'] ?? '');
+
+        if (!$empCode || !$adjType || !preg_match('/^\d{4}-\d{2}$/', $month)) {
+            respond(false, null, 'Missing or invalid parameters');
+        }
+
+        // Fetch user name if not provided
+        if (!$empName) {
+            $uFind = $conn->prepare("SELECT full_name FROM users WHERE employee_code = ? LIMIT 1");
+            $uFind->bind_param('s', $empCode);
+            $uFind->execute();
+            if ($uRow = $uFind->get_result()->fetch_assoc()) {
+                $empName = $uRow['full_name'];
+            }
+        }
+
+        $userName = getCurrentUserName();
+        $userId = getCurrentUserId();
+        $adjId = null;
+
+        $conn->begin_transaction();
+        try {
+            if (in_array($adjType, $LIST_ADJ_TYPES, true)) {
+                // If actionType is DEDUCT for types like tada, bonus, arrears -> make amount negative
+                if ($actionType === 'DEDUCT' && in_array($adjType, ['tada', 'bonus', 'arrears'], true) && $amount > 0) {
+                    $amount = -$amount;
+                }
+                $ins = $conn->prepare("INSERT INTO payroll_adjustments (employee_code, month, adj_type, amount, reason, team, adj_date, company_branch, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $ins->bind_param('sssdsssss', $empCode, $month, $adjType, $amount, $reason, $team, $adjDate, $branch, $userName);
+                $ins->execute();
+                $adjId = $conn->insert_id;
+            } elseif (in_array($adjType, $SCALAR_ADJ_TYPES, true)) {
+                // Scalar: replace single record for that month/employee/type
+                $del = $conn->prepare("DELETE FROM payroll_adjustments WHERE employee_code = ? AND month = ? AND adj_type = ? AND company_branch = ?");
+                $del->bind_param('ssss', $empCode, $month, $adjType, $branch);
+                $del->execute();
+
+                if ($amount != 0 || $actionType === 'OVERRIDE') {
+                    $ins = $conn->prepare("INSERT INTO payroll_adjustments (employee_code, month, adj_type, amount, reason, team, adj_date, company_branch, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $ins->bind_param('sssdsssss', $empCode, $month, $adjType, $amount, $reason, $team, $adjDate, $branch, $userName);
+                    $ins->execute();
+                    $adjId = $conn->insert_id;
+                }
+            } elseif ($adjType === 'advance') {
+                // Advance setting
+                $totalAdv = (float)($data['total_amount'] ?? $amount);
+                $perMonthAdv = (float)($data['per_month'] ?? $amount);
+                $paidAdv = (float)($data['paid_amount'] ?? 0);
+
+                $delA = $conn->prepare("DELETE FROM payroll_advances WHERE employee_code = ? AND company_branch = ?");
+                $delA->bind_param('ss', $empCode, $branch);
+                $delA->execute();
+
+                if ($totalAdv > 0) {
+                    $insA = $conn->prepare("INSERT INTO payroll_advances (employee_code, total_amount, per_month, paid_amount, skip_months, company_branch) VALUES (?, ?, ?, ?, '[]', ?)");
+                    $insA->bind_param('sddds', $empCode, $totalAdv, $perMonthAdv, $paidAdv, $branch);
+                    $insA->execute();
+                    $adjId = $conn->insert_id;
+                }
+            }
+
+            // Write Audit Log
+            $logStmt = $conn->prepare("
+                INSERT INTO payroll_adjustment_logs (adjustment_id, employee_code, employee_name, month, adj_type, action_type, amount, reason, performed_by_id, performed_by_name, company_branch)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            $logStmt->bind_param('isssssdssss', $adjId, $empCode, $empName, $month, $adjType, $actionType, $amount, $reason, $userId, $userName, $branch);
+            $logStmt->execute();
+
+            $conn->commit();
+            respond(true, ['adjustment_id' => $adjId], 'Adjustment recorded successfully');
+        } catch (Throwable $e) {
+            $conn->rollback();
+            respond(false, null, 'Adjustment failed: ' . $e->getMessage());
+        }
+        break;
+
+    case 'revertAdjustment':
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            respond(false, null, 'POST request required');
+        }
+        $logId = intval($input['log_id'] ?? 0);
+        $adjId = intval($input['adjustment_id'] ?? 0);
+        $empCode = trim($input['employee_code'] ?? '');
+        $adjType = trim($input['adj_type'] ?? '');
+        $month = trim($input['month'] ?? date('Y-m'));
+
+        $userName = getCurrentUserName();
+        $userId = getCurrentUserId();
+
+        $conn->begin_transaction();
+        try {
+            // If log_id provided, fetch original info
+            $origEmp = $empCode;
+            $origName = '';
+            $origType = $adjType;
+            $origAmount = 0.0;
+            $origMonth = $month;
+
+            if ($logId > 0) {
+                $fLog = $conn->prepare("SELECT * FROM payroll_adjustment_logs WHERE id = ? AND company_branch = ? LIMIT 1");
+                $fLog->bind_param('is', $logId, $branch);
+                $fLog->execute();
+                if ($lRow = $fLog->get_result()->fetch_assoc()) {
+                    $origEmp = $lRow['employee_code'];
+                    $origName = $lRow['employee_name'];
+                    $origType = $lRow['adj_type'];
+                    $origAmount = (float)$lRow['amount'];
+                    $origMonth = $lRow['month'];
+                    if (!$adjId && $lRow['adjustment_id']) {
+                        $adjId = (int)$lRow['adjustment_id'];
+                    }
+                }
+            }
+
+            // Remove from payroll_adjustments if adjustment_id exists or by type/code/month
+            if ($adjId > 0) {
+                $del = $conn->prepare("DELETE FROM payroll_adjustments WHERE id = ? AND company_branch = ?");
+                $del->bind_param('is', $adjId, $branch);
+                $del->execute();
+            } elseif (in_array($origType, $SCALAR_ADJ_TYPES, true)) {
+                $del = $conn->prepare("DELETE FROM payroll_adjustments WHERE employee_code = ? AND month = ? AND adj_type = ? AND company_branch = ?");
+                $del->bind_param('ssss', $origEmp, $origMonth, $origType, $branch);
+                $del->execute();
+            } elseif ($origType === 'advance') {
+                $delA = $conn->prepare("DELETE FROM payroll_advances WHERE employee_code = ? AND company_branch = ?");
+                $delA->bind_param('ss', $origEmp, $branch);
+                $delA->execute();
+            }
+
+            // Record Revert Log
+            $revertReason = "Reverted adjustment ($origType - ₨" . number_format($origAmount, 2) . ")";
+            $logStmt = $conn->prepare("
+                INSERT INTO payroll_adjustment_logs (adjustment_id, employee_code, employee_name, month, adj_type, action_type, amount, reason, performed_by_id, performed_by_name, company_branch)
+                VALUES (?, ?, ?, ?, ?, 'REVERT', ?, ?, ?, ?, ?)
+            ");
+            $nullAdjId = null;
+            $logStmt->bind_param('issssdssss', $nullAdjId, $origEmp, $origName, $origMonth, $origType, $origAmount, $revertReason, $userId, $userName, $branch);
+            $logStmt->execute();
+
+            $conn->commit();
+            respond(true, null, 'Adjustment successfully reverted');
+        } catch (Throwable $e) {
+            $conn->rollback();
+            respond(false, null, 'Revert failed: ' . $e->getMessage());
+        }
         break;
 
     case 'addAdjustment':

@@ -28,7 +28,7 @@ require_once 'config.php';
             --danger: #ef4444;
             --info: #3b82f6;
             --purple: #8b5cf6;
-            
+
             --bg-sidebar: #0f1524;
             --bg-main: #0a0c15;
             --bg-card: rgba(30, 36, 54, 0.95);
@@ -37,7 +37,7 @@ require_once 'config.php';
             --text-color: #f3f4f6;
             --text-muted: #94a3b8;
         }
-        
+
         /* Global Webkit Scrollbars */
         ::-webkit-scrollbar {
             width: 8px;
@@ -144,7 +144,7 @@ require_once 'config.php';
             letter-spacing: 1px;
             display: block;
         }
-        
+
         .user-profile {
             display: flex;
             align-items: center;
@@ -230,7 +230,7 @@ require_once 'config.php';
             background: rgba(239, 68, 68, 0.1);
             color: var(--danger);
         }
-        
+
         .sidebar-footer {
             padding: 16px;
             border-top: 1px solid var(--border-color);
@@ -266,7 +266,7 @@ require_once 'config.php';
             overflow: hidden;
             background-color: var(--bg-main);
         }
-        
+
         .main-header {
             height: 80px;
             border-bottom: 1px solid var(--border-color);
@@ -287,7 +287,7 @@ require_once 'config.php';
             margin-top: 2px;
             display: block;
         }
-        
+
         .header-actions {
             display: flex;
             align-items: center;
@@ -391,7 +391,7 @@ require_once 'config.php';
         .summary-card.accent-purple .card-icon { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
         .summary-card.accent-red .card-icon { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
         .summary-card.accent-amber .card-icon { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
-        
+
         .summary-card.primary-gradient {
             background: linear-gradient(135deg, #ea580c, #9a3412);
             border: none;
@@ -796,7 +796,7 @@ require_once 'config.php';
         .att-select.code-SD { background: rgba(239, 68, 68, 0.2); color: #f87171; border-color: rgba(239, 68, 68, 0.4); }
         .att-select.code-NCNS { background: rgba(225, 29, 72, 0.3); color: #fda4af; border-color: rgba(225, 29, 72, 0.5); }
         .att-select.code-BLANK { background: rgba(255, 255, 255, 0.05); color: #94a3b8; border-color: rgba(255, 255, 255, 0.1); }
-        
+
         .extra-days-input {
             width: 55px;
             background: #1e293b;
@@ -829,7 +829,7 @@ require_once 'config.php';
         #printArea tr:hover td {
             background: #ffffff !important;
         }
-        
+
         .payslip-modal-content {
             width: 92vw !important;
             max-width: 850px !important;
@@ -841,7 +841,7 @@ require_once 'config.php';
             border-radius: 16px !important;
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6) !important;
         }
-        
+
         .payslip-scroll-container {
             width: 100%;
             overflow-x: auto !important;
@@ -865,7 +865,7 @@ require_once 'config.php';
         .payslip-scroll-container::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
-        
+
         /* Sticky columns for Attendance & Payroll Tables */
         #attendanceTable th:nth-child(1),
         #attendanceTable td:nth-child(1),
@@ -897,7 +897,7 @@ require_once 'config.php';
             z-index: 26;
             background: #161e33;
         }
-        
+
         .highlight-net-salary {
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.35)) !important;
             color: #34d399 !important;
@@ -1277,17 +1277,17 @@ require_once 'config.php';
         .fum-edit-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--primary-glow); border: 1px solid rgba(14, 90, 235, 0.3); color: var(--primary); border-radius: 20px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.25s; }
         .fum-edit-btn:hover { background: var(--primary); color: white; }
 
-        .fum-modal { 
-            max-width: 720px; 
-            width: 95%; 
-            max-height: 92vh; 
-            background: #171822; 
-            border-radius: 20px; 
-            border: 1px solid var(--border-color); 
-            overflow: hidden; 
-            margin: auto; 
-            display: flex; 
-            flex-direction: column; 
+        .fum-modal {
+            max-width: 720px;
+            width: 95%;
+            max-height: 92vh;
+            background: #171822;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
         }
         .fum-modal-header { background: rgba(255,255,255,0.02); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
         .fum-modal-header-left { display: flex; align-items: center; gap: 12px; }
@@ -1296,10 +1296,10 @@ require_once 'config.php';
         .fum-modal-title p { font-size: 11px; color: var(--text-muted); }
         .fum-modal-close { width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.05); border: none; color: white; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .fum-modal-close:hover { background: var(--danger); }
-        .fum-modal-body { 
-            padding: 24px; 
-            overflow-y: auto; 
-            flex: 1; 
+        .fum-modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
             max-height: calc(92vh - 130px);
         }
         .fum-modal-body::-webkit-scrollbar {
@@ -1352,14 +1352,14 @@ require_once 'config.php';
         .pc-stat-card { background: linear-gradient(145deg, rgba(26,29,45,0.7) 0%, rgba(18,20,32,0.85) 100%); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.06); border-radius: 18px; padding: 22px 24px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; min-height: 125px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
         .pc-stat-card::after { content: ''; position: absolute; inset: 0; border-radius: 18px; padding: 1px; background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
         .pc-stat-card:hover { transform: translateY(-4px); box-shadow: 0 14px 30px -8px rgba(0,0,0,0.4); border-color: rgba(249,115,22,0.3); }
-        
+
         .pc-stat-card.hero { background: linear-gradient(135deg, rgba(37,99,235,0.25) 0%, rgba(124,58,237,0.25) 100%); border: 1px solid rgba(99,102,241,0.4); box-shadow: 0 8px 28px rgba(99,102,241,0.15); }
         .pc-stat-card.hero-pending { background: linear-gradient(135deg, rgba(245,158,11,0.25) 0%, rgba(217,119,6,0.25) 100%); border: 1px solid rgba(245,158,11,0.4); box-shadow: 0 8px 28px rgba(245,158,11,0.15); }
-        
+
         .pc-stat-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
         .pc-stat-icon { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: transform 0.2s; }
         .pc-stat-card:hover .pc-stat-icon { transform: scale(1.08); }
-        
+
         .pc-stat-icon.orange { background: rgba(249,115,22,0.15); color: #f97316; box-shadow: inset 0 0 12px rgba(249,115,22,0.1); }
         .pc-stat-icon.green  { background: rgba(16,185,129,0.15); color: #10b981; box-shadow: inset 0 0 12px rgba(16,185,129,0.1); }
         .pc-stat-icon.yellow { background: rgba(245,158,11,0.15); color: #f59e0b; box-shadow: inset 0 0 12px rgba(245,158,11,0.1); }
@@ -1368,7 +1368,7 @@ require_once 'config.php';
         .pc-stat-icon.purple { background: rgba(139,92,246,0.15); color: #8b5cf6; box-shadow: inset 0 0 12px rgba(139,92,246,0.1); }
         .pc-stat-icon.hero-icon { background: rgba(59,130,246,0.3); color: #60a5fa; box-shadow: 0 0 15px rgba(59,130,246,0.25); }
         .pc-stat-icon.hero-pending-icon { background: rgba(245,158,11,0.3); color: #fbbf24; box-shadow: 0 0 15px rgba(245,158,11,0.25); }
-        
+
         .pc-stat-value { font-size: 26px; font-weight: 800; color: #ffffff; letter-spacing: -0.6px; line-height: 1.1; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         .pc-stat-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 6px; }
         .pc-stat-card.hero .pc-stat-label { color: rgba(255,255,255,0.8); }
@@ -1495,7 +1495,7 @@ require_once 'config.php';
 
         /* Locked badge */
         .pc-locked-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text-muted); background: rgba(255,255,255,0.04); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border-color); }
-        
+
         /* Category pill */
         .pc-category-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 600; background: rgba(249,115,22,0.1); color: var(--primary); border: 1px solid rgba(249,115,22,0.2); white-space: nowrap; }
 
@@ -1531,7 +1531,7 @@ require_once 'config.php';
                         <span>FINANCE HUB</span>
                     </div>
                 </div>
-                
+
                 <div class="user-profile">
                     <div class="user-avatar" id="sidebarUserAvatar">F</div>
                     <div class="user-info">
@@ -1540,7 +1540,7 @@ require_once 'config.php';
                     </div>
                 </div>
             </div>
-            
+
             <nav class="sidebar-nav">
                 <div class="nav-section">MAIN HUB</div>
                 <button class="nav-item active" data-view="overview" onclick="switchView('overview')">
@@ -1552,7 +1552,7 @@ require_once 'config.php';
                 <button class="nav-item" data-view="users" onclick="switchView('users')">
                     <i class="fas fa-users-cog"></i> <span>Users Settings</span>
                 </button>
-                
+
                 <div class="nav-section">PAYROLL MODULE</div>
                 <button class="nav-item" data-view="payroll-sheet" onclick="switchView('payroll-sheet')">
                     <i class="fas fa-file-invoice-dollar"></i> <span>Full Payroll Sheet</span>
@@ -1590,26 +1590,26 @@ require_once 'config.php';
                 <button class="nav-item" data-view="settings" onclick="switchView('settings')">
                     <i class="fas fa-cog"></i> <span>Global Settings</span>
                 </button>
-                
+
                 <div class="nav-section">PETTY CASH</div>
                 <button class="nav-item" data-view="petty-cash" onclick="switchView('petty-cash')">
                     <i class="fas fa-receipt"></i> <span>Petty Cash</span>
                 </button>
-                
+
                 <div class="nav-section">PORTAL UTILITIES</div>
                 <a href="admin-dashboard.html" class="nav-item"><i class="fas fa-th-large"></i> <span>Back to Portal</span></a>
                 <a href="profile.php" class="nav-item"><i class="fas fa-user-circle"></i> <span>Profile</span></a>
                 <a href="chat-portal.html" class="nav-item"><i class="fas fa-comments"></i> <span>Chat</span></a>
                 <a href="logout.php" class="nav-item logout-link"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
             </nav>
-            
+
             <div class="sidebar-footer">
                 <button class="btn-sidebar-cta" onclick="exportPayrollCSV()">
                     <i class="fas fa-file-csv"></i> Export Payroll CSV
                 </button>
             </div>
         </aside>
-        
+
         <!-- MAIN CONTENT PANEL -->
         <main class="main-content">
             <!-- HEADER -->
@@ -1638,10 +1638,10 @@ require_once 'config.php';
                     </div>
                 </div>
             </header>
-            
+
             <!-- SCROLLABLE PANELS CONTAINER -->
             <div class="panels-container">
-                
+
                 <!-- 1. OVERVIEW PANEL -->
                 <div class="view-panel active" id="panel-overview">
                     <div class="overview-grid">
@@ -1755,7 +1755,7 @@ require_once 'config.php';
                             <div class="ov-card-subtext"><i class="fas fa-circle-xmark"></i> Net Salary = 0</div>
                         </div>
                     </div>
-                    
+
                     <div class="charts-row">
                         <div class="chart-card">
                             <div class="chart-header">
@@ -1860,7 +1860,7 @@ require_once 'config.php';
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="table-container">
                             <div class="table-wrapper">
                                 <table class="fum-table" id="financeUsersTable">
@@ -2485,7 +2485,7 @@ require_once 'config.php';
                             <strong id="resFailed" style="font-size: 18px; color: #ef4444;">0</strong>
                         </div>
                     </div>
-                    
+
                     <div style="max-height: 150px; overflow-y: auto; font-size: 11px; padding: 4px; border-radius: 6px; background: rgba(0,0,0,0.25);">
                         <ul id="importDetailsList" style="list-style: none; margin: 0; padding: 0;"></ul>
                     </div>
@@ -2533,12 +2533,12 @@ require_once 'config.php';
         // ===== SIDEBAR NAVIGATION SWITCHER =====
         function switchView(view) {
             activeView = view;
-            
+
             // Sidebar buttons
             document.querySelectorAll('.sidebar-nav .nav-item').forEach(b => b.classList.remove('active'));
             const activeNav = document.querySelector(`.sidebar-nav .nav-item[data-view="${view}"]`);
             if (activeNav) activeNav.classList.add('active');
-            
+
             // View title
             const viewTitles = {
                 overview: 'Overview Hub',
@@ -2559,12 +2559,12 @@ require_once 'config.php';
                 'petty-cash': 'Petty Cash Management'
             };
             document.getElementById('mainViewTitle').textContent = viewTitles[view] || 'Finance Hub';
-            
+
             // Panels
             document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
             const activePanel = document.getElementById(`panel-${view}`);
             if (activePanel) activePanel.classList.add('active');
-            
+
             // Auto-collapse sidebar for Attendance Grid to maximize full page view
             const sidebar = document.querySelector('.sidebar');
             if (sidebar) {
@@ -2574,7 +2574,7 @@ require_once 'config.php';
                     sidebar.classList.remove('collapsed');
                 }
             }
-            
+
             // Run view specific trigger
             if (view === 'users') {
                 loadFinanceUsers();
@@ -2670,7 +2670,7 @@ require_once 'config.php';
             const period = (match[3] || '').toUpperCase();
             if (period === 'PM' && hour !== 12) hour += 12;
             if (period === 'AM' && hour === 12) hour = 0;
-            
+
             let cutoffMinutes = CHECKIN_CUTOFF_MINUTES;
             if (teamName && window._teamShiftMap && window._teamShiftMap[String(teamName).toLowerCase()]) {
                 cutoffMinutes = window._teamShiftMap[String(teamName).toLowerCase()];
@@ -2942,7 +2942,7 @@ require_once 'config.php';
             const qaHrAmount = sumAdjustments(emp.id, 'qaHr');
             const misspunchCount = countAdjustments(emp.id, 'misspunch') + (emp.overrideMpCount || 0);
             const misspunchAmount = misspunchCount * MISSPUNCH_DEDUCTION;
-            
+
             const advanceData = payrollAdj.advance[emp.id];
             let advanceDeduction = 0;
             let advanceRemaining = 0;
@@ -3184,7 +3184,7 @@ require_once 'config.php';
             calculateStats();
             renderTable();
             updateCharts();
-            
+
             // If active view is payroll panel, render it
             if (activeView !== 'overview' && activeView !== 'users') {
                 renderPayrollDashboardView(activeView);
@@ -3195,7 +3195,7 @@ require_once 'config.php';
             const selectEl = document.getElementById('headerBranchFilter');
             const branch = selectEl.value;
             const normBranch = branch ? branch.toLowerCase() : 'main';
-            
+
             try {
                 const res = await fetch(`api/payroll_api.php?action=switchBranch&branch=${normBranch}`);
                 const data = await res.json();
@@ -3260,7 +3260,7 @@ require_once 'config.php';
 
         function calculateStats() {
             const payrollData = allData.map(emp => calculatePayrollForEmployee(emp));
-            
+
             const totalFinalNet = payrollData.reduce((s, e) => s + (e.finalNetSalary || 0), 0);
             const totalGross = payrollData.reduce((s, e) => s + (e.totalEarnings || 0), 0);
             const totalDeductions = payrollData.reduce((s, e) => s + (e.totalDeductions || 0), 0);
@@ -3343,14 +3343,14 @@ require_once 'config.php';
                     `<td><span class="badge-desig">${emp.designation || 'Employee'}</span></td>` +
                     `<td><span class="badge-branch">${emp.branch || 'Main'}</span></td>` +
                     `<td><span class="badge-team">${emp.team || 'No Team'}</span></td>`;
-                
+
                 for (let day = 1; day <= daysInMonth; day++) {
                     const dateStr = `${currentYear}-${String(currentMonth).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
                     const currentCode = (emp.attendanceCodes && emp.attendanceCodes[day] !== undefined) ? emp.attendanceCodes[day] : '';
                     const clsKey = currentCode ? currentCode.toUpperCase() : 'BLANK';
                     const checkinTime = (emp.attendance && emp.attendance[day]) ? emp.attendance[day] : '--:--';
                     const hasCheckin = checkinTime !== '--:--';
-                    
+
                     const timeBadge = `<div style="font-size:10px; font-weight:700; color:${hasCheckin ? '#38bdf8' : 'rgba(255,255,255,0.25)'}; margin-bottom:3px; letter-spacing:0.3px;">${checkinTime}</div>`;
 
                     const selectHtml = `<select class="att-select code-${clsKey}" onchange="updateAttendanceCell('${emp.id}', '${dateStr}', this.value)" onclick="event.stopPropagation();">
@@ -3469,7 +3469,7 @@ require_once 'config.php';
             if (attendanceTrendChart) attendanceTrendChart.destroy();
             const ctx1 = document.getElementById('attendanceTrendChart').getContext('2d');
             attendanceTrendChart = new Chart(ctx1, { type: 'line', data: { labels: last7Days, datasets: [{ label: 'Present Employees', data: attendanceData, borderColor: '#f97316', backgroundColor: 'rgba(249, 115, 22, 0.05)', fill: true, tension: 0.4, pointBackgroundColor: '#f97316', pointBorderColor: 'white', pointRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#9ca3af' } } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af' } }, x: { ticks: { color: '#9ca3af' } } } } });
-            
+
             const deptMap = new Map();
             allData.forEach(emp => { deptMap.set(emp.department, (deptMap.get(emp.department) || 0) + 1); });
             const sortedDepts = Array.from(deptMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 6);
@@ -3485,7 +3485,7 @@ require_once 'config.php';
                 deptCostMap.set(dept, (deptCostMap.get(dept) || 0) + p.grossSalary);
             });
             const sortedDeptCosts = Array.from(deptCostMap.entries()).sort((a,b) => b[1] - a[1]).slice(0, 6);
-            
+
             if (deptPayrollChart) deptPayrollChart.destroy();
             const ctx3 = document.getElementById('deptPayrollChart').getContext('2d');
             deptPayrollChart = new Chart(ctx3, {
@@ -4488,12 +4488,12 @@ require_once 'config.php';
                                     </select>
                                 </td>
                                 <td>
-                                    <input type="text" 
-                                           class="payroll-comment-input ${isHold && !empComments.trim() ? 'comment-required-error' : ''}" 
+                                    <input type="text"
+                                           class="payroll-comment-input ${isHold && !empComments.trim() ? 'comment-required-error' : ''}"
                                            id="comment-input-${e.id}"
-                                           value="${escapeHtml(empComments)}" 
-                                           placeholder="${isHold ? 'Comment required...' : 'Add comment...'}" 
-                                           onchange="updatePayrollComment('${e.id}', this.value)" 
+                                           value="${escapeHtml(empComments)}"
+                                           placeholder="${isHold ? 'Comment required...' : 'Add comment...'}"
+                                           onchange="updatePayrollComment('${e.id}', this.value)"
                                            oninput="onPayrollCommentInput('${e.id}', this.value)">
                                 </td>
                                 <td><button class="fum-edit-btn" onclick="viewPayrollSlip('${e.id}', event)"><i class="fas fa-receipt"></i> Slip</button></td>
@@ -4531,15 +4531,27 @@ require_once 'config.php';
                     </div>`;
                 });
             });
-            if (!listHtml) listHtml = '<div style="text-align:center;padding:30px;color:var(--text-muted);">No records found.</div>';
+            if (!listHtml) listHtml = '<div style="text-align:center;padding:30px;color:var(--text-muted);">No active records in current bundle.</div>';
+
+            // Auto-trigger logs fetch for tab view
+            if (!manualAdjustmentLogsLoading) {
+                fetchManualAdjustmentLogs(type).then(() => {
+                    const logsContainer = document.getElementById(`tab-logs-${type}`);
+                    if (logsContainer) {
+                        logsContainer.innerHTML = renderCategoryAdjustmentLogsHtml(type);
+                    }
+                });
+            }
 
             return `
                 <div class="adj-section">
-                    <h3><i class="fas ${icon}"></i> ${label}</h3>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                        <h3 style="margin:0;"><i class="fas ${icon}"></i> ${label}</h3>
+                    </div>
                     <div class="adj-form-grid">
                         <div class="search-input-wrapper">
                             <label class="adj-label">Search Employee</label>
-                            <input type="text" class="adj-input" id="${type}-emp-search" placeholder="Type name or ID..." 
+                            <input type="text" class="adj-input" id="${type}-emp-search" placeholder="Type name or ID..."
                                 onkeyup="renderEmployeeSearchResults('${type}-emp-search', this.value)">
                         </div>
                         ${['tada', 'bonus', 'arrears'].includes(type) ? `
@@ -4559,12 +4571,30 @@ require_once 'config.php';
                     <button class="btn btn-secondary" onclick="triggerCSVUpload('${type}')" style="margin-left:8px; background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--border-color);"><i class="fas fa-file-upload"></i> Bulk Upload CSV</button>
                     <a href="#" onclick="downloadCSVTemplate('${type}', ${isPerDay}); return false;" style="margin-left:12px; font-size:12px; color: var(--primary); text-decoration: none; display: inline-block; vertical-align: middle;"><i class="fas fa-download"></i> Template</a>
                     <input type="file" id="csv-file-input-${type}" style="display:none;" accept=".csv" onchange="handleCSVFileSelected(event, '${type}', ${isPerDay})">
-                    
+
                     <div style="margin-top:24px;padding:16px;background:rgba(255,255,255,0.02);border:1px solid var(--border-color);border-radius:12px;display:flex;justify-content:space-between;">
-                        <div style="font-size:12px;color:var(--text-muted)">Records: <strong style="color:white;">${totalCount}</strong></div>
+                        <div style="font-size:12px;color:var(--text-muted)">Active Records: <strong style="color:white;">${totalCount}</strong></div>
                         <div style="font-size:12px;color:var(--text-muted)">Net Total: <strong style="color:${total < 0 || sign==='negative'?'var(--danger)':'var(--secondary)'};">${total < 0 ? '-' : (sign==='negative'?'-':'+')}₨ ${Math.abs(total).toLocaleString()}</strong></div>
                     </div>
                     <div class="adj-list">${listHtml}</div>
+
+                    <!-- Dedicated Audit Log & History Table For This Tab -->
+                    <div style="margin-top:32px; border-top:1px solid var(--border-color); padding-top:20px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <div>
+                                <h4 style="margin:0; font-size:14px; font-weight:700; color:#fff; display:flex; align-items:center; gap:8px;">
+                                    <i class="fas fa-history" style="color:#10b981;"></i> ${label} Activity & Audit Log
+                                </h4>
+                                <span style="font-size:11px; color:var(--text-muted);">Shows which account added or deducted ${label} amounts and allows one-click revert</span>
+                            </div>
+                            <button class="btn btn-secondary" onclick="refreshCategoryLogsView('${type}')" style="font-size:11px; padding:4px 10px; background:rgba(255,255,255,0.05); border:1px solid var(--border-color); color:white;">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                        <div id="tab-logs-${type}">
+                            ${renderCategoryAdjustmentLogsHtml(type)}
+                        </div>
+                    </div>
                 </div>
             `;
         }
@@ -4575,7 +4605,7 @@ require_once 'config.php';
             const existingResults = inputWrapper.querySelector('.employee-search-results');
             if (existingResults) existingResults.remove();
             if (!searchValue || searchValue.length < 1) return;
-            const filtered = allData.filter(emp => 
+            const filtered = allData.filter(emp =>
                 emp.name.toLowerCase().includes(searchValue.toLowerCase()) || emp.id.includes(searchValue)
             ).slice(0, 5);
             if (filtered.length === 0) return;
@@ -4608,84 +4638,66 @@ require_once 'config.php';
                 return;
             }
 
-            const reason =
-                document.getElementById(`adj-reason-${type}`)?.value || '';
-
-            const dateInput =
-                document.getElementById(`adj-date-${type}`);
-
+            const reason = document.getElementById(`adj-reason-${type}`)?.value || '';
+            const dateInput = document.getElementById(`adj-date-${type}`);
             const date = dateInput ? dateInput.value : '';
-
-            const amtInput =
-                document.getElementById(`adj-amt-${type}`);
-
-            let amount =
-                amtInput ? parseFloat(amtInput.value) || 0 : 0;
-
-            const modeInput =
-                document.getElementById(`adj-mode-${type}`);
+            const amtInput = document.getElementById(`adj-amt-${type}`);
+            let amount = amtInput ? parseFloat(amtInput.value) || 0 : 0;
+            const modeInput = document.getElementById(`adj-mode-${type}`);
+            let actionType = 'ADD';
 
             if (modeInput && modeInput.value === 'deduction') {
                 amount = -Math.abs(amount);
+                actionType = 'DEDUCT';
             }
 
             if (type === 'ncns') {
                 amount = NCNS_PENALTY;
+                actionType = 'DEDUCT';
             } else if (type === 'misspunch') {
                 amount = MISSPUNCH_DEDUCTION;
+                actionType = 'DEDUCT';
+            } else if (['halfDay', 'sd', 'qaHr'].includes(type)) {
+                actionType = 'DEDUCT';
             }
 
-            if (!payrollAdj[type]) {
-                payrollAdj[type] = {};
-            }
-
-            if (!payrollAdj[type][employee.id]) {
-                payrollAdj[type][employee.id] = [];
-            }
-
-            const newEntry = {
-                amount,
-                reason,
-                date,
-                addedAt: new Date().toISOString()
-            };
-
-            payrollAdj[type][employee.id].push(newEntry);
-
+            // Save using the audit-logging single adjustment endpoint
             try {
-                clearTimeout(payrollSaveTimer);
+                showToast('⏳ Saving entry...', 'info');
+                const res = await fetch(`${PAYROLL_API}?action=saveSingleOverrideAdjustment`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        employee_code: employee.id,
+                        employee_name: employee.name,
+                        month: payrollMonthStr(),
+                        adj_type: type,
+                        action_type: actionType,
+                        amount: amount,
+                        reason: reason || `${type} manual entry`,
+                        adj_date: date || `${payrollMonthStr()}-01`,
+                        team: employee.team || ''
+                    })
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to save');
+                }
 
-                // Save must finish before data is loaded again.
-                await persistAllAdjNow();
-
-                showToast(
-                    `✅ Entry added for ${employee.name}`,
-                    'success'
-                );
-
+                showToast(`✅ Entry added for ${employee.name}`, 'success');
                 await loadAttendanceData();
+                await fetchManualAdjustmentLogs(type);
+                const logsContainer = document.getElementById(`tab-logs-${type}`);
+                if (logsContainer) {
+                    logsContainer.innerHTML = renderCategoryAdjustmentLogsHtml(type);
+                }
             } catch (error) {
                 console.error('Adjustment save failed:', error);
-
-                const items = payrollAdj[type][employee.id] || [];
-                const index = items.lastIndexOf(newEntry);
-
-                if (index !== -1) {
-                    items.splice(index, 1);
-                }
-
-                if (items.length === 0) {
-                    delete payrollAdj[type][employee.id];
-                }
-
-                showToast(
-                    `❌ Entry could not be saved: ${error.message}`,
-                    'error'
-                );
+                showToast(`❌ Entry could not be saved: ${error.message}`, 'error');
             }
         }
 
-        // Keep standard helper functions ...
         async function deleteAdjItem(type, empId, idx) {
             if (!confirm('Confirm delete?')) return;
 
@@ -4698,6 +4710,7 @@ require_once 'config.php';
                 return;
             }
 
+            const deletedItem = payrollAdj[type][empId][idx];
             payrollAdj[type][empId].splice(idx, 1);
 
             if (payrollAdj[type][empId].length === 0) {
@@ -4708,21 +4721,31 @@ require_once 'config.php';
                 clearTimeout(payrollSaveTimer);
                 await persistAllAdjNow();
 
-                showToast('✅ Entry deleted', 'success');
+                // Also log the revert/deletion in audit table
+                const empObj = allData.find(e => String(e.id) === String(empId));
+                fetch(`${PAYROLL_API}?action=revertAdjustment`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        employee_code: empId,
+                        adj_type: type,
+                        month: payrollMonthStr()
+                    })
+                }).catch(e => console.error(e));
+
+                showToast('✅ Entry deleted and audited', 'success');
                 await loadAttendanceData();
+                await fetchManualAdjustmentLogs(type);
+                const logsContainer = document.getElementById(`tab-logs-${type}`);
+                if (logsContainer) {
+                    logsContainer.innerHTML = renderCategoryAdjustmentLogsHtml(type);
+                }
             } catch (error) {
                 console.error('Adjustment delete failed:', error);
-
-                if (!payrollAdj[type]) {
-                    payrollAdj[type] = {};
-                }
-
+                if (!payrollAdj[type]) payrollAdj[type] = {};
                 payrollAdj[type][empId] = previousItems;
-
-                showToast(
-                    `❌ Entry could not be deleted: ${error.message}`,
-                    'error'
-                );
+                showToast(`❌ Entry could not be deleted: ${error.message}`, 'error');
             }
         }
 
@@ -4742,7 +4765,17 @@ require_once 'config.php';
                     </div>`;
                 }
             });
-            if (!listHtml) listHtml = '<div style="text-align:center;padding:30px;color:var(--text-muted);">No advance records.</div>';
+            if (!listHtml) listHtml = '<div style="text-align:center;padding:30px;color:var(--text-muted);">No advance records in current bundle.</div>';
+
+            if (!manualAdjustmentLogsLoading) {
+                fetchManualAdjustmentLogs('advance').then(() => {
+                    const logsContainer = document.getElementById('tab-logs-advance');
+                    if (logsContainer) {
+                        logsContainer.innerHTML = renderCategoryAdjustmentLogsHtml('advance');
+                    }
+                });
+            }
+
             return `
                 <div class="adj-section">
                     <h3><i class="fas fa-hand-holding-usd"></i> Advance Salary Management</h3>
@@ -4759,13 +4792,31 @@ require_once 'config.php';
                     <button class="btn btn-secondary" onclick="triggerCSVUpload('advance')" style="margin-left:8px; background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--border-color);"><i class="fas fa-file-upload"></i> Bulk Upload CSV</button>
                     <a href="#" onclick="downloadCSVTemplate('advance'); return false;" style="margin-left:12px; font-size:12px; color: var(--primary); text-decoration: none; display: inline-block; vertical-align: middle;"><i class="fas fa-download"></i> Template</a>
                     <input type="file" id="csv-file-input-advance" style="display:none;" accept=".csv" onchange="handleCSVFileSelected(event, 'advance')">
-                    
+
                     <div class="adj-list">${listHtml}</div>
+
+                    <!-- Advance Audit Log Section -->
+                    <div style="margin-top:32px; border-top:1px solid var(--border-color); padding-top:20px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <div>
+                                <h4 style="margin:0; font-size:14px; font-weight:700; color:#fff; display:flex; align-items:center; gap:8px;">
+                                    <i class="fas fa-history" style="color:#10b981;"></i> Advance Salary Activity & Audit Log
+                                </h4>
+                                <span style="font-size:11px; color:var(--text-muted);">Shows user account history for advance adjustments and one-click revert</span>
+                            </div>
+                            <button class="btn btn-secondary" onclick="refreshCategoryLogsView('advance')" style="font-size:11px; padding:4px 10px; background:rgba(255,255,255,0.05); border:1px solid var(--border-color); color:white;">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                        <div id="tab-logs-advance">
+                            ${renderCategoryAdjustmentLogsHtml('advance')}
+                        </div>
+                    </div>
                 </div>
             `;
         }
 
-        function addAdvanceFromSearch() {
+        async function addAdvanceFromSearch() {
             const searchInput = document.getElementById('adv-emp-search');
             const searchValue = searchInput?.value.trim();
             const employee = allData.find(emp => emp.id === searchValue || emp.name.toLowerCase() === searchValue.toLowerCase());
@@ -4774,59 +4825,630 @@ require_once 'config.php';
             const perMonth = parseFloat(document.getElementById('adv-perMonth').value) || 0;
             const paid = parseFloat(document.getElementById('adv-paid').value) || 0;
             if (total <= 0 || perMonth <= 0) { showToast('Invalid amounts', 'warning'); return; }
-            payrollAdj.advance[employee.id] = { total, perMonth, paid, skipMonths: [], addedAt: new Date().toISOString() };
-            persistAllAdj();
-            showToast(`✅ Advance setup complete for ${employee.name}`, 'success');
-            loadAttendanceData();
+
+            try {
+                showToast('⏳ Setting advance...', 'info');
+                const res = await fetch(`${PAYROLL_API}?action=saveSingleOverrideAdjustment`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        employee_code: employee.id,
+                        employee_name: employee.name,
+                        month: payrollMonthStr(),
+                        adj_type: 'advance',
+                        action_type: 'OVERRIDE',
+                        amount: total,
+                        total_amount: total,
+                        per_month: perMonth,
+                        paid_amount: paid,
+                        reason: `Advance Salary: Total ₨${total.toLocaleString()}, Monthly ₨${perMonth.toLocaleString()}`,
+                        team: employee.team || ''
+                    })
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to save advance');
+                }
+
+                showToast(`✅ Advance setup complete for ${employee.name}`, 'success');
+                await loadAttendanceData();
+                await fetchManualAdjustmentLogs('advance');
+                const logsContainer = document.getElementById('tab-logs-advance');
+                if (logsContainer) {
+                    logsContainer.innerHTML = renderCategoryAdjustmentLogsHtml('advance');
+                }
+            } catch (e) {
+                console.error(e);
+                showToast(`❌ Error setting advance: ${e.message}`, 'error');
+            }
         }
 
-        function deleteAdvance(empId) {
-            if (!confirm('Confirm delete?')) return;
-            delete payrollAdj.advance[empId];
-            persistAllAdj();
-            showToast('✅ Advance deleted', 'success');
-            loadAttendanceData();
+        async function deleteAdvance(empId) {
+            if (!confirm('Confirm delete advance?')) return;
+            try {
+                const res = await fetch(`${PAYROLL_API}?action=revertAdjustment`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        employee_code: empId,
+                        adj_type: 'advance',
+                        month: payrollMonthStr()
+                    })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Failed to delete');
+
+                showToast('✅ Advance deleted and audited', 'success');
+                await loadAttendanceData();
+                await fetchManualAdjustmentLogs('advance');
+                const logsContainer = document.getElementById('tab-logs-advance');
+                if (logsContainer) {
+                    logsContainer.innerHTML = renderCategoryAdjustmentLogsHtml('advance');
+                }
+            } catch (e) {
+                console.error(e);
+                showToast(`❌ Error: ${e.message}`, 'error');
+            }
         }
 
-        function renderManualTab() {
+        function renderCategoryAdjustmentLogsHtml(targetType) {
+            if (manualAdjustmentLogsLoading) {
+                return '<div style="text-align:center; padding:20px; color:var(--text-muted);"><i class="fas fa-spinner fa-spin"></i> Loading audit logs...</div>';
+            }
+
+            const filteredLogs = manualAdjustmentLogs.filter(l => !targetType || l.adj_type === targetType);
+
+            if (!filteredLogs || filteredLogs.length === 0) {
+                return '<div style="text-align:center; padding:20px; background:rgba(255,255,255,0.01); border:1px dashed var(--border-color); border-radius:10px; color:var(--text-muted); font-size:12px;">No activity or adjustment logs recorded for this category yet.</div>';
+            }
+
+            let rowsHtml = filteredLogs.map(log => {
+                const isRevert = log.action_type === 'REVERT';
+                const isDeduct = log.action_type === 'DEDUCT' || log.amount < 0;
+                const formattedAmt = Math.abs(log.amount).toLocaleString();
+                const timeStr = log.created_at ? new Date(log.created_at).toLocaleString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+
+                let badgeClass = 'rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3)';
+                let actionIcon = 'fa-plus-circle';
+                let actionText = 'Addition';
+
+                if (isRevert) {
+                    badgeClass = 'rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3)';
+                    actionIcon = 'fa-undo';
+                    actionText = 'Reverted';
+                } else if (log.action_type === 'OVERRIDE') {
+                    badgeClass = 'rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3)';
+                    actionIcon = 'fa-cog';
+                    actionText = 'Override';
+                } else if (isDeduct) {
+                    badgeClass = 'rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3)';
+                    actionIcon = 'fa-minus-circle';
+                    actionText = 'Deduction';
+                }
+
+                return `
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); font-size:12px;">
+                        <td style="padding:8px 10px; font-family:monospace; color:#cbd5e1; font-weight:700;">${escapeHtml(log.employee_code)}</td>
+                        <td style="padding:8px 10px; font-weight:600; color:#fff;">${escapeHtml(log.employee_name || '—')}</td>
+                        <td style="padding:8px 10px;">
+                            <span style="background:${badgeClass}; padding:2px 6px; border-radius:6px; font-weight:600; font-size:11px; display:inline-flex; align-items:center; gap:4px;">
+                                <i class="fas ${actionIcon}"></i> ${actionText}
+                            </span>
+                        </td>
+                        <td style="padding:8px 10px; font-weight:700; font-family:monospace; color:${isDeduct || isRevert ? '#f87171' : '#34d399'};">
+                            ${isDeduct ? '-' : '+'}₨ ${formattedAmt}
+                        </td>
+                        <td style="padding:8px 10px; color:var(--text-muted); max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(log.reason || '')}">
+                            ${escapeHtml(log.reason || '—')}
+                        </td>
+                        <td style="padding:8px 10px; color:#60a5fa; font-weight:600;">
+                            <i class="fas fa-user-circle" style="margin-right:4px;"></i> ${escapeHtml(log.performed_by_name || 'User')}
+                        </td>
+                        <td style="padding:8px 10px; color:var(--text-muted); font-size:11px;">
+                            ${escapeHtml(timeStr)}
+                        </td>
+                        <td style="padding:8px 10px; text-align:center;">
+                            ${!isRevert ? `
+                                <button class="btn btn-outline" onclick="revertManualAdjustment(${log.id}, ${log.adjustment_id || 'null'}, '${escapeHtml(log.employee_code)}', '${escapeHtml(log.adj_type)}', '${escapeHtml(log.month)}')" style="padding:3px 8px; font-size:11px; color:#ef4444; border:1px solid rgba(239,68,68,0.3); background:rgba(239,68,68,0.08); border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
+                                    <i class="fas fa-undo"></i> Revert
+                                </button>
+                            ` : '<span style="color:var(--text-muted); font-size:11px;">Reverted</span>'}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
             return `
-                <div class="adj-section">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                        <h3>Manual Adjustments Overrides</h3>
-                        <button class="btn btn-secondary" onclick="showTaxSlabsInfoModal()" style="font-size:11px; padding:6px 12px; background:rgba(255,255,255,0.05); border:1px solid var(--border-color); color:white;"><i class="fas fa-info-circle"></i> FBR Tax Slabs 2026-27 Info</button>
+                <div style="background:rgba(15,23,42,0.6); border:1px solid var(--border-color); border-radius:10px; overflow:hidden;">
+                    <div style="max-height:280px; overflow-y:auto;">
+                        <table style="width:100%; border-collapse:collapse; text-align:left;">
+                            <thead>
+                                <tr style="background:rgba(255,255,255,0.03); border-bottom:1px solid var(--border-color); font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">
+                                    <th style="padding:8px 10px;">B-ID</th>
+                                    <th style="padding:8px 10px;">Employee</th>
+                                    <th style="padding:8px 10px;">Action</th>
+                                    <th style="padding:8px 10px;">Amount</th>
+                                    <th style="padding:8px 10px;">Reason / Comments</th>
+                                    <th style="padding:8px 10px;">Logged By</th>
+                                    <th style="padding:8px 10px;">Timestamp</th>
+                                    <th style="padding:8px 10px; text-align:center;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHtml}
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="adj-form-grid">
-                        <div class="search-input-wrapper">
-                            <label class="adj-label">Search Employee</label>
-                            <input type="text" class="adj-input" id="ml-emp-search" placeholder="Type name or ID..." onkeyup="renderEmployeeSearchResults('ml-emp-search', this.value)">
-                        </div>
-                        <div><label class="adj-label">Late Deduction Override (₨)</label><input type="number" class="adj-input" id="ml-amt" placeholder="e.g. 1500"></div>
-                        <div><label class="adj-label">Manual Tax Override (₨)</label><input type="number" class="adj-input" id="ml-tax" placeholder="e.g. 2000"></div>
-                    </div>
-                    <button class="btn btn-primary" onclick="saveManualOverridesFromSearch()"><i class="fas fa-save"></i> Save Overrides</button>
-                    <button class="btn btn-secondary" onclick="triggerCSVUpload('manualLate')" style="margin-left:8px; background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--border-color);"><i class="fas fa-file-upload"></i> Bulk Upload CSV</button>
-                    <a href="#" onclick="downloadCSVTemplate('manualLate'); return false;" style="margin-left:12px; font-size:12px; color: var(--primary); text-decoration: none; display: inline-block; vertical-align: middle;"><i class="fas fa-download"></i> Template</a>
-                    <input type="file" id="csv-file-input-manualLate" style="display:none;" accept=".csv" onchange="handleCSVFileSelected(event, 'manualLate')">
                 </div>
             `;
         }
 
-        function saveManualOverridesFromSearch() {
-            const searchInput = document.getElementById('ml-emp-search');
-            const searchValue = searchInput?.value.trim();
-            const employee = allData.find(emp => emp.id === searchValue || emp.name.toLowerCase() === searchValue.toLowerCase());
-            if (!employee) { showToast('Select employee first', 'warning'); return; }
-            
-            const amt = parseFloat(document.getElementById('ml-amt').value) || 0;
-            const taxAmt = parseFloat(document.getElementById('ml-tax').value) || 0;
-            
-            if (amt > 0) payrollAdj.manualLate[employee.id] = amt;
-            if (taxAmt > 0) payrollAdj.tax[employee.id] = taxAmt;
-            
-            persistAllAdj();
-            showToast('✅ Overrides saved successfully', 'success');
-            loadAttendanceData();
+        async function refreshCategoryLogsView(type) {
+            await fetchManualAdjustmentLogs(type);
+            const logsContainer = document.getElementById(`tab-logs-${type}`);
+            if (logsContainer) {
+                logsContainer.innerHTML = renderCategoryAdjustmentLogsHtml(type);
+            }
+            showToast('✅ Category audit logs refreshed', 'info');
         }
+        window.refreshCategoryLogsView = refreshCategoryLogsView;
+
+        let manualAdjustmentLogs = [];
+        let manualAdjustmentLogsLoading = false;
+
+        async function fetchManualAdjustmentLogs() {
+            manualAdjustmentLogsLoading = true;
+            try {
+                const res = await fetch(`${PAYROLL_API}?action=getAdjustmentLogs&month=${payrollMonthStr()}&limit=100`, { credentials: 'include' });
+                const data = await res.json();
+                if (data.success && data.data && Array.isArray(data.data.logs)) {
+                    manualAdjustmentLogs = data.data.logs;
+                } else {
+                    manualAdjustmentLogs = [];
+                }
+            } catch (e) {
+                console.error('Failed to load adjustment logs', e);
+                manualAdjustmentLogs = [];
+            } finally {
+                manualAdjustmentLogsLoading = false;
+            }
+        }
+
+        function onManualOverrideTypeChange(typeVal) {
+            const modeSelect = document.getElementById('mo-action-mode');
+            const amtLabel = document.getElementById('mo-amt-label');
+            const amtInput = document.getElementById('mo-amt');
+            const advFields = document.getElementById('mo-adv-extra-fields');
+
+            if (advFields) {
+                advFields.style.display = (typeVal === 'advance') ? 'grid' : 'none';
+            }
+
+            if (modeSelect) {
+                if (typeVal === 'punctuality') {
+                    modeSelect.innerHTML = `
+                        <option value="ADD">➕ Add Punctuality Reward (+)</option>
+                        <option value="OVERRIDE">⚙️ Override Punctuality Amount</option>
+                        <option value="DEDUCT">➖ Remove / 0 Punctuality</option>
+                    `;
+                } else if (typeVal === 'bonus' || typeVal === 'arrears' || typeVal === 'tada') {
+                    modeSelect.innerHTML = `
+                        <option value="ADD">➕ Addition (+ Salary)</option>
+                        <option value="DEDUCT">➖ Deduction (- Penalty)</option>
+                    `;
+                } else if (typeVal === 'manualLate') {
+                    modeSelect.innerHTML = `
+                        <option value="OVERRIDE">⚙️ Force Late Deduction Amount</option>
+                        <option value="DEDUCT">➖ Deduct Custom Amount</option>
+                    `;
+                } else if (typeVal === 'tax') {
+                    modeSelect.innerHTML = `
+                        <option value="OVERRIDE">⚙️ Force Tax Deduction Override</option>
+                    `;
+                } else if (typeVal === 'advance') {
+                    modeSelect.innerHTML = `
+                        <option value="OVERRIDE">💼 Set / Update Advance Salary</option>
+                    `;
+                } else if (['halfDay', 'sd', 'ncns', 'misspunch', 'qaHr'].includes(typeVal)) {
+                    modeSelect.innerHTML = `
+                        <option value="DEDUCT">➖ Penalty / Deduction (- Salary)</option>
+                    `;
+                }
+            }
+        }
+        window.onManualOverrideTypeChange = onManualOverrideTypeChange;
+
+        function renderManualTab() {
+            // Initiate logs fetch in background if not already loading
+            if (!manualAdjustmentLogsLoading) {
+                fetchManualAdjustmentLogs().then(() => {
+                    const logsContainer = document.getElementById('manual-logs-table-container');
+                    if (logsContainer) {
+                        logsContainer.innerHTML = renderManualAdjustmentLogsHtml();
+                    }
+                });
+            }
+
+            return `
+                <div class="adj-section" style="margin-bottom:24px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:12px;">
+                        <div>
+                            <h3 style="margin:0; font-size:18px; font-weight:700; color:#fff; display:flex; align-items:center; gap:10px;">
+                                <i class="fas fa-sliders-h" style="color:var(--primary);"></i> Manual Adjustments & Overrides Hub
+                            </h3>
+                            <span style="font-size:12px; color:var(--text-muted);">Directly add, deduct, or override any payroll component with full user audit tracking</span>
+                        </div>
+                        <button class="btn btn-secondary" onclick="showTaxSlabsInfoModal()" style="font-size:11px; padding:6px 14px; background:rgba(255,255,255,0.05); border:1px solid var(--border-color); color:white;">
+                            <i class="fas fa-info-circle"></i> FBR Tax Slabs 2026-27 Info
+                        </button>
+                    </div>
+
+                    <!-- Unified Entry Form Grid -->
+                    <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-color); border-radius:14px; padding:20px; margin-bottom:20px;">
+                        <div class="adj-form-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
+                            <div class="search-input-wrapper">
+                                <label class="adj-label"><i class="fas fa-user" style="color:var(--primary);"></i> Search Employee <span style="color:var(--danger)">*</span></label>
+                                <input type="text" class="adj-input" id="mo-emp-search" placeholder="Type name or B-ID..." onkeyup="renderEmployeeSearchResults('mo-emp-search', this.value)">
+                            </div>
+
+                            <div>
+                                <label class="adj-label"><i class="fas fa-layer-group" style="color:#38bdf8;"></i> Category / Type <span style="color:var(--danger)">*</span></label>
+                                <select class="adj-input" id="mo-adj-type" onchange="onManualOverrideTypeChange(this.value)" style="background:rgba(15,23,42,0.9); color:white; font-weight:600; outline:none; cursor:pointer;">
+                                    <optgroup label="✨ Additions & Bonuses">
+                                        <option value="bonus">🎁 Bonus</option>
+                                        <option value="punctuality">⭐ Punctuality Reward</option>
+                                        <option value="arrears">💵 Arrears (Backpay)</option>
+                                        <option value="tada">✈️ TA / DA (Travel Allowance)</option>
+                                    </optgroup>
+                                    <optgroup label="⚙️ Overrides & Deductions">
+                                        <option value="manualLate">⏰ Late Deduction Override</option>
+                                        <option value="tax">🏛️ Manual Tax Override</option>
+                                        <option value="advance">💼 Advance Salary Setup</option>
+                                        <option value="halfDay">⏳ Half Day (HD) Deduction</option>
+                                        <option value="sd">🥪 SandWich (SD) Deduction</option>
+                                        <option value="ncns">🚫 NCNS Penalty (₨5,000)</option>
+                                        <option value="misspunch">⚠️ Miss Punch Deduction (₨1,000)</option>
+                                        <option value="qaHr">📋 QA / HR Docs Deduction</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="adj-label"><i class="fas fa-exchange-alt" style="color:#a855f7;"></i> Action Mode</label>
+                                <select class="adj-input" id="mo-action-mode" style="background:rgba(15,23,42,0.9); color:white; font-weight:600; outline:none; cursor:pointer;">
+                                    <option value="ADD">➕ Addition (+ Salary)</option>
+                                    <option value="DEDUCT">➖ Deduction (- Penalty)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="adj-label" id="mo-amt-label"><i class="fas fa-money-bill-wave" style="color:#34d399;"></i> Amount (₨) <span style="color:var(--danger)">*</span></label>
+                                <input type="number" class="adj-input" id="mo-amt" placeholder="e.g. 5000" min="0" step="any">
+                            </div>
+
+                            <div>
+                                <label class="adj-label"><i class="far fa-calendar-alt" style="color:#f59e0b;"></i> Effective Date</label>
+                                <input type="date" class="adj-input" id="mo-date" value="${payrollMonthStr()}-01">
+                            </div>
+                        </div>
+
+                        <!-- Extra Advance Salary Specific Inputs (if Advance selected) -->
+                        <div id="mo-adv-extra-fields" style="display:none; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-top:14px; padding-top:14px; border-top:1px dashed rgba(255,255,255,0.08);">
+                            <div>
+                                <label class="adj-label">Total Advance Amount (₨)</label>
+                                <input type="number" class="adj-input" id="mo-adv-total" placeholder="e.g. 50000">
+                            </div>
+                            <div>
+                                <label class="adj-label">Monthly Deduction (₨)</label>
+                                <input type="number" class="adj-input" id="mo-adv-monthly" placeholder="e.g. 5000">
+                            </div>
+                            <div>
+                                <label class="adj-label">Paid So Far (₨)</label>
+                                <input type="number" class="adj-input" id="mo-adv-paid" value="0">
+                            </div>
+                        </div>
+
+                        <div style="margin-top:14px;">
+                            <label class="adj-label"><i class="fas fa-comment-alt" style="color:var(--text-muted);"></i> Reason / Audit Note <span style="color:var(--danger)">*</span></label>
+                            <input type="text" class="adj-input" id="mo-reason" placeholder="Explain reason for manual adjustment / override..." style="width:100%;">
+                        </div>
+
+                        <!-- Form Submission & Bulk Actions -->
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:18px; flex-wrap:wrap; gap:12px;">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <button class="btn btn-primary" onclick="submitUnifiedManualAdjustment()" style="padding:10px 20px; font-weight:700;">
+                                    <i class="fas fa-check-circle"></i> Apply & Save Adjustment
+                                </button>
+                                <button class="btn btn-secondary" onclick="resetUnifiedManualForm()" style="background:rgba(255,255,255,0.05); color:#cbd5e1; border:1px solid var(--border-color);">
+                                    <i class="fas fa-times"></i> Clear Form
+                                </button>
+                            </div>
+
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <button class="btn btn-secondary" onclick="triggerCSVUpload('manualLate')" style="background:rgba(255,255,255,0.05); color:white; border:1px solid var(--border-color); font-size:12px;">
+                                    <i class="fas fa-file-upload"></i> Bulk Upload CSV
+                                </button>
+                                <a href="#" onclick="downloadCSVTemplate('manualLate'); return false;" style="font-size:12px; color:var(--primary); text-decoration:none; display:inline-flex; align-items:center; gap:4px; padding:0 8px;">
+                                    <i class="fas fa-download"></i> Template
+                                </a>
+                                <input type="file" id="csv-file-input-manualLate" style="display:none;" accept=".csv" onchange="handleCSVFileSelected(event, 'manualLate')">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Audit Log & Adjustment History Section -->
+                    <div style="margin-top:28px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                            <div>
+                                <h4 style="margin:0; font-size:16px; font-weight:700; color:#fff; display:flex; align-items:center; gap:8px;">
+                                    <i class="fas fa-history" style="color:#10b981;"></i> Adjustment Activity & Audit Logs (${payrollMonthStr()})
+                                </h4>
+                                <span style="font-size:12px; color:var(--text-muted);">Real-time log of all manual overrides and adjustments performed by logged-in users</span>
+                            </div>
+                            <button class="btn btn-secondary" onclick="refreshManualLogsView()" style="font-size:11px; padding:6px 12px; background:rgba(255,255,255,0.05); border:1px solid var(--border-color); color:white;">
+                                <i class="fas fa-sync-alt"></i> Refresh Logs
+                            </button>
+                        </div>
+
+                        <div id="manual-logs-table-container">
+                            ${renderManualAdjustmentLogsHtml()}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderManualAdjustmentLogsHtml() {
+            if (manualAdjustmentLogsLoading) {
+                return '<div style="text-align:center; padding:30px; color:var(--text-muted);"><i class="fas fa-spinner fa-spin"></i> Loading audit history...</div>';
+            }
+
+            if (!manualAdjustmentLogs || manualAdjustmentLogs.length === 0) {
+                return '<div style="text-align:center; padding:30px; background:rgba(255,255,255,0.01); border:1px dashed var(--border-color); border-radius:12px; color:var(--text-muted);"><i class="fas fa-inbox" style="font-size:24px; margin-bottom:8px; display:block;"></i>No adjustments or override logs recorded for this month yet.</div>';
+            }
+
+            const typeNames = {
+                bonus: 'Bonus',
+                punctuality: 'Punctuality',
+                arrears: 'Arrears',
+                tada: 'TA/DA',
+                manualLate: 'Late Override',
+                tax: 'Tax Override',
+                advance: 'Advance Salary',
+                halfDay: 'Half Day',
+                sd: 'SandWich (SD)',
+                ncns: 'NCNS',
+                misspunch: 'Miss Punch',
+                qaHr: 'QA/HR Deduction'
+            };
+
+            let rowsHtml = manualAdjustmentLogs.map(log => {
+                const isRevert = log.action_type === 'REVERT';
+                const isDeduct = log.action_type === 'DEDUCT' || log.amount < 0;
+                const formattedAmt = Math.abs(log.amount).toLocaleString();
+                const typeLabel = typeNames[log.adj_type] || log.adj_type;
+                const timeStr = log.created_at ? new Date(log.created_at).toLocaleString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+
+                let badgeClass = 'rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3)';
+                let actionIcon = 'fa-plus-circle';
+                let actionText = 'Addition';
+
+                if (isRevert) {
+                    badgeClass = 'rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3)';
+                    actionIcon = 'fa-undo';
+                    actionText = 'Reverted';
+                } else if (log.action_type === 'OVERRIDE') {
+                    badgeClass = 'rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3)';
+                    actionIcon = 'fa-cog';
+                    actionText = 'Override';
+                } else if (isDeduct) {
+                    badgeClass = 'rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3)';
+                    actionIcon = 'fa-minus-circle';
+                    actionText = 'Deduction';
+                }
+
+                return `
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); font-size:12px;">
+                        <td style="padding:10px 12px; font-family:monospace; color:#cbd5e1; font-weight:700;">${escapeHtml(log.employee_code)}</td>
+                        <td style="padding:10px 12px; font-weight:600; color:#fff;">${escapeHtml(log.employee_name || '—')}</td>
+                        <td style="padding:10px 12px;">
+                            <span style="background:rgba(255,255,255,0.06); color:#fff; padding:3px 8px; border-radius:6px; font-weight:600;">${escapeHtml(typeLabel)}</span>
+                        </td>
+                        <td style="padding:10px 12px;">
+                            <span style="background:${badgeClass}; padding:3px 8px; border-radius:6px; font-weight:600; display:inline-flex; align-items:center; gap:4px;">
+                                <i class="fas ${actionIcon}"></i> ${actionText}
+                            </span>
+                        </td>
+                        <td style="padding:10px 12px; font-weight:700; font-family:monospace; color:${isDeduct || isRevert ? '#f87171' : '#34d399'};">
+                            ${isDeduct ? '-' : '+'}₨ ${formattedAmt}
+                        </td>
+                        <td style="padding:10px 12px; color:var(--text-muted); max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(log.reason || '')}">
+                            ${escapeHtml(log.reason || '—')}
+                        </td>
+                        <td style="padding:10px 12px; color:#60a5fa; font-weight:600;">
+                            <i class="fas fa-user-circle" style="margin-right:4px;"></i> ${escapeHtml(log.performed_by_name || 'User')}
+                        </td>
+                        <td style="padding:10px 12px; color:var(--text-muted); font-size:11px;">
+                            ${escapeHtml(timeStr)}
+                        </td>
+                        <td style="padding:10px 12px; text-align:center;">
+                            ${!isRevert ? `
+                                <button class="btn btn-outline" onclick="revertManualAdjustment(${log.id}, ${log.adjustment_id || 'null'}, '${escapeHtml(log.employee_code)}', '${escapeHtml(log.adj_type)}', '${escapeHtml(log.month)}')" style="padding:4px 10px; font-size:11px; color:#ef4444; border:1px solid rgba(239,68,68,0.3); background:rgba(239,68,68,0.08); border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
+                                    <i class="fas fa-undo"></i> Revert
+                                </button>
+                            ` : '<span style="color:var(--text-muted); font-size:11px;">Reverted</span>'}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            return `
+                <div style="background:rgba(15,23,42,0.6); border:1px solid var(--border-color); border-radius:12px; overflow:hidden;">
+                    <div style="max-height:400px; overflow-y:auto;">
+                        <table style="width:100%; border-collapse:collapse; text-align:left;">
+                            <thead>
+                                <tr style="background:rgba(255,255,255,0.03); border-bottom:1px solid var(--border-color); font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">
+                                    <th style="padding:10px 12px;">B-ID</th>
+                                    <th style="padding:10px 12px;">Employee</th>
+                                    <th style="padding:10px 12px;">Category</th>
+                                    <th style="padding:10px 12px;">Action</th>
+                                    <th style="padding:10px 12px;">Amount</th>
+                                    <th style="padding:10px 12px;">Reason / Comments</th>
+                                    <th style="padding:10px 12px;">Logged By</th>
+                                    <th style="padding:10px 12px;">Timestamp</th>
+                                    <th style="padding:10px 12px; text-align:center;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function refreshManualLogsView() {
+            await fetchManualAdjustmentLogs();
+            const logsContainer = document.getElementById('manual-logs-table-container');
+            if (logsContainer) {
+                logsContainer.innerHTML = renderManualAdjustmentLogsHtml();
+            }
+            showToast('✅ Audit logs refreshed', 'info');
+        }
+        window.refreshManualLogsView = refreshManualLogsView;
+
+        function resetUnifiedManualForm() {
+            const searchInput = document.getElementById('mo-emp-search');
+            if (searchInput) searchInput.value = '';
+            const amtInput = document.getElementById('mo-amt');
+            if (amtInput) amtInput.value = '';
+            const reasonInput = document.getElementById('mo-reason');
+            if (reasonInput) reasonInput.value = '';
+            const advTotal = document.getElementById('mo-adv-total');
+            if (advTotal) advTotal.value = '';
+            const advMonthly = document.getElementById('mo-adv-monthly');
+            if (advMonthly) advMonthly.value = '';
+            const advPaid = document.getElementById('mo-adv-paid');
+            if (advPaid) advPaid.value = '0';
+        }
+        window.resetUnifiedManualForm = resetUnifiedManualForm;
+
+        async function submitUnifiedManualAdjustment() {
+            const searchInput = document.getElementById('mo-emp-search');
+            const searchValue = searchInput?.value.trim();
+            const employee = allData.find(emp => String(emp.id) === String(searchValue) || String(emp.name || '').toLowerCase() === String(searchValue || '').toLowerCase());
+
+            if (!employee) {
+                showToast('Please search and select an active employee first', 'warning');
+                return;
+            }
+
+            const adjType = document.getElementById('mo-adj-type')?.value;
+            const actionMode = document.getElementById('mo-action-mode')?.value || 'ADD';
+            const reason = document.getElementById('mo-reason')?.value.trim();
+            const effDate = document.getElementById('mo-date')?.value || `${payrollMonthStr()}-01`;
+            let amount = parseFloat(document.getElementById('mo-amt')?.value) || 0;
+
+            if (!reason) {
+                showToast('Please provide a reason / note for the audit log', 'warning');
+                document.getElementById('mo-reason')?.focus();
+                return;
+            }
+
+            let payload = {
+                employee_code: employee.id,
+                employee_name: employee.name,
+                month: payrollMonthStr(),
+                adj_type: adjType,
+                action_type: actionMode,
+                amount: amount,
+                reason: reason,
+                adj_date: effDate,
+                team: employee.team || ''
+            };
+
+            if (adjType === 'advance') {
+                const advTotal = parseFloat(document.getElementById('mo-adv-total')?.value) || amount;
+                const advMonthly = parseFloat(document.getElementById('mo-adv-monthly')?.value) || amount;
+                const advPaid = parseFloat(document.getElementById('mo-adv-paid')?.value) || 0;
+                payload.total_amount = advTotal;
+                payload.per_month = advMonthly;
+                payload.paid_amount = advPaid;
+                payload.amount = advTotal;
+            }
+
+            try {
+                showToast('⏳ Saving adjustment...', 'info');
+                const res = await fetch(`${PAYROLL_API}?action=saveSingleOverrideAdjustment`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to save adjustment');
+                }
+
+                showToast(`✅ ${adjType} adjustment saved for ${employee.name}`, 'success');
+                resetUnifiedManualForm();
+
+                // Reload calculations, full bundle, and update logs
+                await loadAttendanceData();
+                await fetchManualAdjustmentLogs();
+                const logsContainer = document.getElementById('manual-logs-table-container');
+                if (logsContainer) {
+                    logsContainer.innerHTML = renderManualAdjustmentLogsHtml();
+                }
+            } catch (e) {
+                console.error(e);
+                showToast(`❌ Error: ${e.message}`, 'error');
+            }
+        }
+        window.submitUnifiedManualAdjustment = submitUnifiedManualAdjustment;
+
+        async function revertManualAdjustment(logId, adjId, empCode, adjType, month) {
+            if (!confirm(`Are you sure you want to revert this ${adjType} adjustment for employee ${empCode}?\nThis will remove the override and restore default calculations.`)) {
+                return;
+            }
+
+            try {
+                showToast('⏳ Reverting adjustment...', 'info');
+                const res = await fetch(`${PAYROLL_API}?action=revertAdjustment`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        log_id: logId,
+                        adjustment_id: adjId,
+                        employee_code: empCode,
+                        adj_type: adjType,
+                        month: month || payrollMonthStr()
+                    })
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to revert adjustment');
+                }
+
+                showToast('✅ Adjustment successfully reverted', 'success');
+
+                // Reload payroll bundle and refresh logs
+                await loadAttendanceData();
+                await fetchManualAdjustmentLogs();
+                const logsContainer = document.getElementById('manual-logs-table-container');
+                if (logsContainer) {
+                    logsContainer.innerHTML = renderManualAdjustmentLogsHtml();
+                }
+            } catch (e) {
+                console.error(e);
+                showToast(`❌ Revert error: ${e.message}`, 'error');
+            }
+        }
+        window.revertManualAdjustment = revertManualAdjustment;
 
         function renderSettingsTab() {
             let listHtml = '<table><thead><tr><th>ID</th><th>Name</th><th>Basic Salary</th><th>Punctuality Eligible</th><th>Punctuality Bonus (₨)</th><th>Action</th></tr></thead><tbody>';
@@ -4889,11 +5511,11 @@ require_once 'config.php';
                     return;
                 }
                 const row = [
-                    e.id, 
-                    e.name, 
-                    e.bankName || 'Not Set', 
-                    e.accountTitle || 'Not Set', 
-                    e.accountNo || 'Not Set', 
+                    e.id,
+                    e.name,
+                    e.bankName || 'Not Set',
+                    e.accountTitle || 'Not Set',
+                    e.accountNo || 'Not Set',
                     Math.round(e.finalNetSalary)
                 ];
                 csv += row.map(csvCell).join(',') + '\n';
@@ -4910,7 +5532,7 @@ require_once 'config.php';
                 modal.className = 'modal';
                 document.body.appendChild(modal);
             }
-            
+
             modal.innerHTML = `
                 <div class="modal-content" style="max-width: 600px; color: var(--text-color);">
                     <div class="modal-header">
@@ -5071,7 +5693,7 @@ require_once 'config.php';
 
             const slipHtml = `
                 <div id="printArea" style="position: relative; overflow: hidden; padding: 40px; background: #ffffff; color: #0f172a; font-family: 'Plus Jakarta Sans', sans-serif;">
-                    
+
                     <!-- Watermark -->
                     <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.03; pointer-events: none; z-index: 1;">
                         <img src="assets/images/balitech-logo.png" style="width: 450px; filter: grayscale(100%);">
@@ -5099,7 +5721,7 @@ require_once 'config.php';
                             <span style="font-size: 18px; font-weight: 700; color: #0f172a;">${employee.department || '—'} / ${employee.designation || '—'}</span>
                         </div>
                     </div>
-                    
+
                     <!-- Salary & Attendance Summary -->
                     <div style="margin-bottom: 30px; position: relative; z-index: 2;">
                         <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Salary & Attendance Summary</h3>
@@ -5193,12 +5815,12 @@ require_once 'config.php';
                 <div style="background:rgba(255,255,255,0.03);padding:12px;border-radius:10px;text-align:center;"><div style="font-size:18px;font-weight:700;color:var(--warning);">${employee.late}</div><div style="font-size:10px;color:var(--text-muted)">Late</div></div>
                 <div style="background:rgba(255,255,255,0.03);padding:12px;border-radius:10px;text-align:center;"><div style="font-size:18px;font-weight:700;color:var(--info);">${employee.leave}</div><div style="font-size:10px;color:var(--text-muted)">Leave</div></div>
             </div>
-            
+
             <div style="margin-bottom:20px;">
                 <h4 style="font-size:13px;color:white;margin-bottom:12px;">Leaves History</h4>
                 <div>${leavesHtml}</div>
             </div>
-            
+
             <div class="table-container">
             <div class="table-wrapper">
             <table>
@@ -5230,19 +5852,19 @@ require_once 'config.php';
             renderTable();
         }
 
-        function showToast(message, type) { 
-            const container = document.getElementById('toastContainer'); 
-            const toast = document.createElement('div'); 
-            toast.className = 'toast show'; 
-            toast.style.borderLeftColor = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#f59e0b'; 
-            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> ${message}`; 
-            container.appendChild(toast); 
-            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000); 
+        function showToast(message, type) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast show';
+            toast.style.borderLeftColor = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#f59e0b';
+            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
         }
 
-        function updateDateTime() { 
-            const now = new Date(); 
-            document.getElementById('currentDate').querySelector('span').textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }); 
+        function updateDateTime() {
+            const now = new Date();
+            document.getElementById('currentDate').querySelector('span').textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
         }
 
         document.getElementById('searchInput').addEventListener('keyup', function() { renderTable(); });
@@ -5257,12 +5879,12 @@ require_once 'config.php';
         // Initialize
         updateDateTime();
         setInterval(updateDateTime, 1000);
-        
+
         async function initPage() {
             await loadEmployeeList();
             await loadAttendanceData();
         }
-        
+
         async function loadEmployeeList() {
             try {
                 const response = await fetch(API_BASE + 'attendance-api.php?action=getFilterOptions');
@@ -5372,10 +5994,10 @@ require_once 'config.php';
                 showToast("CSV file is empty or missing headers", "error");
                 return;
             }
-            
+
             const headers = parsedLines[0].map(h => h.trim().toLowerCase());
             const rows = parsedLines.slice(1);
-            
+
             const bidIdx = headers.findIndex(h => h.includes("biometric") || h === "id" || h === "code");
             const amtIdx = headers.findIndex(h => h.includes("amount") || h === "amt");
             const dateIdx = headers.findIndex(h => h.includes("date"));
@@ -5395,18 +6017,18 @@ require_once 'config.php';
                 if (row.length === 1 && row[0] === "") continue;
                 const rawBid = row[bidIdx] ? row[bidIdx].trim() : "";
                 if (!rawBid) continue;
-                
+
                 const employee = allData.find(emp => String(emp.id) === String(rawBid));
                 const empName = employee ? employee.name : "Unknown Employee (Invalid Biometric ID)";
                 const isValid = !!employee;
-                
+
                 let amount = 0;
                 let date = "";
                 let description = "";
                 let total = 0;
                 let perMonth = 0;
                 let paid = 0;
-                
+
                 if (type === 'advance') {
                     total = totalIdx !== -1 && row[totalIdx] ? parseFloat(row[totalIdx]) || 0 : 0;
                     perMonth = perMonthIdx !== -1 && row[perMonthIdx] ? parseFloat(row[perMonthIdx]) || 0 : 0;
@@ -5591,7 +6213,7 @@ require_once 'config.php';
             tbody.innerHTML = users.map(u => {
                 const initials = u.full_name ? u.full_name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : '??';
                 const apptStr = u.appointment_date ? u.appointment_date : '<span style="color:var(--text-muted); font-style:italic;">Not set</span>';
-                
+
                 // Calculate 60-day eligibility indicator badge
                 let apptBadge = apptStr;
                 if (u.appointment_date) {
@@ -5639,7 +6261,7 @@ require_once 'config.php';
                 renderFinanceUsersTable(financeUsersData);
                 return;
             }
-            const filtered = financeUsersData.filter(u => 
+            const filtered = financeUsersData.filter(u =>
                 (u.full_name || '').toLowerCase().includes(query) ||
                 (u.employee_code || '').toLowerCase().includes(query) ||
                 (u.department || '').toLowerCase().includes(query) ||
@@ -6002,7 +6624,7 @@ require_once 'config.php';
                 if (!canvas) return;
                 if (_pcCategoryChart) { _pcCategoryChart.destroy(); _pcCategoryChart = null; }
                 const container = canvas.parentElement;
-                
+
                 const existingEmpty = container.querySelector('.pc-empty-overlay');
                 if (existingEmpty) existingEmpty.remove();
                 canvas.style.display = 'block';
@@ -6237,7 +6859,7 @@ require_once 'config.php';
                     const res = await fetch(`${API}?action=getCategories`);
                     const data = await res.json();
                     if (!data.success || !data.data) return;
-                    
+
                     const select = document.getElementById('pcCategorySelect');
                     const filterSelect = document.getElementById('pcFilterCategory');
                     if (!select) return;
@@ -6297,7 +6919,7 @@ require_once 'config.php';
 
             async function submitRequest() {
                 const btn = document.getElementById('pcSubmitBtn');
-                
+
                 // Handle Category value from dropdown or custom input
                 let categoryVal = '';
                 const selectEl = document.getElementById('pcCategorySelect');
