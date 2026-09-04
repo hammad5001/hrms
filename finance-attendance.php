@@ -3036,10 +3036,11 @@ require_once 'config.php';
             // Existing variable kept for compatibility.
             const subNetSalary = grossSalary;
 
-            // 3. Tax Calculation: Annual Taxable Salary = SUB Net Salary x 12 using Pakistan salaried tax slabs FY 2026-2027
+            // 3. Tax Calculation: 90% of Gross Salary is taxable; annual taxable income = taxable monthly income x 12
             let tax = parseFloat(payrollAdj.tax[emp.id] || 0);
             if (tax === 0) {
-                const annualIncome = grossSalary * 12;
+                const taxableMonthlyIncome = grossSalary * 0.90;
+                const annualIncome = taxableMonthlyIncome * 12;
                 let annualTax = 0;
                 if (annualIncome <= 600000) {
                     annualTax = 0;
@@ -5918,8 +5919,8 @@ require_once 'config.php';
             const e = calculatePayrollForEmployee(employee);
             const formatMoney = val => '₨ ' + Math.round(val || 0).toLocaleString();
 
-            const finalNetSalary = Math.round(e.netSalary - e.tax);
-            const totalDeductionsAll = Math.round(e.totalDeductions + e.absentDeduction);
+            const finalNetSalary = Math.round(e.finalNetSalary);
+            const totalDeductionsAll = Math.round(e.totalDeductions);
 
             const slipHtml = `
                 <div id="printArea" style="position: relative; overflow: hidden; padding: 40px; background: #ffffff; color: #0f172a; font-family: 'Plus Jakarta Sans', sans-serif;">
