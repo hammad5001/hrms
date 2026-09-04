@@ -33,7 +33,7 @@ $agents = [];
 
 $stmt = $conn->prepare("
     SELECT
-        d.hrms_user_id,
+        MAX(d.hrms_user_id) AS hrms_user_id,
         COALESCE(MAX(u.employee_code), MAX(d.employee_code), MAX(d.dialer_agent_code)) AS employee_code,
         COALESCE(MAX(u.full_name), MAX(d.dialer_agent_name), 'Unknown Agent') AS agent_name,
         COUNT(*) AS total_transfers,
@@ -41,9 +41,10 @@ $stmt = $conn->prepare("
         SUM(d.disposition = 'D5') AS d5_total
     FROM dialer_daily_transfers d
     LEFT JOIN users u ON u.id = d.hrms_user_id
-    WHERE d.hrms_user_id IS NOT NULL
-      AND d.last_call_at BETWEEN ? AND ?
-    GROUP BY d.hrms_user_id
+    WHERE d.last_call_at BETWEEN ? AND ?
+      AND d.dialer_agent_code IS NOT NULL
+      AND TRIM(d.dialer_agent_code) <> ''
+    GROUP BY d.dialer_agent_code
     ORDER BY total_transfers DESC, agent_name ASC
     LIMIT 5
 ");
