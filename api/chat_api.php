@@ -994,6 +994,30 @@ switch ($action) {
         if (!$cid || !chat_user_is_participant($conn, $cid, $me_id)) {
             chat_json(false, null, 'Conversation not found');
         }
+
+    // SECURITY: Only the original group creator may clear all group messages.
+    $convStmt = $conn->prepare("
+        SELECT type, created_by
+        FROM chat_conversations
+        WHERE id = ?
+        LIMIT 1
+    ");
+    $convStmt->bind_param('i', $cid);
+    $convStmt->execute();
+    $convInfo = $convStmt->get_result()->fetch_assoc();
+    $convStmt->close();
+
+    if (!$convInfo) {
+        chat_json(false, null, 'Conversation not found');
+    }
+
+    if (
+        strtolower((string)$convInfo['type']) === 'group'
+        && (int)$convInfo['created_by'] !== (int)$me_id
+    ) {
+        chat_json(false, null, 'Only the group creator can clear this group chat.');
+    }
+
         // Mark all messages in this conversation as deleted (soft delete)
         $del = $conn->prepare("UPDATE chat_messages SET is_deleted = 1, body = '' WHERE conversation_id = ?");
         $del->bind_param('i', $cid);
