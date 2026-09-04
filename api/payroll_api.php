@@ -19,7 +19,7 @@ $input = json_decode(file_get_contents('php://input'), true) ?: [];
 /** Adjustment types stored as multiple rows */
 $LIST_ADJ_TYPES = ['tada', 'arrears', 'bonus', 'halfDay', 'ncns', 'sd', 'qaHr', 'misspunch'];
 /** Single-value numeric per employee per month */
-$SCALAR_ADJ_TYPES = ['manualLate', 'manualPunctuality', 'manualLeaves', 'tax'];
+$SCALAR_ADJ_TYPES = ['manualLate', 'manualPunctuality', 'manualLeaves', 'tax', 'punctualityExempt'];
 /** Single-value string/json per employee per month */
 $STRING_SCALAR_ADJ_TYPES = ['remarks', 'comments', 'attendanceOverrides', 'extraDays', 'appointmentDate'];
 
@@ -80,7 +80,7 @@ function emptyPayrollBundle(): array {
     return [
         'tada' => [], 'arrears' => [], 'bonus' => [], 'halfDay' => [], 'ncns' => [], 'sd' => [],
         'qaHr' => [], 'misspunch' => [], 'advance' => [], 'manualLate' => [], 'manualPunctuality' => [],
-        'manualLeaves' => [], 'tax' => [], 'appointmentDate' => [], 'empMeta' => [],
+        'manualLeaves' => [], 'tax' => [], 'punctualityExempt' => [], 'appointmentDate' => [], 'empMeta' => [],
         'remarks' => [], 'comments' => [], 'attendanceOverrides' => [], 'extraDays' => [],
     ];
 }

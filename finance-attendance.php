@@ -2597,7 +2597,7 @@ require_once 'config.php';
 
         let payrollAdj = {
             tada: {}, arrears: {}, bonus: {}, halfDay: {}, ncns: {}, sd: {},
-            qaHr: {}, misspunch: {}, advance: {}, manualLate: {}, manualPunctuality: {},
+            qaHr: {}, misspunch: {}, advance: {}, manualLate: {}, manualPunctuality: {}, punctualityExempt: {},
             manualLeaves: {}, tax: {}, appointmentDate: {}, empMeta: {},
             attendanceOverrides: {}, extraDays: {}
         };
@@ -2688,7 +2688,7 @@ require_once 'config.php';
                         tada: b.tada || {}, arrears: b.arrears || {}, bonus: b.bonus || {},
                         halfDay: b.halfDay || {}, ncns: b.ncns || {}, sd: b.sd || {},
                         qaHr: b.qaHr || {}, misspunch: b.misspunch || {}, advance: b.advance || {},
-                        manualLate: b.manualLate || {}, manualPunctuality: b.manualPunctuality || {},
+                        manualLate: b.manualLate || {}, manualPunctuality: b.manualPunctuality || {}, punctualityExempt: b.punctualityExempt || {},
                         manualLeaves: b.manualLeaves || {}, tax: b.tax || {},
                         remarks: b.remarks || {}, comments: b.comments || {},
                         appointmentDate: b.appointmentDate || {}, empMeta: b.empMeta || {},
@@ -2837,6 +2837,39 @@ require_once 'config.php';
             } catch(e) { return false; }
         }
 
+        async function setPunctualityLateRule(empId, mode) {
+            if (!payrollAdj.punctualityExempt) {
+                payrollAdj.punctualityExempt = {};
+            }
+
+            if (mode === 'waive') {
+                payrollAdj.punctualityExempt[empId] = 1;
+            } else {
+                delete payrollAdj.punctualityExempt[empId];
+            }
+
+            try {
+                // Save immediately and WAIT for DB confirmation before reload.
+                clearTimeout(payrollSaveTimer);
+                await persistAllAdjNow();
+
+                showToast(
+                    mode === 'waive'
+                        ? '✅ Punctuality late penalty waived for selected month'
+                        : '✅ Punctuality late rule set back to Auto',
+                    'success'
+                );
+
+                await loadAttendanceData();
+            } catch (error) {
+                console.error('Punctuality rule save failed:', error);
+                showToast(`❌ Save failed: ${error.message}`, 'error');
+
+                // Reload DB state if save failed.
+                await loadAttendanceData();
+            }
+        }
+
         function calculatePayrollForEmployee(emp) {
             const meta = getEmpMeta(emp.id);
             const basicSalary = parseFloat(meta.basicSalary) || BASE_SALARY;
@@ -2882,6 +2915,10 @@ require_once 'config.php';
             let basePunctualityQualified = false;
             let basePunctualityAmount = 0;
             const manualPunc = payrollAdj.manualPunctuality[emp.id];
+
+            const punctualityExempt =
+                Number((payrollAdj.punctualityExempt || {})[emp.id] || 0) === 1;
+
             if (manualPunc !== undefined) {
                 basePunctualityAmount = parseFloat(manualPunc) || 0;
                 basePunctualityQualified = basePunctualityAmount > 0;
@@ -2904,7 +2941,9 @@ require_once 'config.php';
             let punctualityAmount = 0;
             let lateDeduction = 0;
 
-            if (emp.late <= 3) {
+            if (emp.late <= 3 || punctualityExempt) {
+                // Finance can waive the late-based punctuality penalty
+                // for this employee for the selected payroll month.
                 punctualityQualified = basePunctualityQualified;
                 punctualityAmount = basePunctualityAmount;
                 lateDeduction = 0;
@@ -2963,17 +3002,44 @@ require_once 'config.php';
             // Calculations Order:
             // 1. Add all valid additions to totalEarnings
             // 2. Subtract every non-tax deduction once to get subNetSalary (SUB Net Salary)
-            const earningsBase = totalWorkingDays * perDaySalary;
-            const totalAdditions = punctualityAmount + bonus + tada + arrears + extraDayPay;
+            // Payroll base:
+            // Completed month = full basic salary.
+            // Running month = salary only for elapsed working days.
+            // Every deduction, including absence, is applied exactly ONCE below.
+            const earningsBase = payrollMonthComplete
+                ? basicSalary
+                : (elapsedWorkingDaysCount * perDaySalary);
+
+            const totalAdditions =
+                punctualityAmount +
+                bonus +
+                tada +
+                arrears +
+                extraDayPay;
+
             const totalEarnings = earningsBase + totalAdditions;
 
-            const nonTaxDeductions = absentDeduction + lateDeduction + halfDayAmount + ncnsAmount + sdAmount + qaHrAmount + misspunchAmount + advanceDeduction + unpaidDeduction;
-            const subNetSalary = Math.max(0, totalEarnings - nonTaxDeductions);
+            const nonTaxDeductions =
+                absentDeduction +
+                lateDeduction +
+                halfDayAmount +
+                ncnsAmount +
+                sdAmount +
+                qaHrAmount +
+                misspunchAmount +
+                advanceDeduction +
+                unpaidDeduction;
+
+            // Gross Salary is AFTER all non-tax deductions.
+            const grossSalary = Math.max(0, totalEarnings - nonTaxDeductions);
+
+            // Existing variable kept for compatibility.
+            const subNetSalary = grossSalary;
 
             // 3. Tax Calculation: Annual Taxable Salary = SUB Net Salary x 12 using Pakistan salaried tax slabs FY 2026-2027
             let tax = parseFloat(payrollAdj.tax[emp.id] || 0);
             if (tax === 0) {
-                const annualIncome = subNetSalary * 12;
+                const annualIncome = grossSalary * 12;
                 let annualTax = 0;
                 if (annualIncome <= 600000) {
                     annualTax = 0;
@@ -2996,7 +3062,7 @@ require_once 'config.php';
             }
 
             const totalDeductions = nonTaxDeductions + tax;
-            const finalNetSalary = Math.max(0, subNetSalary - tax);
+            const finalNetSalary = Math.max(0, grossSalary - tax);
 
             let status = 'Good', statusClass = 'badge-perfect';
             if (!payrollMonthComplete && adjustedAbsent === 0 && emp.late === 0) { status = 'Accruing'; statusClass = 'badge-perfect'; }
@@ -3012,14 +3078,14 @@ require_once 'config.php';
                 meta, basicSalary, punctualityBonus, totalSalary, perDaySalary,
                 approvedLeaves: adjustedLeaveCount, adjustedLeaveCount, adjustedAbsent, totalWorkingDays,
                 rawAbsence, payrollMonthComplete, tenureDays, isTenure60Plus,
-                punctualityQualified, punctualityAmount,
+                punctualityQualified, punctualityAmount, punctualityExempt,
                 lateDeduction, tada, bonus, arrears, extraDays, extraDayPay,
                 halfDayCount, halfDayAmount, unpaidCount, unpaidDeduction, ncnsCount, ncnsAmount, sdCount, sdAmount,
                 qaHrAmount, misspunchCount, misspunchAmount,
                 advanceDeduction, advanceRemaining, absentDeduction, nonTaxDeductions, tax,
                 totalAdditions, totalEarnings, totalDeductions,
                 subNetSalary, finalNetSalary,
-                grossSalary: subNetSalary,
+                grossSalary,
                 netSalary: finalNetSalary,
                 remarks, comments,
                 status, statusClass
@@ -4406,11 +4472,11 @@ require_once 'config.php';
                         <th>Advance Salary</th>
                         <th>Absent Deduction</th>
                         <th>Total Addition</th>
-                        <th>Gross Salary</th>
                         <th>Total Deduction Ept Tax</th>
-                        <th>SUB - Net Salary</th>
+                        <th>Gross Salary</th>
                         <th>Tax</th>
                         <th style="color:#34d399; font-weight:800;">Final Net Salary</th>
+                        <th>Punctuality Late Rule</th>
                         <th>Remarks</th>
                         <th>Comments</th>
                         <th>Action</th>
@@ -4473,11 +4539,19 @@ require_once 'config.php';
                                 <td>${fmtAmt(e.advanceDeduction)}</td>
                                 <td>${fmtAmt(Math.round(e.absentDeduction))}</td>
                                 <td>${fmtAmt(Math.round(e.totalAdditions))}</td>
-                                <td>${fmtAmt(Math.round(e.totalEarnings))}</td>
                                 <td>${fmtAmt(totalDedExceptTax)}</td>
-                                <td>${fmtAmt(Math.round(e.subNetSalary))}</td>
+                                <td>${fmtAmt(Math.round(e.grossSalary))}</td>
                                 <td>${fmtAmt(e.tax)}</td>
                                 <td class="highlight-net-salary">${fmtAmt(finalNet)}</td>
+                                <td>
+                                    <select
+                                        class="payroll-remarks-select"
+                                        onchange="setPunctualityLateRule('${e.id}', this.value)"
+                                        title="Late-based punctuality rule for this employee and selected month">
+                                        <option value="auto" ${!e.punctualityExempt ? 'selected' : ''}>Auto</option>
+                                        <option value="waive" ${e.punctualityExempt ? 'selected' : ''}>Waive</option>
+                                    </select>
+                                </td>
                                 <td>
                                     <select class="payroll-remarks-select ${selectClass}" id="remarks-select-${e.id}" onchange="updatePayrollRemarks('${e.id}', this.value)">
                                         <option value="Ready for Payment" ${empRemarks === 'Ready for Payment' ? 'selected' : ''}>Ready for Payment</option>
