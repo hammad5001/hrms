@@ -4298,6 +4298,86 @@ require_once 'config.php';
         }
         window.filterPayrollSearch = filterPayrollSearch;
 
+        function getFilteredPayrollData(payrollData) {
+            let filtered = Array.isArray(payrollData)
+                ? [...payrollData]
+                : [];
+
+            if (selectedPayrollTeam) {
+                const wantedTeam =
+                    String(selectedPayrollTeam)
+                        .trim()
+                        .toLowerCase();
+
+                filtered = filtered.filter(e => {
+                    const empTeam =
+                        String(e.team || 'No Team')
+                            .trim()
+                            .toLowerCase();
+
+                    return empTeam === wantedTeam;
+                });
+            }
+
+            if (selectedPayrollQuery) {
+                const query =
+                    String(selectedPayrollQuery)
+                        .trim()
+                        .toLowerCase();
+
+                filtered = filtered.filter(e => {
+                    const name =
+                        String(e.name || '').toLowerCase();
+
+                    const id =
+                        String(e.id || '').toLowerCase();
+
+                    const sudo =
+                        String(
+                            e.meta
+                                ? (
+                                    e.meta.sudoName ||
+                                    e.meta.sudo_name ||
+                                    ''
+                                )
+                                : ''
+                        ).toLowerCase();
+
+                    const team =
+                        String(e.team || '').toLowerCase();
+
+                    const department =
+                        String(
+                            e.department ||
+                            e.campaign ||
+                            ''
+                        ).toLowerCase();
+
+                    const designation =
+                        String(
+                            e.meta
+                                ? (
+                                    e.meta.designation ||
+                                    e.designation ||
+                                    ''
+                                )
+                                : (e.designation || '')
+                        ).toLowerCase();
+
+                    return (
+                        name.includes(query) ||
+                        id.includes(query) ||
+                        sudo.includes(query) ||
+                        team.includes(query) ||
+                        department.includes(query) ||
+                        designation.includes(query)
+                    );
+                });
+            }
+
+            return filtered;
+        }
+
         function getRemarksSelectClass(status) {
             switch (status) {
                 case 'Ready for Payment': return 'status-ready';
@@ -4387,22 +4467,10 @@ require_once 'config.php';
                 branchTeams.push('No Team');
             }
 
-            // Filter payroll data by selected team and search query (Name or Biometric ID)
-            let displayPayrollData = payrollData;
-            if (selectedPayrollTeam) {
-                displayPayrollData = displayPayrollData.filter(e => {
-                    const empTeam = (e.team || 'No Team').trim().toLowerCase();
-                    return empTeam === selectedPayrollTeam.trim().toLowerCase();
-                });
-            }
-            if (selectedPayrollQuery) {
-                displayPayrollData = displayPayrollData.filter(e => {
-                    const name = (e.name || '').toLowerCase();
-                    const id = (e.id || '').toLowerCase();
-                    const sudo = (e.meta ? (e.meta.sudoName || e.meta.sudo_name || '') : '').toLowerCase();
-                    return name.includes(selectedPayrollQuery) || id.includes(selectedPayrollQuery) || sudo.includes(selectedPayrollQuery);
-                });
-            }
+            // Use one shared filter for both screen and export.
+            // Search supports Name, B-ID, Sudo Name, Team, Campaign and Designation.
+            const displayPayrollData =
+                getFilteredPayrollData(payrollData);
 
             const headerBranchEl = document.getElementById('headerBranchFilter');
             const activeBranchLabel = headerBranchEl ? headerBranchEl.options[headerBranchEl.selectedIndex].text : 'All Branches';
@@ -4413,7 +4481,7 @@ require_once 'config.php';
                     <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
                         <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.04); border:1px solid var(--border-color); padding:6px 14px; border-radius:10px;">
                             <i class="fas fa-search" style="color:var(--primary); font-size:13px;"></i>
-                            <input type="text" id="payrollSearchInput" value="${escapeHtml(selectedPayrollQuery)}" oninput="filterPayrollSearch(this.value)" placeholder="Search Name or B-ID..." style="background:transparent; border:none; color:white; font-size:13px; outline:none; width:180px;">
+                            <input type="text" id="payrollSearchInput" value="${escapeHtml(selectedPayrollQuery)}" oninput="filterPayrollSearch(this.value)" placeholder="Search Name, B-ID, Team..." style="background:transparent; border:none; color:white; font-size:13px; outline:none; width:180px;">
                         </div>
                         <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.04); border:1px solid var(--border-color); padding:6px 14px; border-radius:10px;">
                             <i class="fas fa-users-cog" style="color:var(--primary); font-size:13px;"></i>
@@ -4423,6 +4491,9 @@ require_once 'config.php';
                                 ${branchTeams.map(t => `<option value="${escapeHtml(t)}" ${selectedPayrollTeam === t ? 'selected' : ''} style="background:#0f1524;">${escapeHtml(t)}</option>`).join('')}
                             </select>
                         </div>
+                        <button class="btn btn-secondary" onclick="exportFullPayrollSheetXLSX()" style="padding:8px 16px; font-size:12px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.35); color:#34d399;">
+                            <i class="fas fa-file-excel"></i> Download Full Payroll XLSX
+                        </button>
                         <button class="btn btn-secondary" onclick="exportBankTransferCSV()" style="padding: 8px 16px; font-size:12px; background:rgba(255,255,255,0.05); border:1px solid var(--border-color); color:white;"><i class="fas fa-university"></i> Export Bank Transfer CSV</button>
                     </div>
                 </div>
@@ -5718,6 +5789,276 @@ require_once 'config.php';
         }
 
         // ===== EXPORTS =====
+        async function exportFullPayrollSheetXLSX() {
+            const payrollData =
+                allData.map(emp =>
+                    calculatePayrollForEmployee(emp)
+                );
+
+            const exportData =
+                getFilteredPayrollData(payrollData);
+
+            if (!exportData.length) {
+                showToast(
+                    'No payroll records found for current filter',
+                    'warning'
+                );
+                return;
+            }
+
+            const headers = [
+                'B-ID',
+                'Employees Name',
+                'Sudo Names',
+                'Designation',
+                'Campaign',
+                'CNIC#',
+                'Contact No.',
+                'Account Nos',
+                'Account Title',
+                'Bank Name',
+                'Appointment Date',
+                'Basic Salary',
+                'Punctuality',
+                'Total Salary',
+                'Salary Per Day',
+                'Num of Days',
+                'Present',
+                'Leave',
+                'Absent',
+                'Total No of W.Days',
+                'Punch Reward',
+                'Bonus',
+                'TA/DA',
+                'Arrears',
+                'Extra Day',
+                'Extra Day Pay',
+                'Late Coming',
+                'Late Coming Deduction',
+                'HD',
+                'HD Deduction',
+                'SD',
+                'SD Deduction',
+                'NCNS',
+                'NCNS Deduction',
+                'Unpaid Days',
+                'Unpaid Deduction',
+                'Docs',
+                'Missed Punchin',
+                'Missed Punchin Deduction',
+                'Transport Deduction',
+                'Advance Salary',
+                'Absent Deduction',
+                'Total Addition',
+                'Total Deduction Ept Tax',
+                'Gross Salary',
+                'Tax',
+                'Final Net Salary',
+                'Punctuality Late Rule',
+                'Remarks',
+                'Comments'
+            ];
+
+            const rows = exportData.map(e => {
+                const meta = e.meta || {};
+
+                const sudoName =
+                    meta.sudoName ||
+                    meta.sudo_name ||
+                    '';
+
+                const designation =
+                    meta.designation ||
+                    e.designation ||
+                    '';
+
+                const campaign =
+                    e.department ||
+                    e.campaign ||
+                    '';
+
+                const cnic =
+                    meta.cnic ||
+                    '';
+
+                const contactNo =
+                    meta.contactNo ||
+                    e.phone ||
+                    e.contact_no ||
+                    '';
+
+                const accountNo =
+                    meta.accountNo ||
+                    e.account_no ||
+                    e.accountNo ||
+                    '';
+
+                const accountTitle =
+                    meta.accountTitle ||
+                    e.account_title ||
+                    e.accountTitle ||
+                    '';
+
+                const bankName =
+                    meta.bankName ||
+                    e.bank_name ||
+                    e.bankName ||
+                    '';
+
+                const remarks =
+                    e.remarks ||
+                    (
+                        payrollAdj.remarks &&
+                        payrollAdj.remarks[e.id]
+                    ) ||
+                    'Ready for Payment';
+
+                const comments =
+                    e.comments ||
+                    (
+                        payrollAdj.comments &&
+                        payrollAdj.comments[e.id]
+                    ) ||
+                    '';
+
+                return [
+                    e.id,
+                    e.name,
+                    sudoName,
+                    designation,
+                    campaign,
+                    cnic,
+                    contactNo,
+                    accountNo,
+                    accountTitle,
+                    bankName,
+                    e.appointmentDate || '',
+                    Math.round(e.basicSalary || 0),
+                    Math.round(e.punctualityBonus || 0),
+                    Math.round(e.totalSalary || 0),
+                    Math.round(e.perDaySalary || 0),
+                    parseInt(workingDaysCount) || 0,
+                    parseInt(e.present) || 0,
+                    parseInt(e.adjustedLeaveCount) || 0,
+                    parseInt(e.adjustedAbsent) || 0,
+                    parseInt(e.totalWorkingDays) || 0,
+                    Math.round(e.punctualityAmount || 0),
+                    Math.round(e.bonus || 0),
+                    Math.round(e.tada || 0),
+                    Math.round(e.arrears || 0),
+                    parseInt(e.extraDays) || 0,
+                    Math.round(e.extraDayPay || 0),
+                    parseInt(e.late) || 0,
+                    Math.round(e.lateDeduction || 0),
+                    parseInt(e.halfDayCount) || 0,
+                    Math.round(e.halfDayAmount || 0),
+                    parseInt(e.sdCount) || 0,
+                    Math.round(e.sdAmount || 0),
+                    parseInt(e.ncnsCount) || 0,
+                    Math.round(e.ncnsAmount || 0),
+                    parseInt(e.unpaidCount || 0),
+                    Math.round(e.unpaidDeduction || 0),
+                    Math.round(e.qaHrAmount || 0),
+                    parseInt(e.misspunchCount) || 0,
+                    Math.round(e.misspunchAmount || 0),
+                    0,
+                    Math.round(e.advanceDeduction || 0),
+                    Math.round(e.absentDeduction || 0),
+                    Math.round(e.totalAdditions || 0),
+                    Math.round(e.nonTaxDeductions || 0),
+                    Math.round(e.grossSalary || 0),
+                    Math.round(e.tax || 0),
+                    Math.round(e.finalNetSalary || 0),
+                    e.punctualityExempt
+                        ? 'Waive'
+                        : 'Auto',
+                    remarks,
+                    comments
+                ];
+            });
+
+            const activeFilter =
+                selectedPayrollTeam ||
+                selectedPayrollQuery ||
+                'all';
+
+            const safeFilter =
+                String(activeFilter)
+                    .replace(/[^a-z0-9_-]+/gi, '_')
+                    .replace(/^_+|_+$/g, '') ||
+                'all';
+
+            const monthPart =
+                String(currentMonth).padStart(2, '0');
+
+            const filename =
+                `full_payroll_${safeFilter}_${currentYear}_${monthPart}.xlsx`;
+
+            try {
+                showToast(
+                    `Generating payroll XLSX for ${exportData.length} employee(s)...`,
+                    'info'
+                );
+
+                const res = await fetch(
+                    'api/payroll_api.php?action=exportBankXlsx',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            filename,
+                            headers,
+                            rows
+                        })
+                    }
+                );
+
+                if (!res.ok) {
+                    throw new Error(
+                        'XLSX generation failed'
+                    );
+                }
+
+                const blob = await res.blob();
+
+                const url =
+                    window.URL.createObjectURL(blob);
+
+                const a =
+                    document.createElement('a');
+
+                a.href = url;
+                a.download = filename;
+
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+
+                window.URL.revokeObjectURL(url);
+
+                showToast(
+                    `Downloaded ${exportData.length} payroll record(s)`,
+                    'success'
+                );
+
+            } catch (error) {
+                console.error(
+                    'Full payroll XLSX export failed:',
+                    error
+                );
+
+                showToast(
+                    `Payroll export failed: ${error.message}`,
+                    'danger'
+                );
+            }
+        }
+
+        window.exportFullPayrollSheetXLSX =
+            exportFullPayrollSheetXLSX;
+
         function exportPayrollCSV() {
             const payrollData = allData.map(emp => calculatePayrollForEmployee(emp));
             const headers = ['ID','Name','Designation','Basic Salary','Punctuality Bonus','Total Salary','Per Day Salary','Working Days','Presents','Leaves','Absents','Gross Salary','Status'];
