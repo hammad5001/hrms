@@ -32,6 +32,7 @@
     <link rel="stylesheet" href="../css/hr-productivity.css?v=4">
     <link rel="stylesheet" href="../css/advanced-analytics.css?v=1">
     <link rel="stylesheet" href="../css/employee-mail.css?v=3">
+    <link rel="stylesheet" href="../css/employee-request-hub.css?v=submit-11">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -92,6 +93,7 @@
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-timelogs" data-view="timelogs"><i class="fas fa-clock"></i><span>Time Tracker</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-payroll" data-view="salary"><i class="fas fa-wallet"></i><span>Payroll</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-files" data-view="coming-soon" data-nav-label="Files"><i class="fas fa-folder-open"></i><span>Files</span></button>
+                    <button type="button" class="ess-side-item" data-nav-id="nav-side-request-hub" data-view="request-hub"><i class="fas fa-headset"></i><span>Request Hub</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-mail" data-view="mail"><i class="fas fa-envelope"></i><span>Mail</span><span class="ess-side-badge hidden" id="badgeSideMail">0</span></button>
                     <button type="button" class="ess-side-item" data-nav-id="nav-side-chat" data-view="chat"><i class="fas fa-comments"></i><span>Chat</span><span class="ess-side-badge hidden" id="badgeSideChat">0</span></button>
                     <button type="button" class="ess-side-item hidden" data-nav-id="nav-side-active-members" data-view="active-members" id="navSideActiveMembers"><i class="fas fa-users-viewfinder"></i><span>Active Members</span></button>
@@ -104,6 +106,7 @@
                 <nav class="ess-tabs" id="essTabBar" aria-label="Sections">
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-activities" data-view="dashboard">Activities</button>
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-feeds" data-view="feeds">Activity Feeds</button>
+                    <button type="button" class="ess-tab" data-nav-id="nav-tab-request-hub" data-view="request-hub">Request Hub</button>
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-profile" data-view="profile" id="tabProfile">Profile</button>
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-leave" data-view="leave">Leaves</button>
                     <button type="button" class="ess-tab" data-nav-id="nav-tab-attendance" data-view="attendance">Attendance</button>
@@ -1457,6 +1460,158 @@
                                 </div>
                             </div>
                         </section>
+
+                        <!-- ============================================== -->
+                        <!-- Request Hub View Section (Ticketing System - Heavy Executive UI) -->
+                        <!-- ============================================== -->
+                        <section id="view-request-hub" class="view-section">
+                            <div class="rh-view-container">
+                                <!-- Sleek Enterprise Header Bar -->
+                                <div class="rh-top-bar">
+                                    <div class="rh-top-bar-left">
+                                        <div class="rh-top-title-row">
+                                            <div class="rh-title-icon"><i class="fas fa-headset"></i></div>
+                                            <div>
+                                                <h3>Request Hub & Ticketing System</h3>
+                                                <p>Submit inquiries, track resolution status, and multi-tag team leads & departments</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="rh-top-bar-right">
+                                        <button type="button" class="rh-btn-create" onclick="RequestHubModule.openNewRequestModal()">
+                                            <i class="fas fa-plus-circle"></i> Generate Request
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Compact Professional KPI Stat Cards -->
+                                <div class="rh-kpi-grid">
+                                    <div class="rh-kpi-card" onclick="RequestHubModule.setTab('all')">
+                                        <div class="rh-kpi-icon total"><i class="fas fa-ticket-alt"></i></div>
+                                        <div class="rh-kpi-data">
+                                            <span class="rh-kpi-label">Total Requests</span>
+                                            <strong class="rh-kpi-val" id="rhStatTotal">0</strong>
+                                        </div>
+                                    </div>
+                                    <div class="rh-kpi-card" onclick="RequestHubModule.setStatusFilter('pending')">
+                                        <div class="rh-kpi-icon pending"><i class="fas fa-clock"></i></div>
+                                        <div class="rh-kpi-data">
+                                            <span class="rh-kpi-label">Pending</span>
+                                            <strong class="rh-kpi-val" id="rhStatPending">0</strong>
+                                        </div>
+                                    </div>
+                                    <div class="rh-kpi-card" onclick="RequestHubModule.setStatusFilter('in_progress')">
+                                        <div class="rh-kpi-icon progress"><i class="fas fa-cog fa-spin"></i></div>
+                                        <div class="rh-kpi-data">
+                                            <span class="rh-kpi-label">In Progress</span>
+                                            <strong class="rh-kpi-val" id="rhStatProgress">0</strong>
+                                        </div>
+                                    </div>
+                                    <div class="rh-kpi-card" onclick="RequestHubModule.setStatusFilter('resolved')">
+                                        <div class="rh-kpi-icon resolved"><i class="fas fa-check-circle"></i></div>
+                                        <div class="rh-kpi-data">
+                                            <span class="rh-kpi-label">Resolved & Closed</span>
+                                            <strong class="rh-kpi-val" id="rhStatResolved">0</strong>
+                            <div class="rh-view-container rh-nordic-theme">
+                                <!-- Top Header & Actions -->
+                                <div class="rh-nordic-header">
+                                    <div class="rh-nordic-title-group">
+                                        <h2 class="rh-nordic-main-title">My Inquiries</h2>
+                                        <p class="rh-nordic-subtitle">Submit requests, track real-time resolution, and collaborate with department teams</p>
+                                    </div>
+                                    <div class="rh-nordic-actions">
+                                        <button type="button" class="rh-nordic-btn-primary" onclick="RequestHubModule.openNewRequestModal()">
+                                            <i class="fas fa-plus"></i> CREATE INQUIRY
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Compact Stats Strip -->
+                                <div class="rh-nordic-kpi-row">
+                                    <div class="rh-nordic-kpi-item" onclick="RequestHubModule.setTab('all')">
+                                        <div class="rh-nordic-kpi-dot total"></div>
+                                        <span class="rh-nordic-kpi-label">Total Inquiries</span>
+                                        <strong class="rh-nordic-kpi-val" id="rhStatTotal">0</strong>
+                                    </div>
+                                    <div class="rh-nordic-kpi-item" onclick="RequestHubModule.setStatusFilter('pending')">
+                                        <div class="rh-nordic-kpi-dot pending"></div>
+                                        <span class="rh-nordic-kpi-label">Pending</span>
+                                        <strong class="rh-nordic-kpi-val" id="rhStatPending">0</strong>
+                                    </div>
+                                    <div class="rh-nordic-kpi-item" onclick="RequestHubModule.setStatusFilter('in_progress')">
+                                        <div class="rh-nordic-kpi-dot progress"></div>
+                                        <span class="rh-nordic-kpi-label">Processing</span>
+                                        <strong class="rh-nordic-kpi-val" id="rhStatProgress">0</strong>
+                                    </div>
+                                    <div class="rh-nordic-kpi-item" onclick="RequestHubModule.setStatusFilter('resolved')">
+                                        <div class="rh-nordic-kpi-dot resolved"></div>
+                                        <span class="rh-nordic-kpi-label">Submitted & Resolved</span>
+                                        <strong class="rh-nordic-kpi-val" id="rhStatResolved">0</strong>
+                                    </div>
+                                </div>
+
+                                <!-- Inquiries Table Box -->
+                                <div class="rh-nordic-card">
+                                    <!-- Inquiries Section Subtitle & Controls -->
+                                    <div class="rh-nordic-toolbar">
+                                        <div class="rh-nordic-toolbar-left">
+                                            <h3 class="rh-nordic-section-title">Main Inquiry</h3>
+                                            <div class="rh-nordic-tabs">
+                                                <button type="button" class="rh-nordic-tab-btn active" data-tab="all" onclick="RequestHubModule.setTab('all')">All Inquiries</button>
+                                                <button type="button" class="rh-nordic-tab-btn" data-tab="my" onclick="RequestHubModule.setTab('my')">My Requests</button>
+                                                <button type="button" class="rh-nordic-tab-btn" data-tab="tagged" onclick="RequestHubModule.setTab('tagged')">Tagged to Me</button>
+                                            </div>
+                                        </div>
+
+                                        <div class="rh-nordic-toolbar-right">
+                                            <div class="rh-nordic-search-wrap">
+                                                <input type="text" id="rhSearchInput" class="rh-nordic-search-input" placeholder="Search inquiry...">
+                                                <button type="button" class="rh-nordic-search-btn" title="Search"><i class="fas fa-search"></i></button>
+                                            </div>
+
+                                            <select class="rh-nordic-select" id="rhDeptFilter" onchange="RequestHubModule.setDepartmentFilter(this.value)">
+                                                <option value="all">All Departments</option>
+                                                <option value="IT">IT Support</option>
+                                                <option value="Finance">Finance</option>
+                                                <option value="HR">HR Desk</option>
+                                                <option value="Operations">Operations</option>
+                                                <option value="General">General Admin</option>
+                                            </select>
+
+                                            <select class="rh-nordic-select" id="rhStatusFilter" onchange="RequestHubModule.setStatusFilter(this.value)">
+                                                <option value="all">All Statuses</option>
+                                                <option value="pending">Pending</option>
+                                                <option value="in_progress">Processing</option>
+                                                <option value="resolved">Submitted / Resolved</option>
+                                                <option value="rejected">Waiting / Rejected</option>
+                                                <option value="closed">Closed</option>
+                                            </select>
+
+                                            <button type="button" class="rh-nordic-btn-refresh" onclick="RequestHubModule.loadTickets()" title="Refresh list">
+                                                <i class="fas fa-sync-alt"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Table Header -->
+                                    <div class="rh-table-head">
+                                        <div class="rh-th col-code">Inquiry Number</div>
+                                        <div class="rh-th col-title">Name / Subject</div>
+                                        <div class="rh-th col-dept">Department</div>
+                                        <div class="rh-th col-status">Portal Status</div>
+                                        <div class="rh-th col-tags">Stakeholders</div>
+                                        <div class="rh-th col-comments">Comments</div>
+                                        <div class="rh-th col-date">Submitted Date</div>
+                                        <div class="rh-th col-actions">Actions</div>
+                                    </div>
+
+                                    <!-- Table Rows -->
+                                    <div class="rh-table-body" id="rhTicketsList">
+                                        <!-- Dynamic rows will be rendered here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
                     </div>
                 </div>
             </main>
@@ -1788,8 +1943,246 @@
         </div>
     </div>
 
+    <!-- ===================================================== -->
+    <!-- Modal: Generate New Request Ticket (Next-Gen Executive Studio UI) -->
+    <!-- ===================================================== -->
+    <div id="modalNewRequest" class="rh-modal-overlay">
+        <div class="rh-modal-box rh-create-modal-v2">
+            <!-- Modal Header with Ambient Glow & Stepper -->
+            <div class="rh-modal-header rh-create-header-v2">
+                <div class="rh-modal-title-wrap">
+                    <div class="rh-modal-icon-badge">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div>
+                        <div class="rh-modal-tagline"><span class="rh-live-dot"></span> Balitech Service Desk • Rapid Ticket Creator</div>
+                        <h3 class="rh-modal-heading">Generate Executive Support Request</h3>
+                    </div>
+                </div>
+                <div class="rh-header-right-actions">
+                    <span class="rh-header-status-badge"><i class="fas fa-shield-alt"></i> Auto-Dispatched to Dept Head</span>
+                    <button type="button" class="rh-modal-close" onclick="RequestHubModule.closeNewRequestModal()" aria-label="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <form id="formNewRequest" onsubmit="RequestHubModule.submitNewRequest(event)">
+                <div class="rh-modal-body rh-create-body-v2">
+                    <div class="rh-studio-grid">
+                        
+                        <!-- LEFT COLUMN: Department Selection & Category Visual Cards -->
+                        <div class="rh-studio-col rh-studio-col--left">
+                            
+                            <!-- Card Section 1: Department Selector -->
+                            <div class="rh-studio-card">
+                                <div class="rh-studio-card-head">
+                                    <div class="rh-card-title-wrap">
+                                        <span class="rh-card-step">01</span>
+                                        <h4>Select Target Department</h4>
+                                    </div>
+                                    <span class="rh-selected-badge" id="rhSelectedDeptLabel">IT Support</span>
+                                </div>
+                                <div class="rh-dept-tile-grid">
+                                    <div class="rh-dept-tile active" data-dept="IT" onclick="RequestHubModule.selectDepartmentCard('IT')">
+                                        <div class="rh-tile-icon it"><i class="fas fa-laptop-code"></i></div>
+                                        <div class="rh-tile-meta">
+                                            <strong>IT Support</strong>
+                                            <small>Hardware, VPN, Software</small>
+                                        </div>
+                                        <i class="fas fa-check-circle rh-tile-check"></i>
+                                    </div>
+                                    <div class="rh-dept-tile" data-dept="Finance" onclick="RequestHubModule.selectDepartmentCard('Finance')">
+                                        <div class="rh-tile-icon finance"><i class="fas fa-coins"></i></div>
+                                        <div class="rh-tile-meta">
+                                            <strong>Finance</strong>
+                                            <small>Salary, Tax, Claims</small>
+                                        </div>
+                                        <i class="fas fa-check-circle rh-tile-check"></i>
+                                    </div>
+                                    <div class="rh-dept-tile" data-dept="HR" onclick="RequestHubModule.selectDepartmentCard('HR')">
+                                        <div class="rh-tile-icon hr"><i class="fas fa-user-tie"></i></div>
+                                        <div class="rh-tile-meta">
+                                            <strong>HR Desk</strong>
+                                            <small>Attendance, Leaves, Policy</small>
+                                        </div>
+                                        <i class="fas fa-check-circle rh-tile-check"></i>
+                                    </div>
+                                    <div class="rh-dept-tile" data-dept="Operations" onclick="RequestHubModule.selectDepartmentCard('Operations')">
+                                        <div class="rh-tile-icon ops"><i class="fas fa-network-wired"></i></div>
+                                        <div class="rh-tile-meta">
+                                            <strong>Operations</strong>
+                                            <small>Shifts, Seats, Facility</small>
+                                        </div>
+                                        <i class="fas fa-check-circle rh-tile-check"></i>
+                                    </div>
+                                    <div class="rh-dept-tile" data-dept="General" onclick="RequestHubModule.selectDepartmentCard('General')">
+                                        <div class="rh-tile-icon gen"><i class="fas fa-headset"></i></div>
+                                        <div class="rh-tile-meta">
+                                            <strong>General Admin</strong>
+                                            <small>Office & Admin Inquiries</small>
+                                        </div>
+                                        <i class="fas fa-check-circle rh-tile-check"></i>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="rhDepartmentSelect" value="IT">
+                            </div>
+
+                            <!-- Card Section 2: Visual Category Selector Grid -->
+                            <div class="rh-studio-card">
+                                <div class="rh-studio-card-head">
+                                    <div class="rh-card-title-wrap">
+                                        <span class="rh-card-step">02</span>
+                                        <h4>Issue Category</h4>
+                                    </div>
+                                    <span class="rh-cat-count-badge" id="rhCategoryCountBadge">7 Categories</span>
+                                </div>
+                                <div class="rh-cat-visual-grid" id="rhCatVisualGrid">
+                                    <!-- Dynamically populated category chips -->
+                                </div>
+                                <input type="hidden" id="rhCategorySelect" value="">
+                            </div>
+
+                            <!-- Card Section 3: Stakeholders Tagging -->
+                            <div class="rh-studio-card" style="position: relative;">
+                                <div class="rh-studio-card-head">
+                                    <div class="rh-card-title-wrap">
+                                        <span class="rh-card-step">03</span>
+                                        <h4>Tag Stakeholders</h4>
+                                    </div>
+                                    <span class="rh-tag-count-pill" id="rhTagCounter">0/8 Tagged</span>
+                                </div>
+                                <div class="rh-tag-box-v2" onclick="document.getElementById('rhTagSearchInput').focus()">
+                                    <div id="rhSelectedTagsWrap" class="rh-selected-tags-flex"></div>
+                                    <div class="rh-tag-input-row">
+                                        <i class="fas fa-user-plus rh-tag-plus-icon"></i>
+                                        <input type="text" id="rhTagSearchInput" class="rh-tag-search-box-v2" placeholder="Search Team Lead, HR, IT or Finance member..." autocomplete="off">
+                                    </div>
+                                </div>
+                                <div class="rh-tag-dropdown-v2" id="rhTagDropdown"></div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT COLUMN: Priority, Details, Subject & Dropzone -->
+                        <div class="rh-studio-col rh-studio-col--right">
+                            
+                            <!-- Card Section 4: Urgency & Priority Cards -->
+                            <div class="rh-studio-card">
+                                <div class="rh-studio-card-head">
+                                    <div class="rh-card-title-wrap">
+                                        <span class="rh-card-step">04</span>
+                                        <h4>Priority & Urgency Level</h4>
+                                    </div>
+                                </div>
+                                <div class="rh-priority-matrix">
+                                    <div class="rh-pri-card" data-priority="low" onclick="RequestHubModule.selectPriorityPill('low')">
+                                        <div class="rh-pri-dot low"></div>
+                                        <strong>Low</strong>
+                                        <small>3 - 5 Days</small>
+                                    </div>
+                                    <div class="rh-pri-card active" data-priority="normal" onclick="RequestHubModule.selectPriorityPill('normal')">
+                                        <div class="rh-pri-dot normal"></div>
+                                        <strong>Normal</strong>
+                                        <small>24 - 48 Hours</small>
+                                    </div>
+                                    <div class="rh-pri-card" data-priority="high" onclick="RequestHubModule.selectPriorityPill('high')">
+                                        <div class="rh-pri-dot high"></div>
+                                        <strong>High</strong>
+                                        <small>Same Day</small>
+                                    </div>
+                                    <div class="rh-pri-card" data-priority="urgent" onclick="RequestHubModule.selectPriorityPill('urgent')">
+                                        <div class="rh-pri-dot urgent"></div>
+                                        <strong>Urgent</strong>
+                                        <small>Immediate</small>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="rhPrioritySelect" value="normal">
+                            </div>
+
+                            <!-- Card Section 5: Subject & Detailed Content -->
+                            <div class="rh-studio-card">
+                                <div class="rh-studio-card-head">
+                                    <div class="rh-card-title-wrap">
+                                        <span class="rh-card-step">05</span>
+                                        <h4>Request Details</h4>
+                                    </div>
+                                    <span class="rh-req-tag"><i class="fas fa-asterisk"></i> Required</span>
+                                </div>
+                                <div class="rh-field-stack">
+                                    <div class="rh-input-wrap-v2">
+                                        <span class="rh-input-icon-v2"><i class="fas fa-heading"></i></span>
+                                        <input type="text" id="rhSubjectInput" class="rh-input-v2" placeholder="Subject / Short Summary (e.g. PC not turning on)" required maxlength="255">
+                                    </div>
+                                    <div class="rh-textarea-wrap-v2">
+                                        <textarea id="rhDescriptionInput" class="rh-textarea-v2" rows="4" placeholder="Describe the issue in detail, error codes, workstation ID, or steps to reproduce..." required></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Card Section 6: File Dropzone & Attachment -->
+                            <div class="rh-studio-card">
+                                <div class="rh-studio-card-head">
+                                    <div class="rh-card-title-wrap">
+                                        <span class="rh-card-step">06</span>
+                                        <h4>Attach Supporting Document / Screenshot</h4>
+                                    </div>
+                                    <span class="rh-opt-tag">Optional</span>
+                                </div>
+                                <div class="rh-dropzone-v2" onclick="document.getElementById('rhAttachmentInput').click()">
+                                    <input type="file" id="rhAttachmentInput" style="display:none;" onchange="RequestHubModule.handleFileSelected(this)">
+                                    <div class="rh-dz-icon-wrap">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                    </div>
+                                    <div class="rh-dz-info">
+                                        <strong id="rhFilePromptText">Drag & Drop or Click to Upload</strong>
+                                        <span id="rhFileNameDisplay">Supports PNG, JPG, PDF, DOCX, ZIP (Max 15MB)</span>
+                                    </div>
+                                    <button type="button" class="rh-dz-btn" onclick="event.stopPropagation(); document.getElementById('rhAttachmentInput').click()">
+                                        <i class="fas fa-folder-open"></i> Browse
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="rh-modal-footer-v2">
+                    <div class="rh-footer-left">
+                        <span class="rh-footer-note"><i class="fas fa-info-circle"></i> Stakeholders tagged will receive instant notifications in their portal.</span>
+                    </div>
+                    <div class="rh-footer-right">
+                        <button type="button" class="rh-btn-cancel-v2" onclick="RequestHubModule.closeNewRequestModal()">
+                            Cancel
+                        </button>
+                        <button type="submit" class="rh-btn-submit-v2" id="btnSubmitRequest">
+                            <i class="fas fa-paper-plane"></i> Dispatch Support Ticket
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- Modal: View Ticket Details & Remarks Discussion Trail -->
+    <!-- ===================================================== -->
+    <div id="modalTicketDetails" class="rh-modal-overlay">
+        <div class="rh-modal-box wide">
+            <div class="rh-modal-header">
+                <h3><i class="fas fa-ticket-alt" style="color: #6366f1;"></i> Ticket Details & Discussion</h3>
+                <button type="button" class="rh-modal-close" onclick="RequestHubModule.closeTicketDetailsModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="rh-modal-body" id="rhTicketDetailsBody">
+                <!-- Loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
     <script charset="utf-8" src="../js/employee-hrms.js?v=999"></script>
     <script charset="utf-8" src="../js/employee-mail.js?v=1"></script>
+    <script charset="utf-8" src="../js/employee-request-hub.js?v=studio-v2"></script>
     <script charset="utf-8" src="../js/employee-performance.js?v=10"></script>
     <script charset="utf-8" src="../js/portal-chat-fab.js"></script>
     <!-- Register new productivity views so showView() recognises them -->
@@ -1800,11 +2193,17 @@
                 ESS_VIEW_TITLES['timelogs']     = ['Time Tracker', 'Clock in, clock out and manage your work sessions'];
                 ESS_VIEW_TITLES['timesheets']   = ['Timesheets', 'Weekly project time logs - auto-saved, manager approval'];
                 ESS_VIEW_TITLES['salary']       = ['My Payslips', 'View and download your monthly salary slips'];
+                ESS_VIEW_TITLES['request-hub']   = ['Request Hub', 'Department Support, Multi-tagging & Ticketing System'];
             }
             if (typeof ESS_DEFAULT_NAV !== 'undefined') {
                 ESS_DEFAULT_NAV['feeds']        = 'nav-tab-feeds';
                 ESS_DEFAULT_NAV['timelogs']     = 'nav-tab-timelogs';
                 ESS_DEFAULT_NAV['timesheets']   = 'nav-tab-timesheets';
+                ESS_DEFAULT_NAV['request-hub']   = 'nav-tab-request-hub';
+            }
+
+            if (typeof RequestHubModule !== 'undefined') {
+                RequestHubModule.init();
             }
         });
     </script>

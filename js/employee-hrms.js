@@ -656,7 +656,9 @@ const ESS_HASH_TO_VIEW = {
     'reportees':             ['reportees',             'nav-tab-reportees'],
     'approvals':             ['approvals',             'nav-tab-approvals'],
     'leave-policy':          ['leave-policy',          'nav-side-leave-policy'],
-    'active-members':        ['active-members',        'nav-side-active-members']
+    'active-members':        ['active-members',        'nav-side-active-members'],
+    'request-hub':           ['request-hub',           'nav-side-request-hub'],
+    'requests':              ['request-hub',           'nav-side-request-hub']
 };
 
 const ESS_VIEW_TITLES = {
@@ -674,6 +676,7 @@ const ESS_VIEW_TITLES = {
     notifications: ['Notifications', 'Alerts from HR and managers'],
     chat: ['Workspace Chat', 'Messages with your team - secure internal chat'],
     mail: ['Internal Mail', 'Communicate internally with company employees'],
+    'request-hub': ['Request Hub', 'Department Support, Multi-tagging & Ticketing System'],
     'coming-soon': ['Coming soon', 'This module is under development'],
 };
 
@@ -741,9 +744,11 @@ function showView(id, navId = null, syncHash = true) {
     const isChat = (id === 'chat');
     const isDashboard = (id === 'dashboard');
     const isMail = (id === 'mail');
+    const isRequestHub = (id === 'request-hub');
     document.body.classList.toggle('ess-chat-active', isChat);
     document.body.classList.toggle('ess-dashboard-active', isDashboard);
     document.body.classList.toggle('ess-mail-active', isMail);
+    document.body.classList.toggle('ess-requesthub-active', isRequestHub);
     document.body.classList.toggle('perf-view-active', id === 'performance');
     if (isChat) {
         ensureChatFrameLoaded();
@@ -754,6 +759,10 @@ function showView(id, navId = null, syncHash = true) {
 
     if (id === 'mail' && window.MailModule) {
         window.MailModule.switchFolder('inbox');
+    }
+
+    if (id === 'request-hub' && window.RequestHubModule) {
+        window.RequestHubModule.loadTickets();
     }
 
     const t = ESS_VIEW_TITLES[id] || ['HRMS', ''];
