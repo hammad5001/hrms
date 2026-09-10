@@ -839,7 +839,9 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
         .role-badge.attendance { background: rgba(168,85,247,0.2); color: #a855f7; }
         .role-badge.data_entry { background: rgba(34,211,238,0.2); color: #22d3ee; }
         .role-badge.dialer { background: rgba(251,191,36,0.2); color: #fbbf24; }
-        .role-badge.developer { background: rgba(52,211,153,0.2); color: #34d399; }
+        .role-badge.developer,
+        .role-badge.it { background: rgba(52,211,153,0.2); color: #34d399; }
+        .role-badge.trainer { background: rgba(236,72,153,0.2); color: #ec4899; }
         .role-badge.team_lead { background: rgba(96,165,250,0.2); color: #60a5fa; }
         .role-badge.floor_manager { background: rgba(167,139,250,0.2); color: #a78bfa; }
         .status-badge {

@@ -65,99 +65,56 @@ function ensure_portal_role_enum(mysqli $conn): void {
 /** @return string[] */
 
 function allowed_portal_roles(): array {
-
     return [
-
-        'super_admin', 'admin', 'hr', 'recruiter', 'management', 'training', 'receptionist', 'user',
-
-        'team_lead', 'floor_manager', 'data_entry', 'dialer', 'developer',
-
+        'super_admin', 'admin', 'hr', 'recruiter', 'management', 'training', 'trainer', 'receptionist', 'user',
+        'team_lead', 'floor_manager', 'data_entry', 'dialer', 'developer', 'it',
         'agent', 'analytics', 'attendance', 'finance'
-
     ];
-
 }
 
-
-
 /** Ordered options for admin create/edit dropdowns. */
-
 function portal_role_options(): array {
-
     $order = [
-
-        'user', 'data_entry', 'dialer', 'developer', 'team_lead', 'floor_manager',
-
-        'receptionist', 'recruiter', 'hr', 'management', 'training', 'analytics', 'attendance', 'finance', 'admin', 'super_admin',
-
+        'user', 'data_entry', 'dialer', 'it', 'developer', 'trainer', 'training', 'team_lead', 'floor_manager',
+        'receptionist', 'recruiter', 'hr', 'management', 'analytics', 'attendance', 'finance', 'admin', 'super_admin',
     ];
 
     $out = [];
-
     foreach ($order as $role) {
-
         if (in_array($role, allowed_portal_roles(), true)) {
-
             $out[$role] = portal_role_label($role);
-
         }
-
     }
-
     return $out;
-
 }
-
-
 
 function is_valid_portal_role(string $role): bool {
-
     return in_array($role, allowed_portal_roles(), true);
-
 }
 
-
-
 function portal_role_label(string $role): string {
-
     $labels = [
-
         'super_admin' => 'Super Admin',
-
         'admin' => 'Admin',
-
         'hr' => 'HR',
-
         'recruiter' => 'Recruiter',
-
         'management' => 'Management',
-
-        'training' => 'Training',
-
+        'training' => 'Training (Head)',
+        'trainer' => 'Trainer',
+        'it' => 'IT Support',
         'receptionist' => 'Receptionist',
-
         'user' => 'Employee (General)',
-
         'team_lead' => 'Team Lead',
-
         'floor_manager' => 'Floor Manager',
-
         'data_entry' => 'Data Entry',
-
         'dialer' => 'Dialer',
-
         'developer' => 'Developer',
-
         'agent' => 'Agent (Reception)',
-
         'analytics' => 'Analytics',
-
         'attendance' => 'Attendance',
-
+        'finance' => 'Finance',
     ];
-
     return $labels[$role] ?? ucfirst(str_replace('_', ' ', $role));
-
 }
 
 
@@ -250,31 +207,25 @@ function suggest_portal_role_from_sheet(string $department, string $team = '', s
 
 
 /** Roles that may open the employee HRMS portal. */
-
 function employee_portal_roles(): array {
-
-    return ['user', 'team_lead', 'floor_manager', 'dialer', 'developer'];
-
+    return ['user', 'team_lead', 'floor_manager', 'dialer', 'developer', 'it', 'trainer'];
 }
 
 /** Employee Self Service dashboard (all staff). */
 function employee_self_service_url(): string {
-
     return 'employee-portal.html';
-
 }
 
-/** Work HRMS portal — pure `user` employees only get Self Service. */
+/** Work HRMS portal — pure `user`, `it`, `trainer`, `developer`, `dialer` employees only get Self Service. */
 function user_can_access_work_portal(string $role): bool {
-
     if (in_array($role, ['super_admin', 'admin'], true)) {
-
         return true;
-
     }
-
-    return $role !== 'user';
-
+    // Roles restricted strictly to Employee Portal (no separate work portal)
+    if (in_array($role, ['user', 'it', 'trainer', 'developer', 'dialer'], true)) {
+        return false;
+    }
+    return true;
 }
 
 /** Admin user-management: who may create or assign the super_admin role. */

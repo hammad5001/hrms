@@ -133,6 +133,8 @@ function portal_role_label_clean(?string $role): string {
         'floor_manager' => 'Floor Manager',
         'finance' => 'Finance Officer',
         'developer' => 'IT / Developer',
+        'it' => 'IT Support',
+        'trainer' => 'Trainer',
         'dialer' => 'Dialer Ops',
         'attendance' => 'Attendance Admin',
         'user' => 'Staff'
@@ -154,7 +156,24 @@ function getAutoTags($conn, $current_emp_id) {
     $autoTags = [];
     $taggedIds = [];
 
-    // 1. Tag Reporting Manager / Team Lead for the employee (Always included)
+    // Helper to add unique tag
+    $addTag = function($id, $name, $role, $type, $badge) use (&$autoTags, &$taggedIds, $emp_id) {
+        $id = (int)$id;
+        if ($id > 0 && $id !== $emp_id && !in_array($id, $taggedIds)) {
+            $autoTags[] = [
+                'id' => $id,
+                'name' => $name,
+                'role' => $role,
+                'tag_type' => $type,
+                'tag_badge' => $badge
+            ];
+            $taggedIds[] = $id;
+            return true;
+        }
+        return false;
+    };
+
+    // 1. MUST: Tag Reporting Manager / Team Lead for the employee
     if ($emp_id > 0) {
         $mgrStmt = $conn->prepare("
             SELECT er.manager_user_id, er.manager_name, u.portal_role, u.designation, u.department, u.company_branch
@@ -169,165 +188,194 @@ function getAutoTags($conn, $current_emp_id) {
             $mgrRes = $mgrStmt->get_result();
             if ($mgrRes && $mgrRow = $mgrRes->fetch_assoc()) {
                 $mgrId = (int)$mgrRow['manager_user_id'];
-                if ($mgrId > 0 && $mgrId !== $emp_id) {
-                    $autoTags[] = [
-                        'id' => $mgrId,
-                        'name' => $mgrRow['manager_name'] ?: 'Team Lead / Manager',
-                        'role' => $mgrRow['designation'] ?: (portal_role_label_clean($mgrRow['portal_role'] ?? 'team_lead')),
-                        'tag_type' => 'manager',
-                        'tag_badge' => 'Reporting Manager'
-                    ];
-                    $taggedIds[] = $mgrId;
-                }
+                $mgrRole = $mgrRow['designation'] ?: (portal_role_label_clean($mgrRow['portal_role'] ?? 'team_lead'));
+                $addTag($mgrId, $mgrRow['manager_name'] ?: 'Team Lead / Manager', $mgrRole, 'manager', 'Reporting Manager');
             }
         }
     }
 
-    // 2. Department-Specific Auto-Tagging
-    if (strcasecmp($department, 'Finance') === 0) {
-        // Finance: Global across ALL branches (all finance designated users)
-        $finQuery = "SELECT id, full_name, portal_role, designation, department, company_branch
-                     FROM users
-                     WHERE (portal_role = 'finance' 
-                            OR department LIKE '%Finance%' 
-                            OR designation LIKE '%Finance%' 
-                            OR designation LIKE '%Account%'
-                            OR designation LIKE '%Cashier%')
-                     AND (status = 'active' OR status IS NULL)
-                     ORDER BY id ASC";
-        $finRes = $conn->query($finQuery);
-        if ($finRes) {
-            while ($fRow = $finRes->fetch_assoc()) {
-                $fId = (int)$fRow['id'];
-                if ($fId > 0 && $fId !== $emp_id && !in_array($fId, $taggedIds)) {
-                    $autoTags[] = [
-                        'id' => $fId,
-                        'name' => $fRow['full_name'],
-                        'role' => $fRow['designation'] ?: 'Finance Officer',
-                        'tag_type' => 'finance',
-                        'tag_badge' => 'Finance Team'
-                    ];
-                    $taggedIds[] = $fId;
-                }
+    // 2. Tag Head of Department (HOD) / Management
+    $hodQuery = "
+        SELECT id, full_name, designation, portal_role 
+        FROM users 
+        WHERE (portal_role = 'management' OR designation LIKE '%Head of%' OR designation LIKE '%HOD%' OR designation LIKE '%Director%')
+        AND (status = 'active' OR status IS NULL)
+        AND portal_role NOT IN ('recruiter', 'user')
+        AND designation NOT LIKE '%Recruit%'
+        AND (company_branch = ? OR company_branch = 'main' OR company_branch IS NULL)
+        ORDER BY CASE WHEN company_branch = ? THEN 1 ELSE 2 END ASC, id ASC
+        LIMIT 1
+    ";
+    $hodStmt = $conn->prepare($hodQuery);
+    if ($hodStmt) {
+        $hodStmt->bind_param("ss", $branch, $branch);
+        $hodStmt->execute();
+        $hodRes = $hodStmt->get_result();
+        if ($hodRes && $hodRow = $hodRes->fetch_assoc()) {
+            $addTag($hodRow['id'], $hodRow['full_name'], $hodRow['designation'] ?: 'Head of Department', 'hod', 'Head of Dept');
+        }
+    }
+
+    // 3. Tag Branch HR (or Global HR)
+    $hrQuery = "
+        SELECT id, full_name, designation, portal_role 
+        FROM users 
+        WHERE (portal_role = 'hr' OR department LIKE '%HR%' OR designation LIKE '%HR%')
+        AND company_branch = ?
+        AND (status = 'active' OR status IS NULL)
+        ORDER BY id ASC
+        LIMIT 2
+    ";
+    $hrStmt = $conn->prepare($hrQuery);
+    if ($hrStmt) {
+        $hrStmt->bind_param("s", $branch);
+        $hrStmt->execute();
+        $hrRes = $hrStmt->get_result();
+        $hrAdded = false;
+        while ($hRow = $hrRes->fetch_assoc()) {
+            if ($addTag($hRow['id'], $hRow['full_name'], $hRow['designation'] ?: 'HR Officer', 'hr', 'Branch HR')) {
+                $hrAdded = true;
             }
         }
-    } elseif (strcasecmp($department, 'HR') === 0) {
-        // HR: Specific to employee's branch
-        $hrQuery = "SELECT id, full_name, portal_role, designation, department, company_branch
-                    FROM users
-                    WHERE (portal_role = 'hr' OR department LIKE '%HR%' OR designation LIKE '%HR%')
-                    AND company_branch = ?
-                    AND (status = 'active' OR status IS NULL)";
-        $hrStmt = $conn->prepare($hrQuery);
-        if ($hrStmt) {
-            $hrStmt->bind_param("s", $branch);
-            $hrStmt->execute();
-            $hrRes = $hrStmt->get_result();
-            while ($hRow = $hrRes->fetch_assoc()) {
-                $hId = (int)$hRow['id'];
-                if ($hId > 0 && $hId !== $emp_id && !in_array($hId, $taggedIds)) {
-                    $autoTags[] = [
-                        'id' => $hId,
-                        'name' => $hRow['full_name'],
-                        'role' => $hRow['designation'] ?: 'HR Officer',
-                        'tag_type' => 'hr',
-                        'tag_badge' => 'Branch HR'
-                    ];
-                    $taggedIds[] = $hId;
-                }
+        // Fallback to global HR if branch HR not found
+        if (!$hrAdded) {
+            $fbackRes = $conn->query("SELECT id, full_name, portal_role, designation FROM users WHERE (portal_role = 'hr' OR department LIKE '%HR%') AND (status = 'active' OR status IS NULL) LIMIT 1");
+            if ($fbackRes && $fbRow = $fbackRes->fetch_assoc()) {
+                $addTag($fbRow['id'], $fbRow['full_name'], $fbRow['designation'] ?: 'HR Officer', 'hr', 'HR Team');
             }
         }
-        // If no HR in specific branch, fallback to global/main HR
-        if (empty(array_filter($autoTags, fn($t) => $t['tag_type'] === 'hr'))) {
-            $fbackRes = $conn->query("SELECT id, full_name, portal_role, designation FROM users WHERE (portal_role = 'hr' OR department LIKE '%HR%') AND (status = 'active' OR status IS NULL) LIMIT 2");
-            if ($fbackRes) {
-                while ($fbRow = $fbackRes->fetch_assoc()) {
-                    $fbId = (int)$fbRow['id'];
-                    if ($fbId > 0 && $fbId !== $emp_id && !in_array($fbId, $taggedIds)) {
-                        $autoTags[] = [
-                            'id' => $fbId,
-                            'name' => $fbRow['full_name'],
-                            'role' => $fbRow['designation'] ?: 'HR Officer',
-                            'tag_type' => 'hr',
-                            'tag_badge' => 'HR Team'
-                        ];
-                        $taggedIds[] = $fbId;
-                    }
-                }
-            }
-        }
-    } elseif (strcasecmp($department, 'IT') === 0) {
-        // IT / Tech: Specific to employee's branch
-        $itQuery = "SELECT id, full_name, portal_role, designation, department, company_branch
-                    FROM users
-                    WHERE (portal_role IN ('developer', 'admin') OR department LIKE '%IT%' OR designation LIKE '%IT%' OR designation LIKE '%Network%' OR designation LIKE '%Developer%')
-                    AND company_branch = ?
-                    AND (status = 'active' OR status IS NULL)";
+    }
+
+    // 4. Department-Specific Specialists
+    if (strcasecmp($department, 'IT') === 0) {
+        // IT / Tech: Strictly IT Support & IT Managers (Excludes Recruiters, Developers, Sales, HR)
+        $itQuery = "
+            SELECT id, full_name, portal_role, designation, department, company_branch
+            FROM users
+            WHERE (
+                portal_role = 'it'
+                OR (
+                    (
+                        designation LIKE '%IT Support%' 
+                        OR designation LIKE '%IT Manager%' 
+                        OR designation LIKE '%IT Executive%' 
+                        OR designation LIKE '%IT Officer%'
+                        OR designation LIKE '%Network Admin%'
+                        OR designation LIKE '%Network Engineer%'
+                        OR designation LIKE '%Hardware%'
+                        OR designation LIKE '%System Admin%'
+                        OR (department = 'IT' AND designation NOT LIKE '%Recruit%' AND designation NOT LIKE '%Develop%')
+                    )
+                    AND designation NOT LIKE '%Recruit%'
+                    AND designation NOT LIKE '%Developer%'
+                    AND designation NOT LIKE '%Software%'
+                    AND designation NOT LIKE '%Frontend%'
+                    AND designation NOT LIKE '%Backend%'
+                    AND designation NOT LIKE '%Full Stack%'
+                    AND portal_role NOT IN ('recruiter', 'developer', 'hr', 'sales', 'user')
+                )
+            )
+            AND company_branch = ?
+            AND (status = 'active' OR status IS NULL)
+            ORDER BY CASE WHEN designation LIKE '%Manager%' THEN 1 ELSE 2 END ASC
+            LIMIT 2
+        ";
         $itStmt = $conn->prepare($itQuery);
         if ($itStmt) {
             $itStmt->bind_param("s", $branch);
             $itStmt->execute();
             $itRes = $itStmt->get_result();
+            $itAdded = false;
             while ($itRow = $itRes->fetch_assoc()) {
-                $itId = (int)$itRow['id'];
-                if ($itId > 0 && $itId !== $emp_id && !in_array($itId, $taggedIds)) {
-                    $autoTags[] = [
-                        'id' => $itId,
-                        'name' => $itRow['full_name'],
-                        'role' => $itRow['designation'] ?: 'IT Support',
-                        'tag_type' => 'it',
-                        'tag_badge' => 'IT Support'
-                    ];
-                    $taggedIds[] = $itId;
+                if ($addTag($itRow['id'], $itRow['full_name'], $itRow['designation'] ?: 'IT Support', 'it', 'IT Support')) {
+                    $itAdded = true;
                 }
             }
-        }
-        // If none found for branch, fallback to global IT / Developer
-        if (empty(array_filter($autoTags, fn($t) => $t['tag_type'] === 'it'))) {
-            $fbackIt = $conn->query("SELECT id, full_name, portal_role, designation FROM users WHERE (portal_role IN ('developer', 'admin') OR department LIKE '%IT%') AND (status = 'active' OR status IS NULL) LIMIT 2");
-            if ($fbackIt) {
-                while ($fitRow = $fbackIt->fetch_assoc()) {
-                    $fitId = (int)$fitRow['id'];
-                    if ($fitId > 0 && $fitId !== $emp_id && !in_array($fitId, $taggedIds)) {
-                        $autoTags[] = [
-                            'id' => $fitId,
-                            'name' => $fitRow['full_name'],
-                            'role' => $fitRow['designation'] ?: 'IT Support',
-                            'tag_type' => 'it',
-                            'tag_badge' => 'IT Support'
-                        ];
-                        $taggedIds[] = $fitId;
+            // Fallback to global IT Support / Manager if none found in this branch
+            if (!$itAdded) {
+                $fbackIt = $conn->query("
+                    SELECT id, full_name, portal_role, designation 
+                    FROM users 
+                    WHERE (
+                        portal_role = 'it'
+                        OR (
+                            (
+                                designation LIKE '%IT Support%' 
+                                OR designation LIKE '%IT Manager%' 
+                                OR designation LIKE '%IT Executive%'
+                                OR designation LIKE '%Network%'
+                                OR designation LIKE '%Hardware%'
+                                OR designation LIKE '%System Admin%'
+                            )
+                            AND designation NOT LIKE '%Recruit%'
+                            AND designation NOT LIKE '%Develop%'
+                            AND designation NOT LIKE '%Software%'
+                            AND portal_role NOT IN ('recruiter', 'developer', 'hr', 'sales')
+                        )
+                    ) 
+                    AND (status = 'active' OR status IS NULL)
+                    ORDER BY CASE WHEN designation LIKE '%Manager%' THEN 1 ELSE 2 END ASC
+                    LIMIT 2
+                ");
+                if ($fbackIt) {
+                    while ($fitRow = $fbackIt->fetch_assoc()) {
+                        $addTag($fitRow['id'], $fitRow['full_name'], $fitRow['designation'] ?: 'IT Support', 'it', 'IT Support');
                     }
                 }
             }
         }
+    } elseif (strcasecmp($department, 'Finance') === 0) {
+        // Finance Team
+        $finQuery = "
+            SELECT id, full_name, portal_role, designation, department, company_branch
+            FROM users
+            WHERE (portal_role = 'finance' 
+                   OR department LIKE '%Finance%' 
+                   OR designation LIKE '%Finance%' 
+                   OR designation LIKE '%Account%'
+                   OR designation LIKE '%Cashier%')
+            AND (status = 'active' OR status IS NULL)
+            ORDER BY id ASC
+            LIMIT 2
+        ";
+        $finRes = $conn->query($finQuery);
+        if ($finRes) {
+            while ($fRow = $finRes->fetch_assoc()) {
+                $addTag($fRow['id'], $fRow['full_name'], $fRow['designation'] ?: 'Finance Officer', 'finance', 'Finance Team');
+            }
+        }
     } elseif (strcasecmp($department, 'Operations') === 0) {
         // Operations: Floor Manager / Team Leads in employee's branch
-        $opsQuery = "SELECT id, full_name, portal_role, designation, department, company_branch
-                     FROM users
-                     WHERE (portal_role IN ('floor_manager', 'team_lead') OR department LIKE '%Operations%')
-                     AND company_branch = ?
-                     AND (status = 'active' OR status IS NULL)
-                     LIMIT 3";
+        $opsQuery = "
+            SELECT id, full_name, portal_role, designation, department, company_branch
+            FROM users
+            WHERE (portal_role IN ('floor_manager', 'team_lead') OR department LIKE '%Operations%')
+            AND company_branch = ?
+            AND (status = 'active' OR status IS NULL)
+            LIMIT 2
+        ";
         $opsStmt = $conn->prepare($opsQuery);
         if ($opsStmt) {
             $opsStmt->bind_param("s", $branch);
             $opsStmt->execute();
             $opsRes = $opsStmt->get_result();
             while ($opRow = $opsRes->fetch_assoc()) {
-                $opId = (int)$opRow['id'];
-                if ($opId > 0 && $opId !== $emp_id && !in_array($opId, $taggedIds)) {
-                    $autoTags[] = [
-                        'id' => $opId,
-                        'name' => $opRow['full_name'],
-                        'role' => $opRow['designation'] ?: portal_role_label_clean($opRow['portal_role']),
-                        'tag_type' => 'ops',
-                        'tag_badge' => 'Operations'
-                    ];
-                    $taggedIds[] = $opId;
-                }
+                $addTag($opRow['id'], $opRow['full_name'], $opRow['designation'] ?: portal_role_label_clean($opRow['portal_role']), 'ops', 'Operations');
             }
         }
+    }
+
+    // 5. Tag Super Admin (for oversight & monitoring)
+    $saRes = $conn->query("
+        SELECT id, full_name, designation, portal_role 
+        FROM users 
+        WHERE portal_role = 'super_admin' 
+        AND (status = 'active' OR status IS NULL) 
+        ORDER BY id ASC 
+        LIMIT 1
+    ");
+    if ($saRes && $saRow = $saRes->fetch_assoc()) {
+        $addTag($saRow['id'], $saRow['full_name'], 'Super Admin', 'super_admin', 'Super Admin');
     }
 
     echo json_encode([
@@ -423,13 +471,52 @@ function createRequest($conn, $current_emp_id, $current_emp_name) {
 
 function getRequests($conn, $current_emp_id) {
     $emp_id = (int)($_GET['employee_id'] ?? $current_emp_id);
-    $emp_name = trim($_GET['employee_name'] ?? '');
     $filter_tab = $_GET['tab'] ?? 'all'; // 'my', 'tagged', 'all'
     $department = $_GET['department'] ?? '';
     $status = $_GET['status'] ?? '';
     $search = trim($_GET['search'] ?? '');
 
-    $where = ["1=1"];
+    // Check user's portal role for Super Admin / Admin override
+    $user_role = $_SESSION['portal_role'] ?? $_SESSION['role'] ?? '';
+    if (empty($user_role) && $emp_id > 0) {
+        $rStmt = $conn->prepare("SELECT portal_role FROM users WHERE id = ? LIMIT 1");
+        if ($rStmt) {
+            $rStmt->bind_param("i", $emp_id);
+            $rStmt->execute();
+            $rRes = $rStmt->get_result();
+            if ($rRes && $rRow = $rRes->fetch_assoc()) {
+                $user_role = $rRow['portal_role'] ?? '';
+            }
+        }
+    }
+
+    $is_super_admin = in_array(strtolower($user_role), ['super_admin', 'admin']);
+
+    $where = [];
+
+    // PRIVACY & PERMISSION RULE:
+    // If not super_admin/admin, user ONLY sees tickets where:
+    // 1) They are the creator (employee_id = $emp_id), OR
+    // 2) They are tagged in the ticket (tagged_users contains their ID)
+    if (!$is_super_admin) {
+        if ($emp_id > 0) {
+            $emp_id_str = '"id":' . $emp_id;
+            $emp_id_str2 = '"id":"' . $emp_id . '"';
+            $where[] = "(employee_id = $emp_id OR tagged_users LIKE '%$emp_id_str%' OR tagged_users LIKE '%$emp_id_str2%')";
+        } else {
+            // Guest or unknown without session sees nothing
+            $where[] = "1=0";
+        }
+    }
+
+    // Specific Tab Sub-Filtering:
+    if ($filter_tab === 'my' && $emp_id > 0) {
+        $where[] = "employee_id = $emp_id";
+    } elseif ($filter_tab === 'tagged' && $emp_id > 0) {
+        $emp_id_str = '"id":' . $emp_id;
+        $emp_id_str2 = '"id":"' . $emp_id . '"';
+        $where[] = "(tagged_users LIKE '%$emp_id_str%' OR tagged_users LIKE '%$emp_id_str2%')";
+    }
 
     if ($department && $department !== 'all') {
         $dept_esc = $conn->real_escape_string($department);
@@ -446,17 +533,7 @@ function getRequests($conn, $current_emp_id) {
         $where[] = "(ticket_code LIKE '%$s_esc%' OR subject LIKE '%$s_esc%' OR employee_name LIKE '%$s_esc%' OR description LIKE '%$s_esc%')";
     }
 
-    // Role / Tab filtering
-    if ($filter_tab === 'my' && $emp_id > 0) {
-        $where[] = "employee_id = $emp_id";
-    } elseif ($filter_tab === 'tagged' && $emp_id > 0) {
-        // Tagged in JSON array: e.g. [{"id":12,"name":"..."},...]
-        $emp_id_str = '"id":' . $emp_id;
-        $emp_id_str2 = '"id":"' . $emp_id . '"';
-        $where[] = "(tagged_users LIKE '%$emp_id_str%' OR tagged_users LIKE '%$emp_id_str2%')";
-    }
-
-    $where_sql = implode(" AND ", $where);
+    $where_sql = !empty($where) ? implode(" AND ", $where) : "1=1";
     $query = "SELECT r.*, 
               (SELECT COUNT(*) FROM portal_request_remarks rm WHERE rm.request_id = r.id) as remarks_count,
               (SELECT created_at FROM portal_request_remarks rm WHERE rm.request_id = r.id ORDER BY id DESC LIMIT 1) as last_activity
@@ -480,6 +557,7 @@ function getRequests($conn, $current_emp_id) {
 function getRequestDetails($conn, $current_emp_id) {
     $id = (int)($_GET['id'] ?? 0);
     $ticket_code = trim($_GET['ticket_code'] ?? '');
+    $emp_id = (int)($_GET['employee_id'] ?? $current_emp_id);
 
     if ($id <= 0 && empty($ticket_code)) {
         echo json_encode(['success' => false, 'error' => 'Invalid ticket identifier.']);
@@ -502,7 +580,93 @@ function getRequestDetails($conn, $current_emp_id) {
     }
 
     $ticket = $res->fetch_assoc();
-    $ticket['tagged_users_list'] = json_decode($ticket['tagged_users'] ?? '[]', true) ?: [];
+    $tagged = json_decode($ticket['tagged_users'] ?? '[]', true) ?: [];
+    $ticket['tagged_users_list'] = $tagged;
+
+    // Verify view permissions:
+    $user_role = $_SESSION['portal_role'] ?? $_SESSION['role'] ?? '';
+    if (empty($user_role) && $emp_id > 0) {
+        $rStmt = $conn->prepare("SELECT portal_role FROM users WHERE id = ? LIMIT 1");
+        if ($rStmt) {
+            $rStmt->bind_param("i", $emp_id);
+            $rStmt->execute();
+            $rRes = $rStmt->get_result();
+            if ($rRes && $rRow = $rRes->fetch_assoc()) {
+                $user_role = $rRow['portal_role'] ?? '';
+            }
+        }
+    }
+    $is_super_admin = in_array(strtolower($user_role), ['super_admin', 'admin']);
+    $is_creator = ((int)$ticket['employee_id'] === $emp_id);
+    $is_tagged = false;
+    foreach ($tagged as $tg) {
+        if (isset($tg['id']) && (int)$tg['id'] === $emp_id) {
+            $is_tagged = true;
+            break;
+        }
+    }
+
+    // Check if user's actual designation or portal role matches the ticket's department handler
+    $user_desig = '';
+    if ($emp_id > 0) {
+        $uInfoStmt = $conn->prepare("SELECT portal_role, designation FROM users WHERE id = ? LIMIT 1");
+        if ($uInfoStmt) {
+            $uInfoStmt->bind_param("i", $emp_id);
+            $uInfoStmt->execute();
+            $uInfoRes = $uInfoStmt->get_result();
+            if ($uInfoRes && $uRow = $uInfoRes->fetch_assoc()) {
+                $user_role = $uRow['portal_role'] ?? $user_role;
+                $user_desig = $uRow['designation'] ?? '';
+            }
+        }
+    }
+
+    $dept = strtolower(trim($ticket['department'] ?? ''));
+    $u_role_clean = strtolower($user_role);
+    $u_desig_clean = strtolower($user_desig);
+    $is_dept_handler = false;
+
+    // RULE: Strictly Department Specialists can change status/close ticket:
+    // IT tickets -> IT Support / IT Manager (strictly NOT developers, NOT reporting managers, NOT super admins)
+    // HR tickets -> HR Officer / HR Manager
+    // Finance tickets -> Finance Officer / Accountant
+    // Operations tickets -> Operations Lead / Floor Manager
+    if ($dept === 'it') {
+        if ($u_role_clean === 'it' || (strpos($u_desig_clean, 'it support') !== false || strpos($u_desig_clean, 'it manager') !== false || strpos($u_desig_clean, 'network') !== false)) {
+            // Ensure not a developer
+            if (strpos($u_desig_clean, 'developer') === false && $u_role_clean !== 'developer') {
+                $is_dept_handler = true;
+            }
+        }
+    } elseif ($dept === 'hr') {
+        if ($u_role_clean === 'hr' || strpos($u_desig_clean, 'hr') !== false) {
+            $is_dept_handler = true;
+        }
+    } elseif ($dept === 'finance') {
+        if ($u_role_clean === 'finance' || strpos($u_desig_clean, 'finance') !== false || strpos($u_desig_clean, 'account') !== false || strpos($u_desig_clean, 'cashier') !== false) {
+            $is_dept_handler = true;
+        }
+    } elseif ($dept === 'operations') {
+        if (in_array($u_role_clean, ['floor_manager', 'operations']) || strpos($u_desig_clean, 'operations') !== false || strpos($u_desig_clean, 'floor manager') !== false) {
+            $is_dept_handler = true;
+        }
+    }
+
+    // Also verify if the user was tagged with tag_type matching the department
+    if ($is_tagged && !$is_dept_handler) {
+        foreach ($tagged as $tg) {
+            if (isset($tg['id']) && (int)$tg['id'] === $emp_id) {
+                $tgType = strtolower($tg['tag_type'] ?? '');
+                if ($tgType === $dept || ($dept === 'operations' && $tgType === 'ops')) {
+                    $is_dept_handler = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    // ONLY the assigned department specialist can change/resolve status (Super Admin / HOD / Reporting Manager can add remarks only)
+    $can_change_status = $is_dept_handler;
 
     // Fetch remarks thread
     $req_id = (int)$ticket['id'];
@@ -514,10 +678,28 @@ function getRequestDetails($conn, $current_emp_id) {
         }
     }
 
+    // Required handler role display string
+    $dept_handler_labels = [
+        'it' => 'IT Support / IT Manager',
+        'hr' => 'Branch HR Officer',
+        'finance' => 'Finance Team',
+        'operations' => 'Operations Lead',
+        'general' => 'Administrative Desk'
+    ];
+    $required_handler_label = $dept_handler_labels[$dept] ?? 'Department Specialist';
+
     echo json_encode([
         'success' => true,
         'ticket' => $ticket,
-        'remarks' => $remarks
+        'remarks' => $remarks,
+        'permissions' => [
+            'can_change_status' => $can_change_status,
+            'is_dept_handler' => $is_dept_handler,
+            'is_super_admin' => in_array(strtolower($user_role), ['super_admin', 'admin']),
+            'is_creator' => $is_creator,
+            'is_tagged' => $is_tagged,
+            'required_handler_label' => $required_handler_label
+        ]
     ]);
     exit;
 }
@@ -556,15 +738,72 @@ function addRemark($conn, $current_emp_id, $current_emp_name, $current_emp_role)
     $stmt->bind_param("iissssss", $request_id, $author_id, $author_name, $author_role, $remark, $attachment_path, $attachment_name, $status_change);
 
     if ($stmt->execute()) {
-        // If status changed along with remark
+        // If status changed along with remark, verify permissions
         if (!empty($status_change) && in_array($status_change, ['pending', 'in_progress', 'resolved', 'rejected', 'closed'])) {
-            $is_resolved = in_array($status_change, ['resolved', 'closed']);
-            $resolved_by = $is_resolved ? $author_name : null;
-            $resolved_at = $is_resolved ? date('Y-m-d H:i:s') : null;
+            // Check ticket department and user authorization
+            $tCheck = $conn->query("SELECT department, tagged_users FROM portal_requests WHERE id = $request_id LIMIT 1");
+            $canChange = false;
+            
+            // Get accurate user designation and role
+            $user_role_clean = strtolower($_SESSION['portal_role'] ?? $_SESSION['role'] ?? '');
+            $user_desig_clean = '';
+            if ($author_id > 0) {
+                $uStmt = $conn->prepare("SELECT portal_role, designation FROM users WHERE id = ? LIMIT 1");
+                if ($uStmt) {
+                    $uStmt->bind_param("i", $author_id);
+                    $uStmt->execute();
+                    $uRes = $uStmt->get_result();
+                    if ($uRes && $uRow = $uRes->fetch_assoc()) {
+                        $user_role_clean = strtolower($uRow['portal_role'] ?? $user_role_clean);
+                        $user_desig_clean = strtolower($uRow['designation'] ?? '');
+                    }
+                }
+            }
 
-            $uStmt = $conn->prepare("UPDATE portal_requests SET status = ?, resolved_by = COALESCE(?, resolved_by), resolved_at = COALESCE(?, resolved_at), updated_at = NOW() WHERE id = ?");
-            $uStmt->bind_param("sssi", $status_change, $resolved_by, $resolved_at, $request_id);
-            $uStmt->execute();
+            if ($tCheck && $tRow = $tCheck->fetch_assoc()) {
+                $dept = strtolower(trim($tRow['department'] ?? ''));
+                if ($dept === 'it') {
+                    if (($user_role_clean === 'it' || strpos($user_desig_clean, 'it support') !== false || strpos($user_desig_clean, 'it manager') !== false || strpos($user_desig_clean, 'network') !== false) && strpos($user_desig_clean, 'developer') === false && $user_role_clean !== 'developer') {
+                        $canChange = true;
+                    }
+                } elseif ($dept === 'hr') {
+                    if ($user_role_clean === 'hr' || strpos($user_desig_clean, 'hr') !== false) {
+                        $canChange = true;
+                    }
+                } elseif ($dept === 'finance') {
+                    if ($user_role_clean === 'finance' || strpos($user_desig_clean, 'finance') !== false || strpos($user_desig_clean, 'account') !== false || strpos($user_desig_clean, 'cashier') !== false) {
+                        $canChange = true;
+                    }
+                } elseif ($dept === 'operations') {
+                    if (in_array($user_role_clean, ['floor_manager', 'operations']) || strpos($user_desig_clean, 'operations') !== false || strpos($user_desig_clean, 'floor manager') !== false) {
+                        $canChange = true;
+                    }
+                }
+
+                // Check if tagged explicitly with matching department tag_type
+                if (!$canChange) {
+                    $tTags = json_decode($tRow['tagged_users'] ?? '[]', true) ?: [];
+                    foreach ($tTags as $tg) {
+                        if (isset($tg['id']) && (int)$tg['id'] === $author_id) {
+                            $tgType = strtolower($tg['tag_type'] ?? '');
+                            if ($tgType === $dept || ($dept === 'operations' && $tgType === 'ops')) {
+                                $canChange = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ($canChange) {
+                $is_resolved = in_array($status_change, ['resolved', 'closed']);
+                $resolved_by = $is_resolved ? $author_name : null;
+                $resolved_at = $is_resolved ? date('Y-m-d H:i:s') : null;
+
+                $uStmt = $conn->prepare("UPDATE portal_requests SET status = ?, resolved_by = COALESCE(?, resolved_by), resolved_at = COALESCE(?, resolved_at), updated_at = NOW() WHERE id = ?");
+                $uStmt->bind_param("sssi", $status_change, $resolved_by, $resolved_at, $request_id);
+                $uStmt->execute();
+            }
         }
 
         echo json_encode(['success' => true, 'message' => 'Remark posted successfully.']);
@@ -584,6 +823,71 @@ function updateStatus($conn, $current_emp_id, $current_emp_name, $current_emp_ro
 
     if ($request_id <= 0 || !in_array($status, ['pending', 'in_progress', 'resolved', 'rejected', 'closed'])) {
         echo json_encode(['success' => false, 'error' => 'Valid request ID and status required.']);
+        exit;
+    }
+
+    // Strict validation: Only department specialist can update status directly
+    $tCheck = $conn->query("SELECT department, tagged_users FROM portal_requests WHERE id = $request_id LIMIT 1");
+    if (!$tCheck || $tCheck->num_rows === 0) {
+        echo json_encode(['success' => false, 'error' => 'Ticket not found.']);
+        exit;
+    }
+    $tRow = $tCheck->fetch_assoc();
+    $dept = strtolower(trim($tRow['department'] ?? ''));
+
+    // Check user role and designation
+    $uRole = strtolower($user_role);
+    $uDesig = '';
+    if ($user_id > 0) {
+        $uInfoStmt = $conn->prepare("SELECT portal_role, designation FROM users WHERE id = ? LIMIT 1");
+        if ($uInfoStmt) {
+            $uInfoStmt->bind_param("i", $user_id);
+            $uInfoStmt->execute();
+            $uInfoRes = $uInfoStmt->get_result();
+            if ($uInfoRes && $uRow = $uInfoRes->fetch_assoc()) {
+                $uRole = strtolower($uRow['portal_role'] ?? $uRole);
+                $uDesig = strtolower($uRow['designation'] ?? '');
+            }
+        }
+    }
+
+    $isAuthorized = false;
+    if ($dept === 'it') {
+        if (($uRole === 'it' || strpos($uDesig, 'it support') !== false || strpos($uDesig, 'it manager') !== false || strpos($uDesig, 'network') !== false) && strpos($uDesig, 'developer') === false && $uRole !== 'developer') {
+            $isAuthorized = true;
+        }
+    } elseif ($dept === 'hr') {
+        if ($uRole === 'hr' || strpos($uDesig, 'hr') !== false) {
+            $isAuthorized = true;
+        }
+    } elseif ($dept === 'finance') {
+        if ($uRole === 'finance' || strpos($uDesig, 'finance') !== false || strpos($uDesig, 'account') !== false || strpos($uDesig, 'cashier') !== false) {
+            $isAuthorized = true;
+        }
+    } elseif ($dept === 'operations') {
+        if (in_array($uRole, ['floor_manager', 'operations']) || strpos($uDesig, 'operations') !== false || strpos($uDesig, 'floor manager') !== false) {
+            $isAuthorized = true;
+        }
+    }
+
+    if (!$isAuthorized) {
+        $tTags = json_decode($tRow['tagged_users'] ?? '[]', true) ?: [];
+        foreach ($tTags as $tg) {
+            if (isset($tg['id']) && (int)$tg['id'] === $user_id) {
+                $tgType = strtolower($tg['tag_type'] ?? '');
+                if ($tgType === $dept || ($dept === 'operations' && $tgType === 'ops')) {
+                    $isAuthorized = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (!$isAuthorized) {
+        echo json_encode([
+            'success' => false, 
+            'error' => "Action not permitted. Only the assigned {$tRow['department']} department specialists can modify this case status."
+        ]);
         exit;
     }
 

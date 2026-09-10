@@ -558,6 +558,10 @@ const RequestHubModule = {
                 <div class="rh-table-row" onclick="RequestHubModule.viewTicketDetails(${t.id})">
                     <div class="rh-td col-code">
                         <span class="rh-inquiry-code">${escHtml(t.ticket_code)}</span>
+                        <div class="rh-requester-info" title="Requested by: ${escHtml(t.employee_name || 'Staff')}">
+                            <i class="far fa-user rh-req-user-icon"></i>
+                            <span class="rh-req-user-name">${escHtml(t.employee_name || 'Staff')}</span>
+                        </div>
                     </div>
 
                     <div class="rh-td col-title">
@@ -610,11 +614,12 @@ const RequestHubModule = {
         modalBody.innerHTML = '<div style="text-align:center; padding:40px;"><i class="fas fa-spinner fa-spin fa-2x" style="color:#6366f1;"></i><p style="margin-top:10px; color:#cbd5e1;">Loading ticket discussion & history...</p></div>';
 
         try {
-            const res = await fetch(this.getApiUrl(`api/request_hub_api.php?action=get_request_details&id=${id}`));
+            const empId = (HRMS.user && HRMS.user.id) ? HRMS.user.id : 0;
+            const res = await fetch(this.getApiUrl(`api/request_hub_api.php?action=get_request_details&id=${id}&employee_id=${empId}`));
             const data = await res.json();
 
             if (data.success) {
-                this.renderTicketDetailsView(data.ticket, data.remarks || []);
+                this.renderTicketDetailsView(data.ticket, data.remarks || [], data.permissions || {});
             } else {
                 modalBody.innerHTML = `<div class="rh-empty-state"><i class="fas fa-exclamation-triangle"></i><p>${data.error || 'Failed to load details'}</p></div>`;
             }
@@ -639,9 +644,11 @@ const RequestHubModule = {
         this.setDepartmentFilter(dept);
     },
 
-    renderTicketDetailsView: function(ticket, remarks) {
+    renderTicketDetailsView: function(ticket, remarks, permissions = {}) {
         const modalBody = document.getElementById('rhTicketDetailsBody');
         if (!modalBody) return;
+
+        const canChangeStatus = !!permissions.can_change_status;
 
         const tags = ticket.tagged_users_list || [];
         const tagsHtml = tags.length > 0 ? tags.map(tag => {
@@ -736,14 +743,24 @@ const RequestHubModule = {
                                 <span id="rhRemarkAttachName" style="font-size:12px; color:#a5b4fc; font-weight:600;"></span>
                             </div>
 
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <select id="rhRemarkStatusChange" class="rh-select" style="padding:8px 14px; font-size:12.5px;">
-                                    <option value="">Keep Current Status</option>
-                                    <option value="in_progress">Mark In Progress</option>
-                                    <option value="resolved">Mark Resolved</option>
-                                    <option value="rejected">Mark Rejected</option>
-                                    <option value="closed">Mark Closed</option>
-                                </select>
+                            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                                ${canChangeStatus ? `
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <span style="font-size:11.5px; color:#38bdf8; font-weight:700;"><i class="fas fa-shield-alt"></i> Resolver Action:</span>
+                                        <select id="rhRemarkStatusChange" class="rh-select" style="padding:8px 14px; font-size:12.5px; border-color:#38bdf8;">
+                                            <option value="">Keep Current Status</option>
+                                            <option value="in_progress">Mark In Progress</option>
+                                            <option value="resolved">Mark Resolved / Done</option>
+                                            <option value="rejected">Mark Rejected</option>
+                                            <option value="closed">Mark Closed</option>
+                                        </select>
+                                    </div>
+                                ` : `
+                                    <input type="hidden" id="rhRemarkStatusChange" value="">
+                                    <div style="font-size:11.5px; color:#94a3b8; background:rgba(255,255,255,0.05); padding:6px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
+                                        <i class="fas fa-info-circle" style="color:#fbbf24; margin-right:4px;"></i> Remarks Only (Case Resolution reserved for <strong>${escHtml(permissions.required_handler_label || 'Specialist')}</strong>)
+                                    </div>
+                                `}
                                 <button type="submit" class="rh-btn-primary" id="btnPostRemark" style="padding:10px 20px; font-size:13.5px;">
                                     <i class="fas fa-paper-plane"></i> Post Remark
                                 </button>

@@ -376,11 +376,15 @@ const PORTAL_ROLE_LABELS = {
     data_entry: 'Data Entry',
     dialer: 'Dialer',
     developer: 'Developer',
+    it: 'IT Support',
+    trainer: 'Trainer',
+    training: 'Training',
     admin: 'Administrator',
     super_admin: 'Super Admin',
     hr: 'HR',
     management: 'Management',
     receptionist: 'Receptionist',
+    finance: 'Finance',
 };
 
 function portalRoleLabel(role) {

@@ -837,12 +837,13 @@ body.ess-requesthub-active .ess-content-col {
 }
 
 .rh-modal-box.wide {
-    max-width: 980px;
+    max-width: 880px;
+    border-radius: 22px;
 }
 
 /* Create Modal Header with Glowing Accent Line */
 .rh-modal-header {
-    padding: 22px 30px;
+    padding: 16px 24px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     align-items: center;
@@ -1238,19 +1239,32 @@ body.ess-requesthub-active .ess-content-col {
 
 /* ==========================================================================
    NEXT-GEN EXECUTIVE STUDIO 2-COLUMN MODAL CREATOR (.rh-create-modal-v2)
+   Ultra-Premium Glassmorphism, Deep Obsidian/Slate, Emerald & Amber Glows
    ========================================================================== */
 .rh-create-modal-v2 {
-    max-width: 980px !important;
-    width: 92vw !important;
-    max-height: 88vh !important;
+    max-width: 1040px !important;
+    width: 94vw !important;
+    max-height: 90vh !important;
     height: auto !important;
     display: flex !important;
     flex-direction: column !important;
-    background: linear-gradient(145deg, #0d1322 0%, #11182c 100%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.16) !important;
-    border-radius: 22px !important;
-    box-shadow: 0 35px 90px rgba(0, 0, 0, 0.85) !important;
+    background: linear-gradient(165deg, rgba(17, 24, 39, 0.96) 0%, rgba(11, 15, 25, 0.98) 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 26px !important;
+    box-shadow: 0 30px 90px -15px rgba(0, 0, 0, 0.9), 0 0 40px rgba(13, 148, 136, 0.15) !important;
     overflow: hidden !important;
+    position: relative;
+}
+
+.rh-create-modal-v2::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #f97316 0%, #14b8a6 50%, #6366f1 100%);
+    z-index: 10;
 }
 
 #formNewRequest {
@@ -1262,8 +1276,8 @@ body.ess-requesthub-active .ess-content-col {
 }
 
 .rh-create-header-v2 {
-    padding: 16px 24px !important;
-    background: rgba(16, 24, 46, 0.98) !important;
+    padding: 20px 28px !important;
+    background: rgba(13, 18, 30, 0.95) !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
     flex-shrink: 0;
 }
@@ -1271,39 +1285,56 @@ body.ess-requesthub-active .ess-content-col {
 .rh-header-right-actions {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
 }
 
 .rh-header-status-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    background: rgba(99, 102, 241, 0.12);
-    border: 1px solid rgba(99, 102, 241, 0.35);
-    color: #a5b4fc;
-    font-size: 11px;
+    gap: 7px;
+    background: rgba(20, 184, 166, 0.12);
+    border: 1px solid rgba(20, 184, 166, 0.35);
+    color: #2dd4bf;
+    font-size: 11.5px;
     font-weight: 700;
-    padding: 5px 12px;
+    padding: 6px 14px;
     border-radius: 20px;
+    letter-spacing: 0.2px;
 }
 
 .rh-create-body-v2 {
-    padding: 20px 24px !important;
+    padding: 22px 28px !important;
     flex: 1 1 auto;
     min-height: 0;
-    max-height: calc(88vh - 140px);
+    max-height: calc(90vh - 160px);
     overflow-y: auto !important;
     overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.rh-create-body-v2::-webkit-scrollbar {
+    width: 6px;
+}
+.rh-create-body-v2::-webkit-scrollbar-track {
+    background: transparent;
+}
+.rh-create-body-v2::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 10px;
+}
+.rh-create-body-v2::-webkit-scrollbar-thumb:hover {
+    background: rgba(249, 115, 22, 0.5);
 }
 
 /* Studio 2-Column Responsive Layout Grid */
 .rh-studio-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    gap: 20px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 940px) {
     .rh-studio-grid {
         grid-template-columns: 1fr;
     }
@@ -1312,29 +1343,29 @@ body.ess-requesthub-active .ess-content-col {
 .rh-studio-col {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 18px;
 }
 
 /* Studio Executive Card Sections */
 .rh-studio-card {
-    background: rgba(13, 19, 36, 0.75);
-    border: 1px solid rgba(255, 255, 255, 0.11);
+    background: rgba(19, 26, 43, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 20px;
     padding: 18px 20px;
     display: flex;
     flex-direction: column;
     gap: 14px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
 }
 
 .rh-studio-card:hover {
-    border-color: rgba(255, 255, 255, 0.2);
-    background: rgba(16, 25, 48, 0.85);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    border-color: rgba(255, 255, 255, 0.16);
+    background: rgba(23, 32, 54, 0.75);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
 }
 
 .rh-studio-card-head {
@@ -1353,15 +1384,15 @@ body.ess-requesthub-active .ess-content-col {
     width: 24px;
     height: 24px;
     border-radius: 8px;
-    background: linear-gradient(135deg, rgba(249, 115, 22, 0.25), rgba(249, 115, 22, 0.5));
-    border: 1px solid rgba(249, 115, 22, 0.6);
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(249, 115, 22, 0.45));
+    border: 1px solid rgba(249, 115, 22, 0.5);
     color: #fed7aa;
     font-size: 11px;
-    font-weight: 900;
+    font-weight: 800;
     display: flex;
     align-items: center;
     justify-content: center;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.3px;
     box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);
 }
 
@@ -1376,8 +1407,8 @@ body.ess-requesthub-active .ess-content-col {
 .rh-selected-badge {
     font-size: 11px;
     font-weight: 800;
-    padding: 3px 10px;
-    border-radius: 12px;
+    padding: 3px 12px;
+    border-radius: 20px;
     background: rgba(249, 115, 22, 0.15);
     color: #fb923c;
     border: 1px solid rgba(249, 115, 22, 0.4);
@@ -1388,8 +1419,8 @@ body.ess-requesthub-active .ess-content-col {
 .rh-cat-count-badge {
     font-size: 11px;
     font-weight: 700;
-    padding: 3px 10px;
-    border-radius: 12px;
+    padding: 3px 12px;
+    border-radius: 20px;
     background: rgba(99, 102, 241, 0.15);
     color: #a5b4fc;
     border: 1px solid rgba(99, 102, 241, 0.35);
@@ -1398,8 +1429,8 @@ body.ess-requesthub-active .ess-content-col {
 .rh-tag-count-pill {
     font-size: 11px;
     font-weight: 700;
-    padding: 3px 10px;
-    border-radius: 12px;
+    padding: 3px 12px;
+    border-radius: 20px;
     background: rgba(52, 211, 153, 0.15);
     color: #6ee7b7;
     border: 1px solid rgba(52, 211, 153, 0.35);
@@ -1411,8 +1442,8 @@ body.ess-requesthub-active .ess-content-col {
     color: #f87171;
     background: rgba(239, 68, 68, 0.12);
     border: 1px solid rgba(239, 68, 68, 0.3);
-    padding: 2px 8px;
-    border-radius: 8px;
+    padding: 2px 10px;
+    border-radius: 20px;
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -1424,8 +1455,8 @@ body.ess-requesthub-active .ess-content-col {
     color: #94a3b8;
     background: rgba(148, 163, 184, 0.1);
     border: 1px solid rgba(148, 163, 184, 0.2);
-    padding: 2px 8px;
-    border-radius: 8px;
+    padding: 2px 10px;
+    border-radius: 20px;
 }
 
 /* Step 01: Department Tile Grid */
@@ -1437,29 +1468,33 @@ body.ess-requesthub-active .ess-content-col {
 
 .rh-dept-tile {
     position: relative;
-    background: rgba(7, 11, 22, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(12, 17, 30, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 14px;
-    padding: 10px 12px;
+    padding: 11px 13px;
     display: flex;
     align-items: center;
     gap: 12px;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     user-select: none;
 }
 
+.rh-dept-tile:nth-child(5) {
+    grid-column: span 2;
+}
+
 .rh-dept-tile:hover {
-    background: rgba(18, 28, 52, 0.85);
-    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(22, 31, 54, 0.9);
+    border-color: rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
 }
 
 .rh-dept-tile.active {
-    background: linear-gradient(135deg, rgba(249, 115, 22, 0.18), rgba(99, 102, 241, 0.2));
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.18), rgba(20, 184, 166, 0.16));
     border-color: #f97316;
-    box-shadow: 0 0 20px rgba(249, 115, 22, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
 }
 
@@ -1722,7 +1757,7 @@ body.ess-requesthub-active .ess-content-col {
 .rh-priority-matrix {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
+    gap: 10px;
 }
 
 @media (max-width: 600px) {
@@ -1732,63 +1767,68 @@ body.ess-requesthub-active .ess-content-col {
 }
 
 .rh-pri-card {
-    background: rgba(7, 11, 22, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 10px 8px;
+    background: rgba(12, 17, 30, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 12px 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    gap: 3px;
+    gap: 4px;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     user-select: none;
 }
 
 .rh-pri-card strong {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 800;
     color: #cbd5e1;
+    letter-spacing: -0.2px;
 }
 
 .rh-pri-card small {
-    font-size: 9.5px;
-    color: #64748b;
+    font-size: 10.5px;
+    color: #94a3b8;
     font-weight: 600;
 }
 
 .rh-pri-card:hover {
-    background: rgba(18, 28, 52, 0.85);
-    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(22, 31, 54, 0.9);
+    border-color: rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
 }
 
 .rh-pri-card.active[data-priority="low"] {
-    background: rgba(148, 163, 184, 0.2);
+    background: rgba(148, 163, 184, 0.18);
     border-color: #94a3b8;
-    box-shadow: 0 0 14px rgba(148, 163, 184, 0.3);
+    box-shadow: 0 0 16px rgba(148, 163, 184, 0.25);
+    transform: translateY(-2px);
 }
 .rh-pri-card.active[data-priority="low"] strong { color: #f1f5f9; }
 
 .rh-pri-card.active[data-priority="normal"] {
-    background: rgba(59, 130, 246, 0.25);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(37, 99, 235, 0.15));
     border-color: #3b82f6;
-    box-shadow: 0 0 14px rgba(59, 130, 246, 0.35);
+    box-shadow: 0 0 18px rgba(59, 130, 246, 0.35);
+    transform: translateY(-2px);
 }
 .rh-pri-card.active[data-priority="normal"] strong { color: #93c5fd; }
 
 .rh-pri-card.active[data-priority="high"] {
-    background: rgba(249, 115, 22, 0.25);
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.25), rgba(234, 88, 12, 0.15));
     border-color: #f97316;
-    box-shadow: 0 0 14px rgba(249, 115, 22, 0.35);
+    box-shadow: 0 0 18px rgba(249, 115, 22, 0.35);
+    transform: translateY(-2px);
 }
 .rh-pri-card.active[data-priority="high"] strong { color: #fdba74; }
 
 .rh-pri-card.active[data-priority="urgent"] {
-    background: rgba(239, 68, 68, 0.25);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(220, 38, 38, 0.15));
     border-color: #ef4444;
-    box-shadow: 0 0 16px rgba(239, 68, 68, 0.45);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.45);
+    transform: translateY(-2px);
 }
 .rh-pri-card.active[data-priority="urgent"] strong { color: #fca5a5; }
 
@@ -1796,7 +1836,7 @@ body.ess-requesthub-active .ess-content-col {
 .rh-field-stack {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 
 .rh-input-wrap-v2 {
@@ -1808,29 +1848,29 @@ body.ess-requesthub-active .ess-content-col {
 .rh-input-icon-v2 {
     position: absolute;
     left: 14px;
-    color: #64748b;
-    font-size: 13px;
+    color: #94a3b8;
+    font-size: 13.5px;
     pointer-events: none;
 }
 
 .rh-input-v2 {
     width: 100%;
-    background: rgba(7, 11, 22, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(12, 17, 30, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: #ffffff;
-    padding: 10px 14px 10px 38px;
-    font-size: 13px;
-    border-radius: 12px;
+    padding: 12px 14px 12px 40px;
+    font-size: 13.5px;
+    border-radius: 14px;
     outline: none;
     font-family: inherit;
-    transition: all 0.2s ease;
+    transition: all 0.22s ease;
     box-sizing: border-box;
 }
 
 .rh-input-v2:focus {
     border-color: #f97316;
-    background: rgba(10, 15, 30, 0.98);
-    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.25);
+    background: rgba(16, 23, 40, 0.98);
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
 }
 
 .rh-textarea-wrap-v2 {
@@ -1839,53 +1879,53 @@ body.ess-requesthub-active .ess-content-col {
 
 .rh-textarea-v2 {
     width: 100%;
-    background: rgba(7, 11, 22, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(12, 17, 30, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: #ffffff;
-    padding: 10px 14px;
-    font-size: 13px;
-    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 13.5px;
+    border-radius: 14px;
     outline: none;
     font-family: inherit;
-    transition: all 0.2s ease;
+    transition: all 0.22s ease;
     box-sizing: border-box;
     resize: vertical;
-    min-height: 80px;
-    line-height: 1.5;
+    min-height: 95px;
+    line-height: 1.6;
 }
 
 .rh-textarea-v2:focus {
     border-color: #f97316;
-    background: rgba(10, 15, 30, 0.98);
-    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.25);
+    background: rgba(16, 23, 40, 0.98);
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
 }
 
 /* Step 06: Dropzone V2 */
 .rh-dropzone-v2 {
-    background: rgba(7, 11, 22, 0.6);
-    border: 2px dashed rgba(255, 255, 255, 0.15);
-    border-radius: 14px;
-    padding: 12px 16px;
+    background: rgba(12, 17, 30, 0.75);
+    border: 1.5px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    padding: 14px 18px;
     display: flex;
     align-items: center;
     gap: 14px;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .rh-dropzone-v2:hover {
-    border-color: #f97316;
-    background: rgba(249, 115, 22, 0.05);
+    border-color: #14b8a6;
+    background: rgba(20, 184, 166, 0.06);
 }
 
 .rh-dz-icon-wrap {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    background: rgba(52, 211, 153, 0.15);
-    border: 1px solid rgba(52, 211, 153, 0.35);
-    color: #34d399;
-    font-size: 18px;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: rgba(20, 184, 166, 0.14);
+    border: 1px solid rgba(20, 184, 166, 0.35);
+    color: #2dd4bf;
+    font-size: 19px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1900,7 +1940,7 @@ body.ess-requesthub-active .ess-content-col {
 }
 
 .rh-dz-info strong {
-    font-size: 12.5px;
+    font-size: 13px;
     color: #f1f5f9;
     white-space: nowrap;
     overflow: hidden;
@@ -1908,102 +1948,107 @@ body.ess-requesthub-active .ess-content-col {
 }
 
 .rh-dz-info span {
-    font-size: 10.5px;
+    font-size: 11px;
     color: #94a3b8;
+    margin-top: 2px;
 }
 
 .rh-dz-btn {
     background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.16);
     color: #f1f5f9;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 11.5px;
+    padding: 7px 14px;
+    border-radius: 10px;
+    font-size: 12px;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all 0.2s ease;
     flex-shrink: 0;
 }
 
 .rh-dz-btn:hover {
-    background: #f97316;
+    background: #14b8a6;
     color: #ffffff;
-    border-color: #f97316;
+    border-color: #14b8a6;
 }
 
 /* Modal Footer V2 - Pinned at bottom */
 .rh-modal-footer-v2 {
-    padding: 16px 24px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 18px 28px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #0b1120;
+    background: rgba(13, 18, 30, 0.98);
     flex-shrink: 0;
     z-index: 10;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5);
 }
 
 .rh-footer-note {
-    font-size: 12px;
+    font-size: 12.5px;
     color: #94a3b8;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
 }
 
 .rh-footer-right {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
 }
 
 .rh-btn-cancel-v2 {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.06);
     color: #cbd5e1;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    padding: 10px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 11px 22px;
     font-size: 13px;
     font-weight: 700;
-    border-radius: 10px;
+    border-radius: 20px;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all 0.2s ease;
 }
 
 .rh-btn-cancel-v2:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.12);
     color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.25);
 }
 
 .rh-btn-submit-v2 {
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
     color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    padding: 11px 26px;
+    border: 1px solid rgba(20, 184, 166, 0.4);
+    padding: 11px 28px;
     font-size: 13.5px;
     font-weight: 800;
-    border-radius: 10px;
+    border-radius: 20px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    box-shadow: 0 4px 16px rgba(249, 115, 22, 0.45);
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 16px rgba(13, 148, 136, 0.4);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    letter-spacing: 0.3px;
 }
 
 .rh-btn-submit-v2:hover {
-    background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(249, 115, 22, 0.6);
+    box-shadow: 0 8px 24px rgba(13, 148, 136, 0.55);
 }
 
 /* ==========================================================================
    6. DISCUSSION & REMARKS TRAIL (HIGH-END EXECUTIVE REDESIGN)
+   Compact, Modern Scandinavian Glassmorphism with Refined Proportions
    ========================================================================== */
 .rh-detail-grid {
     display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 24px;
+    grid-template-columns: 1fr 280px;
+    gap: 16px;
+    align-items: start;
 }
 
 @media (max-width: 860px) {
@@ -2011,14 +2056,15 @@ body.ess-requesthub-active .ess-content-col {
 }
 
 .rh-detail-main-card {
-    background: rgba(14, 20, 38, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 20px;
-    padding: 24px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-    margin-bottom: 20px;
+    background: rgba(15, 21, 37, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 16px 18px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    margin-bottom: 14px;
     position: relative;
     overflow: hidden;
+    backdrop-filter: blur(14px);
 }
 
 .rh-detail-main-card::before {
@@ -2027,65 +2073,66 @@ body.ess-requesthub-active .ess-content-col {
     top: 0;
     left: 0;
     right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #f97316, #a855f7);
+    height: 2.5px;
+    background: linear-gradient(90deg, #14b8a6, #6366f1, #f97316);
 }
 
 .rh-detail-main-head {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 14px;
+    margin-bottom: 10px;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
 }
 
 .rh-detail-title {
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 800;
     color: #ffffff;
-    margin: 0 0 12px 0;
-    line-height: 1.4;
-    letter-spacing: -0.3px;
+    margin: 0 0 6px 0;
+    line-height: 1.35;
+    letter-spacing: -0.2px;
 }
 
 .rh-detail-desc {
-    font-size: 14px;
+    font-size: 13px;
     color: #cbd5e1;
-    line-height: 1.7;
+    line-height: 1.55;
     margin: 0;
     white-space: pre-wrap;
 }
 
 .rh-detail-sidebar {
-    background: rgba(10, 15, 28, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 22px;
-    padding: 24px;
+    background: rgba(13, 18, 32, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 16px 18px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    gap: 13px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
     height: fit-content;
+    backdrop-filter: blur(14px);
 }
 
 .rh-detail-item {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
 }
 
 .rh-detail-item label {
-    font-size: 11px;
+    font-size: 10px;
     text-transform: uppercase;
     color: #64748b;
     font-weight: 800;
-    letter-spacing: 0.9px;
+    letter-spacing: 0.8px;
     display: block;
 }
 
 .rh-detail-item span, .rh-detail-item p {
-    font-size: 13.5px;
+    font-size: 12.5px;
     color: #f1f5f9;
     margin: 0;
     font-weight: 600;
@@ -2094,97 +2141,98 @@ body.ess-requesthub-active .ess-content-col {
 .rh-timeline {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    margin-top: 14px;
+    gap: 10px;
+    margin-top: 10px;
 }
 
 .rh-timeline-item {
-    background: rgba(14, 20, 38, 0.75);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 18px;
-    padding: 18px 20px;
+    background: rgba(15, 21, 37, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 12px 15px;
     position: relative;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
     transition: all 0.2s ease;
 }
 
 .rh-timeline-item:hover {
-    border-color: rgba(255, 255, 255, 0.18);
-    background: rgba(18, 26, 48, 0.85);
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(19, 27, 48, 0.75);
 }
 
 .rh-timeline-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 10px;
-    font-size: 13px;
+    margin-bottom: 6px;
+    font-size: 12px;
 }
 
 .rh-timeline-author {
-    font-weight: 800;
+    font-weight: 700;
     color: #ffffff;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    font-size: 12.5px;
 }
 
 .rh-timeline-role {
-    font-size: 11px;
-    font-weight: 800;
-    background: rgba(249, 115, 22, 0.2);
+    font-size: 10px;
+    font-weight: 700;
+    background: rgba(249, 115, 22, 0.15);
     color: #fb923c;
-    padding: 3px 10px;
-    border-radius: 8px;
-    border: 1px solid rgba(249, 115, 22, 0.35);
+    padding: 2px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(249, 115, 22, 0.3);
 }
 
 .rh-timeline-time {
     color: #64748b;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 500;
 }
 
 .rh-timeline-text {
-    font-size: 14px;
-    color: #e2e8f0;
-    line-height: 1.6;
+    font-size: 12.5px;
+    color: #cbd5e1;
+    line-height: 1.5;
     margin: 0;
     white-space: pre-wrap;
 }
 
 .rh-timeline-attach {
-    margin-top: 14px;
+    margin-top: 10px;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    background: rgba(249, 115, 22, 0.15);
-    color: #fed7aa;
-    padding: 8px 18px;
-    border-radius: 12px;
-    font-size: 13px;
+    gap: 6px;
+    background: rgba(20, 184, 166, 0.12);
+    color: #2dd4bf;
+    padding: 6px 14px;
+    border-radius: 10px;
+    font-size: 12px;
     font-weight: 700;
     text-decoration: none;
-    border: 1px solid rgba(249, 115, 22, 0.35);
+    border: 1px solid rgba(20, 184, 166, 0.3);
     transition: all 0.2s ease;
 }
 
 .rh-timeline-attach:hover {
-    background: rgba(249, 115, 22, 0.3);
+    background: rgba(20, 184, 166, 0.25);
     color: #ffffff;
-    box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
+    box-shadow: 0 4px 12px rgba(20, 184, 166, 0.25);
 }
 
 .rh-quick-remark-box {
-    margin-top: 20px;
-    background: rgba(10, 15, 28, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 20px;
-    padding: 22px;
+    margin-top: 14px;
+    background: rgba(12, 17, 30, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 14px 16px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    gap: 10px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 @keyframes rhFadeIn {
@@ -2474,7 +2522,7 @@ body.ess-requesthub-active .ess-content-col {
 /* ── Clean Scandinavian Table Structure ── */
 .rh-table-head {
     display: grid;
-    grid-template-columns: 140px 1.8fr 110px 180px 160px 85px 120px 90px;
+    grid-template-columns: 160px 1.8fr 110px 180px 160px 85px 120px 90px;
     padding: 12px 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     font-size: 12px;
@@ -2491,7 +2539,7 @@ body.ess-requesthub-active .ess-content-col {
 
 .rh-table-row {
     display: grid;
-    grid-template-columns: 140px 1.8fr 110px 180px 160px 85px 120px 90px;
+    grid-template-columns: 160px 1.8fr 110px 180px 160px 85px 120px 90px;
     padding: 16px;
     align-items: center;
     border-bottom: 1px solid rgba(255, 255, 255, 0.04);
@@ -2512,6 +2560,39 @@ body.ess-requesthub-active .ess-content-col {
     font-size: 13px;
     font-weight: 700;
     color: #e2e8f0;
+    display: block;
+    letter-spacing: 0.3px;
+}
+
+.rh-requester-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 4px;
+    font-size: 11.5px;
+    color: #94a3b8;
+    background: rgba(255, 255, 255, 0.04);
+    padding: 2px 7px;
+    border-radius: 6px;
+    max-width: 145px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.rh-req-user-icon {
+    font-size: 10px;
+    color: #2dd4bf;
+    flex-shrink: 0;
+}
+
+.rh-req-user-name {
+    font-weight: 600;
+    color: #cbd5e1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .rh-inquiry-subject {

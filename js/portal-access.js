@@ -25,6 +25,8 @@ window.WORK_PORTAL_URLS = {
     floor_manager: 'admin-dashboard.html',
     dialer: 'employee-portal.html',
     developer: 'employee-portal.html',
+    it: 'employee-portal.html',
+    trainer: 'employee-portal.html',
     finance: 'admin-dashboard.html'
 };
 
@@ -39,13 +41,17 @@ window.BALITECH_PORTAL_URLS = Object.assign(
     window.WORK_PORTAL_URLS
 );
 
-window.EMPLOYEE_PORTAL_ROLES = ['user', 'team_lead', 'floor_manager', 'dialer', 'developer'];
+window.EMPLOYEE_PORTAL_ROLES = ['user', 'team_lead', 'floor_manager', 'dialer', 'developer', 'it', 'trainer'];
 
 window.EMPLOYEE_SELF_SERVICE_URL = 'employee-portal.html';
 
-/** Pure employee accounts (`user` role) - Self Service only, no work HRMS portal. */
+/** Pure employee accounts (`user`, `it`, `trainer`, `developer`, `dialer`) - Self Service only, no work HRMS portal. */
 window.canAccessWorkPortal = function (role) {
-    return !!role && role !== 'user';
+    if (!role) return false;
+    if (['user', 'it', 'trainer', 'developer', 'dialer'].includes(role)) {
+        return false;
+    }
+    return true;
 };
 
 window.workPortalUrlForRole = function (role) {
