@@ -24,6 +24,8 @@ if ($conn->connect_error) {
 // Set charset
 $conn->set_charset('utf8mb4');
 
+require_once __DIR__ . '/../includes/company_branches.php';
+
 // Dynamic Branch Configuration
 if (session_status() === PHP_SESSION_NONE) {
     if (!headers_sent()) {
@@ -46,6 +48,14 @@ if ($active_branch === 'commercial') {
     define('PYTHON_SCRIPT', 'attendance_collector_commercial.py');
     define('LOG_FILE', 'auto_fetch_commercial_log.txt');
     define('BRANCH_LABEL', 'Commercial Branch');
+} elseif ($active_branch === 'I9') {
+    define('TABLE_ATTENDANCE', 'attendance_raw');
+    define('TABLE_EMPLOYEES', 'employees');
+    define('CSV_ALL_USERS', 'all_users_i9.xlsx');
+    define('CSV_MASTER', 'attendance_master_i9.csv');
+    define('PYTHON_SCRIPT', 'attendance_collector.py');
+    define('LOG_FILE', 'auto_fetch_i9_log.txt');
+    define('BRANCH_LABEL', 'I-9 Branch');
 } else {
     define('TABLE_ATTENDANCE', 'attendance_raw');
     define('TABLE_EMPLOYEES', 'employees');

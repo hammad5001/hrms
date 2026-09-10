@@ -1626,6 +1626,7 @@ require_once 'config.php';
                             <option value="" style="background: #171822; color: white;">All Branches</option>
                             <option value="Main" <?php echo $activeB === 'main' ? 'selected' : ''; ?> style="background: #171822; color: white;">Main Branch</option>
                             <option value="Commercial" <?php echo $activeB === 'commercial' ? 'selected' : ''; ?> style="background: #171822; color: white;">Commercial Branch</option>
+                            <option value="I9" <?php echo $activeB === 'I9' ? 'selected' : ''; ?> style="background: #171822; color: white;">I-9 Branch</option>
                             <option value="workfromhome" <?php echo $activeB === 'workfromhome' ? 'selected' : ''; ?> style="background: #171822; color: white;">Work From Home</option>
                         </select>
                     </div>

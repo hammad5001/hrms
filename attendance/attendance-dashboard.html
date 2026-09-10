@@ -1766,7 +1766,14 @@ document.addEventListener('DOMContentLoaded', function() { updateDateTime(); loa
         function renderTable() { 
             let filtered = allAttendance; 
             if (currentDepartment && currentDepartment !== 'all') filtered = filtered.filter(e => e.department && e.department.toLowerCase() === currentDepartment.toLowerCase()); 
-            if (currentBranch) filtered = filtered.filter(e => e.branch && e.branch.toLowerCase() === currentBranch.toLowerCase()); 
+            if (currentBranch) {
+                const bSearch = currentBranch.toLowerCase();
+                filtered = filtered.filter(e => {
+                    if (!e.branch) return false;
+                    const eb = e.branch.toLowerCase();
+                    return eb === bSearch || eb.includes(bSearch) || bSearch.includes(eb);
+                });
+            }
             if (currentDesignation) filtered = filtered.filter(e => e.designation && e.designation.toLowerCase() === currentDesignation.toLowerCase()); 
             if (currentTeam) filtered = filtered.filter(e => e.team && e.team.toLowerCase() === currentTeam.toLowerCase()); 
             if (searchTerm) filtered = filtered.filter(e => e.name?.toLowerCase().includes(searchTerm.toLowerCase()) || e.code?.includes(searchTerm) || e.department?.toLowerCase().includes(searchTerm.toLowerCase()) || e.designation?.toLowerCase().includes(searchTerm.toLowerCase()) || e.branch?.toLowerCase().includes(searchTerm.toLowerCase()) || e.team?.toLowerCase().includes(searchTerm.toLowerCase())); 

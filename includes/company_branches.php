@@ -3,11 +3,12 @@
  * Company branch definitions (Main, 2.0, 3.0, Commercial)
  */
 define('COMPANY_BRANCHES', [
-    'main'       => ['label' => 'Main Branch',       'short' => 'Main',       'color' => '#f97316'],
-    'v2'         => ['label' => '2.0 Branch',        'short' => '2.0',        'color' => '#3b82f6'],
-    'v3'         => ['label' => '3.0 Branch',        'short' => '3.0',        'color' => '#8b5cf6'],
-    'commercial' => ['label' => 'Commercial Branch', 'short' => 'Commercial', 'color' => '#10b981'],
-    'workfromhome' => ['label' => 'Work From Home',  'short' => 'WFH',        'color' => '#ea580c'],
+    'main'         => ['label' => 'Main Branch',       'short' => 'Main',       'color' => '#f97316'],
+    'v2'           => ['label' => '2.0 Branch',        'short' => '2.0',        'color' => '#3b82f6'],
+    'v3'           => ['label' => '3.0 Branch',        'short' => '3.0',        'color' => '#8b5cf6'],
+    'commercial'   => ['label' => 'Commercial Branch', 'short' => 'Commercial', 'color' => '#10b981'],
+    'I9'           => ['label' => 'I-9 Branch',        'short' => 'I-9',        'color' => '#6366f1'],
+    'workfromhome' => ['label' => 'Work From Home',    'short' => 'WFH',        'color' => '#ea580c'],
 ]);
 
 function company_branch_keys(): array {
@@ -15,29 +16,48 @@ function company_branch_keys(): array {
 }
 
 function is_valid_company_branch(?string $key): bool {
-    return $key !== null && $key !== '' && isset(COMPANY_BRANCHES[$key]);
+    if ($key === null || $key === '') return false;
+    if (isset(COMPANY_BRANCHES[$key])) return true;
+    // Check case-insensitive match for valid keys
+    foreach (COMPANY_BRANCHES as $k => $v) {
+        if (strcasecmp($k, $key) === 0) return true;
+    }
+    return false;
 }
 
 function company_branch_label(?string $key): string {
-    if (!is_valid_company_branch($key)) {
-        return 'Main Branch';
+    if ($key !== null && $key !== '') {
+        foreach (COMPANY_BRANCHES as $k => $v) {
+            if (strcasecmp($k, $key) === 0) {
+                return $v['label'];
+            }
+        }
     }
-    return COMPANY_BRANCHES[$key]['label'];
+    return 'Main Branch';
 }
 
 function normalize_company_branch(?string $input): string {
     if ($input === null || $input === '') {
         return 'main';
     }
-    $input = strtolower(trim($input));
+    $input_clean = strtolower(trim($input));
     $map = [
         'main' => 'main', 'main branch' => 'main',
         '2.0' => 'v2', '2' => 'v2', 'v2' => 'v2', 'branch 2.0' => 'v2',
         '3.0' => 'v3', '3' => 'v3', 'v3' => 'v3', 'branch 3.0' => 'v3',
         'commercial' => 'commercial', 'commercial branch' => 'commercial',
+        'i9' => 'I9', 'i-9' => 'I9', 'i 9' => 'I9', 'i-9 branch' => 'I9', 'i9 branch' => 'I9', 'branch i9' => 'I9', 'branch i-9' => 'I9',
         'workfromhome' => 'workfromhome', 'wfh' => 'workfromhome',
     ];
-    return $map[$input] ?? (is_valid_company_branch($input) ? $input : 'main');
+    if (isset($map[$input_clean])) {
+        return $map[$input_clean];
+    }
+    foreach (COMPANY_BRANCHES as $k => $v) {
+        if (strcasecmp($k, $input_clean) === 0) {
+            return $k;
+        }
+    }
+    return 'main';
 }
 
 function ensure_company_branch_schema(mysqli $conn): void {

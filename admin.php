@@ -1360,6 +1360,12 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
         <div class="control-panel">
             <div class="filter-row">
                 <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Search by name, email, or employee ID..." oninput="scheduleFilterTable()"></div>
+                <select id="branchFilter" class="filter-select" onchange="filterTable()">
+                    <option value="">All Branches</option>
+                    <?php foreach (COMPANY_BRANCHES as $bk => $bm): ?>
+                    <option value="<?php echo htmlspecialchars($bm['label']); ?>"><?php echo htmlspecialchars($bm['label']); ?></option>
+                    <?php endforeach; ?>
+                </select>
                 <select id="departmentFilter" class="filter-select" onchange="filterTable()"><option value="">All Departments</option><?php while($dept = $departments->fetch_assoc()): ?><option value="<?php echo htmlspecialchars($dept['department']); ?>"><?php echo htmlspecialchars($dept['department']); ?></option><?php endwhile; ?></select>
                 <select id="roleFilter" class="filter-select" onchange="filterTable()"><option value="">All Roles</option><?php while($role = $roles->fetch_assoc()): ?><option value="<?php echo htmlspecialchars($role['portal_role']); ?>"><?php echo htmlspecialchars(portal_role_label($role['portal_role'])); ?></option><?php endwhile; ?></select>
                 <button class="btn" onclick="clearFilters()"><i class="fas fa-times"></i> Clear</button>
@@ -1935,8 +1941,13 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                             .trim()
                             .toLowerCase();
 
+                    const branch =
+                        (row.cells[6]?.textContent || '')
+                            .trim()
+                            .toLowerCase();
+
                     const userRole =
-                        (row.cells[8]?.textContent || '')
+                        (row.cells[9]?.textContent || '')
                             .trim()
                             .toLowerCase();
 
@@ -1944,6 +1955,7 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                         row,
                         searchText: `${empId} ${name} ${email}`,
                         dept,
+                        branch,
                         userRole
                     };
                 });
@@ -1957,6 +1969,11 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                     .value
                     .trim()
                     .toLowerCase();
+
+            const branch =
+                document.getElementById('branchFilter')
+                    ? document.getElementById('branchFilter').value.trim().toLowerCase()
+                    : '';
 
             const department =
                 document.getElementById('departmentFilter')
@@ -1978,6 +1995,14 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                 if (
                     search &&
                     !item.searchText.includes(search)
+                ) {
+                    show = false;
+                }
+
+                if (
+                    show &&
+                    branch &&
+                    !item.branch.includes(branch)
                 ) {
                     show = false;
                 }
@@ -2009,6 +2034,7 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
 
         function clearFilters() {
             document.getElementById('searchInput').value = '';
+            if (document.getElementById('branchFilter')) document.getElementById('branchFilter').value = '';
             document.getElementById('departmentFilter').value = '';
             document.getElementById('roleFilter').value = '';
             filterTable();

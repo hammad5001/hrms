@@ -228,23 +228,58 @@ function syncActiveUsersToAttendanceTables(mysqli $conn): void {
 }
 
 // =====================================================
-// NEW: Get All Branches from CSV
+// NEW: Get All Branches from DB, System Config & CSV
 // =====================================================
 function getBranchesFromCSV() {
-    static $csv_data = null;
-    
-    if ($csv_data === null) {
-        $csv_data = loadEmployeeDataFromCSV();
-    }
-    
+    global $conn;
     $branches = [];
+    
+    // 1. Include all official company branches from company_branches definition
+    if (defined('COMPANY_BRANCHES') && is_array(COMPANY_BRANCHES)) {
+        foreach (COMPANY_BRANCHES as $k => $info) {
+            $label = $info['label'] ?? $k;
+            $branches[$label] = true;
+        }
+    } else {
+        $branches['Main Branch'] = true;
+        $branches['Commercial Branch'] = true;
+        $branches['I-9 Branch'] = true;
+        $branches['Work From Home'] = true;
+    }
+
+    // 2. Fetch distinct branches from users table
+    if ($conn && $conn instanceof mysqli && !$conn->connect_error) {
+        $uRes = $conn->query("SELECT DISTINCT COALESCE(NULLIF(company_branch, ''), NULLIF(branch, ''), 'main') AS b FROM users WHERE status = 'active'");
+        if ($uRes) {
+            while ($row = $uRes->fetch_assoc()) {
+                $bVal = trim($row['b']);
+                if ($bVal !== '') {
+                    if (function_exists('company_branch_label')) {
+                        $branches[company_branch_label($bVal)] = true;
+                    } else {
+                        $branches[$bVal] = true;
+                    }
+                }
+            }
+        }
+    }
+
+    // 3. Load from CSV/Employees data
+    $csv_data = loadEmployeeDataFromCSV();
     foreach ($csv_data as $emp) {
         if (!empty($emp['branch'])) {
-            $branches[$emp['branch']] = true;
+            $bRaw = trim($emp['branch']);
+            if (function_exists('company_branch_label')) {
+                $branches[company_branch_label($bRaw)] = true;
+            } else {
+                $branches[$bRaw] = true;
+            }
         }
     }
     
-    return array_keys($branches);
+    $result = array_keys($branches);
+    sort($result);
+    return $result;
 }
 
 // =====================================================
