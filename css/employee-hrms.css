@@ -515,14 +515,14 @@ body.ess-chat-active #view-chat.ess-chat-view.active {
     border-bottom: 1px solid var(--border-light);
     overflow-x: auto;
     overflow-y: hidden;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(249, 115, 22, 0.45) transparent;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
     -webkit-overflow-scrolling: touch;
 }
-.ess-tabs::-webkit-scrollbar { height: 4px; }
-.ess-tabs::-webkit-scrollbar-thumb {
-    background: rgba(249, 115, 22, 0.45);
-    border-radius: 999px;
+.ess-tabs::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
 }
 .ess-tab {
     border: none;
