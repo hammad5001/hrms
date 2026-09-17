@@ -612,6 +612,7 @@ const ESS_DEFAULT_NAV = {
     notifications: 'nav-tab-notifications',
     chat: 'nav-side-chat',
     mail: 'nav-tab-mail',
+    'company-policies': 'nav-side-company-policies',
     'coming-soon': null,
 };
 
@@ -630,6 +631,8 @@ const ESS_VIEW_TO_HASH = {
     timesheets: 'timesheets',
     payslips: 'payslips',
     chat: 'chat',
+    mail: 'mail',
+    'company-policies': 'employee-policy',
     profile: 'profile',
     notifications: 'notifications',
     feeds: 'feeds',
@@ -660,6 +663,9 @@ const ESS_HASH_TO_VIEW = {
     'reportees':             ['reportees',             'nav-tab-reportees'],
     'approvals':             ['approvals',             'nav-tab-approvals'],
     'leave-policy':          ['leave-policy',          'nav-side-leave-policy'],
+    'employee-policy':       ['company-policies',      'nav-side-company-policies'],
+    'company-policies':      ['company-policies',      'nav-side-company-policies'],
+    'policies':              ['company-policies',      'nav-side-company-policies'],
     'active-members':        ['active-members',        'nav-side-active-members'],
     'request-hub':           ['request-hub',           'nav-side-request-hub'],
     'requests':              ['request-hub',           'nav-side-request-hub']
@@ -674,6 +680,7 @@ const ESS_VIEW_TITLES = {
     leave: ['Leaves', 'Balances, applications, and request status'],
     halfday: ['Half Day Leave', 'Apply morning or afternoon half day'],
     'leave-policy': ['Leave Policy', 'Manage entitlements and employee credits'],
+    'company-policies': ['Employee Policy', 'Balitech Employee Handbook & Corporate Governance Manual'],
     approvals: ['Approvals', 'Approve, reject, or revert leave requests'],
     reportees: ['My Reporting', 'Your reporting line and team'],
     profile: ['My Profile', 'Your employee record and work information'],
@@ -749,10 +756,12 @@ function showView(id, navId = null, syncHash = true) {
     const isDashboard = (id === 'dashboard');
     const isMail = (id === 'mail');
     const isRequestHub = (id === 'request-hub');
+    const isPolicy = (id === 'company-policies');
     document.body.classList.toggle('ess-chat-active', isChat);
     document.body.classList.toggle('ess-dashboard-active', isDashboard);
     document.body.classList.toggle('ess-mail-active', isMail);
     document.body.classList.toggle('ess-requesthub-active', isRequestHub);
+    document.body.classList.toggle('ess-policy-active', isPolicy);
     document.body.classList.toggle('perf-view-active', id === 'performance');
     if (isChat) {
         ensureChatFrameLoaded();
@@ -767,6 +776,10 @@ function showView(id, navId = null, syncHash = true) {
 
     if (id === 'request-hub' && window.RequestHubModule) {
         window.RequestHubModule.loadTickets();
+    }
+
+    if (id === 'company-policies' && window.initPolicyEngine) {
+        window.initPolicyEngine();
     }
 
     const t = ESS_VIEW_TITLES[id] || ['HRMS', ''];
