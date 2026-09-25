@@ -12,6 +12,10 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 header('Content-Type: application/json');
 require_once 'config.php';
+require_once __DIR__ . '/includes/ip_security.php';
+
+// IP Restriction enforcement
+enforce_ip_security($conn, true);
 
 $email          = trim($_POST['email'] ?? '');
 $password       = $_POST['password'] ?? '';

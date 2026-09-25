@@ -2,6 +2,10 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/../includes/portal_roles.php';
 require_once __DIR__ . '/../includes/session_user.php';
+require_once __DIR__ . '/../includes/ip_security.php';
+
+// IP Restriction enforcement
+enforce_ip_security($conn, true);
 
 $user = null;
 if (!empty($_SESSION['user_id'])) {

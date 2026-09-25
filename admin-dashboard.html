@@ -1171,6 +1171,7 @@
                     <a href="javascript:void(0)" class="nav-item feature-admin-full" onclick="openPortalWithSession('Management-Portal.html')"><i class="fas fa-chart-line"></i><span>Management Portal</span></a>
                     <a href="javascript:void(0)" class="nav-item feature-admin-full" onclick="openPortalWithSession('reception-portal.html')"><i class="fas fa-concierge-bell"></i><span>Reception Portal</span></a>
                     <a href="qa-dashboard.php" class="nav-item super-admin-only feature-qa-full" id="qaDashboardNavItem" style="display:none"><i class="fas fa-shield-check"></i><span>QA Dashboard</span></a>
+                    <a href="security-settings.php" class="nav-item super-admin-only feature-admin-full" id="securityNavItem" style="display:none"><i class="fas fa-shield-alt"></i><span>IP Security</span></a>
                 </div>
             </div>
             <div class="sidebar-footer">
@@ -1299,6 +1300,11 @@
                         <div class="portal-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)"><i class="fas fa-id-badge"></i></div>
                         <div class="portal-title">EMPLOYEE</div>
                         <div class="portal-sub">Self Service Portal</div>
+                    </div>
+                    <div class="portal-card super-admin-only" id="securityPortalCard" onclick="window.location.href='security-settings.php'" style="display:none">
+                        <div class="portal-icon" style="background:linear-gradient(135deg,#ef4444,#b91c1c)"><i class="fas fa-shield-alt"></i></div>
+                        <div class="portal-title">SECURITY</div>
+                        <div class="portal-sub">IP Whitelist &amp; Access</div>
                     </div>
                 </div>
             </div>
@@ -1680,11 +1686,15 @@
             const salaryBroadcastNav = document.getElementById('salaryBroadcastNavItem');
             const employeeCard = document.getElementById('employeePortalCard');
             const qaDashboardNav = document.getElementById('qaDashboardNavItem');
+            const securityNav = document.getElementById('securityNavItem');
+            const securityCard = document.getElementById('securityPortalCard');
             if (recruiterCard) recruiterCard.style.display = isSuperAdmin ? 'block' : 'none';
             if (recruiterNav) recruiterNav.style.display = isSuperAdmin ? 'flex' : 'none';
             if (salaryBroadcastNav) salaryBroadcastNav.style.display = (isSuperAdmin || isFinance) ? 'flex' : 'none';
             if (employeeCard) employeeCard.style.display = isSuperAdmin ? 'block' : 'none';
             if (qaDashboardNav) qaDashboardNav.style.display = (isSuperAdmin || role === 'qa') ? 'flex' : 'none';
+            if (securityNav) securityNav.style.display = isSuperAdmin ? 'flex' : 'none';
+            if (securityCard) securityCard.style.display = isSuperAdmin ? 'block' : 'none';
 
             // Style sidebar avatar for super admin
             const sidebarAvatar = document.getElementById('sidebarAvatar');

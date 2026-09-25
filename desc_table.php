@@ -1,7 +1,6 @@
 <?php
 require_once 'api/config.php';
-$res = $conn->query('DESCRIBE interviews');
-while($row = $res->fetch_assoc()) {
-    echo "Field: " . $row['Field'] . " | Type: " . $row['Type'] . "\n";
-}
+$conn->query("ALTER TABLE leads MODIFY COLUMN source VARCHAR(50) NOT NULL DEFAULT 'manual'");
+$conn->query("UPDATE leads SET source = 'website' WHERE external_lead_id IS NOT NULL");
+echo "Updated source column successfully\n";
 ?>

@@ -37,7 +37,7 @@ $user = array_merge($user, $rec);
 $_SESSION['full_name'] = $user['full_name'];
 $user['portal_role'] = sync_user_portal_role($conn, $user);
 $_SESSION['portal_role'] = $user['portal_role'];
-if ($user['portal_role'] === 'super_admin') {
+if (in_array($user['portal_role'], ['super_admin', 'admin', 'hr'], true) || ($user['recruiter_type'] ?? '') === 'super') {
     $_SESSION['recruiter_type'] = 'super';
 } else {
     $_SESSION['recruiter_type'] = $user['recruiter_type'] ?? 'regular';

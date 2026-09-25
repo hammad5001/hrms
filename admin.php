@@ -5,6 +5,10 @@ if (!isset($_SESSION['portal_role']) || !in_array($_SESSION['portal_role'], ['ad
     exit;
 }
 require_once 'config.php';
+require_once __DIR__ . '/includes/ip_security.php';
+
+// IP Restriction enforcement
+enforce_ip_security($conn, false);
 
 // Helper function to send JSON response
 function sendJSON($success, $data = null, $message = '') {
@@ -1151,6 +1155,9 @@ $super_admin_count = $conn->query("SELECT COUNT(*) as c FROM users WHERE portal_
                     <span style="background: rgba(249,115,22,0.2); color: #f97316; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px;">ADMIN</span>
                     <?php endif; ?>
                 </span>
+                <?php if ($current_is_super): ?>
+                <a href="security-settings.php" class="btn" style="background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); color: #f87171;" title="IP Whitelisting & Security Settings"><i class="fas fa-shield-alt"></i> Security</a>
+                <?php endif; ?>
                 <a href="attendance/download_qrcodes.php" target="_blank" class="btn" style="background: rgba(249,115,22,0.1); border-color: rgba(249,115,22,0.3); color: #f97316;"><i class="fas fa-qrcode"></i> QR Codes</a>
                 <a href="admin-dashboard.html" class="btn"><i class="fas fa-arrow-left"></i> Back</a>
                 <a href="logout.php" class="btn"><i class="fas fa-sign-out-alt"></i> Logout</a>

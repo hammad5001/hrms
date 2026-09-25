@@ -273,6 +273,24 @@ function ensure_app_schema(mysqli $conn): void {
             INDEX `idx_pc_date`     (`expense_date`),
             INDEX `idx_pc_category` (`category`),
             INDEX `idx_pc_req_id`   (`requested_by_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+        "CREATE TABLE IF NOT EXISTS `lead_distribution_logs` (
+            `id`                    INT AUTO_INCREMENT PRIMARY KEY,
+            `lead_id`               INT NOT NULL,
+            `assigned_by_user_id`   INT NOT NULL,
+            `assigned_by_name`      VARCHAR(150) NOT NULL,
+            `assigned_to_user_id`   INT NOT NULL,
+            `assigned_to_name`      VARCHAR(150) NOT NULL,
+            `distribution_mode`     VARCHAR(50) NOT NULL DEFAULT 'manual',
+            `company_branch`        VARCHAR(32) NOT NULL DEFAULT 'main',
+            `notes`                 VARCHAR(255) DEFAULT NULL,
+            `created_at`            DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX `idx_ldl_lead`        (`lead_id`),
+            INDEX `idx_ldl_by_user`     (`assigned_by_user_id`),
+            INDEX `idx_ldl_to_user`     (`assigned_to_user_id`),
+            INDEX `idx_ldl_branch`      (`company_branch`),
+            INDEX `idx_ldl_created_at`  (`created_at`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
     ];
 
@@ -292,6 +310,7 @@ function ensure_app_schema(mysqli $conn): void {
     ensure_leads_pipeline_indexes($conn);
     ensure_productivity_schema($conn);
     ensure_advanced_schema($conn);
+    ensure_website_leads_schema($conn);
 
     if (function_exists('ensure_qa_schema')) {
         ensure_qa_schema($conn);
@@ -724,6 +743,31 @@ function ensure_bank_format_schema(mysqli $conn): void {
         ('ASKARI', '01801006543210', 'BALITECH PRIVATE LIMITED'),
         ('ALFALAH', '00100987654321', 'BALITECH PRIVATE LIMITED')");
 
+    // IP Security & System Settings tables
+    $conn->query("CREATE TABLE IF NOT EXISTS `system_settings` (
+        `setting_key` VARCHAR(64) NOT NULL PRIMARY KEY,
+        `setting_value` TEXT NULL,
+        `description` VARCHAR(255) NULL,
+        `updated_by` VARCHAR(150) NULL,
+        `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    $conn->query("INSERT INTO `system_settings` (`setting_key`, `setting_value`, `description`)
+        VALUES ('ip_restriction_enabled', '0', 'Global toggle for IP whitelisting restriction (1=enabled, 0=disabled)')
+        ON DUPLICATE KEY UPDATE `description` = VALUES(`description`)");
+
+    $conn->query("CREATE TABLE IF NOT EXISTS `allowed_ips` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `ip_address` VARCHAR(64) NOT NULL,
+        `label` VARCHAR(150) NOT NULL,
+        `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+        `created_by` VARCHAR(150) NULL,
+        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY `uq_ip_address` (`ip_address`),
+        INDEX `idx_active` (`is_active`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
     // Seed canonical banks and both Askari (1Link) and Bank Alfalah (AT Plus) bank codes
     $bankData = [
         ['name' => 'Askari Bank', 'norm' => 'askari', 'askari_code' => '104', 'alfalah_code' => '22'],
@@ -783,4 +827,37 @@ function ensure_bank_format_schema(mysqli $conn): void {
         $stmtBank->close();
         $stmtCode->close();
     }
+}
+
+function ensure_website_leads_schema(mysqli $conn): void {
+    static $done = false;
+    if ($done) return;
+    $done = true;
+
+    // Check if external_lead_id exists in leads table
+    $chk1 = $conn->query("SHOW COLUMNS FROM `leads` LIKE 'external_lead_id'");
+    if ($chk1 && $chk1->num_rows === 0) {
+        @$conn->query("ALTER TABLE `leads` ADD COLUMN `external_lead_id` VARCHAR(100) NULL AFTER `id`");
+        @$conn->query("ALTER TABLE `leads` ADD INDEX `idx_leads_ext_id` (`external_lead_id`)");
+    }
+
+    // Check if cv_file_url exists in leads table
+    $chk2 = $conn->query("SHOW COLUMNS FROM `leads` LIKE 'cv_file_url'");
+    if ($chk2 && $chk2->num_rows === 0) {
+        @$conn->query("ALTER TABLE `leads` ADD COLUMN `cv_file_url` VARCHAR(500) NULL AFTER `referred_by`");
+    }
+
+    // Ensure website_sync_logs table exists
+    $conn->query("CREATE TABLE IF NOT EXISTS `website_sync_logs` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `synced_by_user_id` INT DEFAULT NULL,
+        `synced_by_name` VARCHAR(150) NOT NULL DEFAULT 'System Cron',
+        `total_fetched` INT NOT NULL DEFAULT 0,
+        `total_imported` INT NOT NULL DEFAULT 0,
+        `total_skipped_duplicate` INT NOT NULL DEFAULT 0,
+        `status` ENUM('success','partial','error') NOT NULL DEFAULT 'success',
+        `error_message` TEXT NULL,
+        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        INDEX `idx_wsl_created` (`created_at`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 }
