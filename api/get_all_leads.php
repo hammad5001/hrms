@@ -13,9 +13,25 @@ $stage  = $_GET['stage'] ?? '';
 $rec_id = isset($_GET['recruiter_id']) ? intval($_GET['recruiter_id']) : null;
 
 $active_branch = get_active_company_branch();
-$where = ["l.company_branch = ?"];
-$params = [$active_branch];
-$types = "s";
+$branch_req = trim($_GET['branch'] ?? '');
+
+$where = [];
+$params = [];
+$types = "";
+
+if (isGlobalSuperAdmin()) {
+    // Super Admin can see all branches, or filter by specific branch if passed
+    if ($branch_req && $branch_req !== 'all') {
+        $where[] = "l.company_branch = ?";
+        $params[] = $branch_req;
+        $types .= "s";
+    }
+} else {
+    // HR is restricted to active branch
+    $where[] = "l.company_branch = ?";
+    $params[] = $active_branch;
+    $types .= "s";
+}
 
 if ($search) {
     $where[] = "(l.full_name LIKE ? OR l.phone LIKE ? OR l.position_applied LIKE ? OR l.city LIKE ?)";
@@ -34,7 +50,7 @@ if ($rec_id) {
     $types .= "i";
 }
 
-$where_sql = "WHERE " . implode(" AND ", $where);
+$where_sql = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
 
 $count_stmt   = $conn->prepare("SELECT COUNT(*) as total FROM leads l $where_sql");
 if ($types) {
@@ -50,7 +66,7 @@ $data_params[] = $limit;
 $data_params[] = $offset;
 
 $data_stmt = $conn->prepare("
-    SELECT l.id, l.full_name, l.phone, l.email, l.city, l.cnic,
+    SELECT l.id, l.external_lead_id, l.source, l.cv_file_url, l.full_name, l.phone, l.email, l.city, l.cnic,
            l.position_applied, l.current_stage, l.call_count,
            l.last_call_date, l.interview_date, l.created_at, l.updated_at, l.assigned_at,
            u.full_name AS recruiter_name, u.id AS recruiter_user_id,

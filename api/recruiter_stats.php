@@ -37,20 +37,66 @@ if ($recruiter_type !== 'super') {
 
     respond(true, $stats);
 } else {
-    // Super Admin — global stats
-    $total        = $conn->query("SELECT COUNT(*) as c FROM leads")->fetch_assoc()['c'];
-    $unassigned   = $conn->query("SELECT COUNT(*) as c FROM leads WHERE assigned_recruiter_id IS NULL")->fetch_assoc()['c'];
-    $assigned     = $conn->query("SELECT COUNT(*) as c FROM leads WHERE assigned_recruiter_id IS NOT NULL")->fetch_assoc()['c'];
-    $pending      = $conn->query("SELECT COUNT(*) as c FROM leads WHERE current_stage IN ('new','assigned','outreach_phone','outreach_whatsapp_call','outreach_whatsapp_msg')")->fetch_assoc()['c'];
-    $scheduled    = $conn->query("SELECT COUNT(*) as c FROM leads WHERE current_stage = 'interview_scheduled'")->fetch_assoc()['c'];
-    $hired        = $conn->query("SELECT COUNT(*) as c FROM leads WHERE current_stage IN ('hired','deployed','selected')")->fetch_assoc()['c'];
-    $hired_month  = $conn->query("SELECT COUNT(*) as c FROM leads WHERE current_stage IN ('hired','deployed','selected') AND MONTH(updated_at)=MONTH(NOW()) AND YEAR(updated_at)=YEAR(NOW())")->fetch_assoc()['c'];
-    $active_recs  = $conn->query("SELECT COUNT(*) as c FROM users u INNER JOIN recruiters r ON u.id=r.user_id WHERE u.status='active' AND r.recruiter_type='regular'")->fetch_assoc()['c'];
-    $inactive_recs = $conn->query("SELECT COUNT(*) as c FROM users u INNER JOIN recruiters r ON u.id=r.user_id WHERE u.status='inactive' AND r.recruiter_type='regular'")->fetch_assoc()['c'];
+    // Super Admin / HR stats
+    $active_branch = get_active_company_branch();
+    $is_super = isGlobalSuperAdmin();
+    $branch_req = trim($_GET['branch'] ?? '');
+
+    $b_filter = "";
+    $params = [];
+    $types = "";
+
+    if (!$is_super || ($branch_req && $branch_req !== 'all')) {
+        $target_branch = $is_super ? $branch_req : $active_branch;
+        $b_filter = "WHERE company_branch = ?";
+        $b_user_filter = "AND u.company_branch = ?";
+        $params = [$target_branch];
+        $types = "s";
+    } else {
+        $b_filter = "";
+        $b_user_filter = "";
+    }
+
+    // Counts
+    $q_tot = $conn->prepare("SELECT COUNT(*) as c FROM leads $b_filter");
+    if ($types) $q_tot->bind_param($types, ...$params);
+    $q_tot->execute(); $total = $q_tot->get_result()->fetch_assoc()['c'];
+
+    $q_un = $conn->prepare("SELECT COUNT(*) as c FROM leads " . ($b_filter ? "$b_filter AND" : "WHERE") . " assigned_recruiter_id IS NULL");
+    if ($types) $q_un->bind_param($types, ...$params);
+    $q_un->execute(); $unassigned = $q_un->get_result()->fetch_assoc()['c'];
+
+    $q_as = $conn->prepare("SELECT COUNT(*) as c FROM leads " . ($b_filter ? "$b_filter AND" : "WHERE") . " assigned_recruiter_id IS NOT NULL");
+    if ($types) $q_as->bind_param($types, ...$params);
+    $q_as->execute(); $assigned = $q_as->get_result()->fetch_assoc()['c'];
+
+    $q_pd = $conn->prepare("SELECT COUNT(*) as c FROM leads " . ($b_filter ? "$b_filter AND" : "WHERE") . " current_stage IN ('new','assigned','outreach_phone','outreach_whatsapp_call','outreach_whatsapp_msg')");
+    if ($types) $q_pd->bind_param($types, ...$params);
+    $q_pd->execute(); $pending = $q_pd->get_result()->fetch_assoc()['c'];
+
+    $q_sc = $conn->prepare("SELECT COUNT(*) as c FROM leads " . ($b_filter ? "$b_filter AND" : "WHERE") . " current_stage = 'interview_scheduled'");
+    if ($types) $q_sc->bind_param($types, ...$params);
+    $q_sc->execute(); $scheduled = $q_sc->get_result()->fetch_assoc()['c'];
+
+    $q_hi = $conn->prepare("SELECT COUNT(*) as c FROM leads " . ($b_filter ? "$b_filter AND" : "WHERE") . " current_stage IN ('hired','deployed','selected')");
+    if ($types) $q_hi->bind_param($types, ...$params);
+    $q_hi->execute(); $hired = $q_hi->get_result()->fetch_assoc()['c'];
+
+    $q_hm = $conn->prepare("SELECT COUNT(*) as c FROM leads " . ($b_filter ? "$b_filter AND" : "WHERE") . " current_stage IN ('hired','deployed','selected') AND MONTH(updated_at)=MONTH(NOW()) AND YEAR(updated_at)=YEAR(NOW())");
+    if ($types) $q_hm->bind_param($types, ...$params);
+    $q_hm->execute(); $hired_month = $q_hm->get_result()->fetch_assoc()['c'];
+
+    $q_ar = $conn->prepare("SELECT COUNT(*) as c FROM users u INNER JOIN recruiters r ON u.id=r.user_id WHERE u.status='active' AND r.recruiter_type='regular' $b_user_filter");
+    if ($types) $q_ar->bind_param($types, ...$params);
+    $q_ar->execute(); $active_recs = $q_ar->get_result()->fetch_assoc()['c'];
+
+    $q_ir = $conn->prepare("SELECT COUNT(*) as c FROM users u INNER JOIN recruiters r ON u.id=r.user_id WHERE u.status='inactive' AND r.recruiter_type='regular' $b_user_filter");
+    if ($types) $q_ir->bind_param($types, ...$params);
+    $q_ir->execute(); $inactive_recs = $q_ir->get_result()->fetch_assoc()['c'];
 
     // Per-recruiter breakdown
-    $breakdown = $conn->query("
-        SELECT u.id, u.full_name, u.status,
+    $bk_sql = "
+        SELECT u.id, u.full_name, u.status, u.company_branch,
                COUNT(l.id) AS total,
                SUM(l.current_stage IN ('new','assigned','outreach_phone','outreach_whatsapp_call','outreach_whatsapp_msg')) AS pending,
                SUM(l.current_stage = 'interview_scheduled') AS scheduled,
@@ -58,20 +104,29 @@ if ($recruiter_type !== 'super') {
         FROM users u
         INNER JOIN recruiters r ON u.id = r.user_id
         LEFT JOIN leads l ON l.assigned_recruiter_id = u.id
-        WHERE r.recruiter_type = 'regular'
+        WHERE r.recruiter_type = 'regular' $b_user_filter
         GROUP BY u.id
         ORDER BY total DESC
-    ")->fetch_all(MYSQLI_ASSOC);
+    ";
+    $bk_stmt = $conn->prepare($bk_sql);
+    if ($types) $bk_stmt->bind_param($types, ...$params);
+    $bk_stmt->execute();
+    $breakdown = $bk_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
     // Recent Activity Feed
-    $activity = $conn->query("
-        SELECT a.action, a.new_value, a.notes, a.created_at, u.full_name as user_name, l.full_name as lead_name, l.id as lead_id
+    $act_sql = "
+        SELECT a.action, a.new_value, a.notes, a.created_at, u.full_name as user_name, l.full_name as lead_name, l.id as lead_id, l.company_branch
         FROM lead_audit a
         LEFT JOIN users u ON a.user_id = u.id
         LEFT JOIN leads l ON a.lead_id = l.id
+        " . ($b_filter ? "WHERE l.company_branch = ?" : "") . "
         ORDER BY a.created_at DESC
         LIMIT 8
-    ")->fetch_all(MYSQLI_ASSOC);
+    ";
+    $act_stmt = $conn->prepare($act_sql);
+    if ($types) $act_stmt->bind_param($types, ...$params);
+    $act_stmt->execute();
+    $activity = $act_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
     // Upcoming Interviews
     $upcoming = $conn->query("

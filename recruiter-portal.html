@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="recruiter-portal.css?v=1.4">
+  <link rel="stylesheet" href="recruiter-portal.css?v=1.7">
   <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
   <link rel="stylesheet" href="css/portal-chat-fab.css">
 </head>
@@ -37,16 +37,6 @@
           </div>
         </div>
 
-        <div class="nav-section">
-          <div class="nav-label">Personal</div>
-          <a class="nav-item nav-item-link" href="employee-portal.html" style="text-decoration:none;" title="Attendance, leave, payroll - separate portal">
-            <i class="fas fa-id-card"></i> <span>Employee Self Service</span>
-          </a>
-          <a class="nav-item nav-item-link" href="chat-portal.html" style="text-decoration:none;">
-            <i class="fas fa-comments"></i> <span>Chat</span>
-          </a>
-        </div>
-        
         <div class="nav-section super-only" style="display:none">
           <div class="nav-label">Super Admin</div>
           <div class="nav-item" data-view="allLeads" onclick="showAllLeads()">
@@ -61,6 +51,19 @@
           <div class="nav-item" data-view="manageRec" onclick="showRecruitersList()">
             <i class="fas fa-users-cog"></i> <span>Team Management</span>
           </div>
+          <div class="nav-item" data-view="auditLogs" onclick="showDistributionAuditLogs()">
+            <i class="fas fa-clipboard-list"></i> <span>Audit & Work History</span>
+          </div>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-label">Personal</div>
+          <a class="nav-item nav-item-link" href="employee-portal.html" style="text-decoration:none;" title="Attendance, leave, payroll - separate portal">
+            <i class="fas fa-id-card"></i> <span>Employee Self Service</span>
+          </a>
+          <a class="nav-item nav-item-link" href="chat-portal.html" style="text-decoration:none;">
+            <i class="fas fa-comments"></i> <span>Chat</span>
+          </a>
         </div>
         
         <div class="nav-section">

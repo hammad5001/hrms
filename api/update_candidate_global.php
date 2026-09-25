@@ -52,8 +52,13 @@ if ($res->num_rows > 0) {
             respond(false, ['from' => $old_stage, 'to' => $new_stage], 'Invalid stage transition');
         }
         $branch = get_active_company_branch();
-        $upd = $conn->prepare("UPDATE leads SET current_stage = ?, company_branch = ?, updated_at = NOW() WHERE id = ?");
-        $upd->bind_param("ssi", $new_stage, $branch, $lead_id);
+        if (!empty($position) && $position !== 'Unknown') {
+            $upd = $conn->prepare("UPDATE leads SET current_stage = ?, position_applied = ?, company_branch = ?, updated_at = NOW() WHERE id = ?");
+            $upd->bind_param("sssi", $new_stage, $position, $branch, $lead_id);
+        } else {
+            $upd = $conn->prepare("UPDATE leads SET current_stage = ?, company_branch = ?, updated_at = NOW() WHERE id = ?");
+            $upd->bind_param("ssi", $new_stage, $branch, $lead_id);
+        }
         $upd->execute();
         
         $audit = $conn->prepare("INSERT INTO lead_audit (lead_id, user_id, user_name, action, old_value, new_value, notes, created_at) VALUES (?, ?, ?, ?, ?, ?, 'Updated via Portal Sync', NOW())");

@@ -14,6 +14,8 @@ const API = {
   createInterview: 'api/create_interview.php',
   leadTimeline: 'api/get_lead_timeline.php',
   distribute:'api/distribute_leads.php',
+  distributionLogs: 'api/get_lead_distribution_logs.php',
+  syncWebsiteLeads: 'api/sync_website_leads.php',
 };
 
 let currentUser = null, isSuperAdmin = false, refreshTimer = null, lastRefresh = null;
@@ -48,9 +50,29 @@ const STATUS_OPTIONS = [
 
 // ===== UTILITIES =====
 function esc(s){if(!s)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function fmt(d){if(!d)return'-';return new Date(d).toLocaleDateString('en-PK',{day:'2-digit',month:'short',year:'numeric'});}
-function fmtTime(d){if(!d)return'-';return new Date(d).toLocaleString('en-PK',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
-function ago(d){if(!d)return'';const s=Math.floor((Date.now()-new Date(d))/1000);if(s<60)return s+'s ago';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago';}
+function fmt(d){
+  if(!d) return '-';
+  const t = typeof d === 'string' ? new Date(d.replace(/-/g, '/')) : new Date(d);
+  if(isNaN(t)) return d;
+  return t.toLocaleDateString('en-PK',{day:'2-digit',month:'short',year:'numeric'});
+}
+function fmtTime(d){
+  if(!d) return '-';
+  const t = typeof d === 'string' ? new Date(d.replace(/-/g, '/')) : new Date(d);
+  if(isNaN(t)) return d;
+  return t.toLocaleString('en-PK',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+function ago(d){
+  if(!d) return '-';
+  const t = typeof d === 'string' ? new Date(d.replace(/-/g, '/')) : new Date(d);
+  if(isNaN(t)) return '-';
+  const s = Math.floor((Date.now() - t.getTime()) / 1000);
+  if(s < 0 || s < 60) return 'Just now';
+  if(s < 3600) return Math.floor(s / 60) + 'm ago';
+  if(s < 86400) return Math.floor(s / 3600) + 'h ago';
+  if(s < 2592000) return Math.floor(s / 86400) + 'd ago';
+  return fmt(d);
+}
 
 function stageBadge(s){const o=STATUS_OPTIONS.find(x=>x.value===s)||{label:s||'Unknown',cls:'stage-new'};return`<span class="badge ${o.cls}">${o.label}</span>`;}
 
@@ -116,7 +138,7 @@ async function init(){
     window.location.href='index.html';return;
   }
   currentUser=res.user;
-  isSuperAdmin=(currentUser.recruiter_type==='super'||currentUser.portal_role==='admin'||currentUser.portal_role==='super_admin');
+  isSuperAdmin=(currentUser.recruiter_type==='super'||currentUser.portal_role==='admin'||currentUser.portal_role==='super_admin'||currentUser.portal_role==='hr');
 
   if(currentUser.company_branch){
     localStorage.setItem('companyBranch',currentUser.company_branch);

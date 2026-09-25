@@ -568,6 +568,51 @@
             box-shadow: 0 0 0 4px var(--primary-light);
         }
 
+        .position-label-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .btn-add-pos-quick {
+            background: rgba(249, 115, 22, 0.12);
+            color: var(--primary);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-add-pos-quick:hover {
+            background: var(--primary);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .custom-pos-box {
+            display: none;
+            margin-top: 8px;
+            gap: 8px;
+            align-items: center;
+            animation: fadeInPos 0.25s ease;
+        }
+
+        .custom-pos-box.show {
+            display: flex;
+        }
+
+        @keyframes fadeInPos {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .btn-submit {
             width: 100%;
             padding: 16px;
@@ -841,6 +886,8 @@
                     <i class="fas fa-calendar-alt"></i> Scheduled Interviews
                     <span class="nav-badge" id="scheduledBadge">0</span>
                 </div>
+                <div class="nav-section-title">RECORDS & ARCHIVE</div>
+                <div class="nav-item" onclick="window.location.href='candidate-records.html'"><i class="fas fa-database"></i> Candidate Records</div>
                 <div class="nav-section-title">MESSAGES</div>
                 <div class="nav-item" onclick="window.location.href='chat-portal.html'"><i class="fas fa-comments"></i> Chat</div>
             </div>
@@ -881,6 +928,95 @@
         let walkinCandidates = [];
         let qrGenerated = false;
         let allCandidates = [];
+
+        const DEFAULT_POSITIONS = [
+            'ACA Campaign',
+            'Medicare Campaign',
+            'MedAlert Campaign',
+            'IT Department',
+            'QA Department',
+            'Developer Team',
+            'HR Team',
+            'Final Expense',
+            'B2B Closer',
+            'B2B Appointment Setters',
+            'Social Media Team',
+            'Medical Billing'
+        ];
+
+        function getStoredPositions() {
+            try {
+                const saved = JSON.parse(localStorage.getItem('balitech_custom_positions') || '[]');
+                const combined = [...DEFAULT_POSITIONS];
+                saved.forEach(p => {
+                    const clean = (p || '').trim();
+                    if (clean && !combined.some(x => x.toLowerCase() === clean.toLowerCase())) {
+                        combined.push(clean);
+                    }
+                });
+                return combined;
+            } catch (e) {
+                return DEFAULT_POSITIONS;
+            }
+        }
+
+        function saveCustomPosition(newPos) {
+            const clean = (newPos || '').trim();
+            if (!clean) return;
+            try {
+                const saved = JSON.parse(localStorage.getItem('balitech_custom_positions') || '[]');
+                if (!saved.some(x => x.toLowerCase() === clean.toLowerCase()) &&
+                    !DEFAULT_POSITIONS.some(x => x.toLowerCase() === clean.toLowerCase())) {
+                    saved.push(clean);
+                    localStorage.setItem('balitech_custom_positions', JSON.stringify(saved));
+                }
+            } catch (e) {
+                console.warn('Failed to save custom position', e);
+            }
+        }
+
+        function toggleCustomPositionInput() {
+            const box = document.getElementById('customPosBox');
+            const input = document.getElementById('customPositionInput');
+            if (!box) return;
+            if (box.classList.contains('show')) {
+                box.classList.remove('show');
+            } else {
+                box.classList.add('show');
+                if (input) {
+                    input.focus();
+                }
+            }
+        }
+
+        function handleAddCustomPosition() {
+            const input = document.getElementById('customPositionInput');
+            const val = input ? input.value.trim() : '';
+            if (!val) {
+                showToast('Please enter a position name', 'warning');
+                return;
+            }
+            saveCustomPosition(val);
+            populatePositionsDropdown(val);
+            if (input) input.value = '';
+            const box = document.getElementById('customPosBox');
+            if (box) box.classList.remove('show');
+            showToast(`✅ Position "${val}" added & selected!`, 'success');
+        }
+
+        function populatePositionsDropdown(selectedVal = '') {
+            const sel = document.getElementById('walkinPosition');
+            if (!sel) return;
+            const currentSelected = selectedVal || sel.value;
+            const positions = getStoredPositions();
+            
+            let html = '<option value="">Select Position</option>';
+            positions.forEach(p => {
+                const isSel = (currentSelected && currentSelected.toLowerCase() === p.toLowerCase()) ? 'selected' : '';
+                html += `<option value="${p.replace(/"/g, '&quot;')}" ${isSel}>${p}</option>`;
+            });
+            sel.innerHTML = html;
+        }
 
         // Voice: js/reception-voice.js (HR announcements polled; local Announce uses same engine)
         function initializeVoice() {
@@ -1458,22 +1594,24 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label><i class="fas fa-briefcase"></i> Applying For <span class="required">*</span></label>
+                            <div class="position-label-row">
+                                <label style="margin-bottom:0;"><i class="fas fa-briefcase"></i> Applying For <span class="required">*</span></label>
+                                <button type="button" class="btn-add-pos-quick" onclick="toggleCustomPositionInput()">
+                                    <i class="fas fa-plus"></i> Add Custom Position
+                                </button>
+                            </div>
                             <select id="walkinPosition" class="form-control">
-                                <option value="">Select Position</option>
-                                <option>ACA Campaign</option>
-                                <option>Medicare Campaign</option>
-                                <option>MedAlert Campaign</option>
-                                <option>IT Department</option>
-                                <option>QA Department</option>
-                                <option>Developer Team</option>
-                                <option>HR Team</option>
-                                <option>Final Expense</option>
-                                <option>B2B Closer</option>
-                                <option>B2B Appointment Setters</option>
-                                <option>Social Media Team</option>
-                                <option>Medical Billing</option>
+                                <!-- Populated dynamically by populatePositionsDropdown() -->
                             </select>
+                            <div class="custom-pos-box" id="customPosBox">
+                                <input type="text" id="customPositionInput" class="form-control" placeholder="Enter new position name..." onkeydown="if(event.key === 'Enter'){ event.preventDefault(); handleAddCustomPosition(); }">
+                                <button type="button" class="btn-add-pos-quick" style="padding: 12px 16px; height: 100%; border-radius: 12px;" onclick="handleAddCustomPosition()">
+                                    <i class="fas fa-check"></i> Save
+                                </button>
+                                <button type="button" class="btn-add-pos-quick" style="padding: 12px 14px; height: 100%; border-radius: 12px; background: rgba(255,255,255,0.06); color: var(--text-muted);" onclick="toggleCustomPositionInput()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label><i class="fas fa-user-plus"></i> Referred By</label>
@@ -1492,6 +1630,7 @@
                 </div>
             `;
             document.getElementById('mainContent').innerHTML = html;
+            populatePositionsDropdown();
             
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             document.querySelector('.nav-item[onclick="showDashboard()"]').classList.add('active');
@@ -1640,6 +1779,9 @@
         window.logout = logout;
         window.sendScheduledToHR = sendScheduledToHR;
         window.testVoice = testVoice;
+        window.toggleCustomPositionInput = toggleCustomPositionInput;
+        window.handleAddCustomPosition = handleAddCustomPosition;
+        window.populatePositionsDropdown = populatePositionsDropdown;
     </script>
     <script src="js/portal-chat-fab.js"></script>
 </body>

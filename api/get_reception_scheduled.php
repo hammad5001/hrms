@@ -12,7 +12,18 @@ if (!isAuthenticated()) {
 
 $branch = get_active_company_branch();
 $portal_role = $_SESSION['portal_role'] ?? $_SESSION['role'] ?? '';
-$is_reception = in_array($portal_role, ['receptionist', 'agent', 'admin'], true);
+$is_super = isGlobalSuperAdmin();
+$is_reception = in_array($portal_role, ['receptionist', 'agent', 'admin', 'super_admin'], true);
+
+$branch_clause = "";
+$params = [];
+$types = "";
+
+if (!$is_super && !$is_reception) {
+    $branch_clause = " AND (l.company_branch = ? OR l.company_branch IS NULL OR TRIM(l.company_branch) = '' OR l.company_branch = 'main') ";
+    $params[] = $branch;
+    $types .= "s";
+}
 
 $sql = "
     SELECT
@@ -56,7 +67,7 @@ $sql = "
             AND l.updated_at >= DATE_SUB(NOW(), INTERVAL 14 DAY)
         )
     )
-    " . ($is_reception ? '' : " AND (l.company_branch = ? OR l.company_branch IS NULL OR TRIM(l.company_branch) = '') ") . "
+    $branch_clause
     ORDER BY
         COALESCE(i.scheduled_date, l.interview_date, DATE(l.updated_at)) ASC,
         COALESCE(i.scheduled_time, '23:59') ASC,
@@ -65,8 +76,8 @@ $sql = "
 ";
 
 $stmt = $conn->prepare($sql);
-if (!$is_reception) {
-    $stmt->bind_param('s', $branch);
+if (!empty($types)) {
+    $stmt->bind_param($types, ...$params);
 }
 $stmt->execute();
 $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);

@@ -8,9 +8,24 @@ if (!isAuthenticated() || !isSuperRecruiter()) {
 $search = trim($_GET['search'] ?? '');
 $status_filter = $_GET['status'] ?? ''; // 'active' or 'inactive'
 
+$active_branch = get_active_company_branch();
+$branch_req    = trim($_GET['branch'] ?? '');
+
 $where = ["r.recruiter_type = 'regular'"];
 $params = [];
 $types  = "";
+
+if (isGlobalSuperAdmin()) {
+    if ($branch_req && $branch_req !== 'all') {
+        $where[] = "u.company_branch = ?";
+        $params[] = $branch_req;
+        $types .= "s";
+    }
+} else {
+    $where[] = "u.company_branch = ?";
+    $params[] = $active_branch;
+    $types .= "s";
+}
 
 if ($search) {
     $where[] = "(u.full_name LIKE ? OR u.email LIKE ? OR u.phone LIKE ?)";

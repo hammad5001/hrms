@@ -20,8 +20,20 @@ async function editLead(id){
   let html=`
   <div class="modal-overlay" id="leadModal"><div class="modal modal-lg">
     <div class="modal-header">
-      <h3>Edit Lead - ${esc(l.full_name)}</h3>
-      <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+      <div>
+        <h3 style="display:flex;align-items:center;gap:10px;">
+          <span>Edit Lead - ${esc(l.full_name)}</span>
+          ${l.source==='website'?`<span class="badge" style="background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);font-size:10px;"><i class="fas fa-globe"></i> Website Lead</span>`:''}
+        </h3>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        ${(l.cv_file_url || l.external_lead_id) ? `
+          <a href="api/fetch_lead_cv.php?external_id=${encodeURIComponent(l.external_lead_id || l.id)}" target="_blank" class="btn btn-sm btn-info" style="text-decoration:none;">
+            <i class="fas fa-file-pdf"></i> View / Download CV
+          </a>
+        ` : ''}
+        <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+      </div>
     </div>
     <div class="modal-body" style="display:flex;gap:20px">
       <div style="flex:1">

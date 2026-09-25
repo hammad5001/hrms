@@ -70,9 +70,25 @@ if ($recruiter_type === 'super' && isset($data['assigned_recruiter_id'])) {
     $fields[]   = "assigned_recruiter_id = ?";
     $params[]    = $new_rec_id;
     $types      .= "i";
-    if ($new_rec_id !== $old_recruiter) {
+    if ($new_rec_id !== $old_recruiter && $new_rec_id) {
         $fields[] = "assigned_at = NOW()";
         $audit[]  = "Recruiter changed";
+        
+        // Fetch new recruiter name
+        $q_rn = $conn->prepare("SELECT full_name FROM users WHERE id = ?");
+        $q_rn->bind_param("i", $new_rec_id);
+        $q_rn->execute();
+        $rn_res = $q_rn->get_result()->fetch_assoc();
+        $new_r_name = $rn_res['full_name'] ?? 'Recruiter';
+        $active_branch = get_active_company_branch();
+        $dist_note = "Re-assigned to $new_r_name by $user_name";
+
+        $dist_log = $conn->prepare("
+            INSERT INTO lead_distribution_logs (lead_id, assigned_by_user_id, assigned_by_name, assigned_to_user_id, assigned_to_name, distribution_mode, company_branch, notes, created_at)
+            VALUES (?, ?, ?, ?, ?, 'reassign', ?, ?, NOW())
+        ");
+        $dist_log->bind_param("iisisss", $lead_id, $user_id, $user_name, $new_rec_id, $new_r_name, $active_branch, $dist_note);
+        $dist_log->execute();
     }
 }
 
@@ -132,8 +148,28 @@ try {
         $aud_stmt->execute();
     }
 
+    // Auto-create or ensure scheduled interview record in interviews table for Reception Portal
+    $new_stage = canonical_stage((string)($data['current_stage'] ?? $old_status));
+    if ($new_stage === 'interview_scheduled') {
+        $int_date = !empty($data['interview_date']) ? $data['interview_date'] : date('Y-m-d');
+        $int_time = !empty($data['interview_time']) ? $data['interview_time'] : '10:00';
+        $active_b = get_active_company_branch();
+        
+        $chk_int = $conn->prepare("SELECT id FROM interviews WHERE lead_id = ? AND status = 'scheduled' LIMIT 1");
+        $chk_int->bind_param("i", $lead_id);
+        $chk_int->execute();
+        $int_res = $chk_int->get_result();
+        if ($int_res->num_rows === 0) {
+            $ins_int = $conn->prepare("
+                INSERT INTO interviews (lead_id, scheduled_by, scheduled_date, scheduled_time, location, interviewer_name, status, company_branch, created_at, updated_at)
+                VALUES (?, ?, ?, ?, 'Reception', 'HR Manager', 'scheduled', ?, NOW(), NOW())
+            ");
+            $ins_int->bind_param("iisss", $lead_id, $user_id, $int_date, $int_time, $active_b);
+            $ins_int->execute();
+        }
+    }
+
     // Update recruiter hired/rejected stats
-    $new_stage = $data['current_stage'] ?? '';
     if ($new_stage === 'hired' && $old_status !== 'hired') {
         $r_id = $data['assigned_recruiter_id'] ?? $old_recruiter ?? $user_id;
         $s = $conn->prepare("UPDATE recruiters SET total_hired = total_hired + 1 WHERE user_id = ?");

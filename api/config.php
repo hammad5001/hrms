@@ -46,7 +46,12 @@ function isAuthenticated() {
 function isSuperRecruiter() {
     $type = $_SESSION['recruiter_type'] ?? '';
     $role = $_SESSION['portal_role'] ?? '';
-    return $type === 'super' || $role === 'super_admin' || $role === 'admin';
+    return $type === 'super' || $role === 'super_admin' || $role === 'admin' || $role === 'hr';
+}
+
+function isGlobalSuperAdmin() {
+    $role = $_SESSION['portal_role'] ?? '';
+    return $role === 'super_admin' || $role === 'admin';
 }
 
 function isRegularRecruiter() {
@@ -153,7 +158,7 @@ function stage_transition_allowed(string $from, string $to): bool {
         'interview_scheduled' => ['receptionist', 'not_appeared', 'interview_conducted', 'rejected'],
         'receptionist' => ['interview_conducted', 'not_appeared', 'rejected'],
         'not_appeared' => ['interview_scheduled', 'rejected'],
-        'interview_conducted' => ['selected', 'pending', 'hr_rejected', 'rejected'],
+        'interview_conducted' => ['selected', 'pending', 'hr_passed', 'hr_rejected', 'gm_passed', 'gm_rejected', 'hired', 'training', 'rejected'],
         'selected' => ['hr_passed', 'hired', 'training', 'rejected'],
         'pending' => ['selected', 'hr_passed', 'hired', 'training', 'hr_rejected', 'rejected'],
         'hr_passed' => ['gm_passed', 'gm_rejected', 'hired', 'training', 'rejected'],

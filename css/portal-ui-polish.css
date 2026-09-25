@@ -563,3 +563,455 @@ img, video {
     box-shadow: 0 0 10px rgba(249, 115, 22, 0.7);
 }
 
+/* ==========================================================================
+   Dashboard UI Upgrade - Executive Modern Suite (Compact & High Impact)
+   ========================================================================== */
+
+/* ==========================================================================
+   Dashboard UI Upgrade - Executive Modern Suite (Ultra-Sleek & Compact)
+   ========================================================================== */
+
+/* Executive Hero */
+.ess-exec-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px !important;
+    border-radius: 10px !important;
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(20, 24, 39, 0.95) 100%) !important;
+    border: 1px solid rgba(249, 115, 22, 0.2) !important;
+    box-shadow: 0 4px 14px -4px rgba(0, 0, 0, 0.4) !important;
+    margin-bottom: 8px !important;
+    backdrop-filter: blur(16px);
+}
+
+.ess-exec-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 8.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #fb923c;
+    background: rgba(249, 115, 22, 0.12);
+    border: 1px solid rgba(249, 115, 22, 0.25);
+    padding: 1.5px 6px;
+    border-radius: 999px;
+    margin-bottom: 2px;
+}
+
+.ess-exec-hero-left h2 {
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    color: #ffffff;
+    margin: 0 !important;
+    line-height: 1.15;
+}
+
+.ess-exec-hero-left p {
+    font-size: 10.5px !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+    margin: 0 !important;
+}
+
+.ess-exec-hero-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ess-exec-live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 8.5px;
+    font-weight: 700;
+    color: #34d399;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.22);
+    padding: 2.5px 7px;
+    border-radius: 999px;
+}
+
+.ess-exec-pulse {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 6px #10b981;
+}
+
+.ess-exec-hero-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    background: rgba(249, 115, 22, 0.12);
+    border: 1px solid rgba(249, 115, 22, 0.25);
+    color: #fb923c;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Executive Grid & Cards */
+.ess-exec-grid {
+    display: grid;
+    grid-template-columns: 1.25fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.ess-exec-card {
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
+    background: linear-gradient(180deg, rgba(22, 27, 46, 0.95), rgba(15, 19, 34, 0.98)) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.35) !important;
+    transition: border-color 0.2s ease !important;
+}
+
+.ess-exec-card:hover {
+    border-color: rgba(249, 115, 22, 0.28) !important;
+}
+
+.ess-exec-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.ess-exec-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ess-exec-icon-box {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    background: rgba(249, 115, 22, 0.12);
+    border: 1px solid rgba(249, 115, 22, 0.22);
+    color: #f97316;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    flex-shrink: 0;
+}
+
+.ess-exec-title-wrap h3 {
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    color: #f8fafc !important;
+    margin: 0 !important;
+    line-height: 1.15;
+}
+
+.ess-exec-title-wrap small {
+    display: block;
+    font-size: 8.5px;
+    color: rgba(255, 255, 255, 0.45);
+    margin-top: 0;
+    line-height: 1.1;
+}
+
+.ess-exec-open-btn {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ess-exec-open-btn:hover {
+    background: rgba(249, 115, 22, 0.15);
+    border-color: rgba(249, 115, 22, 0.35);
+    color: #f97316;
+}
+
+/* Executive Attendance Row */
+.ess-exec-stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+    margin-bottom: 6px;
+}
+
+.ess-exec-stat-tile {
+    background: rgba(10, 14, 26, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 6px;
+    padding: 5px 6px;
+}
+
+.ess-exec-stat-head {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin-bottom: 2px;
+}
+
+.ess-exec-stat-head i {
+    font-size: 9px;
+}
+
+.text-emerald { color: #34d399; }
+.text-rose { color: #f87171; }
+.text-orange { color: #fb923c; }
+.text-blue { color: #60a5fa; }
+.text-purple { color: #a78bfa; }
+
+.ess-exec-stat-head .lbl {
+    font-size: 7.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: rgba(255, 255, 255, 0.45);
+    white-space: nowrap;
+}
+
+.ess-exec-stat-tile strong {
+    font-size: 11px;
+    font-weight: 800;
+    color: #ffffff;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    display: block;
+    line-height: 1.1;
+}
+
+.ess-exec-shift-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 5px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ess-exec-shift-bar .ess-shift-note {
+    border-top: none !important;
+    padding-top: 0 !important;
+    font-size: 9.5px !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.ess-exec-link-btn {
+    border: 1px solid rgba(249, 115, 22, 0.22);
+    background: rgba(249, 115, 22, 0.06);
+    color: #fb923c;
+    font-size: 8.5px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 999px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    transition: all 0.2s;
+}
+
+.ess-exec-link-btn:hover {
+    background: rgba(249, 115, 22, 0.16);
+    border-color: rgba(249, 115, 22, 0.4);
+}
+
+/* Executive Info 2-Column Grid (Compact & Perfectly Balanced) */
+.ess-exec-info-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 6px;
+}
+
+.ess-exec-info-row {
+    display: flex;
+    flex-direction: column;
+    padding: 3px 6px;
+    background: rgba(10, 14, 26, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 5px;
+    min-width: 0;
+}
+
+.ess-exec-info-row.full-width {
+    grid-column: 1 / -1;
+}
+
+.ess-exec-info-lbl {
+    font-size: 7.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: rgba(255, 255, 255, 0.45);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 1px;
+}
+
+.ess-exec-info-lbl i {
+    font-size: 8px;
+    width: 10px;
+    text-align: center;
+}
+
+.ess-exec-info-val {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #f8fafc;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+}
+
+/* Weekly Activity Badges */
+.ess-exec-date-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 8.5px;
+    color: rgba(255, 255, 255, 0.65);
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    padding: 2px 6px;
+    border-radius: 999px;
+}
+
+.ess-exec-date-badge i {
+    color: #f97316;
+}
+
+.ess-exec-shift-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #fb923c;
+    font-size: 9.5px;
+}
+
+.ess-exec-shift-tag i {
+    font-size: 8.5px;
+}
+
+.ess-activities-shift {
+    background: rgba(249, 115, 22, 0.04) !important;
+    border: 1px solid rgba(249, 115, 22, 0.12) !important;
+    border-radius: 6px !important;
+    padding: 4px 8px !important;
+    margin: 0 0 6px !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 9.5px !important;
+}
+
+.ess-activities-timeline {
+    gap: 4px !important;
+}
+
+.ess-act-day {
+    padding: 5px 2px 4px !important;
+    border-radius: 6px !important;
+    background: rgba(10, 14, 26, 0.5) !important;
+    border: 1px solid rgba(255, 255, 255, 0.04) !important;
+}
+
+.ess-act-dow {
+    font-size: 7.5px !important;
+    color: rgba(255, 255, 255, 0.45) !important;
+}
+
+.ess-act-dom {
+    font-size: 12px !important;
+    margin: 1px 0 2px !important;
+}
+
+.ess-act-status {
+    font-size: 7px !important;
+    padding: 1px 3px !important;
+    border-radius: 3px !important;
+}
+
+/* Approvals Card Styling */
+.ess-dash-bottom-grid {
+    display: grid;
+    grid-template-columns: 1.25fr 1fr;
+    gap: 8px;
+}
+
+.ess-dash-approvals-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.ess-dash-approvals-text {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.65);
+    line-height: 1.25;
+    margin: 2px 0 6px;
+}
+
+.ess-dash-approvals-card .ess-btn-sm {
+    padding: 5px 10px !important;
+    font-size: 10px !important;
+}
+
+/* Profile Card */
+.ess-profile-card {
+    border-radius: 10px !important;
+    padding: 10px 8px !important;
+    background: linear-gradient(180deg, rgba(22, 27, 46, 0.95), rgba(15, 19, 34, 0.98)) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    box-shadow: 0 4px 14px -4px rgba(0, 0, 0, 0.35) !important;
+}
+
+.ess-profile-photo {
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 10px !important;
+    font-size: 15px !important;
+}
+
+.ess-timer {
+    font-size: 13px !important;
+    letter-spacing: 0.05em !important;
+    padding: 3px 6px !important;
+    border-radius: 5px !important;
+    margin-bottom: 5px !important;
+    background: rgba(0, 0, 0, 0.25) !important;
+    border: 1px solid rgba(255, 255, 255, 0.04) !important;
+}
+
+.ess-bio-btn {
+    border-radius: 6px !important;
+    font-size: 9.5px !important;
+    padding: 6px 8px !important;
+    background: rgba(249, 115, 22, 0.08) !important;
+    border: 1px solid rgba(249, 115, 22, 0.25) !important;
+    color: #fb923c !important;
+    font-weight: 700 !important;
+}
+
+.ess-bio-btn:hover {
+    background: linear-gradient(135deg, #f97316, #ea580c) !important;
+    color: #ffffff !important;
+}
+
+
+
+
+
+
