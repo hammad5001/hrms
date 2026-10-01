@@ -23,14 +23,38 @@ function attendanceCanViewAllBranches(): bool {
     return in_array($role, ['super_admin', 'finance'], true);
 }
 
+
+function normalizeAttendanceBranch($branch): string {
+    $branch = strtolower(trim((string)$branch));
+    $branch = str_replace(['-', '_', ' '], '', $branch);
+
+    if ($branch === 'i9' || $branch === 'i9branch') {
+        return 'i9';
+    }
+
+    if (strpos($branch, 'commercial') !== false) {
+        return 'commercial';
+    }
+
+    if (strpos($branch, 'workfromhome') !== false) {
+        return 'workfromhome';
+    }
+
+    return 'main';
+}
+
 function attendanceReadTableForBranch($branch): string {
     if (!attendanceCanViewAllBranches()) {
         return TABLE_ATTENDANCE;
     }
 
-    $branch = strtolower(trim((string)$branch));
+    $branch = normalizeAttendanceBranch($branch);
 
-    if (strpos($branch, 'commercial') !== false) {
+    if ($branch === 'i9') {
+        return 'attendance_i9_raw';
+    }
+
+    if ($branch === 'commercial') {
         return 'attendance_commercial_raw';
     }
 
@@ -44,7 +68,9 @@ function attendanceBulkReadSource(): string {
 
     return "(SELECT user_id, timestamp FROM attendance_raw
              UNION ALL
-             SELECT user_id, timestamp FROM attendance_commercial_raw) AS attendance_read";
+             SELECT user_id, timestamp FROM attendance_commercial_raw
+             UNION ALL
+             SELECT user_id, timestamp FROM attendance_i9_raw) AS attendance_read";
 }
 
 
@@ -510,13 +536,44 @@ switch ($action) {
         
         $windows = getShiftWindows($selected_date);
 
-        $employees = $conn->query("
-            SELECT e.id, e.employee_code, e.full_name, e.department, COALESCE(NULLIF(u.team, ''), NULLIF(e.team, ''), '') as team 
-            FROM " . TABLE_EMPLOYEES . " e
-            LEFT JOIN users u ON (e.employee_code IS NOT NULL AND e.employee_code != '' AND e.employee_code COLLATE utf8mb4_unicode_ci = u.employee_code COLLATE utf8mb4_unicode_ci)
-            WHERE e.is_active = 1 
-            ORDER BY CAST(e.employee_code AS UNSIGNED)
-        ");
+        if (attendanceCanViewAllBranches()) {
+
+            $employees = $conn->query("
+                SELECT
+                    u.id,
+                    u.employee_code,
+                    u.full_name,
+                    u.department,
+                    COALESCE(u.team,'') as team
+                FROM users u
+                WHERE u.status='active'
+                AND u.employee_code IS NOT NULL
+                AND u.employee_code != ''
+                ORDER BY CAST(u.employee_code AS UNSIGNED)
+            ");
+
+        } else {
+
+            $employees = $conn->query("
+                SELECT
+                    e.id,
+                    e.employee_code,
+                    e.full_name,
+                    e.department,
+                    COALESCE(NULLIF(u.team,''),NULLIF(e.team,''),'') as team
+                FROM " . TABLE_EMPLOYEES . " e
+                LEFT JOIN users u 
+                ON (
+                    e.employee_code IS NOT NULL
+                    AND e.employee_code != ''
+                    AND e.employee_code COLLATE utf8mb4_unicode_ci =
+                        u.employee_code COLLATE utf8mb4_unicode_ci
+                )
+                WHERE e.is_active = 1
+                ORDER BY CAST(e.employee_code AS UNSIGNED)
+            ");
+
+        }
         
         if (!$employees) {
             sendJSON(false, null, "DB error: " . $conn->error);

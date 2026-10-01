@@ -11,6 +11,9 @@ function branch_attendance_table(?string $branch = null): string {
     $branch = normalize_company_branch(
         $branch ?? (function_exists('get_active_company_branch') ? get_active_company_branch() : 'main')
     );
+    if (strcasecmp($branch, 'I9') === 0) {
+        return 'attendance_i9_raw';
+    }
     return $branch === 'commercial' ? 'attendance_commercial_raw' : 'attendance_raw';
 }
 
@@ -18,7 +21,28 @@ function branch_employees_table(?string $branch = null): string {
     $branch = normalize_company_branch(
         $branch ?? (function_exists('get_active_company_branch') ? get_active_company_branch() : 'main')
     );
+    if (strcasecmp($branch, 'I9') === 0) {
+        return 'employees_i9';
+    }
     return $branch === 'commercial' ? 'employees_commercial' : 'employees';
+}
+
+// I9 EMPLOYEE DASHBOARD SUPPORT V1
+function i9_employee_shift_punches(array $timestamps, string $shiftDate): array {
+    $windows = ess_get_shift_windows($shiftDate);
+    $times = [];
+    foreach ($timestamps as $ts) {
+        if ($ts >= $windows['window_start'] && $ts <= $windows['window_end']) {
+            $times[] = $ts;
+        }
+    }
+    sort($times);
+    return [
+        'check_in' => $times[0] ?? null,
+        'check_out' => null,
+        'times' => $times,
+        'punch_count' => count($times),
+    ];
 }
 
 function normalize_person_name(string $name): string {
@@ -412,6 +436,7 @@ function fetch_attendance_bundle(mysqli $conn, string $empCode, string $today, ?
     }
 
     $table = branch_attendance_table($branch);
+    $isI9Attendance = ($table === 'attendance_i9_raw');
     $placeholders = implode(',', array_fill(0, count($codes), '?'));
     $types = str_repeat('s', count($codes));
 
@@ -461,6 +486,15 @@ function fetch_attendance_bundle(mysqli $conn, string $empCode, string $today, ?
         $auto_closed = true;
     }
 
+    if ($isI9Attendance) {
+        $i9Shift = i9_employee_shift_punches($allTimestamps, $shift_date);
+        $check_in = $i9Shift['check_in'];
+        $check_out = null;
+        $times = $i9Shift['times'];
+        $auto_closed = !empty($check_in)
+            && $serverTs >= ess_shift_auto_close_unix($shift_date);
+    }
+
     $shiftStatus = ess_attendance_status_for_shift($check_in, $check_out, $shift_date, $team);
     $on_duty = $shiftStatus['on_duty'];
     $attendance_status = $shiftStatus['status'];
@@ -486,7 +520,9 @@ function fetch_attendance_bundle(mysqli $conn, string $empCode, string $today, ?
 
     while ($cursor <= $monthEndTs) {
         $d = date('Y-m-d', $cursor);
-        $dayShift = ess_resolve_shift_punches($allTimestamps, $d);
+        $dayShift = $isI9Attendance
+            ? i9_employee_shift_punches($allTimestamps, $d)
+            : ess_resolve_shift_punches($allTimestamps, $d);
         if ($dayShift['check_in'] || $dayShift['check_out']) {
             $attendance_summary['present_days']++;
             if (ess_is_late_checkin($dayShift['check_in'], $d, $team)) {

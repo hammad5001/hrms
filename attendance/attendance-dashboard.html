@@ -1771,6 +1771,12 @@ document.addEventListener('DOMContentLoaded', function() { updateDateTime(); loa
                 filtered = filtered.filter(e => {
                     if (!e.branch) return false;
                     const eb = e.branch.toLowerCase();
+                    // Match I9 aliases while preserving other branch comparisons.
+                    const i9Key = value => String(value || '').toLowerCase().replace(/[-_\s]/g, '');
+                    const isI9 = value => ['i9', 'i9branch'].includes(i9Key(value));
+                    if (isI9(eb) || isI9(bSearch)) {
+                        return isI9(eb) && isI9(bSearch);
+                    }
                     return eb === bSearch || eb.includes(bSearch) || bSearch.includes(eb);
                 });
             }

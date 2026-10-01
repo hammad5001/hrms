@@ -49,8 +49,8 @@ if ($active_branch === 'commercial') {
     define('LOG_FILE', 'auto_fetch_commercial_log.txt');
     define('BRANCH_LABEL', 'Commercial Branch');
 } elseif ($active_branch === 'I9') {
-    define('TABLE_ATTENDANCE', 'attendance_raw');
-    define('TABLE_EMPLOYEES', 'employees');
+    define('TABLE_ATTENDANCE', 'attendance_i9_raw');
+    define('TABLE_EMPLOYEES', 'employees_i9');
     define('CSV_ALL_USERS', 'all_users_i9.xlsx');
     define('CSV_MASTER', 'attendance_master_i9.csv');
     define('PYTHON_SCRIPT', 'attendance_collector.py');
