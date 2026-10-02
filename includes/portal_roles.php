@@ -391,15 +391,15 @@ function portal_role_may_access(string $user_role, string $portal_key): bool {
 
         'receptionist' => ['receptionist', 'data_entry'],
 
-        'recruiter' => ['recruiter'],
+        'recruiter' => ['recruiter', 'hr'],
 
-        'management' => ['management'],
+        'management' => ['management', 'hr'],
 
         'training' => ['training'],
 
         'analytics' => ['analytics'],
 
-        'attendance' => ['attendance'],
+        'attendance' => ['attendance', 'hr'],
 
         'admin' => ['admin'],
 

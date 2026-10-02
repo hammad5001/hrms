@@ -50,8 +50,8 @@ function isSuperRecruiter() {
 }
 
 function isGlobalSuperAdmin() {
-    $role = $_SESSION['portal_role'] ?? '';
-    return $role === 'super_admin' || $role === 'admin';
+    $role = strtolower(trim((string)($_SESSION['portal_role'] ?? '')));
+    return $role === 'super_admin';
 }
 
 function isRegularRecruiter() {

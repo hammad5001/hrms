@@ -944,6 +944,121 @@
             'Medical Billing'
         ];
 
+        const BRANCH_REFERRALS = {
+            'main': [
+                'Danish Khan',
+                'Naina Fareed',
+                'Bushra Malik',
+                'Ahmed Shah'
+            ],
+            'commercial': [
+                'Zoya',
+                'Hamza Ali'
+            ],
+            'I9': [
+                'Saad Khan',
+                'Ayesha Malik'
+            ],
+            'workfromhome': [
+                'WFH Recruiter'
+            ]
+        };
+
+        function getStoredReferrals(branch = '') {
+            try {
+                const currentBranch = branch || (typeof localStorage !== 'undefined' && localStorage.getItem('companyBranch')) || 'all';
+                let base = [];
+
+                if (currentBranch && currentBranch !== 'all' && BRANCH_REFERRALS[currentBranch]) {
+                    base = [...BRANCH_REFERRALS[currentBranch]];
+                } else {
+                    const allDefaults = new Set();
+                    Object.values(BRANCH_REFERRALS).forEach(list => list.forEach(r => allDefaults.add(r)));
+                    base = Array.from(allDefaults);
+                }
+
+                const saved = JSON.parse(localStorage.getItem('balitech_custom_referrals') || '[]');
+                const combined = ['Walk-in', ...base];
+                
+                saved.forEach(item => {
+                    const name = typeof item === 'object' ? item.name : item;
+                    const itemBranch = typeof item === 'object' ? item.branch : 'all';
+                    const clean = (name || '').trim();
+                    
+                    if (clean && !combined.some(x => x.toLowerCase() === clean.toLowerCase())) {
+                        if (currentBranch === 'all' || itemBranch === 'all' || itemBranch === currentBranch) {
+                            combined.push(clean);
+                        }
+                    }
+                });
+                return combined;
+            } catch (e) {
+                return ['Walk-in', 'Danish Khan', 'Naina Fareed', 'Bushra Malik', 'Ahmed Shah'];
+            }
+        }
+
+        function saveCustomReferral(name, branch = 'all') {
+            const clean = (name || '').trim();
+            if (!clean) return;
+            try {
+                const saved = JSON.parse(localStorage.getItem('balitech_custom_referrals') || '[]');
+                const exists = saved.some(item => {
+                    const n = typeof item === 'object' ? item.name : item;
+                    return n.toLowerCase() === clean.toLowerCase();
+                });
+                if (!exists) {
+                    saved.push({ name: clean, branch: branch || 'all' });
+                    localStorage.setItem('balitech_custom_referrals', JSON.stringify(saved));
+                }
+            } catch (e) {
+                console.warn('Failed to save custom referral', e);
+            }
+        }
+
+        function toggleCustomReferralInput() {
+            const box = document.getElementById('customRefBox');
+            const input = document.getElementById('customReferralInput');
+            if (!box) return;
+            if (box.classList.contains('show')) {
+                box.classList.remove('show');
+            } else {
+                box.classList.add('show');
+                if (input) input.focus();
+            }
+        }
+
+        function handleAddCustomReferral() {
+            const input = document.getElementById('customReferralInput');
+            const branchSelect = document.getElementById('customReferralBranch');
+            const val = input ? input.value.trim() : '';
+            const branch = branchSelect ? branchSelect.value : 'all';
+            
+            if (!val) {
+                showToast('Please enter referral / recruiter name', 'warning');
+                return;
+            }
+            saveCustomReferral(val, branch);
+            populateReferralsDropdown(val);
+            if (input) input.value = '';
+            const box = document.getElementById('customRefBox');
+            if (box) box.classList.remove('show');
+            showToast(`✅ Referral "${val}" added & selected!`, 'success');
+        }
+
+        function populateReferralsDropdown(selectedVal = '') {
+            const sel = document.getElementById('walkinReferredBy');
+            if (!sel) return;
+            const currentSelected = selectedVal || sel.value || 'Walk-in';
+            const referrals = getStoredReferrals();
+            
+            let html = '';
+            referrals.forEach(r => {
+                const isSel = (currentSelected && currentSelected.toLowerCase() === r.toLowerCase()) ? 'selected' : '';
+                html += `<option value="${r.replace(/"/g, '&quot;')}" ${isSel}>${r}</option>`;
+            });
+            sel.innerHTML = html;
+        }
+
         function getStoredPositions() {
             try {
                 const saved = JSON.parse(localStorage.getItem('balitech_custom_positions') || '[]');
@@ -1614,14 +1729,31 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label><i class="fas fa-user-plus"></i> Referred By</label>
+                            <div class="position-label-row">
+                                <label style="margin-bottom:0;"><i class="fas fa-user-plus"></i> Referred By</label>
+                                <button type="button" class="btn-add-pos-quick" onclick="toggleCustomReferralInput()">
+                                    <i class="fas fa-plus"></i> Add Referral
+                                </button>
+                            </div>
                             <select id="walkinReferredBy" class="form-control">
-                                <option value="Walk-in">Walk-in</option>
-                                <option value="Danish Khan">Danish Khan</option>
-                                <option value="Naina Fareed">Naina Fareed</option>
-                                <option value="Bushra Malik">Bushra Malik</option>
-                                <option value="Ahmed Shah">Ahmed Shah</option>
+                                <!-- Populated dynamically by populateReferralsDropdown() -->
                             </select>
+                            <div class="custom-pos-box" id="customRefBox">
+                                <input type="text" id="customReferralInput" class="form-control" placeholder="Enter recruiter/referral name..." onkeydown="if(event.key === 'Enter'){ event.preventDefault(); handleAddCustomReferral(); }">
+                                <select id="customReferralBranch" class="form-control" style="max-width: 140px; padding: 10px 12px; font-size: 13px;">
+                                    <option value="all">All Branches</option>
+                                    <option value="main">Main Branch</option>
+                                    <option value="commercial">Commercial</option>
+                                    <option value="I9">I-9 Branch</option>
+                                    <option value="workfromhome">WFH</option>
+                                </select>
+                                <button type="button" class="btn-add-pos-quick" style="padding: 12px 16px; height: 100%; border-radius: 12px;" onclick="handleAddCustomReferral()">
+                                    <i class="fas fa-check"></i> Save
+                                </button>
+                                <button type="button" class="btn-add-pos-quick" style="padding: 12px 14px; height: 100%; border-radius: 12px; background: rgba(255,255,255,0.06); color: var(--text-muted);" onclick="toggleCustomReferralInput()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <button class="btn-submit" onclick="submitWalkin()">
@@ -1631,6 +1763,7 @@
             `;
             document.getElementById('mainContent').innerHTML = html;
             populatePositionsDropdown();
+            populateReferralsDropdown();
             
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             document.querySelector('.nav-item[onclick="showDashboard()"]').classList.add('active');
@@ -1782,6 +1915,9 @@
         window.toggleCustomPositionInput = toggleCustomPositionInput;
         window.handleAddCustomPosition = handleAddCustomPosition;
         window.populatePositionsDropdown = populatePositionsDropdown;
+        window.toggleCustomReferralInput = toggleCustomReferralInput;
+        window.handleAddCustomReferral = handleAddCustomReferral;
+        window.populateReferralsDropdown = populateReferralsDropdown;
     </script>
     <script src="js/portal-chat-fab.js"></script>
 </body>

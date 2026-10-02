@@ -107,8 +107,8 @@ window.portalRoleMayAccessPage = function (userRole, portalKey) {
     const map = {
         hr: ['hr'],
         receptionist: ['receptionist', 'data_entry'],
-        recruiter: ['recruiter'],
-        management: ['management'],
+        recruiter: ['recruiter', 'hr'],
+        management: ['management', 'hr'],
         training: ['training'],
         analytics: ['analytics'],
         attendance: ['attendance', 'hr'],

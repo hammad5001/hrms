@@ -744,6 +744,64 @@ switch ($action) {
         chat_json(true, ['ok' => true]);
         break;
 
+    case 'updateGroupTitle':
+        $cid = (int)($input['conversation_id'] ?? 0);
+        $newTitle = trim($input['title'] ?? '');
+        if (!$cid || $newTitle === '') {
+            chat_json(false, null, 'Group name cannot be empty');
+        }
+        if (mb_strlen($newTitle) > 150) {
+            chat_json(false, null, 'Group name too long (max 150 characters)');
+        }
+
+        $chk = $conn->prepare("
+            SELECT c.type, c.title, c.created_by, p.is_admin 
+            FROM chat_conversations c 
+            LEFT JOIN chat_participants p ON p.conversation_id = c.id AND p.user_id = ? 
+            WHERE c.id = ?
+        ");
+        $chk->bind_param('ii', $me_id, $cid);
+        $chk->execute();
+        $conv = $chk->get_result()->fetch_assoc();
+        if (!$conv || $conv['type'] !== 'group') {
+            chat_json(false, null, 'Group chat not found');
+        }
+
+        $isCreator = ((int)$conv['created_by'] === $me_id);
+        $isAdmin = ((int)($conv['is_admin'] ?? 0) === 1);
+        if (!$isCreator && !$isAdmin) {
+            chat_json(false, null, 'Only group admins or the creator can rename the group');
+        }
+
+        $oldTitle = $conv['title'] ?? 'Group';
+        $upd = $conn->prepare("UPDATE chat_conversations SET title = ? WHERE id = ?");
+        $upd->bind_param('si', $newTitle, $cid);
+        $upd->execute();
+
+        // Add a system notification message about the name change
+        $sysMsg = $me['full_name'] . ' changed the group name to "' . $newTitle . '".';
+        $msgIns = $conn->prepare("INSERT INTO chat_messages (conversation_id, sender_id, body, msg_type) VALUES (?, ?, ?, 'text')");
+        $msgIns->bind_param('iis', $cid, $me_id, $sysMsg);
+        $msgIns->execute();
+        $sysMsgId = (int)$conn->insert_id;
+
+        chat_create_message_receipts($conn, $sysMsgId, $cid, $me_id);
+        chat_touch_conversation($conn, $cid);
+        chat_ws_push_new_message($conn, $sysMsgId);
+        chat_ws_notify_conversation($conn, $cid, 'group.title_changed', [
+            'conversation_id' => $cid,
+            'title' => $newTitle,
+            'changed_by' => $me_id
+        ]);
+        chat_ws_notify_inbox($conn, $cid);
+
+        chat_json(true, [
+            'ok' => true,
+            'conversation_id' => $cid,
+            'title' => $newTitle
+        ]);
+        break;
+
     case 'removeGroupMember':
         $cid = (int)($input['conversation_id'] ?? 0);
         $userId = (int)($input['user_id'] ?? 0);

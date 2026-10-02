@@ -184,6 +184,10 @@ function syncActiveUsersToAttendanceTables(mysqli $conn): void {
     if ($synced) return;
     $synced = true;
 
+    // 1. Fetch CSV & HRMS users first so we have the best names/departments/branches available
+    $csv_data = loadEmployeeDataFromCSV();
+
+    // 2. Sync active users from users table
     $sql = "
         SELECT 
             u.employee_code, 
@@ -197,56 +201,138 @@ function syncActiveUsersToAttendanceTables(mysqli $conn): void {
         WHERE u.status = 'active' AND u.employee_code IS NOT NULL AND u.employee_code != ''
     ";
     $res = $conn->query($sql);
-    if (!$res) return;
+    if ($res) {
+        while ($row = $res->fetch_assoc()) {
+            $code = trim($row['employee_code']);
+            if ($code === '') continue;
 
-    while ($row = $res->fetch_assoc()) {
-        $code = trim($row['employee_code']);
-        if ($code === '') continue;
+            $name = $row['full_name'];
+            $dept = !empty($row['department']) ? $row['department'] : 'General';
+            $desig = !empty($row['designation']) ? $row['designation'] : 'Employee';
+            $team = $row['team'] ?? '';
+            $branch = !empty($row['branch']) ? $row['branch'] : 'Main';
 
-        $name = $row['full_name'];
-        $dept = !empty($row['department']) ? $row['department'] : 'General';
-        $desig = !empty($row['designation']) ? $row['designation'] : 'Employee';
-        $team = $row['team'] ?? '';
-        $branch = !empty($row['branch']) ? $row['branch'] : 'Main';
-
-        // 1. Sync to employees table
-        $chk1 = $conn->prepare("SELECT id FROM employees WHERE employee_code = ? LIMIT 1");
-        if ($chk1) {
-            $chk1->bind_param("s", $code);
-            $chk1->execute();
-            $r1 = $chk1->get_result();
-            if ($r1 && $r1->num_rows > 0) {
-                $u1 = $conn->prepare("UPDATE employees SET full_name = ?, department = ?, designation = ?, team = ?, branch = ?, is_active = 1 WHERE employee_code = ?");
-                if ($u1) {
-                    $u1->bind_param("ssssss", $name, $dept, $desig, $team, $branch, $code);
-                    $u1->execute();
+            // Sync to employees table
+            $chk1 = $conn->prepare("SELECT id FROM employees WHERE employee_code = ? LIMIT 1");
+            if ($chk1) {
+                $chk1->bind_param("s", $code);
+                $chk1->execute();
+                $r1 = $chk1->get_result();
+                if ($r1 && $r1->num_rows > 0) {
+                    $u1 = $conn->prepare("UPDATE employees SET full_name = ?, department = ?, designation = ?, team = ?, branch = ?, is_active = 1 WHERE employee_code = ?");
+                    if ($u1) {
+                        $u1->bind_param("ssssss", $name, $dept, $desig, $team, $branch, $code);
+                        $u1->execute();
+                    }
+                } else {
+                    $i1 = $conn->prepare("INSERT INTO employees (employee_code, full_name, department, designation, team, branch, is_active) VALUES (?, ?, ?, ?, ?, ?, 1)");
+                    if ($i1) {
+                        $i1->bind_param("ssssss", $code, $name, $dept, $desig, $team, $branch);
+                        $i1->execute();
+                    }
                 }
-            } else {
-                $i1 = $conn->prepare("INSERT INTO employees (employee_code, full_name, department, designation, team, branch, is_active) VALUES (?, ?, ?, ?, ?, ?, 1)");
-                if ($i1) {
-                    $i1->bind_param("ssssss", $code, $name, $dept, $desig, $team, $branch);
-                    $i1->execute();
+            }
+
+            // Sync to employees_commercial table if exists
+            $chk2 = $conn->prepare("SELECT id FROM employees_commercial WHERE employee_code = ? LIMIT 1");
+            if ($chk2) {
+                $chk2->bind_param("s", $code);
+                $chk2->execute();
+                $r2 = $chk2->get_result();
+                if ($r2 && $r2->num_rows > 0) {
+                    $u2 = $conn->prepare("UPDATE employees_commercial SET full_name = ?, department = ?, designation = ?, team = ?, branch = ?, is_active = 1 WHERE employee_code = ?");
+                    if ($u2) {
+                        $u2->bind_param("ssssss", $name, $dept, $desig, $team, $branch, $code);
+                        $u2->execute();
+                    }
+                } else {
+                    $i2 = $conn->prepare("INSERT INTO employees_commercial (employee_code, full_name, department, designation, team, branch, is_active) VALUES (?, ?, ?, ?, ?, ?, 1)");
+                    if ($i2) {
+                        $i2->bind_param("ssssss", $code, $name, $dept, $desig, $team, $branch);
+                        $i2->execute();
+                    }
                 }
             }
         }
+    }
 
-        // 2. Sync to employees_commercial table if exists
-        $chk2 = $conn->prepare("SELECT id FROM employees_commercial WHERE employee_code = ? LIMIT 1");
-        if ($chk2) {
-            $chk2->bind_param("s", $code);
-            $chk2->execute();
-            $r2 = $chk2->get_result();
-            if ($r2 && $r2->num_rows > 0) {
-                $u2 = $conn->prepare("UPDATE employees_commercial SET full_name = ?, department = ?, designation = ?, team = ?, branch = ?, is_active = 1 WHERE employee_code = ?");
-                if ($u2) {
-                    $u2->bind_param("ssssss", $name, $dept, $desig, $team, $branch, $code);
-                    $u2->execute();
+    // 3. Auto-discover all biometric machine punch users from attendance_raw and ensure they are active in employees table
+    $rawPunches = $conn->query("
+        SELECT DISTINCT ar.user_id, COALESCE(NULLIF(ar.name, ''), '') as raw_name 
+        FROM attendance_raw ar 
+        WHERE ar.user_id IS NOT NULL AND TRIM(ar.user_id) != ''
+    ");
+    if ($rawPunches) {
+        while ($pRow = $rawPunches->fetch_assoc()) {
+            $pCode = trim($pRow['user_id']);
+            if ($pCode === '') continue;
+
+            $csvMatch = $csv_data[$pCode] ?? null;
+            $pName = !empty($csvMatch['name']) ? $csvMatch['name'] : (!empty($pRow['raw_name']) ? $pRow['raw_name'] : "Employee " . $pCode);
+            $pDept = !empty($csvMatch['department']) ? $csvMatch['department'] : 'General';
+            $pDesig = !empty($csvMatch['designation']) ? $csvMatch['designation'] : 'Employee';
+            $pTeam = !empty($csvMatch['team']) ? $csvMatch['team'] : '';
+            $pBranch = !empty($csvMatch['branch']) ? $csvMatch['branch'] : 'Main';
+
+            $chkP = $conn->prepare("SELECT id, full_name FROM employees WHERE employee_code = ? LIMIT 1");
+            if ($chkP) {
+                $chkP->bind_param("s", $pCode);
+                $chkP->execute();
+                $resP = $chkP->get_result();
+                if ($resP && $resP->num_rows > 0) {
+                    $existingEmp = $resP->fetch_assoc();
+                    // Activate and update fallback info if needed
+                    $uP = $conn->prepare("UPDATE employees SET is_active = 1 WHERE employee_code = ?");
+                    if ($uP) {
+                        $uP->bind_param("s", $pCode);
+                        $uP->execute();
+                    }
+                } else {
+                    $iP = $conn->prepare("INSERT INTO employees (employee_code, full_name, department, designation, team, branch, is_active) VALUES (?, ?, ?, ?, ?, ?, 1)");
+                    if ($iP) {
+                        $iP->bind_param("ssssss", $pCode, $pName, $pDept, $pDesig, $pTeam, $pBranch);
+                        $iP->execute();
+                    }
                 }
-            } else {
-                $i2 = $conn->prepare("INSERT INTO employees_commercial (employee_code, full_name, department, designation, team, branch, is_active) VALUES (?, ?, ?, ?, ?, ?, 1)");
-                if ($i2) {
-                    $i2->bind_param("ssssss", $code, $name, $dept, $desig, $team, $branch);
-                    $i2->execute();
+            }
+        }
+    }
+
+    // 4. Auto-discover all biometric machine punch users from attendance_commercial_raw and ensure they are active in employees_commercial table
+    $commPunches = $conn->query("
+        SELECT DISTINCT acr.user_id, COALESCE(NULLIF(acr.name, ''), '') as raw_name 
+        FROM attendance_commercial_raw acr 
+        WHERE acr.user_id IS NOT NULL AND TRIM(acr.user_id) != ''
+    ");
+    if ($commPunches) {
+        while ($cpRow = $commPunches->fetch_assoc()) {
+            $cpCode = trim($cpRow['user_id']);
+            if ($cpCode === '') continue;
+
+            $csvMatch = $csv_data[$cpCode] ?? null;
+            $cpName = !empty($csvMatch['name']) ? $csvMatch['name'] : (!empty($cpRow['raw_name']) ? $cpRow['raw_name'] : "Employee " . $cpCode);
+            $cpDept = !empty($csvMatch['department']) ? $csvMatch['department'] : 'General';
+            $cpDesig = !empty($csvMatch['designation']) ? $csvMatch['designation'] : 'Employee';
+            $cpTeam = !empty($csvMatch['team']) ? $csvMatch['team'] : '';
+            $cpBranch = !empty($csvMatch['branch']) ? $csvMatch['branch'] : 'Commercial';
+
+            $chkCP = $conn->prepare("SELECT id FROM employees_commercial WHERE employee_code = ? LIMIT 1");
+            if ($chkCP) {
+                $chkCP->bind_param("s", $cpCode);
+                $chkCP->execute();
+                $resCP = $chkCP->get_result();
+                if ($resCP && $resCP->num_rows > 0) {
+                    $uCP = $conn->prepare("UPDATE employees_commercial SET is_active = 1 WHERE employee_code = ?");
+                    if ($uCP) {
+                        $uCP->bind_param("s", $cpCode);
+                        $uCP->execute();
+                    }
+                } else {
+                    $iCP = $conn->prepare("INSERT INTO employees_commercial (employee_code, full_name, department, designation, team, branch, is_active) VALUES (?, ?, ?, ?, ?, ?, 1)");
+                    if ($iCP) {
+                        $iCP->bind_param("ssssss", $cpCode, $cpName, $cpDept, $cpDesig, $cpTeam, $cpBranch);
+                        $iCP->execute();
+                    }
                 }
             }
         }
@@ -303,6 +389,13 @@ function getBranchesFromCSV() {
         }
     }
     
+    // If the current user cannot view all branches (non-super-admin), only return their active branch
+    if (!attendanceCanViewAllBranches()) {
+        $user_branch_key = normalize_company_branch($active_branch ?? 'main');
+        $label = function_exists('company_branch_label') ? company_branch_label($user_branch_key) : ucfirst($user_branch_key);
+        return [$label];
+    }
+
     $result = array_keys($branches);
     sort($result);
     return $result;
@@ -592,7 +685,6 @@ switch ($action) {
         $team_stats = []; // NEW: Added team stats
 
         while ($emp = $employees->fetch_assoc()) {
-            $stats['total']++;
             $emp_code = $conn->real_escape_string($emp['employee_code']);
             
             // Get employee details from User Management / CSV
@@ -602,7 +694,16 @@ switch ($action) {
             $full_name = !empty($csv_emp['name']) ? $csv_emp['name'] : $emp['full_name'];
             $department = !empty($csv_emp['department']) ? $csv_emp['department'] : ($emp['department'] ?: 'General');
             $designation = !empty($csv_emp['designation']) ? $csv_emp['designation'] : 'Employee';
-            $branch = !empty($csv_emp['branch']) ? $csv_emp['branch'] : ($active_branch === 'commercial' ? 'Commercial' : ($active_branch === 'workfromhome' ? 'workfromhome' : 'Main'));
+            $branch = !empty($csv_emp['branch']) ? $csv_emp['branch'] : ($active_branch === 'commercial' ? 'Commercial' : ($active_branch === 'workfromhome' ? 'workfromhome' : ($active_branch === 'I9' ? 'I-9' : 'Main')));
+            
+            // Strict Branch Isolation for non-super admins:
+            if (!attendanceCanViewAllBranches()) {
+                if (normalize_company_branch($branch) !== normalize_company_branch($active_branch ?? 'main')) {
+                    continue;
+                }
+            }
+
+            $stats['total']++;
             $attendance_read_table = attendanceReadTableForBranch($branch);
             $team = !empty($csv_emp['team']) ? $csv_emp['team'] : (!empty($emp['team']) ? $emp['team'] : '');
             
@@ -869,6 +970,8 @@ switch ($action) {
     // 3. GET ATTENDANCE FOR HR PORTAL
     // =================================================
     case 'getAttendanceForHR':
+        syncActiveUsersToAttendanceTables($conn);
+
         $selected_date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
         
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $selected_date)) {
@@ -898,7 +1001,15 @@ switch ($action) {
             $emp_code = $conn->real_escape_string($emp['employee_code']);
             $csv_emp = $csv_employees[$emp_code] ?? null;
             $team_name = !empty($csv_emp['team']) ? $csv_emp['team'] : (!empty($emp['team']) ? $emp['team'] : '');
-            $employee_branch = !empty($csv_emp['branch']) ? $csv_emp['branch'] : ($active_branch === 'commercial' ? 'Commercial' : 'Main');
+            $employee_branch = !empty($csv_emp['branch']) ? $csv_emp['branch'] : ($active_branch === 'commercial' ? 'Commercial' : ($active_branch === 'workfromhome' ? 'workfromhome' : ($active_branch === 'I9' ? 'I-9' : 'Main')));
+            
+            // Strict Branch Isolation for non-super admins:
+            if (!attendanceCanViewAllBranches()) {
+                if (normalize_company_branch($employee_branch) !== normalize_company_branch($active_branch ?? 'main')) {
+                    continue;
+                }
+            }
+
             $attendance_read_table = attendanceReadTableForBranch($employee_branch);
 
             // Get first check-in of the shift
@@ -951,6 +1062,8 @@ switch ($action) {
     // 4. GET DATE RANGE REPORT
     // =================================================
     case 'getDateRange':
+        syncActiveUsersToAttendanceTables($conn);
+
         $start_date = isset($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-01');
         $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-t');
         $department = isset($_GET['department']) ? $conn->real_escape_string($_GET['department']) : '';
@@ -1026,6 +1139,15 @@ switch ($action) {
             $seen_codes[$emp_code] = true;
 
             $csv_emp = $csv_employees[$emp_code] ?? null;
+            $emp_branch = !empty($csv_emp['branch']) ? $csv_emp['branch'] : (!empty($emp['branch']) ? $emp['branch'] : 'Main');
+            
+            // Strict Branch Isolation for non-super admins:
+            if (!attendanceCanViewAllBranches()) {
+                if (normalize_company_branch($emp_branch) !== normalize_company_branch($active_branch ?? 'main')) {
+                    continue;
+                }
+            }
+
             $team_name = !empty($csv_emp['team']) ? $csv_emp['team'] : (!empty($emp['team']) ? $emp['team'] : '');
             
             $present_days = 0;
@@ -1698,6 +1820,8 @@ switch ($action) {
     // 8. GET STATISTICS
     // =================================================
     case 'getStatistics':
+        syncActiveUsersToAttendanceTables($conn);
+
         $start_date = isset($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-01');
         $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-t');
         
@@ -1779,6 +1903,13 @@ switch ($action) {
         $results = [];
         
         foreach ($csv_employees as $emp) {
+            if (!attendanceCanViewAllBranches()) {
+                $empBranch = $emp['branch'] ?? 'Main';
+                if (normalize_company_branch($empBranch) !== normalize_company_branch($active_branch ?? 'main')) {
+                    continue;
+                }
+            }
+
             if (strpos(strtolower($emp['id']), $query) !== false ||
                 strpos(strtolower($emp['name']), $query) !== false ||
                 strpos(strtolower($emp['department']), $query) !== false ||
@@ -1800,6 +1931,13 @@ switch ($action) {
         $team_stats = [];
         
         foreach ($csv_employees as $emp) {
+            if (!attendanceCanViewAllBranches()) {
+                $empBranch = $emp['branch'] ?? 'Main';
+                if (normalize_company_branch($empBranch) !== normalize_company_branch($active_branch ?? 'main')) {
+                    continue;
+                }
+            }
+
             $team = $emp['team'] ?: 'No Team';
             if (!isset($team_stats[$team])) {
                 $team_stats[$team] = 0;
@@ -1889,6 +2027,13 @@ switch ($action) {
             $full_name = !empty($csv_emp['name']) ? $csv_emp['name'] : $emp['full_name'];
             $team_name = !empty($csv_emp['team']) ? $csv_emp['team'] : (!empty($emp['team']) ? $emp['team'] : '');
             $branch_name = !empty($csv_emp['branch']) ? $csv_emp['branch'] : (!empty($emp['branch']) ? $emp['branch'] : 'Main');
+            
+            // Strict Branch Isolation for non-super admins:
+            if (!attendanceCanViewAllBranches()) {
+                if (normalize_company_branch($branch_name) !== normalize_company_branch($active_branch ?? 'main')) {
+                    continue;
+                }
+            }
             
             $emp_grid = [
                 'id' => $emp['id'],

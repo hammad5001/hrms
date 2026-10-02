@@ -1,0 +1,22 @@
+{
+    "device_ips": [
+        "103.87.194.2",
+        "103.87.194.3"
+    ],
+    "checkin_ip": "103.87.194.2",
+    "checkout_ip": "103.87.194.3",
+    "device_port": 8088,
+    "branch_name": "I-9 Branch",
+    "database_host": "localhost",
+    "database_user": "balitech_user",
+    "database_password": "12344321",
+    "database_name": "balitech",
+    "start_date": "2026-01-01",
+    "auto_refresh_interval": 15,
+    "shift_grouping_start_hour": 14,
+    "night_shift_start": 18,
+    "night_shift_end": 4,
+    "grace_minutes": 10,
+    "connection_timeout": 120,
+    "force_udp": false
+}

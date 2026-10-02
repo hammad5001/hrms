@@ -287,7 +287,10 @@
                     <div class="sidebar-body">
                         <div class="sidebar-group-profile">
                             <div class="avatar sidebar-avatar" id="sidebarGroupAvatar"></div>
-                            <h2 id="sidebarGroupTitle">Group</h2>
+                            <div class="sidebar-group-title-row" style="display: flex; align-items: center; justify-content: center; gap: 8px; max-width: 100%;">
+                                <h2 id="sidebarGroupTitle" style="margin: 0; word-break: break-word;">Group</h2>
+                                <button type="button" class="btn-icon" id="btnEditGroupTitle" title="Edit group name" style="display: none; padding: 4px 6px; font-size: 13px; color: var(--c-primary, #6264a7);"><i class="fas fa-pen"></i></button>
+                            </div>
                             <p class="sub" id="sidebarGroupSub">Participants</p>
                         </div>
                         
@@ -438,6 +441,24 @@
             <div class="modal-actions">
                 <button type="button" class="btn-secondary" id="cancelGroup">Cancel</button>
                 <button type="button" class="btn-primary" id="createGroup" disabled>Create group</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-modal-overlay" id="editGroupTitleModal">
+        <div class="chat-modal edit-modal" style="max-width: 440px;">
+            <div class="modal-head">
+                <h3><i class="fas fa-pen modal-icon-accent"></i> Edit group name</h3>
+                <button type="button" class="btn-icon" id="closeEditGroupTitleModal" aria-label="Close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 16px;">
+                <label class="lbl" for="editGroupTitleInput" style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px;">Group name</label>
+                <input type="text" class="inp" id="editGroupTitleInput" maxlength="150" placeholder="Enter new group name..." style="width: 100%; box-sizing: border-box;">
+                <p class="group-hint" style="margin-top: 6px; font-size: 12px; color: var(--c-text-muted, #64748b);">Changing the name will update it for all group participants.</p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" id="cancelEditGroupTitle">Cancel</button>
+                <button type="button" class="btn-primary" id="confirmEditGroupTitle">Save</button>
             </div>
         </div>
     </div>

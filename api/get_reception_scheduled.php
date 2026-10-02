@@ -19,7 +19,7 @@ $branch_clause = "";
 $params = [];
 $types = "";
 
-if (!$is_super && !$is_reception) {
+if (!$is_super) {
     $branch_clause = " AND (l.company_branch = ? OR l.company_branch IS NULL OR TRIM(l.company_branch) = '' OR l.company_branch = 'main') ";
     $params[] = $branch;
     $types .= "s";

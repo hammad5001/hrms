@@ -27,6 +27,18 @@ DEVICES = [
         "slug": "commercial_branch",
         "ip": "125.209.68.118",
         "port": 4370
+    },
+    {
+        "name": "I-9 Branch (Check-in)",
+        "slug": "i9_checkin",
+        "ip": "103.87.194.2",
+        "port": 8088
+    },
+    {
+        "name": "I-9 Branch (Check-out)",
+        "slug": "i9_checkout",
+        "ip": "103.87.194.3",
+        "port": 8088
     }
 ]
 
@@ -84,16 +96,19 @@ class DailyAttendanceTracker:
 
     def select_device_menu(self):
         print("\n📍 Select Device")
-        print("1. Main Branch")
-        print("2. Commercial Branch")
+        for idx, dev in enumerate(DEVICES, 1):
+            print(f"{idx}. {dev['name']}")
 
-        choice = input("\nSelect option (1-2): ").strip()
+        choice = input(f"\nSelect option (1-{len(DEVICES)}): ").strip()
 
-        if choice == "1":
-            return DEVICES[0]
-        elif choice == "2":
-            return DEVICES[1]
-        else:
+        try:
+            choice_idx = int(choice) - 1
+            if 0 <= choice_idx < len(DEVICES):
+                return DEVICES[choice_idx]
+            else:
+                print("❌ Invalid device option")
+                return None
+        except ValueError:
             print("❌ Invalid device option")
             return None
 
@@ -1074,120 +1089,117 @@ def main():
 
     while True:
         print("\n" + "=" * 60)
-        print("🏢 DAILY ATTENDANCE TRACKER - SEPARATE DEVICE DATA")
+        print("🏢 DAILY ATTENDANCE TRACKER - MULTI-DEVICE / BRANCH")
         print("=" * 60)
         print("1. Fetch Users - Main Branch")
         print("2. Fetch Users - Commercial Branch")
-        print("3. Fetch Users - All Devices")
-        print("4. Fetch Today Data - Main Branch")
-        print("5. Fetch Today Data - Commercial Branch")
-        print("6. Fetch Today Data - All Devices")
-        print("7. Generate Report - Main Branch")
-        print("8. Generate Report - Commercial Branch")
-        print("9. Show Data Summary - Main Branch")
-        print("10. Show Data Summary - Commercial Branch")
-        print("11. Show Data Summary - All Devices")
-        print("12. Test Device Connections")
-        print("13. Start Auto Sync - All Devices")
-        print("14. Fetch Monthly Data - Main Branch")
-        print("15. Fetch Monthly Data - Commercial Branch")
-        print("16. Export Raw CSV - Main Branch")
-        print("17. Export Raw CSV - Commercial Branch")
-        print("18. Exit")
+        print("3. Fetch Users - I-9 Branch (Check-in)")
+        print("4. Fetch Users - I-9 Branch (Check-out)")
+        print("5. Fetch Users - All Devices")
+        print("-" * 60)
+        print("6. Fetch Today Data - Main Branch")
+        print("7. Fetch Today Data - Commercial Branch")
+        print("8. Fetch Today Data - I-9 Branch (Check-in)")
+        print("9. Fetch Today Data - I-9 Branch (Check-out)")
+        print("10. Fetch Today Data - All Devices")
+        print("-" * 60)
+        print("11. Generate Report - Main Branch")
+        print("12. Generate Report - Commercial Branch")
+        print("13. Generate Report - I-9 Branch (Check-in)")
+        print("14. Generate Report - I-9 Branch (Check-out)")
+        print("-" * 60)
+        print("15. Show Data Summary - All Devices")
+        print("16. Test Device Connections")
+        print("17. Start Auto Sync - All Devices")
+        print("18. Fetch Monthly Data (Select Device)")
+        print("19. Export Raw CSV (Select Device)")
+        print("20. Exit")
         print("=" * 60)
 
-        choice = input("\nSelect option (1-18): ").strip()
+        choice = input("\nSelect option (1-20): ").strip()
 
         if choice == "1":
             tracker.fetch_users_for_device(DEVICES[0])
-
         elif choice == "2":
             tracker.fetch_users_for_device(DEVICES[1])
-
         elif choice == "3":
+            tracker.fetch_users_for_device(DEVICES[2])
+        elif choice == "4":
+            tracker.fetch_users_for_device(DEVICES[3])
+        elif choice == "5":
             tracker.fetch_users_all_devices()
 
-        elif choice == "4":
+        elif choice == "6":
             success = tracker.fetch_today_for_device(DEVICES[0])
-
             if success:
                 current_time = datetime.now()
                 report_date = current_time - timedelta(days=1) if current_time.hour < 12 else current_time
                 tracker.generate_report_for_device(DEVICES[0], report_date)
 
-        elif choice == "5":
+        elif choice == "7":
             success = tracker.fetch_today_for_device(DEVICES[1])
-
             if success:
                 current_time = datetime.now()
                 report_date = current_time - timedelta(days=1) if current_time.hour < 12 else current_time
                 tracker.generate_report_for_device(DEVICES[1], report_date)
 
-        elif choice == "6":
-            tracker.fetch_today_all_devices()
+        elif choice == "8":
+            success = tracker.fetch_today_for_device(DEVICES[2])
+            if success:
+                current_time = datetime.now()
+                report_date = current_time - timedelta(days=1) if current_time.hour < 12 else current_time
+                tracker.generate_report_for_device(DEVICES[2], report_date)
 
+        elif choice == "9":
+            success = tracker.fetch_today_for_device(DEVICES[3])
+            if success:
+                current_time = datetime.now()
+                report_date = current_time - timedelta(days=1) if current_time.hour < 12 else current_time
+                tracker.generate_report_for_device(DEVICES[3], report_date)
+
+        elif choice == "10":
+            tracker.fetch_today_all_devices()
             current_time = datetime.now()
             report_date = current_time - timedelta(days=1) if current_time.hour < 12 else current_time
-
             for device in DEVICES:
                 tracker.generate_report_for_device(device, report_date)
 
-        elif choice == "7":
+        elif choice in ("11", "12", "13", "14"):
+            dev_map = {"11": DEVICES[0], "12": DEVICES[1], "13": DEVICES[2], "14": DEVICES[3]}
+            selected_dev = dev_map[choice]
+
             print("\n📊 Select Report Type")
             print("1. Today's Report")
             print("2. Yesterday's Report")
 
             report_choice = input("\nSelect option (1-2): ").strip()
-
             if report_choice == "2":
                 report_date = datetime.now() - timedelta(days=1)
             else:
                 report_date = datetime.now()
 
-            tracker.generate_report_for_device(DEVICES[0], report_date)
-
-        elif choice == "8":
-            print("\n📊 Select Report Type")
-            print("1. Today's Report")
-            print("2. Yesterday's Report")
-
-            report_choice = input("\nSelect option (1-2): ").strip()
-
-            if report_choice == "2":
-                report_date = datetime.now() - timedelta(days=1)
-            else:
-                report_date = datetime.now()
-
-            tracker.generate_report_for_device(DEVICES[1], report_date)
-
-        elif choice == "9":
-            tracker.show_summary_for_device(DEVICES[0])
-
-        elif choice == "10":
-            tracker.show_summary_for_device(DEVICES[1])
-
-        elif choice == "11":
-            tracker.show_summary_all_devices()
-
-        elif choice == "12":
-            tracker.test_all_connections()
-
-        elif choice == "13":
-            tracker.auto_sync_all_devices(AUTO_SYNC_MINUTES)
-
-        elif choice == "14":
-            tracker.run_monthly_fetch_menu(DEVICES[0])
+            tracker.generate_report_for_device(selected_dev, report_date)
 
         elif choice == "15":
-            tracker.run_monthly_fetch_menu(DEVICES[1])
+            tracker.show_summary_all_devices()
 
         elif choice == "16":
-            tracker.export_raw_data_for_device(DEVICES[0])
+            tracker.test_all_connections()
 
         elif choice == "17":
-            tracker.export_raw_data_for_device(DEVICES[1])
+            tracker.auto_sync_all_devices(AUTO_SYNC_MINUTES)
 
         elif choice == "18":
+            dev = tracker.select_device_menu()
+            if dev:
+                tracker.run_monthly_fetch_menu(dev)
+
+        elif choice == "19":
+            dev = tracker.select_device_menu()
+            if dev:
+                tracker.export_raw_data_for_device(dev)
+
+        elif choice == "20":
             print("\n👋 Goodbye!")
             break
 

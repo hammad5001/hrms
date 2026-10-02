@@ -31,7 +31,7 @@ if (isGlobalSuperAdmin()) {
         $types .= "s";
     }
 } else {
-    $where[] = "(l.company_branch = ? OR l.company_branch IS NULL OR TRIM(l.company_branch) = '' OR l.company_branch = 'main')";
+    $where[] = "l.company_branch = ?";
     $params[] = $active_branch;
     $types .= "s";
 }

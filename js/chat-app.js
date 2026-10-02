@@ -3327,6 +3327,13 @@ function openGroupSidebar() {
     const title = Chat.activeConversation?.display_title || Chat.activeConversation?.title || 'Group';
     document.getElementById('sidebarGroupTitle').textContent = title;
     
+    const isCreator = Chat.activeConversation && Chat.activeConversation.created_by && Chat.me.id == Chat.activeConversation.created_by;
+    const isMyAdmin = isCreator || (Chat.activeParticipants?.find(p => p.id == Chat.me.id)?.is_admin);
+    const btnEditTitle = document.getElementById('btnEditGroupTitle');
+    if (btnEditTitle) {
+        btnEditTitle.style.display = isMyAdmin ? 'inline-flex' : 'none';
+    }
+
     setAvatarElement(document.getElementById('sidebarGroupAvatar'), { 
         name: title, 
         id: Chat.activeConversation?.id, 
@@ -3344,6 +3351,79 @@ function closeGroupSidebar() {
     document.getElementById('sidebarAddSection')?.classList.add('hidden');
 }
 
+function openEditGroupTitleModal() {
+    if (Chat.convType !== 'group') return;
+    const currentTitle = Chat.activeConversation?.display_title || Chat.activeConversation?.title || '';
+    const input = document.getElementById('editGroupTitleInput');
+    if (input) {
+        input.value = currentTitle;
+    }
+    document.getElementById('editGroupTitleModal')?.classList.add('open');
+    setTimeout(() => input?.focus(), 50);
+}
+
+function closeEditGroupTitleModal() {
+    document.getElementById('editGroupTitleModal')?.classList.remove('open');
+}
+
+async function saveGroupTitle() {
+    if (!Chat.activeId || Chat.convType !== 'group') return;
+    const input = document.getElementById('editGroupTitleInput');
+    const newTitle = input ? input.value.trim() : '';
+    if (!newTitle) {
+        toast('Please enter a group name');
+        return;
+    }
+    const btnConfirm = document.getElementById('confirmEditGroupTitle');
+    if (btnConfirm) btnConfirm.disabled = true;
+
+    try {
+        const res = await chatApi('updateGroupTitle', {
+            method: 'POST',
+            body: { conversation_id: Chat.activeId, title: newTitle }
+        });
+        if (!res.success) {
+            toast(res.error || 'Failed to update group name');
+            return;
+        }
+        toast('Group name updated');
+        closeEditGroupTitleModal();
+
+        // Update local object
+        if (Chat.activeConversation) {
+            Chat.activeConversation.title = newTitle;
+            Chat.activeConversation.display_title = newTitle;
+        }
+
+        // Update UI
+        const headerTitle = document.getElementById('headerTitle');
+        if (headerTitle) headerTitle.textContent = newTitle;
+        const sidebarTitle = document.getElementById('sidebarGroupTitle');
+        if (sidebarTitle) sidebarTitle.textContent = newTitle;
+
+        setAvatarElement(document.getElementById('headerAvatar'), {
+            name: newTitle,
+            id: Chat.activeConversation?.id,
+            group: true,
+            groupIcon: true,
+            color: Chat.activeConversation?.avatar_color
+        });
+        setAvatarElement(document.getElementById('sidebarGroupAvatar'), {
+            name: newTitle,
+            id: Chat.activeConversation?.id,
+            group: true,
+            groupIcon: true,
+            color: Chat.activeConversation?.avatar_color
+        });
+
+        await loadConversations();
+    } catch (err) {
+        toast('Failed to update group name');
+    } finally {
+        if (btnConfirm) btnConfirm.disabled = false;
+    }
+}
+
 let sidebarSearchTimer = null;
 function initGroupSidebar() {
     document.getElementById('btnCloseGroupInfo')?.addEventListener('click', closeGroupSidebar);
@@ -3358,6 +3438,23 @@ function initGroupSidebar() {
     document.getElementById('btnGroupInfoToggle')?.addEventListener('click', e => {
         e.stopPropagation();
         openGroupSidebar();
+    });
+
+    document.getElementById('btnEditGroupTitle')?.addEventListener('click', e => {
+        e.stopPropagation();
+        openEditGroupTitleModal();
+    });
+
+    document.getElementById('closeEditGroupTitleModal')?.addEventListener('click', closeEditGroupTitleModal);
+    document.getElementById('cancelEditGroupTitle')?.addEventListener('click', closeEditGroupTitleModal);
+    document.getElementById('confirmEditGroupTitle')?.addEventListener('click', saveGroupTitle);
+    document.getElementById('editGroupTitleInput')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            saveGroupTitle();
+        } else if (e.key === 'Escape') {
+            closeEditGroupTitleModal();
+        }
     });
 
     document.getElementById('btnSidebarAddPeople')?.addEventListener('click', () => {

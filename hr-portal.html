@@ -22,94 +22,109 @@
         :root {
             --primary: #f97316;
             --primary-dark: #ea580c;
-            --primary-light: rgba(249, 115, 22, 0.15);
-            --primary-glow: rgba(249, 115, 22, 0.4);
+            --primary-light: rgba(249, 115, 22, 0.1);
+            --primary-glow: rgba(249, 115, 22, 0.2);
             --secondary: #10b981;
             --secondary-dark: #059669;
-            --secondary-light: rgba(16, 185, 129, 0.15);
+            --secondary-light: rgba(16, 185, 129, 0.1);
             --warning: #f59e0b;
-            --warning-light: rgba(245, 158, 11, 0.15);
+            --warning-light: rgba(245, 158, 11, 0.1);
             --danger: #ef4444;
-            --danger-light: rgba(239, 68, 68, 0.15);
+            --danger-light: rgba(239, 68, 68, 0.1);
             --info: #3b82f6;
-            --info-light: rgba(59, 130, 246, 0.15);
+            --info-light: rgba(59, 130, 246, 0.1);
             --purple: #8b5cf6;
-            --purple-light: rgba(139, 92, 246, 0.15);
+            --purple-light: rgba(139, 92, 246, 0.1);
             --pink: #ec4899;
             --cyan: #06b6d4;
-            --bg-dark: #0a0c15;
-            --bg-darker: #05070f;
-            --bg-card: rgba(30, 36, 54, 0.95);
-            --bg-sidebar: #0f1524;
-            --bg-hover: rgba(249, 115, 22, 0.1);
-            --bg-tertiary: rgba(0, 0, 0, 0.2);
-            --bg-input: rgba(0, 0, 0, 0.3);
-            --text-primary: #ffffff;
-            --text-secondary: #e2e8f0;
-            --text-muted: #94a3b8;
-            --text-dim: #64748b;
-            --border-light: rgba(255, 255, 255, 0.08);
-            --border-primary: rgba(249, 115, 22, 0.25);
-            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
-            --shadow-glow: 0 0 25px var(--primary-glow);
-            --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            --gradient-success: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
-            --gradient-danger: linear-gradient(135deg, var(--danger), #f87171);
-            --gradient-purple: linear-gradient(135deg, var(--purple), #a78bfa);
+            --bg-primary: #0b0f19;
+            --bg-secondary: #111726;
+            --bg-tertiary: #161e31;
+            --bg-card: rgba(22, 30, 49, 0.85);
+            --bg-input: #1a233a;
+            --bg-sidebar: #0d1220;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #8492a6;
+            --text-dim: #526079;
+            --border-primary: rgba(249, 115, 22, 0.18);
+            --border-secondary: rgba(255, 255, 255, 0.06);
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
+            --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.35);
+            --shadow-xl: 0 16px 36px rgba(0, 0, 0, 0.45);
+            --shadow-2xl: 0 24px 48px rgba(0, 0, 0, 0.6);
+            --shadow-glow: 0 0 16px var(--primary-glow);
+            --gradient-primary: linear-gradient(135deg, #f97316, #fb923c);
+            --gradient-success: linear-gradient(135deg, #10b981, #34d399);
+            --gradient-danger: linear-gradient(135deg, #ef4444, #f87171);
+            --gradient-purple: linear-gradient(135deg, #8b5cf6, #a78bfa);
+            --gradient-blue: linear-gradient(135deg, #3b82f6, #60a5fa);
         }
 
         [data-theme="light"] {
             --primary: #f97316;
             --primary-dark: #ea580c;
-            --primary-light: rgba(249, 115, 22, 0.1);
-            --bg-dark: #f8fafc;
-            --bg-darker: #f1f5f9;
-            --bg-card: #ffffff;
-            --bg-sidebar: #1e293b;
+            --primary-light: rgba(249, 115, 22, 0.08);
+            --bg-primary: #f1f5f9;
+            --bg-secondary: #f8fafc;
             --bg-tertiary: #ffffff;
+            --bg-card: #ffffff;
             --bg-input: #f8fafc;
+            --bg-sidebar: #1e293b;
             --text-primary: #0f172a;
             --text-secondary: #334155;
             --text-muted: #64748b;
-            --border-light: rgba(0, 0, 0, 0.08);
-            --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            --border-primary: rgba(249, 115, 22, 0.2);
+            --border-secondary: rgba(0, 0, 0, 0.06);
+            --shadow-2xl: 0 16px 36px rgba(0, 0, 0, 0.1);
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background: radial-gradient(ellipse at 30% 40%, #0f0c29, #1a1a3e, #0a0a1a);
+            background: var(--bg-primary);
             min-height: 100vh;
             overflow-x: hidden;
             position: relative;
             color: var(--text-primary);
             display: flex;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 15% 20%, rgba(249, 115, 22, 0.04) 0%, transparent 45%),
+                        radial-gradient(circle at 85% 80%, rgba(139, 92, 246, 0.03) 0%, transparent 45%),
+                        linear-gradient(145deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            z-index: -2;
         }
 
         .bg-orb {
             position: fixed;
             border-radius: 50%;
-            filter: blur(100px);
-            opacity: 0.3;
+            filter: blur(80px);
+            opacity: 0.15;
             z-index: -1;
             animation: floatOrb 20s ease-in-out infinite;
         }
 
         .orb-1 {
-            width: 500px;
-            height: 500px;
+            width: 400px;
+            height: 400px;
             background: var(--primary);
-            top: -200px;
-            left: -200px;
+            top: -150px;
+            left: -150px;
             animation-delay: 0s;
         }
 
         .orb-2 {
-            width: 400px;
-            height: 400px;
+            width: 350px;
+            height: 350px;
             background: var(--primary-dark);
             bottom: -150px;
             right: -150px;
@@ -117,40 +132,43 @@
         }
 
         .orb-3 {
-            width: 300px;
-            height: 300px;
-            background: var(--primary);
-            top: 50%;
+            width: 250px;
+            height: 250px;
+            background: var(--purple);
+            top: 40%;
             left: 50%;
             animation-delay: 10s;
-            opacity: 0.15;
+            opacity: 0.08;
         }
 
         @keyframes floatOrb {
             0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(50px, -50px) scale(1.1); }
-            66% { transform: translate(-30px, 40px) scale(0.9); }
+            33% { transform: translate(30px, -30px) scale(1.05); }
+            66% { transform: translate(-20px, 20px) scale(0.95); }
         }
 
         ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+            width: 5px;
+            height: 5px;
         }
 
         ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
+            background: transparent;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: var(--primary);
+            background: var(--border-secondary);
             border-radius: 10px;
         }
 
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
         .sidebar {
-            width: 280px;
+            width: 240px;
             background: var(--bg-sidebar);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(14px);
             color: white;
             height: 100vh;
             position: fixed;
@@ -158,48 +176,62 @@
             top: 0;
             display: flex;
             flex-direction: column;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 1000;
-            border-right: 1px solid var(--border-primary);
+            border-right: 1px solid var(--border-secondary);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.35);
         }
 
         .sidebar-header {
-            padding: 25px 20px;
+            padding: 20px 18px;
             display: flex;
             align-items: center;
-            gap: 15px;
-            border-bottom: 1px solid var(--border-primary);
+            gap: 12px;
+            border-bottom: 1px solid var(--border-secondary);
             position: relative;
             overflow: hidden;
+            text-align: left;
         }
 
         .sidebar-header::before {
             content: '';
             position: absolute;
-            top: 0;
+            bottom: 0;
             left: 0;
             right: 0;
-            height: 2px;
+            height: 1px;
             background: linear-gradient(90deg, transparent, var(--primary), transparent);
             animation: shimmer 3s infinite;
         }
 
         @keyframes shimmer {
             0% { transform: translateX(-100%); }
-            50% { transform: translateX(100%); }
             100% { transform: translateX(100%); }
         }
 
+        .sidebar-logo-icon {
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            background: var(--gradient-primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 18px;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
         .sidebar-logo {
-            font-size: 28px;
+            font-size: 19px;
             font-weight: 800;
-            letter-spacing: 1px;
-            margin-bottom: 5px;
-            background: linear-gradient(135deg, #fff, var(--primary-light));
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+            background: linear-gradient(135deg, #fff, #e2e8f0);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 20px var(--primary-glow);
         }
 
         .sidebar-logo span {
@@ -210,230 +242,244 @@
         }
 
         .sidebar-sub {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-muted);
-            letter-spacing: 1px;
+            letter-spacing: 0.3px;
+            font-weight: 500;
         }
 
         .sidebar-menu {
-            padding: 20px 10px;
+            padding: 14px 10px;
             flex: 1;
             overflow-y: auto;
         }
 
         .menu-item {
-            padding: 14px 25px;
+            padding: 9px 14px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             color: var(--text-muted);
             cursor: pointer;
-            transition: all 0.3s;
-            border-left: 3px solid transparent;
-            border-radius: 12px;
-            margin-bottom: 5px;
+            transition: all 0.2s ease;
+            border-radius: 10px;
+            margin-bottom: 3px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid transparent;
         }
 
         .menu-item:hover {
-            background: var(--primary-light);
+            background: rgba(249, 115, 22, 0.08);
             color: var(--primary);
-            transform: translateX(5px);
+            border-color: rgba(249, 115, 22, 0.15);
+            transform: translateX(3px);
         }
 
         .menu-item.active {
-            background: var(--primary-light);
-            color: var(--primary);
-            border-left-color: var(--primary);
-            box-shadow: var(--shadow-glow);
+            background: linear-gradient(90deg, rgba(249, 115, 22, 0.16), rgba(249, 115, 22, 0.04));
+            color: #fb923c;
+            border-color: rgba(249, 115, 22, 0.25);
+            font-weight: 600;
         }
 
         .menu-item i {
-            width: 22px;
-            font-size: 18px;
+            width: 18px;
+            font-size: 15px;
+            text-align: center;
         }
 
         .menu-item span {
-            font-size: 14px;
-            font-weight: 500;
+            font-size: 13px;
         }
 
         .menu-badge {
             margin-left: auto;
             background: var(--gradient-primary);
             color: white;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            box-shadow: var(--shadow-glow);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            box-shadow: 0 2px 6px rgba(249, 115, 22, 0.3);
         }
 
         .sidebar-footer {
-            width: 100%;
-            padding: 20px;
-            border-top: 1px solid var(--border-primary);
+            padding: 14px 12px;
+            border-top: 1px solid var(--border-secondary);
+            background: rgba(10, 15, 28, 0.4);
             flex-shrink: 0;
         }
 
         .user-info {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 10px;
+            gap: 10px;
+            padding: 8px 10px;
             background: var(--bg-tertiary);
-            border-radius: 16px;
-            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            border: 1px solid var(--border-secondary);
         }
 
         .user-avatar {
-            width: 45px;
-            height: 45px;
+            width: 34px;
+            height: 34px;
+            min-width: 34px;
             background: var(--gradient-primary);
-            border-radius: 12px;
+            border-radius: 9px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 15px;
             color: white;
-            box-shadow: var(--shadow-glow);
+            box-shadow: 0 2px 8px var(--primary-glow);
         }
 
         .user-details h5 {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 2px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 1px;
             color: var(--text-primary);
+            line-height: 1.2;
         }
 
         .user-details p {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--text-muted);
+            line-height: 1.2;
         }
 
         .main-content {
             flex: 1;
-            margin-left: 280px;
-            padding: 30px;
+            margin-left: 240px;
+            padding: 20px 24px;
             position: relative;
             z-index: 1;
+            max-width: 1500px;
         }
 
         .top-header {
             background: var(--bg-card);
-            backdrop-filter: blur(10px);
-            border-radius: 24px;
-            padding: 20px 30px;
-            margin-bottom: 30px;
+            backdrop-filter: blur(14px);
+            border-radius: 16px;
+            padding: 14px 20px;
+            margin-bottom: 18px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--border-primary);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-secondary);
             position: relative;
             overflow: hidden;
-        }
-
-        .top-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(249, 115, 22, 0.05), transparent);
-            animation: shimmer 3s infinite;
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 12px;
+        }
+
+        .header-logo {
+            width: 38px;
+            height: 38px;
+            background: var(--gradient-primary);
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            box-shadow: 0 4px 12px var(--primary-glow);
         }
 
         .header-title h2 {
-            font-size: 22px;
+            font-size: 17px;
             color: var(--text-primary);
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             font-weight: 700;
+            letter-spacing: -0.2px;
         }
 
         .header-title p {
-            font-size: 13px;
+            font-size: 11px;
             color: var(--text-muted);
+            font-weight: 500;
         }
 
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
             flex-wrap: wrap;
         }
 
         .action-btn {
-            padding: 10px 18px;
-            border: 1px solid var(--border-primary);
-            border-radius: 40px;
+            padding: 7px 14px;
+            border: 1px solid var(--border-secondary);
+            border-radius: 20px;
             background: var(--bg-tertiary);
             color: var(--text-secondary);
-            font-weight: 500;
-            font-size: 13px;
+            font-weight: 600;
+            font-size: 12px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
+            gap: 6px;
+            transition: all 0.2s ease;
         }
 
         .action-btn:hover {
             background: var(--primary);
             border-color: var(--primary);
             color: white;
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-glow);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px var(--primary-glow);
         }
 
         .action-btn.primary {
             background: var(--gradient-primary);
             color: white;
             border: none;
-            box-shadow: var(--shadow-glow);
+            box-shadow: 0 4px 12px var(--primary-glow);
         }
 
         .theme-toggle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
             background: var(--bg-tertiary);
-            border: 1px solid var(--border-primary);
+            border: 1px solid var(--border-secondary);
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s ease;
             color: var(--text-primary);
-            font-size: 18px;
+            font-size: 14px;
         }
 
         .theme-toggle:hover {
             background: var(--primary);
             color: white;
-            transform: rotate(15deg);
             border-color: var(--primary);
+            transform: scale(1.05);
         }
 
         .voice-status {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
+            gap: 6px;
+            padding: 6px 12px;
             background: var(--bg-tertiary);
-            border-radius: 40px;
-            border: 1px solid var(--border-primary);
+            border-radius: 20px;
+            border: 1px solid var(--border-secondary);
+            font-size: 11.5px;
+            font-weight: 600;
         }
 
         .status-dot {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: var(--danger);
             position: relative;
@@ -444,69 +490,56 @@
             animation: pulse 2s infinite;
         }
 
-        .status-dot.active::before {
-            content: '';
-            position: absolute;
-            top: -4px;
-            left: -4px;
-            right: -4px;
-            bottom: -4px;
-            background: var(--secondary);
-            border-radius: 50%;
-            opacity: 0.3;
-            animation: pulse-ring 2s infinite;
-        }
-
-        @keyframes pulse-ring {
-            0% { transform: scale(1); opacity: 0.3; }
-            70% { transform: scale(1.5); opacity: 0; }
-            100% { transform: scale(1.5); opacity: 0; }
-        }
-
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 var(--secondary); }
-            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
             100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
 
         .gsheets-status {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
+            gap: 6px;
+            padding: 6px 12px;
             background: var(--bg-tertiary);
-            border-radius: 40px;
-            border: 1px solid var(--border-primary);
+            border-radius: 20px;
+            border: 1px solid var(--border-secondary);
             color: var(--text-secondary);
-            font-size: 13px;
+            font-size: 11.5px;
+            font-weight: 500;
         }
 
         .gsheets-status i {
             color: var(--primary);
         }
 
+        /* Modern Compact Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 25px;
-            margin-bottom: 30px;
+            gap: 14px;
+            margin-bottom: 20px;
         }
 
         .stat-card {
             background: var(--bg-card);
-            backdrop-filter: blur(10px);
-            border-radius: 24px;
-            padding: 25px;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--border-primary);
-            transition: all 0.3s;
+            backdrop-filter: blur(12px);
+            border-radius: 14px;
+            padding: 14px 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-secondary);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 14px;
         }
 
         .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-xl), var(--shadow-glow);
+            transform: translateY(-2px);
+            border-color: rgba(249, 115, 22, 0.35);
+            box-shadow: var(--shadow-md);
         }
 
         .stat-card::before {
@@ -514,106 +547,144 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 4px;
+            width: 3px;
+            height: 100%;
             background: var(--gradient-primary);
+            opacity: 0.8;
         }
 
+        .stat-card:nth-child(2)::before { background: var(--gradient-success); }
+        .stat-card:nth-child(3)::before { background: var(--gradient-purple); }
+        .stat-card:nth-child(4)::before { background: var(--gradient-blue); }
+
         .stat-icon {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
             background: var(--primary-light);
-            border-radius: 16px;
+            border-radius: 11px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--primary);
-            font-size: 24px;
-            margin-bottom: 15px;
+            font-size: 17px;
+            margin-bottom: 0;
+            border: 1px solid rgba(249, 115, 22, 0.15);
+        }
+
+        .stat-card:nth-child(2) .stat-icon {
+            background: var(--secondary-light);
+            color: var(--secondary);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        .stat-card:nth-child(3) .stat-icon {
+            background: var(--purple-light);
+            color: var(--purple);
+            border-color: rgba(139, 92, 246, 0.2);
+        }
+
+        .stat-card:nth-child(4) .stat-icon {
+            background: var(--info-light);
+            color: var(--info);
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+
+        .stat-content {
+            flex: 1;
         }
 
         .stat-label {
-            font-size: 14px;
+            font-size: 11.5px;
+            font-weight: 600;
             color: var(--text-muted);
-            margin-bottom: 5px;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
         }
 
         .stat-value {
-            font-size: 32px;
-            font-weight: 700;
+            font-size: 22px;
+            font-weight: 800;
             color: var(--text-primary);
-            margin-bottom: 5px;
+            line-height: 1.1;
+            font-feature-settings: "tnum";
         }
 
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 16px;
         }
 
         .dashboard-card {
             background: var(--bg-card);
-            backdrop-filter: blur(10px);
-            border-radius: 24px;
-            padding: 25px;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--border-primary);
+            backdrop-filter: blur(14px);
+            border-radius: 16px;
+            padding: 16px 18px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-secondary);
+            display: flex;
+            flex-direction: column;
         }
 
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--border-primary);
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-secondary);
         }
 
         .card-header h3 {
-            font-size: 18px;
+            font-size: 14.5px;
             color: var(--text-primary);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             font-weight: 700;
+            letter-spacing: -0.2px;
         }
 
         .card-header h3 i {
             color: var(--primary);
+            font-size: 14px;
         }
 
         .card-badge {
-            padding: 6px 14px;
+            padding: 3px 9px;
             background: var(--primary-light);
             color: var(--primary);
-            border-radius: 40px;
-            font-size: 12px;
-            font-weight: 600;
-            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            border: 1px solid rgba(249, 115, 22, 0.2);
         }
 
         .search-box {
             position: relative;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
         }
 
         .search-box i {
             position: absolute;
-            left: 15px;
+            left: 12px;
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-muted);
             z-index: 1;
+            font-size: 13px;
         }
 
         .search-box input {
             width: 100%;
-            padding: 14px 15px 14px 45px;
+            padding: 8px 12px 8px 34px;
             background: var(--bg-input);
-            border: 2px solid var(--border-primary);
-            border-radius: 40px;
-            font-size: 14px;
-            transition: all 0.3s;
+            border: 1px solid var(--border-secondary);
+            border-radius: 10px;
+            font-size: 12.5px;
+            transition: all 0.2s ease;
             color: var(--text-primary);
         }
 
@@ -621,252 +692,362 @@
             border-color: var(--primary);
             outline: none;
             background: var(--bg-tertiary);
-            box-shadow: 0 0 0 4px var(--primary-light);
+            box-shadow: 0 0 0 3px var(--primary-light);
         }
 
         .candidate-list {
-            max-height: 500px;
+            max-height: calc(100vh - 290px);
+            min-height: 320px;
             overflow-y: auto;
-            padding-right: 5px;
+            padding-right: 4px;
         }
 
         .candidate-list::-webkit-scrollbar {
-            width: 6px;
+            width: 5px;
         }
 
         .candidate-list::-webkit-scrollbar-track {
-            background: var(--bg-tertiary);
-            border-radius: 10px;
+            background: transparent;
         }
 
         .candidate-list::-webkit-scrollbar-thumb {
-            background: var(--primary);
+            background: var(--border-secondary);
             border-radius: 10px;
         }
 
+        .candidate-list::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
+        /* Compact & Sleek Candidate Card */
         .candidate-item {
             background: var(--bg-tertiary);
-            border: 1px solid var(--border-primary);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 15px;
-            transition: all 0.3s;
+            border: 1px solid var(--border-secondary);
+            border-radius: 12px;
+            padding: 13px 15px;
+            margin-bottom: 10px;
+            transition: all 0.2s ease;
             position: relative;
             overflow: hidden;
         }
 
         .candidate-item:hover {
-            border-color: var(--primary);
-            box-shadow: var(--shadow-glow);
-            transform: translateX(5px);
+            border-color: rgba(249, 115, 22, 0.4);
+            background: rgba(26, 35, 58, 0.9);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+        }
+
+        .candidate-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: var(--gradient-primary);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .candidate-item:hover::before {
+            opacity: 1;
         }
 
         .candidate-header {
             display: flex;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
+            gap: 11px;
+            margin-bottom: 10px;
         }
 
         .candidate-avatar {
-            width: 55px;
-            height: 55px;
-            background: var(--gradient-primary);
-            border-radius: 16px;
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(249, 115, 22, 0.05));
+            border: 1px solid rgba(249, 115, 22, 0.25);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 24px;
-            box-shadow: var(--shadow-glow);
+            color: var(--primary);
+            font-size: 15px;
         }
 
         .candidate-info {
             flex: 1;
+            min-width: 0;
         }
 
         .candidate-info h4 {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 700;
             color: var(--text-primary);
-            margin-bottom: 5px;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .candidate-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .tag {
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 10.5px;
+            font-weight: 600;
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-secondary);
+        }
+
+        .tag.campaign {
+            background: rgba(249, 115, 22, 0.12);
+            color: #fb923c;
+            border-color: rgba(249, 115, 22, 0.25);
         }
 
         .candidate-details {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin: 15px 0;
-            padding: 15px;
-            background: var(--bg-input);
-            border-radius: 16px;
-            border: 1px solid var(--border-primary);
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px 12px;
+            margin: 8px 0;
+            padding: 8px 10px;
+            background: rgba(10, 15, 28, 0.35);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
         }
 
         .detail-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 12px;
+            gap: 6px;
+            font-size: 11px;
             color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .detail-item i {
             color: var(--primary);
-            width: 16px;
+            width: 13px;
+            font-size: 11px;
+            opacity: 0.85;
         }
 
         .call-count {
-            display: inline-block;
-            padding: 6px 14px;
-            background: var(--bg-input);
-            border-radius: 30px;
-            font-size: 11px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 8px;
+            background: rgba(249, 115, 22, 0.08);
+            border-radius: 6px;
+            font-size: 10.5px;
             font-weight: 600;
-            color: var(--text-secondary);
-            margin: 10px 0;
-            border: 1px solid var(--border-primary);
+            color: #fb923c;
+            margin: 4px 0 6px 0;
+            border: 1px solid rgba(249, 115, 22, 0.2);
+        }
+
+        .call-count i {
+            font-size: 10px;
         }
 
         .action-buttons {
             display: flex;
-            gap: 8px;
-            margin-top: 15px;
+            gap: 5px;
+            margin-top: 8px;
             flex-wrap: wrap;
         }
 
         .btn {
             flex: 1;
-            min-width: 70px;
-            padding: 12px;
+            min-width: 55px;
+            padding: 6px 8px;
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
             font-weight: 600;
-            font-size: 11px;
+            font-size: 10.5px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-            transition: all 0.3s;
+            gap: 4px;
+            transition: all 0.2s ease;
         }
 
         .btn:hover {
-            transform: translateY(-2px);
+            transform: translateY(-1px);
+            filter: brightness(1.1);
         }
 
         .btn-info {
-            background: var(--info);
-            color: white;
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        .btn-info:hover {
+            background: var(--gradient-blue);
+            color: #fff;
         }
 
         .btn-primary {
+            background: rgba(249, 115, 22, 0.15);
+            color: #fb923c;
+            border: 1px solid rgba(249, 115, 22, 0.3);
+        }
+        .btn-primary:hover {
             background: var(--gradient-primary);
-            color: white;
-            box-shadow: var(--shadow-glow);
+            color: #fff;
         }
 
         .btn-success {
             background: var(--gradient-success);
             color: white;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
         }
 
         .btn-danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .btn-danger:hover {
             background: var(--gradient-danger);
-            color: white;
+            color: #fff;
         }
 
         .btn-purple {
+            background: rgba(139, 92, 246, 0.15);
+            color: #a78bfa;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        .btn-purple:hover {
             background: var(--gradient-purple);
-            color: white;
+            color: #fff;
         }
 
         .btn-warning {
-            background: var(--warning);
-            color: white;
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff;
         }
 
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
+            padding: 40px 15px;
             color: var(--text-muted);
         }
 
         .empty-state i {
-            font-size: 60px;
-            margin-bottom: 15px;
-            opacity: 0.5;
+            font-size: 40px;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+            opacity: 0.6;
+        }
+
+        .empty-state h4 {
+            color: var(--text-secondary);
+            font-size: 13.5px;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .empty-state p {
+            font-size: 11.5px;
+            color: var(--text-muted);
         }
 
         .processed-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 15px;
-            border-bottom: 1px solid var(--border-primary);
-            transition: all 0.2s;
+            gap: 10px;
+            padding: 9px 12px;
+            border-radius: 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-secondary);
+            margin-bottom: 7px;
+            transition: all 0.2s ease;
         }
 
         .processed-item:hover {
-            background: var(--bg-tertiary);
+            background: rgba(26, 35, 58, 0.9);
+            border-color: rgba(249, 115, 22, 0.3);
         }
 
         .processed-avatar {
-            width: 45px;
-            height: 45px;
-            background: var(--bg-input);
-            border-radius: 12px;
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            background: rgba(249, 115, 22, 0.1);
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--text-secondary);
-            border: 1px solid var(--border-primary);
+            color: var(--primary);
+            font-size: 13px;
+            border: 1px solid rgba(249, 115, 22, 0.2);
         }
 
         .processed-info {
             flex: 1;
+            min-width: 0;
         }
 
         .processed-info h5 {
-            font-size: 14px;
+            font-size: 12.5px;
+            font-weight: 700;
             color: var(--text-primary);
-            margin-bottom: 2px;
+            margin-bottom: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .processed-info p {
-            font-size: 11px;
+            font-size: 10.5px;
             color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .processed-status {
-            font-size: 11px;
-            font-weight: 600;
-            padding: 4px 12px;
-            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 12px;
+            white-space: nowrap;
         }
 
-        .processed-status.passed {
-            background: var(--secondary-light);
-            color: var(--secondary);
-            border: 1px solid rgba(16, 185, 129, 0.3);
+        .processed-status.passed,
+        .processed-status.training {
+            background: rgba(16, 185, 129, 0.12);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.25);
         }
 
         .processed-status.rejected {
-            background: var(--danger-light);
-            color: var(--danger);
-            border: 1px solid rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.12);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.25);
         }
 
         .processed-status.final {
-            background: var(--purple-light);
-            color: var(--purple);
-            border: 1px solid rgba(139, 92, 246, 0.3);
-        }
-
-        .processed-status.training {
-            background: var(--info-light);
-            color: var(--info);
-            border: 1px solid rgba(59, 130, 246, 0.3);
+            background: rgba(139, 92, 246, 0.12);
+            color: #a78bfa;
+            border: 1px solid rgba(139, 92, 246, 0.25);
         }
 
         /* Modal Styles */
@@ -876,52 +1057,55 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(6px);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 10000;
-            animation: fadeIn 0.2s ease;
+            animation: fadeIn 0.15s ease;
         }
 
         .modal {
             background: var(--bg-card);
-            border-radius: 24px;
+            border-radius: 18px;
             width: 90%;
-            max-width: 500px;
-            max-height: 80vh;
+            max-width: 480px;
+            max-height: 85vh;
             overflow-y: auto;
             box-shadow: var(--shadow-2xl);
-            animation: slideUp 0.3s ease;
+            animation: slideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid var(--border-primary);
         }
 
         .modal-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid var(--border-primary);
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-secondary);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             position: sticky;
             top: 0;
             background: var(--bg-card);
+            z-index: 1;
         }
 
         .modal-header h3 {
             flex: 1;
             margin: 0;
+            font-size: 15px;
+            font-weight: 700;
             color: var(--text-primary);
         }
 
         .modal-close {
             background: none;
             border: none;
-            font-size: 24px;
+            font-size: 20px;
             cursor: pointer;
             color: var(--text-muted);
             padding: 4px 8px;
-            border-radius: 8px;
+            border-radius: 6px;
         }
 
         .modal-close:hover {
@@ -930,36 +1114,38 @@
         }
 
         .modal-body {
-            padding: 24px;
+            padding: 18px 20px;
         }
 
         .modal-footer {
-            padding: 20px 24px;
-            border-top: 1px solid var(--border-primary);
+            padding: 14px 20px;
+            border-top: 1px solid var(--border-secondary);
             display: flex;
             justify-content: flex-end;
-            gap: 12px;
+            gap: 8px;
             background: var(--bg-card);
         }
 
         .modal-btn {
-            padding: 12px 24px;
+            padding: 8px 18px;
             border: none;
-            border-radius: 40px;
+            border-radius: 20px;
             font-weight: 600;
+            font-size: 12px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
         }
 
         .modal-btn-cancel {
             background: var(--bg-tertiary);
             color: var(--text-secondary);
-            border: 1px solid var(--border-primary);
+            border: 1px solid var(--border-secondary);
         }
 
         .modal-btn-primary {
             background: var(--gradient-primary);
             color: white;
+            box-shadow: 0 2px 8px var(--primary-glow);
         }
 
         .modal-btn-danger {
@@ -974,39 +1160,41 @@
 
         textarea {
             width: 100%;
-            padding: 15px;
+            padding: 12px;
             background: var(--bg-input);
-            border: 2px solid var(--border-primary);
-            border-radius: 12px;
-            font-size: 14px;
+            border: 1px solid var(--border-secondary);
+            border-radius: 10px;
+            font-size: 13px;
             resize: vertical;
-            min-height: 100px;
+            min-height: 80px;
             color: var(--text-primary);
+            font-family: inherit;
         }
 
         textarea:focus {
             border-color: var(--primary);
             outline: none;
+            box-shadow: 0 0 0 3px var(--primary-light);
         }
 
         .rejection-reasons {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 8px;
+            margin-bottom: 12px;
         }
 
         .rejection-reason {
-            padding: 12px;
+            padding: 9px 11px;
             background: var(--bg-tertiary);
-            border: 1px solid var(--border-primary);
-            border-radius: 12px;
+            border: 1px solid var(--border-secondary);
+            border-radius: 8px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             cursor: pointer;
-            transition: all 0.2s;
-            font-size: 13px;
+            transition: all 0.2s ease;
+            font-size: 11.5px;
             color: var(--text-secondary);
         }
 
@@ -1020,22 +1208,24 @@
             border-color: var(--danger);
             background: var(--danger-light);
             color: var(--danger);
+            font-weight: 600;
         }
 
         .voice-panel {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
+            bottom: 20px;
+            right: 20px;
             background: var(--bg-card);
-            border-radius: 60px;
-            padding: 16px 24px;
+            border-radius: 40px;
+            padding: 10px 18px;
             display: flex;
             align-items: center;
-            gap: 20px;
-            border: 2px solid var(--primary);
-            transform: translateY(150px);
-            transition: transform 0.4s;
+            gap: 14px;
+            border: 1px solid var(--primary);
+            transform: translateY(120px);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 1000;
+            box-shadow: var(--shadow-xl);
         }
 
         .voice-panel.active {
@@ -1044,74 +1234,77 @@
 
         .voice-wave {
             display: flex;
-            gap: 4px;
+            gap: 3px;
             align-items: center;
         }
 
         .voice-wave span {
-            width: 5px;
-            height: 20px;
+            width: 4px;
+            height: 16px;
             background: var(--primary);
-            border-radius: 5px;
+            border-radius: 4px;
             animation: wave 1s infinite;
         }
 
-        .voice-wave span:nth-child(2) { animation-delay: 0.2s; height: 30px; }
-        .voice-wave span:nth-child(3) { animation-delay: 0.4s; height: 40px; }
+        .voice-wave span:nth-child(2) { animation-delay: 0.2s; height: 22px; }
+        .voice-wave span:nth-child(3) { animation-delay: 0.4s; height: 28px; }
 
         @keyframes wave {
             0%, 100% { transform: scaleY(0.8); }
-            50% { transform: scaleY(1.5); }
+            50% { transform: scaleY(1.4); }
         }
 
         .voice-info {
-            min-width: 200px;
+            min-width: 150px;
         }
 
         .voice-name {
             font-weight: 700;
-            font-size: 15px;
+            font-size: 13px;
             color: var(--text-primary);
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         .voice-message {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-muted);
         }
 
         .voice-count {
             background: var(--primary-light);
             color: var(--primary);
-            padding: 6px 16px;
-            border-radius: 40px;
+            padding: 4px 10px;
+            border-radius: 12px;
             font-weight: 700;
-            font-size: 13px;
-            border: 1px solid var(--border-primary);
+            font-size: 11px;
+            border: 1px solid rgba(249, 115, 22, 0.25);
         }
 
         .toast-container {
             position: fixed;
-            top: 30px;
-            right: 30px;
-            z-index: 2000;
+            top: 20px;
+            right: 20px;
+            z-index: 20000;
         }
 
         .toast {
             background: var(--bg-card);
-            border-left: 6px solid var(--secondary);
-            border-radius: 14px;
-            padding: 16px 24px;
-            margin-bottom: 12px;
-            box-shadow: var(--shadow-2xl);
+            backdrop-filter: blur(14px);
+            border-left: 4px solid var(--secondary);
+            border-radius: 10px;
+            padding: 12px 18px;
+            margin-bottom: 8px;
+            box-shadow: var(--shadow-xl);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             transform: translateX(400px);
-            transition: transform 0.3s;
-            min-width: 300px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 260px;
+            font-size: 12.5px;
+            font-weight: 500;
             color: var(--text-primary);
-            border: 1px solid var(--border-primary);
+            border: 1px solid var(--border-secondary);
         }
 
         .toast.show {
@@ -1124,32 +1317,36 @@
         }
 
         @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
+            from { transform: translateY(30px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
 
         @media (max-width: 1200px) {
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .sidebar { width: 240px; }
-            .main-content { margin-left: 240px; }
+            .sidebar { width: 220px; }
+            .main-content { margin-left: 220px; }
+            .candidate-details { grid-template-columns: repeat(2, 1fr); }
         }
 
         @media (max-width: 992px) {
-            .sidebar { width: 80px; }
-            .sidebar-header h3, .sidebar-sub, .menu-item span, .user-details { display: none; }
-            .sidebar-logo { font-size: 20px; }
-            .menu-item { justify-content: center; padding: 15px; }
-            .menu-item i { margin: 0; font-size: 20px; }
-            .main-content { margin-left: 80px; padding: 20px; }
-            .user-info { justify-content: center; padding: 10px; }
+            .sidebar { width: 70px; }
+            .sidebar-header .sidebar-logo, .sidebar-header .sidebar-sub, .menu-item span, .user-details { display: none; }
+            .sidebar-header { justify-content: center; padding: 15px 5px; }
+            .menu-item { justify-content: center; padding: 12px; }
+            .menu-item i { margin: 0; font-size: 16px; }
+            .menu-badge { display: none; }
+            .main-content { margin-left: 70px; padding: 15px; }
+            .user-info { justify-content: center; padding: 6px; }
             .user-avatar { margin: 0; }
+            .dashboard-grid { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 768px) {
-            .stats-grid { grid-template-columns: 1fr; }
-            .dashboard-grid { grid-template-columns: 1fr; }
-            .action-btn { padding: 8px 14px; font-size: 12px; }
-            .voice-panel { bottom: 20px; right: 20px; padding: 12px 20px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .candidate-details { grid-template-columns: 1fr; }
+            .header-actions { flex-wrap: wrap; }
+            .action-btn { padding: 6px 12px; font-size: 11px; }
+            .voice-panel { bottom: 15px; right: 15px; padding: 8px 14px; }
         }
     </style>
 </head>
@@ -1161,28 +1358,34 @@
 
     <div class="sidebar">
         <div class="sidebar-header">
-            <div class="sidebar-logo">BALI<span>TECH</span></div>
-            <div class="sidebar-sub">HR Command Center</div>
+            <div class="sidebar-logo-icon">
+                <i class="fas fa-users-cog"></i>
+            </div>
+            <div>
+                <div class="sidebar-logo">BALI<span>TECH</span></div>
+                <div class="sidebar-sub">HR Command Center</div>
+            </div>
         </div>
 
         <div class="sidebar-menu">
-            <div class="menu-item active">
+            <div class="menu-item active" id="menu-dashboard" onclick="switchView('dashboard')">
                 <i class="fas fa-chart-pie"></i>
                 <span>Dashboard</span>
             </div>
-            <div class="menu-item">
+            <div class="menu-item" id="menu-hr-interviews" onclick="switchView('hr-interviews')">
                 <i class="fas fa-users"></i>
                 <span>HR Interviews</span>
                 <span class="menu-badge" id="pendingHRBadge">0</span>
             </div>
-            <div class="menu-item">
+            <div class="menu-item" id="menu-final-interviews" onclick="switchView('final-interviews')">
                 <i class="fas fa-crown"></i>
                 <span>Final Interviews</span>
                 <span class="menu-badge" id="pendingGMBadge">0</span>
             </div>
-            <div class="menu-item">
+            <div class="menu-item" id="menu-selected" onclick="switchView('selected')">
                 <i class="fas fa-check-circle"></i>
                 <span>Selected</span>
+                <span class="menu-badge" id="selectedBadge">0</span>
             </div>
             <div class="menu-item" onclick="window.location.href='candidate-records.html'">
                 <i class="fas fa-database"></i>
@@ -1233,8 +1436,8 @@
         <div class="top-header">
             <div class="header-left">
                 <div class="header-title">
-                    <h2>HR Command Center</h2>
-                    <p>Interview Management - First Round</p>
+                    <h2 id="pageTitle">HR Command Center</h2>
+                    <p id="pageSubtitle">Interview Management - First Round</p>
                 </div>
             </div>
 
@@ -1261,7 +1464,8 @@
 
         <div class="stats-grid" id="statsGrid"></div>
 
-        <div class="dashboard-grid">
+        <!-- Dashboard View (Pending HR + Processed) -->
+        <div id="view-dashboard" class="dashboard-grid">
             <div class="dashboard-card">
                 <div class="card-header">
                     <h3><i class="fas fa-clock"></i> Pending HR Interviews</h3>
@@ -1280,6 +1484,51 @@
                     <span class="card-badge" id="processedCount">0</span>
                 </div>
                 <div class="candidate-list" id="processedList"></div>
+            </div>
+        </div>
+
+        <!-- Dedicated HR Interviews View -->
+        <div id="view-hr-interviews" style="display: none;">
+            <div class="dashboard-card" style="width: 100%;">
+                <div class="card-header">
+                    <h3><i class="fas fa-users" style="color: var(--primary);"></i> HR Interviews Queue</h3>
+                    <span class="card-badge" id="queueHRCount">0</span>
+                </div>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="queueHRSearch" placeholder="Search HR interview candidates by name, phone, position...">
+                </div>
+                <div class="candidate-list" id="queueHRList"></div>
+            </div>
+        </div>
+
+        <!-- Final Interviews (Sent to GM) View -->
+        <div id="view-final-interviews" style="display: none;">
+            <div class="dashboard-card" style="width: 100%;">
+                <div class="card-header">
+                    <h3><i class="fas fa-crown" style="color: #f59e0b;"></i> Final Interviews (Sent to GM)</h3>
+                    <span class="card-badge" id="finalInterviewsCount">0</span>
+                </div>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="finalInterviewsSearch" placeholder="Search final interview candidates...">
+                </div>
+                <div class="candidate-list" id="finalInterviewsList"></div>
+            </div>
+        </div>
+
+        <!-- Selected Candidates View -->
+        <div id="view-selected" style="display: none;">
+            <div class="dashboard-card" style="width: 100%;">
+                <div class="card-header">
+                    <h3><i class="fas fa-check-circle" style="color: var(--secondary);"></i> Selected Candidates (Training Pipeline)</h3>
+                    <span class="card-badge" id="selectedViewCount">0</span>
+                </div>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="selectedSearch" placeholder="Search selected candidates...">
+                </div>
+                <div class="candidate-list" id="selectedList"></div>
             </div>
         </div>
     </div>
@@ -1751,16 +2000,57 @@
         }
 
         // ==================== RENDER FUNCTIONS ====================
+        let currentView = 'dashboard';
         let lastDashboardHash = '';
+
+        function switchView(viewName) {
+            currentView = viewName;
+            
+            // Update sidebar active menu items
+            document.querySelectorAll('.sidebar-menu .menu-item').forEach(item => item.classList.remove('active'));
+            const activeMenuItem = document.getElementById(`menu-${viewName}`);
+            if (activeMenuItem) {
+                activeMenuItem.classList.add('active');
+            }
+
+            // Page title and subtitle updates
+            const pageTitle = document.getElementById('pageTitle');
+            const pageSubtitle = document.getElementById('pageSubtitle');
+
+            // Hide all view containers
+            const views = ['dashboard', 'hr-interviews', 'final-interviews', 'selected'];
+            views.forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                if (el) el.style.display = 'none';
+            });
+
+            // Show selected view container
+            const activeViewEl = document.getElementById(`view-${viewName}`);
+            if (activeViewEl) {
+                activeViewEl.style.display = viewName === 'dashboard' ? 'grid' : 'block';
+            }
+
+            if (viewName === 'dashboard') {
+                if (pageTitle) pageTitle.textContent = 'HR Command Center';
+                if (pageSubtitle) pageSubtitle.textContent = 'Interview Management - First Round';
+                renderDashboard();
+            } else if (viewName === 'hr-interviews') {
+                if (pageTitle) pageTitle.textContent = 'HR Interviews';
+                if (pageSubtitle) pageSubtitle.textContent = 'Candidates Waiting for HR Round Evaluation';
+                renderHRInterviewsView();
+            } else if (viewName === 'final-interviews') {
+                if (pageTitle) pageTitle.textContent = 'Final Interviews';
+                if (pageSubtitle) pageSubtitle.textContent = 'Candidates Recommended to Management / General Manager';
+                renderFinalInterviewsView();
+            } else if (viewName === 'selected') {
+                if (pageTitle) pageTitle.textContent = 'Selected Candidates';
+                if (pageSubtitle) pageSubtitle.textContent = 'Selected for Onboarding & Training Pipeline';
+                renderSelectedView();
+            }
+        }
 
         async function renderDashboard() {
             await loadDataFromDatabase();
-
-            const snapshot = JSON.stringify(candidates.map(c => ({ id: c.id, s: c.status, h: c.hrStatus })));
-            if (snapshot === lastDashboardHash && document.getElementById('hrList')?.innerHTML) {
-                return;
-            }
-            lastDashboardHash = snapshot;
 
             const hrCandidates = candidates.filter(c =>
                 c.status === 'interview_conducted'
@@ -1776,38 +2066,60 @@
             const pendingHR = hrCandidates.length;
             const passedHR = candidates.filter(c => c.hrStatus === 'passed').length;
             const rejectedHR = candidates.filter(c => c.hrStatus === 'rejected').length;
-            const selectedCount = candidates.filter(c => c.status === 'selected').length;
+            const selectedCandidates = candidates.filter(c => c.status === 'selected' || c.status === 'hired' || c.status === 'training');
+            const selectedCount = selectedCandidates.length;
             
-            document.getElementById('pendingHRBadge').textContent = pendingHR;
-            document.getElementById('pendingGMBadge').textContent = gmCandidates.length;
-            document.getElementById('pendingHRCount').textContent = pendingHR;
-            document.getElementById('processedCount').textContent = processedCandidates.length;
+            // Update badges
+            const hrBadge = document.getElementById('pendingHRBadge');
+            const gmBadge = document.getElementById('pendingGMBadge');
+            const selBadge = document.getElementById('selectedBadge');
+            const hrCount = document.getElementById('pendingHRCount');
+            const procCount = document.getElementById('processedCount');
+
+            if (hrBadge) hrBadge.textContent = pendingHR;
+            if (gmBadge) gmBadge.textContent = gmCandidates.length;
+            if (selBadge) selBadge.textContent = selectedCount;
+            if (hrCount) hrCount.textContent = pendingHR;
+            if (procCount) procCount.textContent = processedCandidates.length;
             
-            document.getElementById('statsGrid').innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-users"></i></div>
-                    <div class="stat-label">Total HR Interviews</div>
-                    <div class="stat-value">${pendingHR + passedHR + rejectedHR}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
-                    <div class="stat-label">Selected for Training</div>
-                    <div class="stat-value">${selectedCount}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
-                    <div class="stat-label">Pending</div>
-                    <div class="stat-value">${pendingHR}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-arrow-right"></i></div>
-                    <div class="stat-label">Sent to Final</div>
-                    <div class="stat-value">${gmCandidates.length}</div>
-                </div>
-            `;
+            const statsGrid = document.getElementById('statsGrid');
+            if (statsGrid) {
+                statsGrid.innerHTML = `
+                    <div class="stat-card" style="cursor: pointer;" onclick="switchView('dashboard')">
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-label">Total HR Interviews</div>
+                            <div class="stat-value">${pendingHR + passedHR + rejectedHR}</div>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer;" onclick="switchView('selected')">
+                        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-label">Selected for Training</div>
+                            <div class="stat-value">${selectedCount}</div>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer;" onclick="switchView('hr-interviews')">
+                        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-label">Pending HR</div>
+                            <div class="stat-value">${pendingHR}</div>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer;" onclick="switchView('final-interviews')">
+                        <div class="stat-icon"><i class="fas fa-arrow-right"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-label">Sent to Final</div>
+                            <div class="stat-value">${gmCandidates.length}</div>
+                        </div>
+                    </div>
+                `;
+            }
             
-            document.getElementById('hrList').innerHTML = renderCandidateList(hrCandidates);
-            document.getElementById('processedList').innerHTML = renderProcessedList(processedCandidates);
+            const hrList = document.getElementById('hrList');
+            const processedList = document.getElementById('processedList');
+            if (hrList) hrList.innerHTML = renderCandidateList(hrCandidates);
+            if (processedList) processedList.innerHTML = renderProcessedList(processedCandidates);
             
             const searchInput = document.getElementById('hrSearch');
             if (searchInput) {
@@ -1818,7 +2130,203 @@
                         c.phone?.includes(search) ||
                         c.email?.toLowerCase().includes(search)
                     );
-                    document.getElementById('hrList').innerHTML = renderCandidateList(filtered);
+                    if (hrList) hrList.innerHTML = renderCandidateList(filtered);
+                };
+            }
+
+            // If current view is not dashboard, also refresh that specific view
+            if (currentView === 'hr-interviews') renderHRInterviewsView();
+            else if (currentView === 'final-interviews') renderFinalInterviewsView();
+            else if (currentView === 'selected') renderSelectedView();
+        }
+
+        function renderHRInterviewsView() {
+            const hrCandidates = candidates.filter(c => c.status === 'interview_conducted');
+            const queueCount = document.getElementById('queueHRCount');
+            const queueList = document.getElementById('queueHRList');
+            
+            if (queueCount) queueCount.textContent = hrCandidates.length;
+            if (queueList) queueList.innerHTML = renderCandidateList(hrCandidates);
+
+            const searchInput = document.getElementById('queueHRSearch');
+            if (searchInput) {
+                searchInput.oninput = (e) => {
+                    const search = e.target.value.toLowerCase();
+                    const filtered = hrCandidates.filter(c =>
+                        c.fullName?.toLowerCase().includes(search) ||
+                        c.phone?.includes(search) ||
+                        c.email?.toLowerCase().includes(search) ||
+                        c.position?.toLowerCase().includes(search)
+                    );
+                    if (queueList) queueList.innerHTML = renderCandidateList(filtered);
+                };
+            }
+        }
+
+        function renderFinalInterviewsView() {
+            const gmCandidates = candidates.filter(c => c.status === 'hr_passed');
+            const countEl = document.getElementById('finalInterviewsCount');
+            const listEl = document.getElementById('finalInterviewsList');
+
+            if (countEl) countEl.textContent = gmCandidates.length;
+            if (listEl) {
+                if (gmCandidates.length === 0) {
+                    listEl.innerHTML = '<div class="empty-state"><i class="fas fa-crown"></i><h4>No Final Interview Candidates</h4><p>Candidates sent to GM will appear here</p></div>';
+                } else {
+                    listEl.innerHTML = gmCandidates.map(c => `
+                        <div class="candidate-item" style="border-left: 3px solid #f59e0b;">
+                            <div class="candidate-header">
+                                <div class="candidate-avatar" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;"><i class="fas fa-crown"></i></div>
+                                <div class="candidate-info">
+                                    <h4>${c.fullName}</h4>
+                                    <div class="candidate-tags">
+                                        <span class="tag campaign">${c.position || 'Campaign'}</span>
+                                        <span class="tag" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;"><i class="fas fa-clock"></i> In Management Queue</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="candidate-details">
+                                <div class="detail-item"><i class="fas fa-phone"></i> ${c.phone}</div>
+                                <div class="detail-item"><i class="fas fa-envelope"></i> ${c.email || 'N/A'}</div>
+                                <div class="detail-item"><i class="fas fa-id-card"></i> ${c.cnic || 'N/A'}</div>
+                                <div class="detail-item"><i class="fas fa-graduation-cap"></i> ${c.graduation || 'N/A'}</div>
+                                <div class="detail-item"><i class="fas fa-user-plus"></i> Referred: ${c.referredBy || 'Walk-in'}</div>
+                                <div class="detail-item"><i class="fas fa-calendar-check"></i> Passed HR: ${new Date(c.hrDate || c.timestamp || Date.now()).toLocaleDateString()}</div>
+                            </div>
+                            <div class="action-buttons" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
+                                <button class="btn btn-warning" onclick="showRemarksModal(${c.id})"><i class="fas fa-comment"></i> View Remarks</button>
+                                <button class="btn btn-primary" onclick="callCandidate(${c.id}, 'HR')"><i class="fas fa-phone-alt"></i> Call Candidate</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            const searchInput = document.getElementById('finalInterviewsSearch');
+            if (searchInput) {
+                searchInput.oninput = (e) => {
+                    const search = e.target.value.toLowerCase();
+                    const filtered = gmCandidates.filter(c =>
+                        c.fullName?.toLowerCase().includes(search) ||
+                        c.phone?.includes(search) ||
+                        c.position?.toLowerCase().includes(search)
+                    );
+                    if (listEl) {
+                        if (filtered.length === 0) {
+                            listEl.innerHTML = '<div class="empty-state"><i class="fas fa-search"></i><h4>No Matching Candidates</h4></div>';
+                        } else {
+                            listEl.innerHTML = filtered.map(c => `
+                                <div class="candidate-item" style="border-left: 3px solid #f59e0b;">
+                                    <div class="candidate-header">
+                                        <div class="candidate-avatar" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;"><i class="fas fa-crown"></i></div>
+                                        <div class="candidate-info">
+                                            <h4>${c.fullName}</h4>
+                                            <div class="candidate-tags">
+                                                <span class="tag campaign">${c.position || 'Campaign'}</span>
+                                                <span class="tag" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;"><i class="fas fa-clock"></i> In Management Queue</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="candidate-details">
+                                        <div class="detail-item"><i class="fas fa-phone"></i> ${c.phone}</div>
+                                        <div class="detail-item"><i class="fas fa-envelope"></i> ${c.email || 'N/A'}</div>
+                                        <div class="detail-item"><i class="fas fa-id-card"></i> ${c.cnic || 'N/A'}</div>
+                                        <div class="detail-item"><i class="fas fa-graduation-cap"></i> ${c.graduation || 'N/A'}</div>
+                                        <div class="detail-item"><i class="fas fa-user-plus"></i> Referred: ${c.referredBy || 'Walk-in'}</div>
+                                        <div class="detail-item"><i class="fas fa-calendar-check"></i> Passed HR: ${new Date(c.hrDate || c.timestamp || Date.now()).toLocaleDateString()}</div>
+                                    </div>
+                                    <div class="action-buttons" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
+                                        <button class="btn btn-warning" onclick="showRemarksModal(${c.id})"><i class="fas fa-comment"></i> View Remarks</button>
+                                        <button class="btn btn-primary" onclick="callCandidate(${c.id}, 'HR')"><i class="fas fa-phone-alt"></i> Call Candidate</button>
+                                    </div>
+                                </div>
+                            `).join('');
+                        }
+                    }
+                };
+            }
+        }
+
+        function renderSelectedView() {
+            const selectedCandidates = candidates.filter(c => c.status === 'selected' || c.status === 'hired' || c.status === 'training');
+            const countEl = document.getElementById('selectedViewCount');
+            const listEl = document.getElementById('selectedList');
+
+            if (countEl) countEl.textContent = selectedCandidates.length;
+            if (listEl) {
+                if (selectedCandidates.length === 0) {
+                    listEl.innerHTML = '<div class="empty-state"><i class="fas fa-user-check"></i><h4>No Selected Candidates</h4><p>Candidates selected for training will appear here</p></div>';
+                } else {
+                    listEl.innerHTML = selectedCandidates.map(c => `
+                        <div class="candidate-item" style="border-left: 3px solid var(--secondary);">
+                            <div class="candidate-header">
+                                <div class="candidate-avatar" style="background: rgba(16, 185, 129, 0.15); color: var(--secondary);"><i class="fas fa-check-circle"></i></div>
+                                <div class="candidate-info">
+                                    <h4>${c.fullName}</h4>
+                                    <div class="candidate-tags">
+                                        <span class="tag campaign">${c.position || 'Campaign'}</span>
+                                        <span class="tag" style="background: rgba(16, 185, 129, 0.2); color: var(--secondary);"><i class="fas fa-graduation-cap"></i> Selected / Training</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="candidate-details">
+                                <div class="detail-item"><i class="fas fa-phone"></i> ${c.phone}</div>
+                                <div class="detail-item"><i class="fas fa-envelope"></i> ${c.email || 'N/A'}</div>
+                                <div class="detail-item"><i class="fas fa-id-card"></i> ${c.cnic || 'N/A'}</div>
+                                <div class="detail-item"><i class="fas fa-graduation-cap"></i> ${c.graduation || 'N/A'}</div>
+                                <div class="detail-item"><i class="fas fa-user-plus"></i> Referred: ${c.referredBy || 'Walk-in'}</div>
+                                <div class="detail-item"><i class="fas fa-calendar-check"></i> Selected: ${new Date(c.hrDate || c.timestamp || Date.now()).toLocaleDateString()}</div>
+                            </div>
+                            <div class="action-buttons" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
+                                <button class="btn btn-warning" onclick="showRemarksModal(${c.id})"><i class="fas fa-comment"></i> View Remarks</button>
+                                <button class="btn btn-primary" onclick="window.location.href='training-portal.html'"><i class="fas fa-graduation-cap"></i> View in Training Portal</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            const searchInput = document.getElementById('selectedSearch');
+            if (searchInput) {
+                searchInput.oninput = (e) => {
+                    const search = e.target.value.toLowerCase();
+                    const filtered = selectedCandidates.filter(c =>
+                        c.fullName?.toLowerCase().includes(search) ||
+                        c.phone?.includes(search) ||
+                        c.position?.toLowerCase().includes(search)
+                    );
+                    if (listEl) {
+                        if (filtered.length === 0) {
+                            listEl.innerHTML = '<div class="empty-state"><i class="fas fa-search"></i><h4>No Matching Candidates</h4></div>';
+                        } else {
+                            listEl.innerHTML = filtered.map(c => `
+                                <div class="candidate-item" style="border-left: 3px solid var(--secondary);">
+                                    <div class="candidate-header">
+                                        <div class="candidate-avatar" style="background: rgba(16, 185, 129, 0.15); color: var(--secondary);"><i class="fas fa-check-circle"></i></div>
+                                        <div class="candidate-info">
+                                            <h4>${c.fullName}</h4>
+                                            <div class="candidate-tags">
+                                                <span class="tag campaign">${c.position || 'Campaign'}</span>
+                                                <span class="tag" style="background: rgba(16, 185, 129, 0.2); color: var(--secondary);"><i class="fas fa-graduation-cap"></i> Selected / Training</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="candidate-details">
+                                        <div class="detail-item"><i class="fas fa-phone"></i> ${c.phone}</div>
+                                        <div class="detail-item"><i class="fas fa-envelope"></i> ${c.email || 'N/A'}</div>
+                                        <div class="detail-item"><i class="fas fa-id-card"></i> ${c.cnic || 'N/A'}</div>
+                                        <div class="detail-item"><i class="fas fa-graduation-cap"></i> ${c.graduation || 'N/A'}</div>
+                                        <div class="detail-item"><i class="fas fa-user-plus"></i> Referred: ${c.referredBy || 'Walk-in'}</div>
+                                        <div class="detail-item"><i class="fas fa-calendar-check"></i> Selected: ${new Date(c.hrDate || c.timestamp || Date.now()).toLocaleDateString()}</div>
+                                    </div>
+                                    <div class="action-buttons" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
+                                        <button class="btn btn-warning" onclick="showRemarksModal(${c.id})"><i class="fas fa-comment"></i> View Remarks</button>
+                                        <button class="btn btn-primary" onclick="window.location.href='training-portal.html'"><i class="fas fa-graduation-cap"></i> View in Training Portal</button>
+                                    </div>
+                                </div>
+                            `).join('');
+                        }
+                    }
                 };
             }
         }
@@ -1944,6 +2452,10 @@
             }
         })();
         
+        window.switchView = switchView;
+        window.renderHRInterviewsView = renderHRInterviewsView;
+        window.renderFinalInterviewsView = renderFinalInterviewsView;
+        window.renderSelectedView = renderSelectedView;
         window.showRemarksModal = showRemarksModal;
         window.saveRemark = saveRemark;
         window.selectCandidate = selectCandidate;
