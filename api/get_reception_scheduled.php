@@ -143,8 +143,98 @@ foreach ($rows as $r) {
         'interviewLocation' => $r['interview_location'] ?? 'Main Office',
         'interviewer' => $r['interviewer_name'] ?? ($r['recruiter_name'] ?: 'HR Manager'),
         'notes' => $r['interview_notes'] ?? '',
-        'registeredAt' => $r['lead_created_at'],
     ];
 }
 
+// Batch Cross-Branch CNIC history lookup for Reception queue
+$cnic_map = [];
+foreach ($out as $idx => $item) {
+    $digits = preg_replace('/[^0-9]/', '', (string)$item['cnic']);
+    if (!empty($digits) && strlen($digits) >= 9) {
+        $cnic_map[$digits][] = $idx;
+    }
+}
+
+if (!empty($cnic_map)) {
+    $in_keys = array_keys($cnic_map);
+    $in_ph = implode(',', array_fill(0, count($in_keys), '?'));
+    $in_types = str_repeat('s', count($in_keys));
+    
+    $c_sql = "
+        SELECT l.id, l.cnic, l.company_branch, l.current_stage, l.rejection_reason, l.created_at,
+               hr.result AS hr_result, hr.rejection_reason AS hr_rejection_reason,
+               gm.result AS gm_result, gm.rejection_reason AS gm_rejection_reason
+        FROM leads l
+        LEFT JOIN hr_interviews hr ON hr.lead_id = l.id
+        LEFT JOIN gm_interviews gm ON gm.lead_id = l.id
+        WHERE REPLACE(REPLACE(l.cnic, '-', ''), ' ', '') IN ($in_ph)
+        ORDER BY l.created_at DESC
+    ";
+    
+    $c_stmt = $conn->prepare($c_sql);
+    if ($c_stmt) {
+        bindParams($c_stmt, $in_types, $in_keys);
+        $c_stmt->execute();
+        $c_res = $c_stmt->get_result();
+        
+        $history_by_cnic = [];
+        $rej_stages = ['hr_rejected', 'gm_rejected', 'rejected', 'mock_rejected', 'left', 'not_appeared'];
+        
+        while ($h = $c_res->fetch_assoc()) {
+            $digits = preg_replace('/[^0-9]/', '', (string)$h['cnic']);
+            if (!isset($history_by_cnic[$digits])) {
+                $history_by_cnic[$digits] = [];
+            }
+            $history_by_cnic[$digits][] = $h;
+        }
+        
+        foreach ($cnic_map as $digits => $indexes) {
+            $past_rows = $history_by_cnic[$digits] ?? [];
+            foreach ($indexes as $idx) {
+                $curr_id = (int)$out[$idx]['id'];
+                $curr_branch = normalize_company_branch($branch);
+                
+                $prev_rejections = [];
+                $past_branches = [];
+                
+                foreach ($past_rows as $p) {
+                    $pid = (int)$p['id'];
+                    if ($pid === $curr_id) continue;
+                    
+                    $p_branch = normalize_company_branch($p['company_branch'] ?: 'main');
+                    $p_branch_label = company_branch_label($p_branch);
+                    $past_branches[$p_branch_label] = true;
+                    
+                    $p_stage = canonical_stage((string)$p['current_stage']);
+                    $p_rej = in_array($p_stage, $rej_stages, true) || 
+                             ($p['hr_result'] === 'rejected') || 
+                             ($p['gm_result'] === 'rejected') || 
+                             !empty($p['rejection_reason']);
+                             
+                    if ($p_rej) {
+                        $date_str = $p['created_at'] ? date('d-M-Y', strtotime($p['created_at'])) : '';
+                        $reason = $p['rejection_reason'] ?: ($p['hr_rejection_reason'] ?: ($p['gm_rejection_reason'] ?: 'Rejected previously'));
+                        $prev_rejections[] = [
+                            'lead_id' => $pid,
+                            'branch' => $p_branch_label,
+                            'branch_key' => $p_branch,
+                            'date' => $date_str,
+                            'stage' => $p_stage,
+                            'reason' => $reason,
+                            'summary' => "Prev. Rejected at $p_branch_label ($date_str)"
+                        ];
+                    }
+                }
+                
+                $out[$idx]['hasPreviousHistory'] = (count($past_rows) > 1);
+                $out[$idx]['hasPreviousRejection'] = !empty($prev_rejections);
+                $out[$idx]['previousRejections'] = $prev_rejections;
+                $out[$idx]['previousRejectionSummary'] = !empty($prev_rejections) ? $prev_rejections[0]['summary'] : '';
+                $out[$idx]['previousBranches'] = array_keys($past_branches);
+            }
+        }
+    }
+}
+
 respond(true, $out);
+

@@ -1317,25 +1317,37 @@
                 const typeClass = lead.queueType === 'form' ? 'form' : (lead.queueType === 'checkin' ? 'checkin' : 'scheduled');
                 const sourceLabel = lead.source === 'mobile' ? 'Mobile Form' : (lead.recruiterName ? `Recruiter: ${lead.recruiterName}` : (lead.referredBy || 'Walk-in'));
                 return `
-                    <div class="candidate-item">
+                    <div class="candidate-item" ${lead.hasPreviousRejection ? 'style="border-left: 3px solid var(--danger);"' : ''}>
                         <div class="candidate-header">
-                            <div class="candidate-avatar"><i class="fas fa-user"></i></div>
+                            <div class="candidate-avatar" ${lead.hasPreviousRejection ? 'style="background: rgba(239, 68, 68, 0.15); color: var(--danger);"' : ''}><i class="fas ${lead.hasPreviousRejection ? 'fa-user-times' : 'fa-user'}"></i></div>
                             <div class="candidate-info">
                                 <h4>${lead.fullName || lead.name}</h4>
-                                <div class="status-badge ${typeClass}">${lead.badge || 'Scheduled'}</div>
+                                <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
+                                    <div class="status-badge ${typeClass}">${lead.badge || 'Scheduled'}</div>
+                                    ${lead.hasPreviousRejection ? `
+                                        <div class="status-badge" style="background: rgba(239, 68, 68, 0.25); color: #f87171; border: 1px solid rgba(239,68,68,0.5); cursor:pointer;" onclick="showCrossBranchModal(${lead.id}, '${lead.cnic || ''}')" title="Click to view past interview rejection details">
+                                            <i class="fas fa-exclamation-triangle"></i> ${lead.previousRejectionSummary || 'Prev. Rejected'}
+                                        </div>` : ''}
+                                </div>
                             </div>
                         </div>
                         <div class="candidate-details">
                             <div class="detail-item"><i class="fas fa-phone"></i> ${lead.phone || 'N/A'}</div>
+                            <div class="detail-item"><i class="fas fa-id-card"></i> ${lead.cnic || 'N/A'}</div>
                             <div class="detail-item"><i class="fas fa-briefcase"></i> ${lead.position || 'N/A'}</div>
                             <div class="detail-item"><i class="fas fa-calendar"></i> ${formatInterviewWhen(lead)}</div>
                             <div class="detail-item"><i class="fas fa-building"></i> ${lead.interviewLocation || 'Main Office'}</div>
                             <div class="detail-item"><i class="fas fa-tag"></i> ${sourceLabel}</div>
                             ${lead.interviewer ? `<div class="detail-item"><i class="fas fa-user-tie"></i> Interviewer: ${lead.interviewer}</div>` : ''}
                         </div>
+                        ${lead.hasPreviousRejection ? `
+                        <div style="margin: 10px 0 14px 0; padding: 10px 14px; background: rgba(239,68,68,0.1); border: 1px dashed rgba(239,68,68,0.3); border-radius: 10px; font-size: 12px; color: #fca5a5;">
+                            <i class="fas fa-history" style="color: #ef4444; margin-right: 6px;"></i> <strong>Cross-Branch Alert:</strong> Candidate previously attended interview at <strong>${lead.previousRejections && lead.previousRejections[0] ? lead.previousRejections[0].branch : 'another branch'}</strong> and was <strong>Rejected</strong>. Reason: <em>${lead.previousRejections && lead.previousRejections[0] ? lead.previousRejections[0].reason : 'N/A'}</em>
+                        </div>` : ''}
                         <div class="action-buttons">
                             <button class="btn btn-call" onclick="callCandidate('${safeName}', 'Interview')"><i class="fas fa-volume-up"></i> Announce</button>
                             <button class="btn btn-secondary" onclick="checkInScheduled(${lead.id}, '${safeName}', '${lead.phone}')"><i class="fas fa-door-open"></i> Check In</button>
+                            ${(lead.hasPreviousHistory || lead.hasPreviousRejection) ? `<button class="btn btn-warning" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);" onclick="showCrossBranchModal(${lead.id}, '${lead.cnic || ''}')"><i class="fas fa-history"></i> Past History</button>` : ''}
                             <button class="btn btn-warning" onclick="markScheduledNotAppeared(${lead.id}, '${safeName}', '${lead.phone}')"><i class="fas fa-user-slash"></i> Not Appeared</button>
                             <button class="btn btn-send-hr" onclick="sendScheduledToHR(${lead.id}, '${safeName}', '${lead.phone}', '${safePos}')"><i class="fas fa-paper-plane"></i> Send to HR</button>
                         </div>
@@ -1682,14 +1694,16 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label><i class="fas fa-id-card"></i> CNIC</label>
-                            <input type="text" id="walkinCnic" class="form-control" placeholder="1234512345671">
+                            <label><i class="fas fa-id-card"></i> CNIC <span id="walkinCnicSpinner" style="display:none; font-size:11px; color:var(--primary);"><i class="fas fa-spinner fa-spin"></i> Checking history...</span></label>
+                            <input type="text" id="walkinCnic" class="form-control" maxlength="15" placeholder="37405-1234567-1 or 13 digits" oninput="handleWalkinCnic(this.value)" onblur="handleWalkinCnic(this.value, true)">
                         </div>
                         <div class="form-group">
                             <label><i class="fas fa-city"></i> City</label>
                             <input type="text" id="walkinCity" class="form-control" placeholder="Enter city">
                         </div>
                     </div>
+                    <!-- Cross-Branch Real-time History Alert -->
+                    <div id="walkinCnicAlertBox" style="display: none; margin-bottom: 20px; padding: 14px 18px; border-radius: 14px; font-size: 13px; line-height: 1.5; animation: fadeIn 0.3s ease;"></div>
                     <div class="form-row">
                         <div class="form-group">
                             <label><i class="fas fa-calendar"></i> Date of Birth</label>
@@ -1897,6 +1911,219 @@
             }, 25000, { pauseWhenHidden: true });
         }
 
+        let walkinCnicTimer = null;
+        let lastWalkinCheckedCnic = '';
+
+        window.handleWalkinCnic = function(val, immediate = false) {
+            const digits = (val || '').replace(/[^0-9]/g, '');
+            const alertBox = document.getElementById('walkinCnicAlertBox');
+            const spinner = document.getElementById('walkinCnicSpinner');
+            
+            if (digits.length < 13) {
+                if (digits.length === 0 && alertBox) {
+                    alertBox.style.display = 'none';
+                }
+                return;
+            }
+
+            if (digits === lastWalkinCheckedCnic && !immediate) return;
+
+            clearTimeout(walkinCnicTimer);
+            const runCheck = async () => {
+                lastWalkinCheckedCnic = digits;
+                if (spinner) spinner.style.display = 'inline';
+                
+                try {
+                    const res = await fetch('api/verify_candidate_cnic.php?cnic=' + encodeURIComponent(digits), {
+                        credentials: 'include'
+                    });
+                    const data = await res.json();
+                    if (spinner) spinner.style.display = 'none';
+                    
+                    if (data.success && data.data) {
+                        const d = data.data;
+                        if (d.has_rejection) {
+                            const rej = d.history.find(h => h.is_rejected) || d.history[0];
+                            alertBox.style.display = 'block';
+                            alertBox.style.background = 'rgba(239, 68, 68, 0.15)';
+                            alertBox.style.border = '1px solid rgba(239, 68, 68, 0.5)';
+                            alertBox.style.color = '#fca5a5';
+                            alertBox.innerHTML = `
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+                                    <div style="display:flex; gap:12px; align-items:flex-start;">
+                                        <i class="fas fa-exclamation-triangle" style="font-size:22px; color:#ef4444; margin-top:2px;"></i>
+                                        <div>
+                                            <div style="font-weight:700; font-size:14px; color:#f87171;">⚠️ Candidate Previously Rejected at Another Branch!</div>
+                                            <div style="margin-top:5px; font-size:12px; color:#e2e8f0;">
+                                                <strong>Branch:</strong> <span style="color:#fb923c;">${rej ? rej.branch_label : 'Main Branch'}</span> &nbsp;|&nbsp;
+                                                <strong>Date:</strong> ${rej ? rej.applied_date : 'Past'} &nbsp;|&nbsp;
+                                                <strong>Status:</strong> <span style="background:rgba(239,68,68,0.3); padding:2px 8px; border-radius:4px; font-weight:600; color:#fff;">${rej ? rej.status_title : 'Rejected'}</span>
+                                            </div>
+                                            ${rej && rej.rejection_reason ? `<div style="margin-top:4px; font-size:12px; color:#fed7aa;"><strong>Rejection Reason:</strong> ${rej.rejection_reason}</div>` : ''}
+                                            ${rej && rej.remarks && rej.remarks.length ? `<div style="margin-top:4px; font-size:11px; opacity:0.85;"><strong>Interviewer Remarks:</strong> "${rej.remarks[0].text}"</div>` : ''}
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-warning" style="padding:6px 12px; font-size:11px; border-radius:8px; white-space:nowrap;" onclick="showCrossBranchModal(0, '${digits}')">
+                                        <i class="fas fa-history"></i> Full History
+                                    </button>
+                                </div>
+                            `;
+                        } else if (d.has_history) {
+                            const first = d.history[0];
+                            alertBox.style.display = 'block';
+                            alertBox.style.background = 'rgba(245, 158, 11, 0.15)';
+                            alertBox.style.border = '1px solid rgba(245, 158, 11, 0.4)';
+                            alertBox.style.color = '#fde68a';
+                            alertBox.innerHTML = `
+                                <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                                    <div>
+                                        <i class="fas fa-info-circle" style="color:#f59e0b; margin-right:6px;"></i>
+                                        <strong>Candidate Applied Previously:</strong> ${first ? first.branch_label : 'Other Branch'} (${first ? first.applied_date : ''}) - Status: ${first ? first.status_title : ''}
+                                    </div>
+                                    <button type="button" class="btn btn-warning" style="padding:4px 10px; font-size:11px; border-radius:8px;" onclick="showCrossBranchModal(0, '${digits}')">View</button>
+                                </div>
+                            `;
+                        } else {
+                            alertBox.style.display = 'none';
+                        }
+
+                        // Auto-fill past personal details if blank
+                        if (d.history && d.history.length > 0) {
+                            const prev = d.history[0];
+                            const nameInput = document.getElementById('walkinName');
+                            const fatherInput = document.getElementById('walkinFather');
+                            const phoneInput = document.getElementById('walkinPhone');
+                            const emailInput = document.getElementById('walkinEmail');
+                            const cityInput = document.getElementById('walkinCity');
+                            
+                            if (nameInput && !nameInput.value && prev.full_name) nameInput.value = prev.full_name;
+                            if (fatherInput && !fatherInput.value && prev.father_name) fatherInput.value = prev.father_name;
+                            if (phoneInput && !phoneInput.value && prev.phone) phoneInput.value = prev.phone;
+                            if (emailInput && !emailInput.value && prev.email) emailInput.value = prev.email;
+                            if (cityInput && !cityInput.value && prev.city) cityInput.value = prev.city;
+                        }
+                    }
+                } catch (err) {
+                    console.warn('Reception CNIC check error:', err);
+                    if (spinner) spinner.style.display = 'none';
+                }
+            };
+
+            if (immediate) {
+                runCheck();
+            } else {
+                walkinCnicTimer = setTimeout(runCheck, 350);
+            }
+        };
+
+        window.showCrossBranchModal = async function(leadId, cnic) {
+            const oldModal = document.querySelector('.modal-overlay');
+            if (oldModal) oldModal.remove();
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.right = '0';
+            modal.style.bottom = '0';
+            modal.style.background = 'rgba(0,0,0,0.8)';
+            modal.style.backdropFilter = 'blur(10px)';
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            modal.style.zIndex = '9999';
+            modal.style.padding = '20px';
+
+            modal.innerHTML = `
+                <div class="modal-card" style="background:var(--bg-card); border:1px solid var(--border-primary); border-radius:24px; padding:30px; max-width:750px; width:100%; max-height:85vh; overflow-y:auto; color:var(--text-primary); box-shadow:var(--shadow-2xl);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-light); padding-bottom:16px; margin-bottom:20px;">
+                        <h3 style="display:flex; align-items:center; gap:10px; font-size:20px;">
+                            <i class="fas fa-history" style="color:var(--primary);"></i> Cross-Branch Candidate History
+                        </h3>
+                        <button onclick="this.closest('.modal-overlay').remove()" style="background:transparent; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div id="crossBranchModalBody">
+                        <div style="text-align:center; padding:30px; color:var(--text-muted);">
+                            <i class="fas fa-spinner fa-spin fa-2x"></i>
+                            <p style="margin-top:10px;">Fetching past records across all branches...</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            try {
+                const url = leadId ? `api/verify_candidate_cnic.php?lead_id=${leadId}` : `api/verify_candidate_cnic.php?cnic=${encodeURIComponent(cnic)}`;
+                const res = await fetch(url, { credentials: 'include' });
+                const data = await res.json();
+                const container = document.getElementById('crossBranchModalBody');
+                if (!container) return;
+
+                if (!data.success || !data.data || data.data.history.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align:center; padding:30px; color:var(--text-muted);">
+                            <i class="fas fa-check-circle" style="font-size:36px; color:var(--secondary); margin-bottom:10px;"></i>
+                            <h4>No Prior Applications Found</h4>
+                            <p style="font-size:13px; margin-top:5px;">This candidate has no recorded previous attempts or rejections in other branches.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const d = data.data;
+                container.innerHTML = `
+                    <div style="margin-bottom:20px; padding:14px; border-radius:12px; ${d.has_rejection ? 'background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#fca5a5;' : 'background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.3); color:#93c5fd;'}">
+                        <strong>${d.summary}</strong>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:16px;">
+                        ${d.history.map(item => `
+                            <div style="background:var(--bg-sidebar); border-radius:16px; padding:18px; border:1px solid ${item.is_rejected ? 'rgba(239,68,68,0.4)' : 'var(--border-light)'};">
+                                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                                    <div>
+                                        <span style="font-size:16px; font-weight:700; color:#fff;">${item.full_name}</span>
+                                        <span style="margin-left:10px; font-size:12px; padding:2px 8px; border-radius:6px; background:rgba(249,115,22,0.15); color:var(--primary); font-weight:600;">
+                                            <i class="fas fa-building"></i> ${item.branch_label}
+                                        </span>
+                                    </div>
+                                    <div style="padding:4px 10px; border-radius:20px; font-size:12px; font-weight:700; ${item.is_rejected ? 'background:#ef4444; color:#fff;' : 'background:var(--secondary); color:#fff;'}">
+                                        ${item.status_title}
+                                    </div>
+                                </div>
+                                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:8px; font-size:12px; color:var(--text-muted); margin-bottom:12px;">
+                                    <div><i class="fas fa-id-card"></i> CNIC: <strong style="color:var(--text-secondary);">${item.cnic || 'N/A'}</strong></div>
+                                    <div><i class="fas fa-phone"></i> Phone: <strong style="color:var(--text-secondary);">${item.phone || 'N/A'}</strong></div>
+                                    <div><i class="fas fa-briefcase"></i> Position: <strong style="color:var(--text-secondary);">${item.position || 'N/A'}</strong></div>
+                                    <div><i class="fas fa-calendar"></i> Applied Date: <strong style="color:var(--text-secondary);">${item.applied_date}</strong></div>
+                                </div>
+                                ${item.rejection_reason ? `
+                                    <div style="padding:10px 12px; background:rgba(239,68,68,0.1); border-radius:8px; font-size:12px; color:#fca5a5; margin-bottom:10px;">
+                                        <strong><i class="fas fa-times-circle"></i> Rejection Reason:</strong> ${item.rejection_reason}
+                                    </div>
+                                ` : ''}
+                                ${item.remarks && item.remarks.length > 0 ? `
+                                    <div style="margin-top:10px;">
+                                        <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px;">Interviewer Remarks:</div>
+                                        ${item.remarks.map(r => `
+                                            <div style="padding:8px 12px; background:rgba(255,255,255,0.03); border-left:3px solid var(--primary); border-radius:4px; font-size:12px; margin-bottom:4px;">
+                                                <div style="color:var(--text-secondary);">${r.text}</div>
+                                                <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">— ${r.by} (${r.role || 'HR/Agent'}) on ${new Date(r.date).toLocaleString()}</div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (e) {
+                const container = document.getElementById('crossBranchModalBody');
+                if (container) {
+                    container.innerHTML = `<div style="color:var(--danger); padding:20px; text-align:center;">Failed to load candidate history: ${e.message}</div>`;
+                }
+            }
+        };
+
         window.showDashboard = showDashboard;
         window.showScheduledLeads = showScheduledLeads;
         window.callCandidate = callCandidate;
@@ -1918,6 +2145,8 @@
         window.toggleCustomReferralInput = toggleCustomReferralInput;
         window.handleAddCustomReferral = handleAddCustomReferral;
         window.populateReferralsDropdown = populateReferralsDropdown;
+        window.handleWalkinCnic = handleWalkinCnic;
+        window.showCrossBranchModal = showCrossBranchModal;
     </script>
     <script src="js/portal-chat-fab.js"></script>
 </body>

@@ -254,14 +254,17 @@
 
             <div class="row">
                 <div class="form-group">
-                    <label><i class="fas fa-id-card"></i> CNIC *</label>
-                    <input type="text" class="form-control" id="cnic" maxlength="13" placeholder="1234512345671">
+                    <label><i class="fas fa-id-card"></i> CNIC * <span id="cnicCheckSpinner" style="display:none; font-size:11px; color:var(--primary);"><i class="fas fa-spinner fa-spin"></i> Checking history...</span></label>
+                    <input type="text" class="form-control" id="cnic" maxlength="15" placeholder="37405-1234567-1 or 13 digits" oninput="handleCnicInput(this.value)" onblur="handleCnicInput(this.value, true)">
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-city"></i> City *</label>
                     <input type="text" class="form-control" id="city" placeholder="Enter city">
                 </div>
             </div>
+
+            <!-- Real-time Cross-Branch CNIC Verification Alert -->
+            <div id="cnicAlertBox" style="display: none; margin-bottom: 20px; padding: 14px 16px; border-radius: 14px; font-size: 13px; line-height: 1.5; animation: fadeIn 0.3s ease;"></div>
 
             <div class="row">
                 <div class="form-group">
@@ -438,6 +441,111 @@
             setTimeout(() => {
                 document.getElementById('successMessage').style.display = 'none';
             }, 3000);
+        };
+
+        let cnicDebounceTimer = null;
+        let lastCheckedCnic = '';
+
+        window.handleCnicInput = function(val, immediate = false) {
+            const digits = (val || '').replace(/[^0-9]/g, '');
+            const alertBox = document.getElementById('cnicAlertBox');
+            const spinner = document.getElementById('cnicCheckSpinner');
+            
+            if (digits.length < 13) {
+                if (digits.length === 0 && alertBox) {
+                    alertBox.style.display = 'none';
+                }
+                return;
+            }
+
+            if (digits === lastCheckedCnic && !immediate) return;
+
+            clearTimeout(cnicDebounceTimer);
+            const runCheck = async () => {
+                lastCheckedCnic = digits;
+                if (spinner) spinner.style.display = 'inline';
+                
+                try {
+                    const res = await fetch('api/verify_candidate_cnic.php?cnic=' + encodeURIComponent(digits), {
+                        credentials: 'include'
+                    });
+                    const data = await res.json();
+                    if (spinner) spinner.style.display = 'none';
+                    
+                    if (data.success && data.data) {
+                        const d = data.data;
+                        if (d.has_rejection) {
+                            // Find rejection item
+                            const rej = d.history.find(h => h.is_rejected) || d.history[0];
+                            alertBox.style.display = 'block';
+                            alertBox.style.background = '#fef2f2';
+                            alertBox.style.border = '1px solid #f87171';
+                            alertBox.style.color = '#991b1b';
+                            alertBox.innerHTML = `
+                                <div style="display:flex; align-items:flex-start; gap:10px;">
+                                    <i class="fas fa-exclamation-triangle" style="font-size:18px; color:#dc2626; margin-top:2px;"></i>
+                                    <div>
+                                        <strong style="font-size:14px; color:#7f1d1d;">Previous Interview Rejection Found!</strong>
+                                        <div style="margin-top:4px; font-size:12px;">
+                                            <strong>Branch:</strong> ${rej ? rej.branch_label : 'Main Branch'} &nbsp;|&nbsp; 
+                                            <strong>Date:</strong> ${rej ? rej.applied_date : 'Past'} &nbsp;|&nbsp;
+                                            <strong>Status:</strong> <span style="background:#fee2e2; padding:2px 6px; border-radius:4px; font-weight:600;">${rej ? rej.status_title : 'Rejected'}</span>
+                                        </div>
+                                        ${rej && rej.rejection_reason ? `<div style="margin-top:4px; font-size:12px;"><strong>Rejection Reason:</strong> ${rej.rejection_reason}</div>` : ''}
+                                        ${rej && rej.remarks && rej.remarks.length ? `<div style="margin-top:4px; font-size:11px; opacity:0.9;"><strong>Past Remarks:</strong> "${rej.remarks[0].text}"</div>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        } else if (d.has_history) {
+                            const first = d.history[0];
+                            alertBox.style.display = 'block';
+                            alertBox.style.background = '#fffbeb';
+                            alertBox.style.border = '1px solid #fcd34d';
+                            alertBox.style.color = '#92400e';
+                            alertBox.innerHTML = `
+                                <div style="display:flex; align-items:flex-start; gap:10px;">
+                                    <i class="fas fa-info-circle" style="font-size:18px; color:#d97706; margin-top:2px;"></i>
+                                    <div>
+                                        <strong>Candidate Applied Previously</strong>
+                                        <div style="margin-top:4px; font-size:12px;">
+                                            <strong>Branch:</strong> ${first ? first.branch_label : 'Other'} &nbsp;|&nbsp;
+                                            <strong>Applied:</strong> ${first ? first.applied_date : ''} &nbsp;|&nbsp;
+                                            <strong>Last Status:</strong> ${first ? first.status_title : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            alertBox.style.display = 'none';
+                        }
+
+                        // Auto fill basic information if empty
+                        if (d.history && d.history.length > 0) {
+                            const prev = d.history[0];
+                            const fName = document.getElementById('fullName');
+                            const fatName = document.getElementById('fatherName');
+                            const ph = document.getElementById('phone');
+                            const em = document.getElementById('email');
+                            const ct = document.getElementById('city');
+                            
+                            if (fName && !fName.value && prev.full_name) fName.value = prev.full_name;
+                            if (fatName && !fatName.value && prev.father_name) fatName.value = prev.father_name;
+                            if (ph && !ph.value && prev.phone) ph.value = prev.phone;
+                            if (em && !em.value && prev.email) em.value = prev.email;
+                            if (ct && !ct.value && prev.city) ct.value = prev.city;
+                        }
+                    }
+                } catch (err) {
+                    console.warn('CNIC verification check error:', err);
+                    if (spinner) spinner.style.display = 'none';
+                }
+            };
+
+            if (immediate) {
+                runCheck();
+            } else {
+                cnicDebounceTimer = setTimeout(runCheck, 350);
+            }
         };
     </script>
 </body>

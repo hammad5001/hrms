@@ -1695,37 +1695,57 @@
             return true;
         }
 
-        function showRemarksModal(candidateId) {
+        async function showRemarksModal(candidateId) {
             const candidate = candidates.find(c => c.id == candidateId);
             if (!candidate) return;
             
             const modalHtml = `
                 <div class="modal-overlay" id="remarksModal">
-                    <div class="modal">
+                    <div class="modal" style="max-width: 700px; width: 95%;">
                         <div class="modal-header">
                             <i class="fas fa-comments" style="color: var(--primary); font-size: 24px;"></i>
-                            <h3>Add Remarks - ${candidate.fullName}</h3>
+                            <h3>Interview Evaluation &amp; History - ${candidate.fullName}</h3>
                             <button class="modal-close" onclick="closeModal()">×</button>
                         </div>
-                        <div class="modal-body">
-                            <textarea id="newRemark" placeholder="Enter your interview remarks here..."></textarea>
-                            <button class="btn btn-success" onclick="saveRemark(${candidateId})" style="width: 100%; margin-top: 15px;">
-                                <i class="fas fa-plus"></i> Add Remark
-                            </button>
-                            <div style="margin-top: 20px;">
-                                <h4 style="margin-bottom: 10px;">Previous Remarks</h4>
+                        <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
+                            <!-- Cross-Branch Past History Section -->
+                            <div id="hrCrossBranchBox" style="margin-bottom: 20px;">
+                                <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">
+                                    <i class="fas fa-history"></i> Cross-Branch Verification
+                                </div>
+                                <div id="hrCrossBranchContent" style="padding: 12px 14px; background: var(--bg-input); border-radius: 10px; font-size: 12px;">
+                                    <i class="fas fa-spinner fa-spin"></i> Checking candidate history across all branches...
+                                </div>
+                            </div>
+
+                            <!-- Add New HR Remark -->
+                            <div style="margin-bottom: 20px;">
+                                <label style="display:block; font-size:12px; font-weight:600; margin-bottom:6px; color:var(--text-secondary);">
+                                    <i class="fas fa-edit"></i> Add HR Evaluation Remark
+                                </label>
+                                <textarea id="newRemark" placeholder="Enter your interview observations, communication rating, English level, etc..."></textarea>
+                                <button class="btn btn-success" onclick="saveRemark(${candidateId})" style="width: 100%; margin-top: 10px;">
+                                    <i class="fas fa-plus"></i> Save Remark
+                                </button>
+                            </div>
+
+                            <!-- Current Candidate Remarks -->
+                            <div>
+                                <h4 style="font-size: 13px; font-weight: 700; margin-bottom: 10px; color: var(--text-secondary);">
+                                    Current Application Remarks
+                                </h4>
                                 <div id="remarksList">
                                     ${candidate.remarks && candidate.remarks.length > 0 ? 
                                         candidate.remarks.slice().reverse().map(r => `
-                                            <div style="padding: 10px; background: var(--bg-input); border-radius: 8px; margin-bottom: 8px;">
+                                            <div style="padding: 10px 12px; background: var(--bg-input); border-left: 3px solid var(--primary); border-radius: 6px; margin-bottom: 8px;">
                                                 <div style="display: flex; justify-content: space-between; font-size: 11px;">
-                                                    <strong>${r.addedBy || 'System'}</strong>
+                                                    <strong style="color:var(--text-primary);">${r.addedBy || 'System'}</strong>
                                                     <span style="color: var(--text-muted);">${new Date(r.timestamp).toLocaleString()}</span>
                                                 </div>
-                                                <div style="font-size: 13px; margin-top: 5px;">${r.text}</div>
+                                                <div style="font-size: 13px; margin-top: 4px; color:var(--text-secondary);">${r.text}</div>
                                             </div>
                                         `).join('') : 
-                                        '<p style="color: var(--text-muted);">No remarks yet</p>'
+                                        '<p style="color: var(--text-muted); font-size: 12px;">No remarks added yet for current application</p>'
                                     }
                                 </div>
                             </div>
@@ -1737,6 +1757,66 @@
                 </div>
             `;
             document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            // Fetch Cross-branch verification in background
+            try {
+                const url = candidate.cnic 
+                    ? `api/verify_candidate_cnic.php?cnic=${encodeURIComponent(candidate.cnic)}&lead_id=${candidate.id}`
+                    : `api/verify_candidate_cnic.php?lead_id=${candidate.id}`;
+                    
+                const res = await fetch(url, { credentials: 'include' });
+                const data = await res.json();
+                const box = document.getElementById('hrCrossBranchContent');
+                if (!box) return;
+
+                if (data.success && data.data) {
+                    const d = data.data;
+                    if (d.has_rejection) {
+                        const otherRejs = d.history.filter(h => !h.is_current_record && h.is_rejected);
+                        box.style.background = 'rgba(239, 68, 68, 0.12)';
+                        box.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+                        box.style.color = '#fca5a5';
+                        box.innerHTML = `
+                            <div style="font-weight: 700; color: #f87171; font-size: 13px; margin-bottom: 6px;">
+                                <i class="fas fa-exclamation-triangle"></i> PREVIOUS REJECTION RECORD DETECTED!
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                                ${otherRejs.map(h => `
+                                    <div style="padding:8px 10px; background:rgba(0,0,0,0.2); border-radius:6px; font-size:12px; color:#fff;">
+                                        <div>
+                                            <strong>Branch:</strong> <span style="color:#fb923c;">${h.branch_label}</span> &nbsp;|&nbsp;
+                                            <strong>Date:</strong> ${h.applied_date} &nbsp;|&nbsp;
+                                            <strong>Status:</strong> <span style="background:#ef4444; padding:1px 6px; border-radius:4px; font-size:11px;">${h.status_title}</span>
+                                        </div>
+                                        ${h.rejection_reason ? `<div style="margin-top:3px; color:#fca5a5;"><strong>Rejection Reason:</strong> ${h.rejection_reason}</div>` : ''}
+                                        ${h.remarks && h.remarks.length > 0 ? `<div style="margin-top:3px; font-size:11px; color:#cbd5e1;"><strong>Interviewer Notes:</strong> "${h.remarks[0].text}"</div>` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                    } else if (d.has_history) {
+                        const otherRecords = d.history.filter(h => !h.is_current_record);
+                        box.style.background = 'rgba(59, 130, 246, 0.1)';
+                        box.style.border = '1px solid rgba(59, 130, 246, 0.3)';
+                        box.style.color = '#93c5fd';
+                        box.innerHTML = `
+                            <div><strong>ℹ️ Prior Applications Found:</strong></div>
+                            <div style="margin-top:4px; font-size:11px; color:#e2e8f0;">
+                                ${otherRecords.map(h => `${h.branch_label} (${h.applied_date}) - Status: ${h.status_title}`).join(' | ')}
+                            </div>
+                        `;
+                    } else {
+                        box.style.background = 'rgba(16, 185, 129, 0.08)';
+                        box.style.border = '1px solid rgba(16, 185, 129, 0.2)';
+                        box.style.color = '#6ee7b7';
+                        box.innerHTML = `<div><i class="fas fa-check-circle"></i> No prior application or rejection recorded across other branches. (First-time Applicant)</div>`;
+                    }
+                }
+            } catch (err) {
+                console.warn('Cross-branch check error in modal:', err);
+                const box = document.getElementById('hrCrossBranchContent');
+                if (box) box.innerHTML = '<span style="color:var(--text-muted);">Could not load cross-branch verification</span>';
+            }
         }
 
         function showSelectWithRemarksModal(candidateId) {
@@ -2337,27 +2417,39 @@
             }
             
             return list.map(c => `
-                <div class="candidate-item">
+                <div class="candidate-item" ${c.hasPreviousRejection ? 'style="border-left: 3px solid var(--danger);"' : ''}>
                     <div class="candidate-header">
-                        <div class="candidate-avatar"><i class="fas fa-user"></i></div>
+                        <div class="candidate-avatar" ${c.hasPreviousRejection ? 'style="background: rgba(239, 68, 68, 0.15); color: var(--danger);"' : ''}>
+                            <i class="fas ${c.hasPreviousRejection ? 'fa-user-times' : 'fa-user'}"></i>
+                        </div>
                         <div class="candidate-info">
                             <h4>${c.fullName}</h4>
-                            <div class="candidate-tags">
+                            <div class="candidate-tags" style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
                                 <span class="tag campaign">${c.position || 'Campaign'}</span>
+                                ${c.hasPreviousRejection ? `
+                                    <span class="tag" style="background: rgba(239, 68, 68, 0.25); color: #f87171; border: 1px solid rgba(239,68,68,0.5); cursor:pointer; font-weight:700;" onclick="showHrCrossBranchModal(${c.id}, '${c.cnic || ''}')" title="Click to view detailed past interview notes">
+                                        <i class="fas fa-exclamation-triangle"></i> ${c.previousRejectionSummary || 'Prev. Rejected (Other Branch)'}
+                                    </span>
+                                ` : ''}
                             </div>
                         </div>
                     </div>
                     <div class="candidate-details">
                         <div class="detail-item"><i class="fas fa-phone"></i> ${c.phone}</div>
-                        <div class="detail-item"><i class="fas fa-envelope"></i> ${c.email}</div>
-                        <div class="detail-item"><i class="fas fa-id-card"></i> ${c.cnic}</div>
-                        <div class="detail-item"><i class="fas fa-graduation-cap"></i> ${c.graduation}</div>
+                        <div class="detail-item"><i class="fas fa-envelope"></i> ${c.email || 'N/A'}</div>
+                        <div class="detail-item"><i class="fas fa-id-card"></i> ${c.cnic || 'N/A'}</div>
+                        <div class="detail-item"><i class="fas fa-graduation-cap"></i> ${c.graduation || 'N/A'}</div>
                         <div class="detail-item"><i class="fas fa-user-plus"></i> Referred: ${c.referredBy || 'Walk-in'}</div>
                         <div class="detail-item"><i class="fas fa-calendar"></i> Applied: ${new Date(c.applicationDate || c.registeredAt || c.timestamp || Date.now()).toLocaleDateString()}</div>
                     </div>
+                    ${c.hasPreviousRejection ? `
+                    <div style="margin: 10px 0 12px 0; padding: 10px 14px; background: rgba(239,68,68,0.12); border: 1px dashed rgba(239,68,68,0.35); border-radius: 10px; font-size: 12px; color: #fca5a5;">
+                        <i class="fas fa-history" style="color: #ef4444; margin-right: 6px;"></i> <strong>Cross-Branch Alert:</strong> Candidate previously attended interview at <strong>${c.previousRejections && c.previousRejections[0] ? c.previousRejections[0].branch : 'another branch'}</strong> and was <strong>Rejected</strong>. Reason: <em>${c.previousRejections && c.previousRejections[0] ? c.previousRejections[0].reason : 'N/A'}</em>
+                    </div>` : ''}
                     <div class="call-count"><i class="fas fa-phone-alt"></i> Called: ${c.callCount || 0} times</div>
                     <div class="action-buttons">
                         <button class="btn btn-warning" onclick="showRemarksModal(${c.id})"><i class="fas fa-comment"></i> Remarks</button>
+                        ${(c.hasPreviousHistory || c.hasPreviousRejection) ? `<button class="btn btn-warning" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);" onclick="showHrCrossBranchModal(${c.id}, '${c.cnic || ''}')"><i class="fas fa-history"></i> Past History</button>` : ''}
                         <button class="btn btn-primary" onclick="callCandidate(${c.id}, 'HR')"><i class="fas fa-phone-alt"></i> Call Candidate</button>
                         <button class="btn btn-success" onclick="selectCandidate(${c.id})"><i class="fas fa-check"></i> Selected</button>
                         <button class="btn btn-warning" onclick="markPendingOutcome(${c.id})"><i class="fas fa-clock"></i> Pending</button>
@@ -2463,6 +2555,116 @@
         window.rejectCandidate = rejectCandidate;
         window.markPendingOutcome = markPendingOutcome;
         window.callCandidate = callCandidate;
+        window.showHrCrossBranchModal = async function(leadId, cnic) {
+            const oldModal = document.querySelector('.modal-overlay');
+            if (oldModal) oldModal.remove();
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.right = '0';
+            modal.style.bottom = '0';
+            modal.style.background = 'rgba(0,0,0,0.82)';
+            modal.style.backdropFilter = 'blur(10px)';
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            modal.style.zIndex = '9999';
+            modal.style.padding = '20px';
+
+            modal.innerHTML = `
+                <div class="modal-card" style="background:var(--bg-card); border:1px solid var(--border-primary); border-radius:24px; padding:30px; max-width:750px; width:100%; max-height:85vh; overflow-y:auto; color:var(--text-primary); box-shadow:var(--shadow-2xl);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-secondary); padding-bottom:16px; margin-bottom:20px;">
+                        <h3 style="display:flex; align-items:center; gap:10px; font-size:20px;">
+                            <i class="fas fa-history" style="color:var(--primary);"></i> Cross-Branch Candidate Verification &amp; Past Interviews
+                        </h3>
+                        <button onclick="this.closest('.modal-overlay').remove()" style="background:transparent; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div id="hrCrossBranchDetailBody">
+                        <div style="text-align:center; padding:30px; color:var(--text-muted);">
+                            <i class="fas fa-spinner fa-spin fa-2x"></i>
+                            <p style="margin-top:10px;">Fetching past records across all branches...</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            try {
+                const url = leadId ? `api/verify_candidate_cnic.php?lead_id=${leadId}` : `api/verify_candidate_cnic.php?cnic=${encodeURIComponent(cnic)}`;
+                const res = await fetch(url, { credentials: 'include' });
+                const data = await res.json();
+                const container = document.getElementById('hrCrossBranchDetailBody');
+                if (!container) return;
+
+                if (!data.success || !data.data || data.data.history.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align:center; padding:30px; color:var(--text-muted);">
+                            <i class="fas fa-check-circle" style="font-size:36px; color:var(--secondary); margin-bottom:10px;"></i>
+                            <h4>No Prior Applications Found</h4>
+                            <p style="font-size:13px; margin-top:5px;">This candidate has no recorded previous attempts or rejections in other branches.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const d = data.data;
+                container.innerHTML = `
+                    <div style="margin-bottom:20px; padding:14px; border-radius:12px; ${d.has_rejection ? 'background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.35); color:#fca5a5;' : 'background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.3); color:#93c5fd;'}">
+                        <strong>${d.summary}</strong>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:16px;">
+                        ${d.history.map(item => `
+                            <div style="background:var(--bg-input); border-radius:16px; padding:18px; border:1px solid ${item.is_rejected ? 'rgba(239,68,68,0.4)' : 'var(--border-secondary)'};">
+                                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                                    <div>
+                                        <span style="font-size:16px; font-weight:700; color:#fff;">${item.full_name}</span>
+                                        <span style="margin-left:10px; font-size:12px; padding:2px 8px; border-radius:6px; background:rgba(249,115,22,0.15); color:var(--primary); font-weight:600;">
+                                            <i class="fas fa-building"></i> ${item.branch_label}
+                                        </span>
+                                        ${item.is_current_record ? '<span style="margin-left:6px; font-size:11px; padding:2px 6px; border-radius:4px; background:rgba(59,130,246,0.2); color:#60a5fa;">Current Record</span>' : ''}
+                                    </div>
+                                    <div style="padding:4px 10px; border-radius:20px; font-size:12px; font-weight:700; ${item.is_rejected ? 'background:#ef4444; color:#fff;' : 'background:var(--secondary); color:#fff;'}">
+                                        ${item.status_title}
+                                    </div>
+                                </div>
+                                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:8px; font-size:12px; color:var(--text-muted); margin-bottom:12px;">
+                                    <div><i class="fas fa-id-card"></i> CNIC: <strong style="color:var(--text-secondary);">${item.cnic || 'N/A'}</strong></div>
+                                    <div><i class="fas fa-phone"></i> Phone: <strong style="color:var(--text-secondary);">${item.phone || 'N/A'}</strong></div>
+                                    <div><i class="fas fa-briefcase"></i> Position: <strong style="color:var(--text-secondary);">${item.position || 'N/A'}</strong></div>
+                                    <div><i class="fas fa-calendar"></i> Applied Date: <strong style="color:var(--text-secondary);">${item.applied_date}</strong></div>
+                                </div>
+                                ${item.rejection_reason ? `
+                                    <div style="padding:10px 12px; background:rgba(239,68,68,0.12); border-radius:8px; font-size:12px; color:#fca5a5; margin-bottom:10px;">
+                                        <strong><i class="fas fa-times-circle"></i> Rejection Reason:</strong> ${item.rejection_reason}
+                                    </div>
+                                ` : ''}
+                                ${item.remarks && item.remarks.length > 0 ? `
+                                    <div style="margin-top:10px;">
+                                        <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px;">Interviewer Remarks:</div>
+                                        ${item.remarks.map(r => `
+                                            <div style="padding:8px 12px; background:rgba(255,255,255,0.03); border-left:3px solid var(--primary); border-radius:4px; font-size:12px; margin-bottom:4px;">
+                                                <div style="color:var(--text-secondary);">${r.text}</div>
+                                                <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">— ${r.by} (${r.role || 'HR'}) on ${new Date(r.date).toLocaleString()}</div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (e) {
+                const container = document.getElementById('hrCrossBranchDetailBody');
+                if (container) {
+                    container.innerHTML = `<div style="color:var(--danger); padding:20px; text-align:center;">Failed to load candidate history: ${e.message}</div>`;
+                }
+            }
+        };
+
+        window.showHrCrossBranchModal = showHrCrossBranchModal;
         window.toggleTheme = toggleTheme;
         window.forceSync = forceSync;
         window.logout = logout;
