@@ -62,7 +62,10 @@ $stmt = $conn->prepare("
         employee_code, phone, company_branch, status, created_at
     ) VALUES (?, ?, ?, ?, 'recruiter', ?, ?, ?, 'active', NOW())
 ");
-$rec_branch = get_active_company_branch();
+$branch_input = trim($data['company_branch'] ?? '');
+$rec_branch = ($branch_input !== '' && is_valid_company_branch($branch_input)) 
+    ? normalize_company_branch($branch_input) 
+    : get_active_company_branch();
 $stmt->bind_param("sssssss", $full_name, $email, $username, $password_hash, $employee_code, $phone, $rec_branch);
 
 if ($stmt->execute()) {

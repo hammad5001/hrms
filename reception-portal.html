@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Balitech - Reception Portal</title>
-    <link rel="stylesheet" href="css/dropdown-fix.css">
-    <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
-    <link rel="stylesheet" href="css/reception-pro.css?v=1">
+    <link rel="stylesheet" href="css/dropdown-fix.css?v=2.3">
+    <link rel="stylesheet" href="css/portal-ui-polish.css?v=2.3">
+    <link rel="stylesheet" href="css/reception-pro.css?v=2.3">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -266,20 +266,23 @@
         .main-content {
             flex: 1;
             margin-left: 280px;
-            padding: 28px 36px;
+            padding: 20px 24px;
+            max-width: calc(100vw - 280px);
+            box-sizing: border-box;
+            min-width: 0;
         }
 
         .top-header {
             background: var(--bg-card);
             backdrop-filter: blur(20px);
-            border-radius: 28px;
-            padding: 20px 32px;
-            margin-bottom: 28px;
+            border-radius: 20px;
+            padding: 16px 24px;
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: 16px;
             border: 1px solid var(--border-light);
             box-shadow: var(--shadow-md);
         }
@@ -368,31 +371,104 @@
             color: var(--primary);
         }
 
+        /* Stat Cards - Premium Glowing Glassmorphism */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border-radius: 22px;
+            padding: 22px 24px;
+            border: 1px solid var(--border-light);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary);
+            opacity: 0.8;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--border-primary);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+        }
+
+        .stat-icon-wrap {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .stat-info {
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.1;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         /* QR Section - Enhanced */
         .qr-section {
             background: var(--bg-card);
             border-radius: 28px;
-            padding: 40px;
+            padding: 36px 40px;
             margin-bottom: 30px;
             border: 1px solid var(--border-primary);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 50px;
+            gap: 40px;
             flex-wrap: wrap;
             position: relative;
             overflow: hidden;
-            background: linear-gradient(135deg, var(--bg-card), rgba(249,115,22,0.05));
+            background: linear-gradient(135deg, rgba(30,36,54,0.95), rgba(15,21,36,0.95));
+            box-shadow: var(--shadow-lg);
         }
 
         .qr-info {
             flex: 1;
+            min-width: 280px;
         }
 
         .qr-info h3 {
-            font-size: 28px;
+            font-size: 24px;
+            font-weight: 800;
             color: var(--text-primary);
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             gap: 12px;
@@ -403,54 +479,58 @@
             background: var(--primary-light);
             padding: 12px;
             border-radius: 16px;
+            font-size: 20px;
         }
 
         .qr-info p {
             color: var(--text-muted);
             font-size: 14px;
-            margin-bottom: 25px;
+            margin-bottom: 22px;
             line-height: 1.6;
         }
 
         .qr-code-box {
-            background: var(--bg-sidebar);
-            padding: 25px;
-            border-radius: 24px;
+            background: #ffffff;
+            padding: 16px;
+            border-radius: 22px;
             text-align: center;
-            border: 2px solid var(--primary);
-            box-shadow: var(--shadow-glow);
-            min-width: 220px;
-        }
-
-        .qr-code-box.hidden {
-            display: none;
-        }
-
-        #qrcode {
+            border: 3px solid var(--primary);
+            box-shadow: 0 0 35px var(--primary-glow);
+            width: 200px;
+            height: 200px;
             display: flex;
+            flex-direction: column;
+            align-items: center;
             justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.3s;
         }
 
-        #qrcode img {
-            border-radius: 12px;
-            padding: 8px;
-            background: white;
+        .qr-code-box:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 45px rgba(249, 115, 22, 0.6);
+        }
+
+        .qr-code-box img, .qr-code-box svg {
+            width: 150px;
+            height: 150px;
+            display: block;
         }
 
         .qr-actions {
             display: flex;
             gap: 12px;
-            margin-top: 20px;
+            margin-top: 10px;
             flex-wrap: wrap;
         }
 
         .qr-btn {
-            padding: 10px 20px;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 12px;
+            padding: 12px 22px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 13px;
             cursor: pointer;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
             transition: all 0.3s;
@@ -463,11 +543,88 @@
             background: var(--gradient-primary);
             color: white;
             border: none;
+            box-shadow: 0 4px 18px var(--primary-glow);
         }
 
         .qr-btn:hover {
             transform: translateY(-2px);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        /* Quick View Gateway Cards */
+        .gateway-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .gateway-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 24px;
+            padding: 28px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .gateway-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
             box-shadow: var(--shadow-glow);
+        }
+
+        .gateway-content h4 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .gateway-content p {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .gateway-action {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .gateway-count {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--primary);
+        }
+
+        .gateway-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .gateway-card:hover .gateway-btn {
+            background: var(--primary);
+            color: white;
+            transform: translateX(4px);
         }
 
         /* Form Card - Enhanced */
@@ -644,114 +801,186 @@
         .candidate-item {
             background: var(--bg-sidebar);
             border: 1px solid var(--border-light);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 15px;
-            transition: all 0.3s;
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
         }
 
         .candidate-item:hover {
             border-color: var(--primary);
-            transform: translateX(5px);
+            transform: translateX(3px);
         }
 
         .candidate-header {
             display: flex;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
+            gap: 10px;
+            margin-bottom: 6px;
             flex-wrap: wrap;
         }
 
         .candidate-avatar {
-            width: 55px;
-            height: 55px;
+            width: 34px;
+            height: 34px;
             background: var(--gradient-primary);
-            border-radius: 16px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 15px;
             color: white;
+            flex-shrink: 0;
         }
 
         .candidate-info h4 {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 700;
             color: var(--text-primary);
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
 
         .candidate-details {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin: 15px 0;
-            padding: 15px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 4px 12px;
+            margin: 6px 0;
+            padding: 6px 10px;
+            background: rgba(0,0,0,0.25);
+            border-radius: 8px;
         }
 
         .detail-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 12px;
+            gap: 6px;
+            font-size: 11px;
             color: var(--text-secondary);
         }
 
         .detail-item i {
             color: var(--primary);
-            width: 16px;
+            width: 14px;
+            font-size: 11px;
         }
 
         .status-badge {
             display: inline-block;
-            padding: 4px 12px;
-            border-radius: 30px;
-            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 10px;
             font-weight: 600;
         }
 
         .status-badge.scheduled { background: var(--info); color: white; }
         .status-badge.form { background: #8b5cf6; color: white; }
-        .status-badge.checkin { background: var(--secondary); color: white; }
+        .status-badge.checkin, .status-badge.appeared { background: var(--secondary); color: white; }
         .status-badge.checked-in { background: var(--secondary); color: white; }
         .status-badge.pending { background: var(--warning); color: white; }
+        .status-badge.not_appeared { background: #ef4444; color: white; }
+        .status-badge.left { background: #64748b; color: white; }
 
         .action-buttons {
             display: flex;
-            gap: 8px;
-            margin-top: 15px;
+            gap: 6px;
+            margin-top: 8px;
             flex-wrap: wrap;
         }
 
         .action-buttons .btn {
             flex: 1;
+            min-width: 90px;
+            display: inline-flex;
+            align-items: center;
             justify-content: center;
-            padding: 10px;
-            font-size: 12px;
+            gap: 4px;
+            padding: 6px 10px;
+            font-size: 11px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            border-radius: 8px;
+            border: none;
+            transition: all 0.2s ease;
         }
 
-        .btn-call {
-            background: var(--info);
+        .btn-appeared {
+            background: linear-gradient(135deg, #10b981, #059669);
             color: white;
-            border: none;
-            border-radius: 12px;
+        }
+        .btn-appeared:hover {
+            box-shadow: 0 3px 10px rgba(16, 185, 129, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-not-appeared {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.4) !important;
+        }
+        .btn-not-appeared:hover {
+            background: #ef4444;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .btn-left {
+            background: rgba(100, 116, 139, 0.2);
+            color: #94a3b8;
+            border: 1px solid rgba(100, 116, 139, 0.4) !important;
+        }
+        .btn-left:hover {
+            background: #64748b;
+            color: white;
+            transform: translateY(-1px);
         }
 
         .btn-send-hr {
             background: var(--gradient-primary);
             color: white;
-            border: none;
-            border-radius: 12px;
+        }
+        .btn-send-hr:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-glow);
         }
 
-        .btn-send-hr:hover, .btn-call:hover {
-            transform: translateY(-2px);
+        .cnic-checker-card {
+            background: linear-gradient(135deg, rgba(30, 36, 54, 0.95), rgba(15, 21, 36, 0.95));
+            border-radius: 24px;
+            padding: 28px 32px;
+            border: 1px solid var(--border-primary);
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .cnic-search-bar {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .cnic-search-bar input {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .cnic-search-bar button {
+            padding: 14px 24px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            background: var(--gradient-primary);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        .cnic-search-bar button:hover {
             box-shadow: var(--shadow-glow);
+            transform: translateY(-2px);
         }
 
         .voice-panel {
@@ -843,6 +1072,347 @@
             50% { box-shadow: 0 0 20px 5px var(--primary-glow); }
         }
 
+        /* Reception Reports & Analytics: Modern, High-Density & User-Friendly Styling */
+        .reports-stats-row {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .reports-stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reports-stat-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: transparent;
+            transition: background 0.3s;
+        }
+
+        .reports-stat-card:hover, .reports-stat-card.active {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(249, 115, 22, 0.25);
+            background: rgba(35, 42, 64, 0.98);
+        }
+
+        .reports-stat-card.active::after {
+            background: var(--gradient-primary);
+        }
+
+        .reports-stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .reports-stat-icon.total { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+        .reports-stat-icon.scheduled { background: rgba(249, 115, 22, 0.15); color: var(--primary); }
+        .reports-stat-icon.appeared { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .reports-stat-icon.not_appeared { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+        .reports-stat-icon.left { background: rgba(100, 116, 139, 0.2); color: #94a3b8; }
+        .reports-stat-icon.sent_to_hr { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+
+        .reports-stat-meta {
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .reports-stat-meta h4 {
+            font-size: 22px;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.1;
+            margin: 0;
+        }
+
+        .reports-stat-meta span {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-top: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .reports-filter-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-primary);
+            border-radius: 20px;
+            padding: 18px 22px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .reports-filter-grid {
+            display: grid;
+            grid-template-columns: 2.5fr 1.5fr 1fr 1fr auto;
+            gap: 12px;
+            align-items: center;
+        }
+
+        @media (max-width: 1100px) {
+            .reports-filter-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .reports-filter-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .reports-filter-group input, .reports-filter-group select {
+            width: 100%;
+            padding: 10px 15px;
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 13px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .reports-filter-group input:focus, .reports-filter-group select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .preset-btn {
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 20px;
+            border: 1px solid var(--border-light);
+            background: rgba(255,255,255,0.04);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .preset-btn:hover {
+            color: #ffffff;
+            border-color: var(--border-primary);
+            background: rgba(255,255,255,0.08);
+        }
+
+        .preset-btn.active {
+            background: var(--gradient-primary) !important;
+            color: #ffffff !important;
+            border-color: transparent !important;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.35);
+        }
+
+        .reports-table-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            padding: 20px 24px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .reports-table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .reports-table-header h3 {
+            font-size: 17px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ffffff;
+        }
+
+        .reports-table-card table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        .reports-table-card th {
+            background: rgba(0, 0, 0, 0.45);
+            padding: 13px 16px;
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-light);
+            white-space: nowrap;
+        }
+
+        .reports-table-card td {
+            padding: 13px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            vertical-align: middle;
+            font-size: 13px;
+        }
+
+        .reports-table-card tr:hover td {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .candidate-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar-sm {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(249, 115, 22, 0.25);
+        }
+
+        .candidate-meta h5 {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 2px;
+            line-height: 1.2;
+        }
+
+        .candidate-meta span {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .stage-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #ffffff;
+            white-space: nowrap;
+        }
+
+        .stage-pill.passed, .stage-pill.appeared { background: rgba(16, 185, 129, 0.18); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .stage-pill.rejected, .stage-pill.not_appeared { background: rgba(239, 68, 68, 0.18); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .stage-pill.pending, .stage-pill.scheduled { background: rgba(59, 130, 246, 0.18); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+        .stage-pill.left { background: rgba(100, 116, 139, 0.2); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.4); }
+        .stage-pill.sent_to_hr, .stage-pill.reception { background: rgba(249, 115, 22, 0.18); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.4); }
+
+        .btn-view-log {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-light);
+            color: #ffffff;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-view-log:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 1440px) {
+            .sidebar {
+                width: 240px;
+            }
+            .sidebar-header {
+                padding: 20px 16px;
+            }
+            .sidebar-nav {
+                padding: 16px 12px;
+            }
+            .main-content {
+                margin-left: 240px;
+                padding: 16px 20px;
+                max-width: calc(100vw - 240px);
+            }
+            .reports-stats-row {
+                grid-template-columns: repeat(6, 1fr);
+                gap: 10px;
+            }
+            .reports-stat-card {
+                padding: 10px 12px;
+                gap: 10px;
+            }
+            .reports-stat-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 15px;
+            }
+            .reports-stat-meta h4 {
+                font-size: 18px;
+            }
+            .reports-stat-meta span {
+                font-size: 10px;
+            }
+            .reports-filter-card {
+                padding: 14px 18px;
+            }
+            .reports-table-card {
+                padding: 16px 20px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .reports-stats-row {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .reports-filter-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -851,7 +1421,8 @@
             }
             .main-content {
                 margin-left: 0;
-                padding: 20px;
+                padding: 16px;
+                max-width: 100vw;
             }
             .form-row {
                 grid-template-columns: 1fr;
@@ -859,6 +1430,12 @@
             .qr-section {
                 flex-direction: column;
                 text-align: center;
+            }
+            .reports-stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .reports-filter-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -880,14 +1457,26 @@
             </div>
             <div class="sidebar-nav">
                 <div class="nav-section-title">MAIN</div>
-                <div class="nav-item active" onclick="showDashboard()"><i class="fas fa-home"></i> Dashboard</div>
-                <div class="nav-section-title">RECRUITER LEADS</div>
-                <div class="nav-item" onclick="showScheduledLeads()">
-                    <i class="fas fa-calendar-alt"></i> Scheduled Interviews
+                <div class="nav-item active" onclick="showDashboard()"><i class="fas fa-th-large"></i> Dashboard</div>
+                
+                <div class="nav-section-title">INTERVIEWS & LEADS</div>
+                <div class="nav-item" onclick="showScheduledInterviewsView()">
+                    <i class="fas fa-calendar-check"></i> Scheduled Interviews
                     <span class="nav-badge" id="scheduledBadge">0</span>
                 </div>
-                <div class="nav-section-title">RECORDS & ARCHIVE</div>
-                <div class="nav-item" onclick="window.location.href='candidate-records.html'"><i class="fas fa-database"></i> Candidate Records</div>
+                <div class="nav-item" onclick="showWalkinLeadsView()">
+                    <i class="fas fa-walking"></i> Walk-in Leads (QR)
+                    <span class="nav-badge" id="walkinBadge" style="background: linear-gradient(135deg, #10b981, #059669);">0</span>
+                </div>
+
+                <div class="nav-section-title">REPORTS</div>
+                <div class="nav-item" onclick="showReceptionReportsView()"><i class="fas fa-chart-line"></i> Reception Reports</div>
+                
+                <div class="nav-section-title">PORTALS</div>
+                <div class="nav-item" onclick="window.location.href='recruiter-portal.html'"><i class="fas fa-user-astronaut"></i> Recruiter Portal</div>
+                <div class="nav-item" onclick="window.location.href='hr-portal.html'"><i class="fas fa-users-cog"></i> HR Portal</div>
+                <div class="nav-item" onclick="window.location.href='employee-portal.html'"><i class="fas fa-id-card"></i> Employee Self Service</div>
+
                 <div class="nav-section-title">MESSAGES</div>
                 <div class="nav-item" onclick="window.location.href='chat-portal.html'"><i class="fas fa-comments"></i> Chat</div>
             </div>
@@ -1295,76 +1884,112 @@
             return 'Date not set';
         }
 
-        function renderScheduledList() {
-            const container = document.getElementById('scheduledLeadsList');
+        function renderScheduledList(targetElementId = 'scheduledLeadsList') {
+            const container = document.getElementById(targetElementId);
             if (!container) return;
 
             const scheduledCount = recruiterLeads.filter(l => l.queueType === 'scheduled').length;
-            const formCount = recruiterLeads.filter(l => l.queueType === 'form').length;
+            const appearedCount = recruiterLeads.filter(l => l.currentStage === 'receptionist').length;
+            const notAppearedCount = recruiterLeads.filter(l => l.currentStage === 'not_appeared').length;
+            const leftCount = recruiterLeads.filter(l => l.currentStage === 'left').length;
+
+            const statTotal = document.getElementById('statTotalCount');
             const statScheduled = document.getElementById('statScheduledCount');
-            const statForms = document.getElementById('statFormCount');
+            const statAppeared = document.getElementById('statAppearedCount');
+            const statNotAppeared = document.getElementById('statNotAppearedCount');
+            const statLeft = document.getElementById('statLeftCount');
+
+            if (statTotal) statTotal.textContent = recruiterLeads.length;
             if (statScheduled) statScheduled.textContent = scheduledCount;
-            if (statForms) statForms.textContent = formCount;
+            if (statAppeared) statAppeared.textContent = appearedCount;
+            if (statNotAppeared) statNotAppeared.textContent = notAppearedCount;
+            if (statLeft) statLeft.textContent = leftCount;
 
             if (recruiterLeads.length === 0) {
-                container.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-times"></i><p>No scheduled interviews or applications yet</p><p style="font-size: 12px; margin-top: 10px;">Recruiter schedules and mobile/QR form submissions appear here automatically</p></div>';
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-check fa-3x" style="color:var(--primary); margin-bottom:12px;"></i><p>No scheduled interviews for today</p><p style="font-size: 12px; margin-top: 6px; color:var(--text-muted);">Recruiter scheduled interviews and website walk-in applications appear here automatically</p></div>';
                 return;
             }
 
             container.innerHTML = recruiterLeads.map(lead => {
                 const safeName = (lead.fullName || lead.name || '').replace(/'/g, "\\'");
                 const safePos = (lead.position || '').replace(/'/g, "\\'");
-                const typeClass = lead.queueType === 'form' ? 'form' : (lead.queueType === 'checkin' ? 'checkin' : 'scheduled');
-                const sourceLabel = lead.source === 'mobile' ? 'Mobile Form' : (lead.recruiterName ? `Recruiter: ${lead.recruiterName}` : (lead.referredBy || 'Walk-in'));
+                const stage = lead.currentStage;
+                
+                let badgeClass = 'scheduled';
+                let badgeText = lead.badge || 'Scheduled';
+                if (stage === 'receptionist') {
+                    badgeClass = 'appeared';
+                    badgeText = 'Appeared';
+                } else if (stage === 'not_appeared') {
+                    badgeClass = 'not_appeared';
+                    badgeText = 'Not Appeared';
+                } else if (stage === 'left') {
+                    badgeClass = 'left';
+                    badgeText = 'Left';
+                }
+
+                const sourceLabel = lead.source === 'walkin' ? 'Walk-in (Website QR)' : (lead.recruiterName ? `Recruiter: ${lead.recruiterName}` : (lead.referredBy || 'Walk-in'));
+                
                 return `
                     <div class="candidate-item" ${lead.hasPreviousRejection ? 'style="border-left: 3px solid var(--danger);"' : ''}>
-                        <div class="candidate-header">
-                            <div class="candidate-avatar" ${lead.hasPreviousRejection ? 'style="background: rgba(239, 68, 68, 0.15); color: var(--danger);"' : ''}><i class="fas ${lead.hasPreviousRejection ? 'fa-user-times' : 'fa-user'}"></i></div>
-                            <div class="candidate-info">
-                                <h4>${lead.fullName || lead.name}</h4>
-                                <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
-                                    <div class="status-badge ${typeClass}">${lead.badge || 'Scheduled'}</div>
-                                    ${lead.hasPreviousRejection ? `
-                                        <div class="status-badge" style="background: rgba(239, 68, 68, 0.25); color: #f87171; border: 1px solid rgba(239,68,68,0.5); cursor:pointer;" onclick="showCrossBranchModal(${lead.id}, '${lead.cnic || ''}')" title="Click to view past interview rejection details">
-                                            <i class="fas fa-exclamation-triangle"></i> ${lead.previousRejectionSummary || 'Prev. Rejected'}
-                                        </div>` : ''}
+                        <div class="candidate-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+                            <div style="display:flex; align-items:center; gap:14px;">
+                                <div class="candidate-avatar" ${lead.hasPreviousRejection ? 'style="background: rgba(239, 68, 68, 0.15); color: var(--danger);"' : ''}>
+                                    <i class="fas ${lead.hasPreviousRejection ? 'fa-user-times' : (stage === 'receptionist' ? 'fa-user-check' : 'fa-user')}"></i>
+                                </div>
+                                <div class="candidate-info">
+                                    <h4 style="font-size:16px; font-weight:700; color:#fff;">${lead.fullName || lead.name}</h4>
+                                    <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:4px;">
+                                        <div class="status-badge ${badgeClass}">${badgeText}</div>
+                                        ${lead.hasPreviousRejection ? `
+                                            <div class="status-badge" style="background: rgba(239, 68, 68, 0.25); color: #f87171; border: 1px solid rgba(239,68,68,0.5); cursor:pointer;" onclick="showCrossBranchModal(${lead.id}, '${lead.cnic || ''}')" title="Click to view past interview rejection details">
+                                                <i class="fas fa-exclamation-triangle"></i> ${lead.previousRejectionSummary || 'Prev. Rejected'}
+                                            </div>` : ''}
+                                    </div>
                                 </div>
                             </div>
+                            <div style="text-align:right;">
+                                <span style="font-size:11px; padding:4px 10px; border-radius:10px; background:rgba(255,255,255,0.05); color:var(--text-muted); font-weight:600;">
+                                    ID: #${lead.id}
+                                </span>
+                            </div>
                         </div>
+
                         <div class="candidate-details">
                             <div class="detail-item"><i class="fas fa-phone"></i> ${lead.phone || 'N/A'}</div>
                             <div class="detail-item"><i class="fas fa-id-card"></i> ${lead.cnic || 'N/A'}</div>
                             <div class="detail-item"><i class="fas fa-briefcase"></i> ${lead.position || 'N/A'}</div>
-                            <div class="detail-item"><i class="fas fa-calendar"></i> ${formatInterviewWhen(lead)}</div>
+                            <div class="detail-item"><i class="fas fa-calendar-alt"></i> ${formatInterviewWhen(lead)}</div>
                             <div class="detail-item"><i class="fas fa-building"></i> ${lead.interviewLocation || 'Main Office'}</div>
                             <div class="detail-item"><i class="fas fa-tag"></i> ${sourceLabel}</div>
-                            ${lead.interviewer ? `<div class="detail-item"><i class="fas fa-user-tie"></i> Interviewer: ${lead.interviewer}</div>` : ''}
+                            ${lead.interviewer ? `<div class="detail-item"><i class="fas fa-user-tie"></i> Recruiter / Interviewer: ${lead.interviewer}</div>` : ''}
                         </div>
+
                         ${lead.hasPreviousRejection ? `
                         <div style="margin: 10px 0 14px 0; padding: 10px 14px; background: rgba(239,68,68,0.1); border: 1px dashed rgba(239,68,68,0.3); border-radius: 10px; font-size: 12px; color: #fca5a5;">
                             <i class="fas fa-history" style="color: #ef4444; margin-right: 6px;"></i> <strong>Cross-Branch Alert:</strong> Candidate previously attended interview at <strong>${lead.previousRejections && lead.previousRejections[0] ? lead.previousRejections[0].branch : 'another branch'}</strong> and was <strong>Rejected</strong>. Reason: <em>${lead.previousRejections && lead.previousRejections[0] ? lead.previousRejections[0].reason : 'N/A'}</em>
                         </div>` : ''}
+
                         <div class="action-buttons">
-                            <button class="btn btn-call" onclick="callCandidate('${safeName}', 'Interview')"><i class="fas fa-volume-up"></i> Announce</button>
-                            <button class="btn btn-secondary" onclick="checkInScheduled(${lead.id}, '${safeName}', '${lead.phone}')"><i class="fas fa-door-open"></i> Check In</button>
-                            ${(lead.hasPreviousHistory || lead.hasPreviousRejection) ? `<button class="btn btn-warning" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);" onclick="showCrossBranchModal(${lead.id}, '${lead.cnic || ''}')"><i class="fas fa-history"></i> Past History</button>` : ''}
-                            <button class="btn btn-warning" onclick="markScheduledNotAppeared(${lead.id}, '${safeName}', '${lead.phone}')"><i class="fas fa-user-slash"></i> Not Appeared</button>
-                            <button class="btn btn-send-hr" onclick="sendScheduledToHR(${lead.id}, '${safeName}', '${lead.phone}', '${safePos}')"><i class="fas fa-paper-plane"></i> Send to HR</button>
+                            <button class="btn btn-appeared" onclick="markScheduledAppeared(${lead.id}, '${safeName}', '${lead.phone}')" title="Candidate has arrived at reception">
+                                <i class="fas fa-check-circle"></i> Appeared
+                            </button>
+                            <button class="btn btn-not-appeared" onclick="markScheduledNotAppeared(${lead.id}, '${safeName}', '${lead.phone}')" title="Candidate did not attend interview">
+                                <i class="fas fa-times-circle"></i> Not Appeared
+                            </button>
+                            <button class="btn btn-left" onclick="markScheduledLeft(${lead.id}, '${safeName}', '${lead.phone}')" title="Candidate left reception before/during interview">
+                                <i class="fas fa-sign-out-alt"></i> Left
+                            </button>
+                            <button class="btn btn-send-hr" onclick="sendScheduledToHR(${lead.id}, '${safeName}', '${lead.phone}', '${safePos}')" title="Send candidate directly to HR interview queue">
+                                <i class="fas fa-paper-plane"></i> Send to HR
+                            </button>
+                            ${(lead.hasPreviousHistory || lead.hasPreviousRejection) ? `
+                            <button class="btn btn-warning" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);" onclick="showCrossBranchModal(${lead.id}, '${lead.cnic || ''}')">
+                                <i class="fas fa-history"></i> Past History
+                            </button>` : ''}
                         </div>
                     </div>`;
             }).join('');
-        }
-
-        function saveData() {
-            /* Walk-ins and leads persist via api/update_candidate_global.php */
-        }
-
-        function callCandidate(name, room) {
-            if (window.announceCandidate) {
-                announceCandidate(name, room || 'Interview');
-            } else if (window.ReceptionVoice) {
-                ReceptionVoice.announceCandidate(name, room || 'Interview');
-            }
         }
 
         async function updateLeadStage(payload) {
@@ -1378,59 +2003,22 @@
             return res.json();
         }
 
-        async function sendToHR(candidateData, leadId = null) {
-            const basePayload = {
-                id: leadId || candidateData.leadId || undefined,
-                phone: candidateData.phone,
-                fullName: candidateData.fullName,
-                fatherName: candidateData.fatherName,
-                email: candidateData.email,
-                cnic: candidateData.cnic,
-                city: candidateData.city,
-                dob: candidateData.dob,
-                graduation: candidateData.graduation,
-                position: candidateData.position,
-                referredBy: candidateData.referredBy || 'Walk-in',
+        async function markScheduledAppeared(leadId, name, phone) {
+            const data = await updateLeadStage({
+                id: leadId,
+                phone,
+                new_stage: 'receptionist',
+                action: 'reception_appeared',
+                remark: `${name} appeared at reception on ${new Date().toLocaleString()}`,
                 user_role: 'Reception'
-            };
-
-            try {
-                let toHr = await updateLeadStage({
-                    ...basePayload,
-                    new_stage: 'interview_conducted',
-                    action: 'reception_send_hr',
-                    remark: `Interview conducted - sent to HR queue ${new Date().toLocaleString()}`
-                });
-                if (!toHr.success) {
-                    const checkIn = await updateLeadStage({
-                        ...basePayload,
-                        new_stage: 'receptionist',
-                        action: 'reception_checkin',
-                        remark: `Checked in at reception - slot assigned ${new Date().toLocaleString()}`
-                    });
-                    if (!checkIn.success) {
-                        showToast(checkIn.error || toHr.error || 'Check-in failed', 'error');
-                        return false;
-                    }
-                    const lid = checkIn.data?.lead_id || leadId;
-                    toHr = await updateLeadStage({
-                        ...basePayload,
-                        id: lid,
-                        new_stage: 'interview_conducted',
-                        action: 'reception_send_hr',
-                        remark: `Interview conducted - sent to HR queue ${new Date().toLocaleString()}`
-                    });
-                }
-                if (toHr.success) {
-                    showToast(`✅ ${candidateData.fullName} sent to HR interview queue`, 'success');
-                    await mirrorCandidateToSheet({ ...candidateData, status: 'interview_conducted' }, 'reception_send_to_hr');
-                    return true;
-                }
-                showToast(toHr.error || 'Failed to send to HR', 'error');
-            } catch (e) {
-                showToast('Failed to save candidate to database', 'error');
+            });
+            if (data.success) {
+                showToast(`✅ ${name} marked as Appeared`, 'success');
+                await loadData();
+                renderScheduledList();
+            } else {
+                showToast(data.error || 'Check-in failed', 'error');
             }
-            return false;
         }
 
         async function markScheduledNotAppeared(leadId, name, phone) {
@@ -1439,408 +2027,444 @@
                 phone,
                 new_stage: 'not_appeared',
                 action: 'reception_no_show',
-                remark: `Did not appear at reception on ${new Date().toLocaleString()}`,
+                remark: `Candidate did not appear for scheduled interview on ${new Date().toLocaleString()}`,
                 user_role: 'Reception'
             });
             if (data.success) {
-                showToast(`${name} marked as Not Appeared`, 'warning');
+                showToast(`⚠️ ${name} marked as Not Appeared`, 'warning');
                 await loadData();
-                showScheduledLeads();
+                renderScheduledList();
             } else {
                 showToast(data.error || 'Update failed', 'error');
             }
         }
 
-        async function checkInScheduled(leadId, name, phone) {
+        async function markScheduledLeft(leadId, name, phone) {
             const data = await updateLeadStage({
                 id: leadId,
                 phone,
-                new_stage: 'receptionist',
-                action: 'reception_checkin',
-                remark: `${name} appeared at reception - time slot assigned`,
+                new_stage: 'left',
+                action: 'reception_left',
+                remark: `Candidate left reception on ${new Date().toLocaleString()}`,
                 user_role: 'Reception'
             });
             if (data.success) {
-                showToast(`✅ ${name} checked in at reception`, 'success');
+                showToast(`ℹ️ ${name} marked as Left`, 'info');
                 await loadData();
-                showScheduledLeads();
+                renderScheduledList();
             } else {
-                showToast(data.error || 'Check-in failed', 'error');
+                showToast(data.error || 'Update failed', 'error');
             }
         }
 
-        async function submitWalkin() {
-            const fullName = document.getElementById('walkinName')?.value?.trim();
-            const fatherName = document.getElementById('walkinFather')?.value?.trim();
-            const phone = document.getElementById('walkinPhone')?.value?.trim();
-            const email = document.getElementById('walkinEmail')?.value?.trim();
-            const cnic = document.getElementById('walkinCnic')?.value?.trim();
-            const city = document.getElementById('walkinCity')?.value?.trim();
-            const dob = document.getElementById('walkinDob')?.value;
-            const qualification = document.getElementById('walkinQualification')?.value;
-            const position = document.getElementById('walkinPosition')?.value;
-            const referredBy = document.getElementById('walkinReferredBy')?.value || 'Walk-in';
-
-            if (!fullName || !fatherName || !phone || !position) {
-                showToast('Please fill all required fields (*)', 'error');
-                return;
-            }
-
-            if (!/^\d{11}$/.test(phone)) {
-                showToast('Please enter 11-digit phone number', 'error');
-                return;
-            }
-
-            const normalizedPhone = phone.replace(/\D/g, '');
-            const matchedScheduled = recruiterLeads.find(l => (String(l.phone || '').replace(/\D/g, '') === normalizedPhone));
+        async function sendScheduledToHR(id, name, phone, position) {
+            const lead = recruiterLeads.find(l => l.id === id);
+            if (!lead) return;
 
             const candidateForHR = {
-                id: Date.now(),
-                fullName: fullName,
-                fatherName: fatherName,
+                id: id,
+                leadId: id,
+                fullName: name,
+                fatherName: lead.fatherName || '',
                 phone: phone,
-                email: email || '',
-                cnic: cnic || '',
-                city: city || '',
-                dob: dob || '',
-                graduation: qualification || '',
+                email: lead.email || '',
+                cnic: lead.cnic || '',
+                city: lead.city || '',
+                dob: lead.dob || '',
+                graduation: lead.graduation || '',
                 position: position,
-                joiningDate: new Date().toISOString().split('T')[0],
-                referredBy: referredBy,
-                source: 'walkin',
-                registeredAt: new Date().toISOString()
+                referredBy: lead.referredBy || 'Recruiter',
+                source: lead.source || 'recruiter',
+                user_role: 'Reception'
             };
 
-            if (matchedScheduled && matchedScheduled.id) {
-                await sendToHR({ ...candidateForHR, leadId: matchedScheduled.id }, matchedScheduled.id);
-                showToast(`Matched scheduled interview for ${matchedScheduled.fullName || matchedScheduled.name} by phone`, 'success');
+            const toHr = await updateLeadStage({
+                ...candidateForHR,
+                new_stage: 'interview_conducted',
+                action: 'reception_send_hr',
+                remark: `Interview conducted - sent to HR queue ${new Date().toLocaleString()}`
+            });
+
+            if (toHr.success) {
+                showToast(`✅ ${name} sent to HR interview queue`, 'success');
+                try {
+                    if (lead.interviewId) {
+                        await fetch('api/complete_interview.php', {
+                            method: 'POST',
+                            credentials: 'include',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ interview_id: lead.interviewId })
+                        });
+                    }
+                } catch (e) {}
                 await loadData();
+                renderScheduledList();
+            } else {
+                showToast(toHr.error || 'Failed to send to HR', 'error');
+            }
+        }
+
+        function triggerCnicChecker() {
+            const input = document.getElementById('receptionCnicSearchInput');
+            const val = input ? input.value.trim() : '';
+            if (!val) {
+                showToast('Please enter CNIC to verify', 'warning');
                 return;
             }
-
-            walkinCandidates.push({ ...candidateForHR, registeredAt: new Date().toISOString() });
-            await sendToHR(candidateForHR);
-            await loadData();
-            
-            document.getElementById('walkinName').value = '';
-            document.getElementById('walkinFather').value = '';
-            document.getElementById('walkinPhone').value = '';
-            document.getElementById('walkinEmail').value = '';
-            document.getElementById('walkinCnic').value = '';
-            document.getElementById('walkinCity').value = '';
-            document.getElementById('walkinDob').value = '';
-            document.getElementById('walkinQualification').value = '';
-            document.getElementById('walkinPosition').value = '';
-            document.getElementById('walkinReferredBy').value = 'Walk-in';
-            
-            loadData();
-            showDashboard();
+            showCrossBranchModal(0, val);
         }
 
-        function showQRCode() {
-            const display = document.getElementById('qrCodeDisplay');
-            const qrDiv = document.getElementById('qrcode');
-            
-            if (!qrGenerated) {
-                qrDiv.innerHTML = '';
-                const currentUrl = window.location.href;
-                const mobileUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/')) + '/candidate-form.html';
-                
-                new QRCode(qrDiv, {
-                    text: mobileUrl,
-                    width: 160,
-                    height: 160,
-                    colorDark: "#f97316",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.H
-                });
-                qrGenerated = true;
-            }
-            display.classList.remove('hidden');
-        }
-
-        function copyMobileLink() {
-            const currentUrl = window.location.href;
-            const mobileUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/')) + '/candidate-form.html';
-            navigator.clipboard.writeText(mobileUrl).then(() => {
-                showToast('✅ Mobile form link copied!', 'success');
-            }).catch(() => {
-                showToast('❌ Failed to copy link', 'error');
-            });
-        }
-
-        function downloadQRCode() {
-            if (!qrGenerated) {
-                showQRCode();
-            }
-            setTimeout(() => {
-                const qrImg = document.querySelector('#qrcode img');
-                if (qrImg) {
-                    const link = document.createElement('a');
-                    link.download = 'balitech-interview-qr.png';
-                    link.href = qrImg.src;
-                    link.click();
-                    showToast('✅ QR Code downloaded', 'success');
-                } else {
-                    showToast('❌ Please show QR code first', 'warning');
-                }
-            }, 500);
-        }
-
-        async function forceSync() {
-            showToast('Sync is handled by server mirror API', 'info');
-        }
-
-        function verifySync() {
-            showToast('✅ Google Sheets connection is active', 'success');
-        }
-
-        async function showSyncStats() {
-            await loadData();
-            showToast(`📊 ${recruiterLeads.length} in reception queue (database)`, 'info');
-        }
-
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                localStorage.clear();
-                window.location.href = 'index.html';
-            }
-        }
-
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
-            toast.innerHTML = `<i class="fas ${icon}" style="color: var(--${type === 'success' ? 'secondary' : 'danger'})"></i> ${message}`;
-            container.appendChild(toast);
-            setTimeout(() => toast.classList.add('show'), 10);
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        // ==================== SIMPLIFIED DASHBOARD - Only QR Code & Interview Form ====================
+        // ==================== MODERN RECEPTION DASHBOARD ====================
         async function showDashboard() {
             await loadData();
+
+            const scheduledCount = recruiterLeads.filter(l => l.queueType === 'scheduled' || (l.source !== 'walkin' && l.source !== 'mobile')).length;
+            const walkinCount = recruiterLeads.filter(l => l.source === 'walkin' || l.source === 'mobile' || l.queueType === 'form').length;
+            const appearedCount = recruiterLeads.filter(l => l.currentStage === 'receptionist').length;
+            const notAppearedCount = recruiterLeads.filter(l => l.currentStage === 'not_appeared').length;
+            const leftCount = recruiterLeads.filter(l => l.currentStage === 'left').length;
+
+            const badgeScheduled = document.getElementById('scheduledBadge');
+            const badgeWalkin = document.getElementById('walkinBadge');
+            if (badgeScheduled) badgeScheduled.textContent = scheduledCount;
+            if (badgeWalkin) badgeWalkin.textContent = walkinCount;
 
             const html = `
                 <div class="top-header">
                     <div class="page-title">
-                        <h1>Reception Portal</h1>
-                        <p>Walk-in registration & candidate check-in</p>
+                        <h1>Reception Executive Dashboard</h1>
+                        <p>Real-time interview tracking, candidate check-ins & website QR registration portal</p>
                     </div>
                     <div class="header-actions">
                         <div class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon"></i></div>
-                        <div class="voice-status">
-                            <span class="status-dot active"></span>
-                            <span>Voice Ready</span>
-                        </div>
-                        <button class="action-btn" onclick="initializeVoice()"><i class="fas fa-volume-up"></i> Test Voice</button>
-                        <div class="gsheets-status" id="gsheetsStatus">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <span>Ready</span>
-                        </div>
-                        <button class="action-btn primary" onclick="forceSync()"><i class="fas fa-sync-alt"></i> Sync</button>
-                        <button class="action-btn" onclick="verifySync()"><i class="fas fa-check-double"></i> Verify</button>
-                        <button class="action-btn" onclick="showSyncStats()"><i class="fas fa-chart-pie"></i> Stats</button>
+                        <button class="action-btn primary" onclick="showDashboard()"><i class="fas fa-sync-alt"></i> Refresh</button>
                         <button class="action-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
                     </div>
                 </div>
 
-                <!-- QR Code Section -->
-                <div class="qr-section">
-                    <div class="qr-info">
-                        <h3><i class="fas fa-qrcode"></i> Mobile Application Form</h3>
-                        <p>Candidates can scan this QR code with their phone camera to fill the application form directly from their mobile devices.</p>
-                        <div class="qr-actions">
-                            <button class="qr-btn primary" onclick="showQRCode()"><i class="fas fa-qrcode"></i> Show QR Code</button>
-                            <button class="qr-btn" onclick="copyMobileLink()"><i class="fas fa-link"></i> Copy Link</button>
-                            <button class="qr-btn" onclick="downloadQRCode()"><i class="fas fa-download"></i> Download QR</button>
-                        </div>
+                <!-- Stats Overview Grid -->
+                <div class="stats-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px;">
+                    <div class="stat-card" style="padding:18px; cursor:pointer;" onclick="showReceptionReportsView('all', 'today')">
+                        <div class="stat-icon" style="background:rgba(249,115,22,0.15); color:var(--primary);"><i class="fas fa-calendar-alt"></i></div>
+                        <div class="stat-value" id="statTotalCount">${recruiterLeads.length}</div>
+                        <div class="stat-label">Total Today</div>
                     </div>
-                    <div class="qr-code-box hidden" id="qrCodeDisplay">
-                        <div id="qrcode"></div>
-                        <div class="qr-label" style="margin-top: 12px; font-size: 12px; color: var(--text-muted);">Scan with phone camera</div>
+                    <div class="stat-card" style="padding:18px; cursor:pointer;" onclick="showReceptionReportsView('scheduled', 'today')">
+                        <div class="stat-icon" style="background:rgba(59,130,246,0.15); color:var(--info);"><i class="fas fa-clock"></i></div>
+                        <div class="stat-value" id="statScheduledCount">${scheduledCount}</div>
+                        <div class="stat-label">Scheduled Interviews</div>
+                    </div>
+                    <div class="stat-card" style="padding:18px; cursor:pointer;" onclick="showReceptionReportsView('appeared', 'today')">
+                        <div class="stat-icon" style="background:rgba(16,185,129,0.15); color:var(--secondary);"><i class="fas fa-check-circle"></i></div>
+                        <div class="stat-value" id="statAppearedCount">${appearedCount}</div>
+                        <div class="stat-label">Appeared Today</div>
+                    </div>
+                    <div class="stat-card" style="padding:18px; cursor:pointer;" onclick="showReceptionReportsView('not_appeared', 'today')">
+                        <div class="stat-icon" style="background:rgba(239,68,68,0.15); color:var(--danger);"><i class="fas fa-user-slash"></i></div>
+                        <div class="stat-value" id="statNotAppearedCount">${notAppearedCount}</div>
+                        <div class="stat-label">Not Appeared</div>
+                    </div>
+                    <div class="stat-card" style="padding:18px; cursor:pointer;" onclick="showReceptionReportsView('left', 'today')">
+                        <div class="stat-icon" style="background:rgba(100,116,139,0.2); color:#94a3b8;"><i class="fas fa-sign-out-alt"></i></div>
+                        <div class="stat-value" id="statLeftCount">${leftCount}</div>
+                        <div class="stat-label">Left (Auto 8h)</div>
                     </div>
                 </div>
 
-                <!-- Walk-in Registration Form -->
-                <div class="form-card">
-                    <div class="card-header">
-                        <i class="fas fa-walking"></i>
-                        <h3>Walk-in Candidate Registration</h3>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label><i class="fas fa-user"></i> Full Name <span class="required">*</span></label>
-                            <input type="text" id="walkinName" class="form-control" placeholder="Enter full name">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-user-tie"></i> Father's Name <span class="required">*</span></label>
-                            <input type="text" id="walkinFather" class="form-control" placeholder="Enter father's name">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label><i class="fas fa-phone"></i> Phone Number <span class="required">*</span></label>
-                            <input type="tel" id="walkinPhone" class="form-control" placeholder="03001234567">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-envelope"></i> Email</label>
-                            <input type="email" id="walkinEmail" class="form-control" placeholder="name@example.com">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label><i class="fas fa-id-card"></i> CNIC <span id="walkinCnicSpinner" style="display:none; font-size:11px; color:var(--primary);"><i class="fas fa-spinner fa-spin"></i> Checking history...</span></label>
-                            <input type="text" id="walkinCnic" class="form-control" maxlength="15" placeholder="37405-1234567-1 or 13 digits" oninput="handleWalkinCnic(this.value)" onblur="handleWalkinCnic(this.value, true)">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-city"></i> City</label>
-                            <input type="text" id="walkinCity" class="form-control" placeholder="Enter city">
-                        </div>
-                    </div>
-                    <!-- Cross-Branch Real-time History Alert -->
-                    <div id="walkinCnicAlertBox" style="display: none; margin-bottom: 20px; padding: 14px 18px; border-radius: 14px; font-size: 13px; line-height: 1.5; animation: fadeIn 0.3s ease;"></div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label><i class="fas fa-calendar"></i> Date of Birth</label>
-                            <input type="date" id="walkinDob" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-graduation-cap"></i> Qualification</label>
-                            <select id="walkinQualification" class="form-control">
-                                <option value="">Select Qualification</option>
-                                <option>Matric</option>
-                                <option>Intermediate</option>
-                                <option>Bachelor</option>
-                                <option>Master</option>
-                                <option>Other</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <div class="position-label-row">
-                                <label style="margin-bottom:0;"><i class="fas fa-briefcase"></i> Applying For <span class="required">*</span></label>
-                                <button type="button" class="btn-add-pos-quick" onclick="toggleCustomPositionInput()">
-                                    <i class="fas fa-plus"></i> Add Custom Position
-                                </button>
+                <!-- Top Two Interactive Cards: Website Form QR + CNIC Live Checker -->
+                <div style="display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 24px; margin-bottom: 28px;">
+                    <!-- QR Code Card -->
+                    <div class="qr-section" style="margin: 0; padding: 24px 28px; border-radius: 24px; border: 1px solid var(--border-primary); display: flex; align-items: center; justify-content: space-between; gap: 24px; background: var(--bg-card);">
+                        <div class="qr-info" style="flex:1;">
+                            <div style="display:inline-block; padding:4px 10px; border-radius:8px; background:rgba(249,115,22,0.15); color:var(--primary); font-size:11px; font-weight:700; text-transform:uppercase; margin-bottom:10px;">
+                                <i class="fas fa-mobile-alt"></i> Official QR Gateway
                             </div>
-                            <select id="walkinPosition" class="form-control">
-                                <!-- Populated dynamically by populatePositionsDropdown() -->
-                            </select>
-                            <div class="custom-pos-box" id="customPosBox">
-                                <input type="text" id="customPositionInput" class="form-control" placeholder="Enter new position name..." onkeydown="if(event.key === 'Enter'){ event.preventDefault(); handleAddCustomPosition(); }">
-                                <button type="button" class="btn-add-pos-quick" style="padding: 12px 16px; height: 100%; border-radius: 12px;" onclick="handleAddCustomPosition()">
-                                    <i class="fas fa-check"></i> Save
-                                </button>
-                                <button type="button" class="btn-add-pos-quick" style="padding: 12px 14px; height: 100%; border-radius: 12px; background: rgba(255,255,255,0.06); color: var(--text-muted);" onclick="toggleCustomPositionInput()">
-                                    <i class="fas fa-times"></i>
-                                </button>
+                            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 8px; color:#fff;">
+                                Website Walk-in Application
+                            </h3>
+                            <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                                Walk-in candidates scan this QR code on smartphone to fill their application. Submitting as <strong>Walk-in</strong> instantly feeds their lead into the dedicated <em>Walk-in Leads</em> queue.
+                            </p>
+                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                <button class="qr-btn primary" onclick="showQRCode()" style="padding:9px 18px; font-size:13px;"><i class="fas fa-eye"></i> View QR Modal</button>
+                                <button class="qr-btn" onclick="copyMobileLink()" style="padding:9px 18px; font-size:13px;"><i class="fas fa-link"></i> Copy Form Link</button>
+                                <button class="qr-btn" onclick="downloadQRCode()" style="padding:9px 18px; font-size:13px;"><i class="fas fa-download"></i> Download QR</button>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <div class="position-label-row">
-                                <label style="margin-bottom:0;"><i class="fas fa-user-plus"></i> Referred By</label>
-                                <button type="button" class="btn-add-pos-quick" onclick="toggleCustomReferralInput()">
-                                    <i class="fas fa-plus"></i> Add Referral
-                                </button>
-                            </div>
-                            <select id="walkinReferredBy" class="form-control">
-                                <!-- Populated dynamically by populateReferralsDropdown() -->
-                            </select>
-                            <div class="custom-pos-box" id="customRefBox">
-                                <input type="text" id="customReferralInput" class="form-control" placeholder="Enter recruiter/referral name..." onkeydown="if(event.key === 'Enter'){ event.preventDefault(); handleAddCustomReferral(); }">
-                                <select id="customReferralBranch" class="form-control" style="max-width: 140px; padding: 10px 12px; font-size: 13px;">
-                                    <option value="all">All Branches</option>
-                                    <option value="main">Main Branch</option>
-                                    <option value="commercial">Commercial</option>
-                                    <option value="I9">I-9 Branch</option>
-                                    <option value="workfromhome">WFH</option>
-                                </select>
-                                <button type="button" class="btn-add-pos-quick" style="padding: 12px 16px; height: 100%; border-radius: 12px;" onclick="handleAddCustomReferral()">
-                                    <i class="fas fa-check"></i> Save
-                                </button>
-                                <button type="button" class="btn-add-pos-quick" style="padding: 12px 14px; height: 100%; border-radius: 12px; background: rgba(255,255,255,0.06); color: var(--text-muted);" onclick="toggleCustomReferralInput()">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
+                        <div class="qr-code-box" id="qrCodeDisplay" style="text-align:center; padding:16px; border-radius:18px; background:var(--bg-sidebar); border:2px solid var(--primary); min-width: 170px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                            <img src="assets/images/website-apply-qr.png?v=${Date.now()}" alt="Scan to Apply" style="width: 140px; height: 140px; border-radius: 8px; display: block; background: #fff; padding: 6px;" />
+                            <div style="margin-top: 10px; font-size: 12px; font-weight:700; color: var(--primary);">Scan to Apply</div>
                         </div>
                     </div>
-                    <button class="btn-submit" onclick="submitWalkin()">
-                        <i class="fas fa-paper-plane"></i> Register & Send to HR
-                    </button>
+
+                    <!-- CNIC Verification Tool Card -->
+                    <div class="cnic-checker-card" style="margin: 0; padding: 24px 28px; border-radius: 24px;">
+                        <h3 style="font-size: 20px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                            <i class="fas fa-id-card-alt" style="color: var(--primary); background: var(--primary-light); padding: 10px; border-radius: 12px; font-size: 18px;"></i>
+                            CNIC Rejection & History Checker
+                        </h3>
+                        <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                            Instant cross-branch check: verifies if candidate has previously applied, failed, or was rejected with detailed remarks.
+                        </p>
+                        <div class="cnic-search-bar" style="margin-top:0;">
+                            <input type="text" id="receptionCnicSearchInput" class="form-control" placeholder="Enter CNIC (e.g. 37405-1234567-1)" onkeydown="if(event.key==='Enter'){ triggerCnicChecker(); }" style="padding:12px 16px; font-size:14px;">
+                            <button type="button" onclick="triggerCnicChecker()">
+                                <i class="fas fa-search"></i> Verify
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Gateway Hub Cards (Dedicated Sections) -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 10px;">
+                    <!-- Scheduled Interviews Gateway Card -->
+                    <div class="form-card" style="padding: 24px 26px; border-radius: 24px; cursor: pointer; transition: all 0.25s ease; border: 1px solid var(--border-primary); display: flex; justify-content: space-between; align-items: center;" onclick="showScheduledInterviewsView()">
+                        <div style="display: flex; gap: 18px; align-items: center;">
+                            <div style="width: 56px; height: 56px; border-radius: 16px; background: rgba(59, 130, 246, 0.15); color: var(--info); display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div>
+                                <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 4px; color: #fff;">Scheduled Interviews</h3>
+                                <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Recruiter-scheduled queue (${scheduledCount} candidates today)</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" style="padding: 10px 18px; border-radius: 12px; font-size: 13px;">
+                            Open Section <i class="fas fa-arrow-right" style="margin-left: 6px;"></i>
+                        </button>
+                    </div>
+
+                    <!-- Walk-in Leads Gateway Card -->
+                    <div class="form-card" style="padding: 24px 26px; border-radius: 24px; cursor: pointer; transition: all 0.25s ease; border: 1px solid var(--border-primary); display: flex; justify-content: space-between; align-items: center;" onclick="showWalkinLeadsView()">
+                        <div style="display: flex; gap: 18px; align-items: center;">
+                            <div style="width: 56px; height: 56px; border-radius: 16px; background: rgba(16, 185, 129, 0.15); color: var(--secondary); display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                <i class="fas fa-walking"></i>
+                            </div>
+                            <div>
+                                <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 4px; color: #fff;">Walk-in Leads (QR)</h3>
+                                <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Online website walk-in submissions (${walkinCount} leads)</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" style="padding: 10px 18px; border-radius: 12px; font-size: 13px; background: linear-gradient(135deg, #10b981, #059669);">
+                            Open Section <i class="fas fa-arrow-right" style="margin-left: 6px;"></i>
+                        </button>
+                    </div>
                 </div>
             `;
             document.getElementById('mainContent').innerHTML = html;
-            populatePositionsDropdown();
-            populateReferralsDropdown();
             
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            document.querySelector('.nav-item[onclick="showDashboard()"]').classList.add('active');
+            const dashNavItem = document.querySelector('.nav-item[onclick="showDashboard()"]');
+            if (dashNavItem) dashNavItem.classList.add('active');
+        }
+
+        // ==================== DEDICATED VIEW: SCHEDULED INTERVIEWS ====================
+        async function showScheduledInterviewsView() {
+            await loadData();
+            const list = recruiterLeads.filter(l => l.queueType === 'scheduled' || (l.source !== 'walkin' && l.source !== 'mobile'));
+
+            const html = `
+                <div class="top-header">
+                    <div class="page-title">
+                        <h1>Scheduled Interviews</h1>
+                        <p>Interviews scheduled by Recruiters & Branch Managers for today</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="action-btn" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
+                        <button class="action-btn primary" onclick="showScheduledInterviewsView()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                </div>
+
+                <div class="form-card" style="padding: 26px; border-radius:24px;">
+                    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:16px;">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <i class="fas fa-calendar-check" style="color:var(--primary); font-size:24px;"></i>
+                            <div>
+                                <h3 style="font-size:20px; margin:0;">Recruiter-Scheduled Queue (${list.length})</h3>
+                                <p style="font-size:12px; color:var(--text-muted); margin:0;">Mark attendance live (Appeared, Not Appeared, Left) or send straight to HR</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="candidate-list" id="scheduledLeadsContainer"></div>
+                </div>
+            `;
+            document.getElementById('mainContent').innerHTML = html;
+            renderSpecificLeadList(list, 'scheduledLeadsContainer', () => showScheduledInterviewsView());
+
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            const nav = document.querySelector('.nav-item[onclick="showScheduledInterviewsView()"]');
+            if (nav) nav.classList.add('active');
+        }
+
+        // ==================== DEDICATED VIEW: WALKIN LEADS (QR) ====================
+        async function showWalkinLeadsView() {
+            await loadData();
+            const list = recruiterLeads.filter(l => l.source === 'walkin' || l.source === 'mobile' || l.queueType === 'form');
+
+            const html = `
+                <div class="top-header">
+                    <div class="page-title">
+                        <h1>Walk-in Leads (Website QR)</h1>
+                        <p>Candidates who scanned QR code and submitted walk-in application form</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="action-btn" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
+                        <button class="action-btn primary" onclick="showWalkinLeadsView()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                </div>
+
+                <div class="form-card" style="padding: 26px; border-radius:24px;">
+                    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:16px;">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <i class="fas fa-walking" style="color:var(--secondary); font-size:24px;"></i>
+                            <div>
+                                <h3 style="font-size:20px; margin:0;">Walk-in Candidates (${list.length})</h3>
+                                <p style="font-size:12px; color:var(--text-muted); margin:0;">Applicants arriving directly via online QR code scan</p>
+                            </div>
+                        </div>
+                        <div>
+                            <button class="btn btn-primary" onclick="showQRCode()" style="padding:8px 16px; font-size:12px;">
+                                <i class="fas fa-qrcode"></i> Show Website QR
+                            </button>
+                        </div>
+                    </div>
+                    <div class="candidate-list" id="walkinLeadsContainer"></div>
+                </div>
+            `;
+            document.getElementById('mainContent').innerHTML = html;
+            renderSpecificLeadList(list, 'walkinLeadsContainer', () => showWalkinLeadsView());
+
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            const nav = document.querySelector('.nav-item[onclick="showWalkinLeadsView()"]');
+            if (nav) nav.classList.add('active');
+        }
+
+        // Generic renderer for any lead list
+        function renderSpecificLeadList(items, containerId, refreshFn) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            if (items.length === 0) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-folder-open fa-3x" style="color:var(--primary); margin-bottom:12px;"></i><p>No candidates found in this queue</p></div>';
+                return;
+            }
+
+            container.innerHTML = items.map(lead => {
+                const safeName = (lead.fullName || lead.name || '').replace(/'/g, "\\'");
+                const safePos = (lead.position || '').replace(/'/g, "\\'");
+                const stage = lead.currentStage;
+                
+                let badgeClass = 'scheduled';
+                let badgeText = lead.badge || 'Scheduled';
+                if (stage === 'receptionist') {
+                    badgeClass = 'appeared';
+                    badgeText = 'Appeared';
+                } else if (stage === 'not_appeared') {
+                    badgeClass = 'not_appeared';
+                    badgeText = 'Not Appeared';
+                } else if (stage === 'left') {
+                    badgeClass = 'left';
+                    badgeText = 'Left';
+                }
+
+                const sourceLabel = lead.source === 'walkin' ? 'Walk-in (Website QR)' : (lead.recruiterName ? `Recruiter: ${lead.recruiterName}` : (lead.referredBy || 'Walk-in'));
+                
+                return `
+                    <div class="candidate-item" ${lead.hasPreviousRejection ? 'style="border-left: 3px solid var(--danger);"' : ''}>
+                        <div class="candidate-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+                            <div style="display:flex; align-items:center; gap:14px;">
+                                <div class="candidate-avatar" ${lead.hasPreviousRejection ? 'style="background: rgba(239, 68, 68, 0.15); color: var(--danger);"' : ''}>
+                                    <i class="fas ${lead.hasPreviousRejection ? 'fa-user-times' : (stage === 'receptionist' ? 'fa-user-check' : 'fa-user')}"></i>
+                                </div>
+                                <div class="candidate-info">
+                                    <h4 style="font-size:16px; font-weight:700; color:#fff;">${lead.fullName || lead.name}</h4>
+                                    <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:4px;">
+                                        <div class="status-badge ${badgeClass}">${badgeText}</div>
+                                        ${lead.hasPreviousRejection ? `
+                                            <div class="status-badge" style="background: rgba(239, 68, 68, 0.25); color: #f87171; border: 1px solid rgba(239,68,68,0.5); cursor:pointer;" onclick="showCrossBranchModal(${lead.id}, '${lead.cnic || ''}')" title="Click to view past interview rejection details">
+                                                <i class="fas fa-exclamation-triangle"></i> ${lead.previousRejectionSummary || 'Prev. Rejected'}
+                                            </div>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="text-align:right;">
+                                <span style="font-size:11px; padding:4px 10px; border-radius:10px; background:rgba(255,255,255,0.05); color:var(--text-muted); font-weight:600;">
+                                    ID: #${lead.id}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="candidate-details">
+                            <div class="detail-item"><i class="fas fa-phone"></i> ${lead.phone || 'N/A'}</div>
+                            <div class="detail-item"><i class="fas fa-id-card"></i> ${lead.cnic || 'N/A'}</div>
+                            <div class="detail-item"><i class="fas fa-briefcase"></i> ${lead.position || 'N/A'}</div>
+                            <div class="detail-item"><i class="fas fa-calendar-alt"></i> ${formatInterviewWhen(lead)}</div>
+                            <div class="detail-item"><i class="fas fa-building"></i> ${lead.interviewLocation || 'Main Office'}</div>
+                            <div class="detail-item"><i class="fas fa-tag"></i> ${sourceLabel}</div>
+                            ${lead.interviewer ? `<div class="detail-item"><i class="fas fa-user-tie"></i> Recruiter / Interviewer: ${lead.interviewer}</div>` : ''}
+                        </div>
+
+                        ${lead.hasPreviousRejection ? `
+                        <div style="margin: 10px 0 14px 0; padding: 10px 14px; background: rgba(239,68,68,0.1); border: 1px dashed rgba(239,68,68,0.3); border-radius: 10px; font-size: 12px; color: #fca5a5;">
+                            <i class="fas fa-history" style="color: #ef4444; margin-right: 6px;"></i> <strong>Cross-Branch Alert:</strong> Candidate previously attended interview at <strong>${lead.previousRejections && lead.previousRejections[0] ? lead.previousRejections[0].branch : 'another branch'}</strong> and was <strong>Rejected</strong>. Reason: <em>${lead.previousRejections && lead.previousRejections[0] ? lead.previousRejections[0].reason : 'N/A'}</em>
+                        </div>` : ''}
+
+                        <div class="action-buttons">
+                            <button class="btn btn-appeared" onclick="markCandidateAppearedGeneric(${lead.id}, '${safeName}', '${lead.phone}')" title="Candidate has arrived at reception">
+                                <i class="fas fa-check-circle"></i> Appeared
+                            </button>
+                            <button class="btn btn-not-appeared" onclick="markCandidateNotAppearedGeneric(${lead.id}, '${safeName}', '${lead.phone}')" title="Candidate did not attend interview">
+                                <i class="fas fa-times-circle"></i> Not Appeared
+                            </button>
+                            <button class="btn btn-left" onclick="markCandidateLeftGeneric(${lead.id}, '${safeName}', '${lead.phone}')" title="Candidate left reception">
+                                <i class="fas fa-sign-out-alt"></i> Left
+                            </button>
+                            <button class="btn btn-send-hr" onclick="sendScheduledToHRGeneric(${lead.id}, '${safeName}', '${lead.phone}', '${safePos}')" title="Send candidate directly to HR interview queue">
+                                <i class="fas fa-paper-plane"></i> Send to HR
+                            </button>
+                            ${(lead.hasPreviousHistory || lead.hasPreviousRejection) ? `
+                            <button class="btn btn-warning" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);" onclick="showCrossBranchModal(${lead.id}, '${lead.cnic || ''}')">
+                                <i class="fas fa-history"></i> Past History
+                            </button>` : ''}
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        async function markCandidateAppearedGeneric(leadId, name, phone) {
+            await markScheduledAppeared(leadId, name, phone);
+            refreshActiveView();
+        }
+
+        async function markCandidateNotAppearedGeneric(leadId, name, phone) {
+            await markScheduledNotAppeared(leadId, name, phone);
+            refreshActiveView();
+        }
+
+        async function markCandidateLeftGeneric(leadId, name, phone) {
+            await markScheduledLeft(leadId, name, phone);
+            refreshActiveView();
+        }
+
+        async function sendScheduledToHRGeneric(leadId, name, phone, position) {
+            await sendScheduledToHR(leadId, name, phone, position);
+            refreshActiveView();
+        }
+
+        function refreshActiveView() {
+            const scheduledActive = document.querySelector('.nav-item[onclick="showScheduledInterviewsView()"].active');
+            const walkinActive = document.querySelector('.nav-item[onclick="showWalkinLeadsView()"].active');
+            if (scheduledActive) {
+                showScheduledInterviewsView();
+            } else if (walkinActive) {
+                showWalkinLeadsView();
+            } else {
+                showDashboard();
+            }
         }
 
         // ==================== SCHEDULED LEADS PAGE ====================
         async function showScheduledLeads() {
-            await loadData();
-
-            const html = `
-                <div class="top-header">
-                    <div class="page-title">
-                        <h1><i class="fas fa-calendar-alt"></i> Scheduled Interviews</h1>
-                        <p>Recruiter schedules, mobile form & walk-in applications</p>
-                    </div>
-                    <div class="header-actions">
-                        <div class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon"></i></div>
-                        <div class="voice-status">
-                            <span class="status-dot active"></span>
-                            <span>Voice Ready</span>
-                        </div>
-                        <button class="action-btn" onclick="initializeVoice()"><i class="fas fa-volume-up"></i> Test Voice</button>
-                        <div class="gsheets-status" id="gsheetsStatus">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <span>Ready</span>
-                        </div>
-                        <button class="action-btn primary" onclick="forceSync()"><i class="fas fa-sync-alt"></i> Sync</button>
-                        <button class="action-btn" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back</button>
-                        <button class="action-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
-                    </div>
-                </div>
-
-                <div class="stats-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-bottom: 32px;">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
-                        <div class="stat-value" id="statTotalCount">${recruiterLeads.length}</div>
-                        <div class="stat-label">Total in Queue</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-user-clock"></i></div>
-                        <div class="stat-value" id="statScheduledCount">0</div>
-                        <div class="stat-label">Scheduled Interviews</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-mobile-alt"></i></div>
-                        <div class="stat-value" id="statFormCount">0</div>
-                        <div class="stat-label">Form Applications</div>
-                    </div>
-                </div>
-
-                <div class="form-card" style="padding: 25px;">
-                    <div class="card-header">
-                        <i class="fas fa-list"></i>
-                        <h3>All Scheduled Interviews</h3>
-                    </div>
-                    <div class="candidate-list" id="scheduledLeadsList"></div>
-                </div>
-            `;
-            document.getElementById('mainContent').innerHTML = html;
-            renderScheduledList();
-
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            document.querySelector('.nav-item[onclick="showScheduledLeads()"]').classList.add('active');
+            await showScheduledInterviewsView();
         }
 
         async function sendScheduledToHR(id, name, phone, position) {
@@ -1879,6 +2503,69 @@
                 await loadData();
                 showScheduledLeads();
             }
+        }
+
+        function showQRCode() {
+            const oldModal = document.querySelector('.qr-modal-overlay');
+            if (oldModal) oldModal.remove();
+
+            const modal = document.createElement('div');
+            modal.className = 'qr-modal-overlay';
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.right = '0';
+            modal.style.bottom = '0';
+            modal.style.background = 'rgba(0,0,0,0.85)';
+            modal.style.backdropFilter = 'blur(10px)';
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            modal.style.zIndex = '9999';
+            modal.style.padding = '20px';
+
+            modal.innerHTML = `
+                <div style="background:var(--bg-card); border:1px solid var(--border-primary); border-radius:28px; padding:32px; max-width:440px; width:100%; text-align:center; box-shadow:var(--shadow-2xl);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                        <h3 style="margin:0; font-size:18px; color:#fff; display:flex; align-items:center; gap:8px;">
+                            <i class="fas fa-qrcode" style="color:var(--primary);"></i> Walk-in Application QR
+                        </h3>
+                        <button onclick="this.closest('.qr-modal-overlay').remove()" style="background:transparent; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div style="background:#fff; border-radius:20px; padding:18px; display:inline-block; margin:16px 0; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+                        <img src="assets/images/website-apply-qr.png?v=${Date.now()}" alt="QR Code" style="width:240px; height:240px; display:block; border-radius:10px;" />
+                    </div>
+                    <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">
+                        Candidates can scan this with any phone camera to submit official walk-in application.
+                    </p>
+                    <div style="display:flex; gap:10px; justify-content:center;">
+                        <button class="btn btn-primary" onclick="copyMobileLink()" style="padding:10px 20px; font-size:13px;"><i class="fas fa-link"></i> Copy Link</button>
+                        <button class="btn btn-primary" onclick="downloadQRCode()" style="padding:10px 20px; font-size:13px; background:linear-gradient(135deg, #10b981, #059669);"><i class="fas fa-download"></i> Download</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function copyMobileLink() {
+            const url = window.location.origin + '/interview-forms/walkin-mobile.html';
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(url).then(() => {
+                    showToast('📋 Application form link copied to clipboard!', 'success');
+                });
+            } else {
+                showToast('Link: ' + url, 'info');
+            }
+        }
+
+        function downloadQRCode() {
+            const link = document.createElement('a');
+            link.href = 'assets/images/website-apply-qr.png';
+            link.download = 'balitech-walkin-qr.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('📥 QR Code downloaded successfully', 'success');
         }
 
         function toggleTheme() {
@@ -2016,6 +2703,476 @@
             }
         };
 
+        // ==================== RECEPTION ANALYTICS & REPORTS MODULE ====================
+        let currentReportData = [];
+        let allReportRecords = [];
+        let reportFilterState = {
+            startDate: '',
+            endDate: '',
+            stage: 'all',
+            search: '',
+            preset: 'today'
+        };
+
+        function setReportDatePreset(preset) {
+            reportFilterState.preset = preset;
+            const today = new Date();
+            const formatDate = (d) => {
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+
+            let start = new Date();
+            let end = new Date();
+
+            if (preset === 'today') {
+                start = today;
+                end = today;
+            } else if (preset === 'yesterday') {
+                start.setDate(today.getDate() - 1);
+                end.setDate(today.getDate() - 1);
+            } else if (preset === 'this_week') {
+                const dayOfWeek = today.getDay();
+                const diffToMonday = (dayOfWeek + 6) % 7;
+                start.setDate(today.getDate() - diffToMonday);
+                end = today;
+            } else if (preset === 'this_month') {
+                start = new Date(today.getFullYear(), today.getMonth(), 1);
+                end = today;
+            } else if (preset === 'last_30_days') {
+                start.setDate(today.getDate() - 29);
+                end = today;
+            } else if (preset === 'all_time') {
+                start = new Date(2024, 0, 1);
+                end = today;
+            }
+
+            reportFilterState.startDate = formatDate(start);
+            reportFilterState.endDate = formatDate(end);
+
+            const startEl = document.getElementById('reportStartDate');
+            const endEl = document.getElementById('reportEndDate');
+            if (startEl) startEl.value = reportFilterState.startDate;
+            if (endEl) endEl.value = reportFilterState.endDate;
+
+            // Highlight active preset button smoothly
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                if (btn.dataset.preset === preset) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            loadReceptionReport();
+        }
+
+        async function loadReceptionReport() {
+            const startInput = document.getElementById('reportStartDate');
+            const endInput = document.getElementById('reportEndDate');
+            const searchInput = document.getElementById('reportSearchInput');
+            const tableBody = document.getElementById('reportTableBody');
+
+            if (startInput) reportFilterState.startDate = startInput.value;
+            if (endInput) reportFilterState.endDate = endInput.value;
+            if (searchInput) reportFilterState.search = searchInput.value.trim();
+
+            if (!tableBody) return;
+            
+            // If empty, show spinner; otherwise keep existing rows without jarring blink
+            if (allReportRecords.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--text-muted);"><i class="fas fa-spinner fa-spin fa-2x"></i><p style="margin-top:8px;">Fetching reception reports...</p></td></tr>`;
+            }
+
+            try {
+                const params = new URLSearchParams({
+                    start_date: reportFilterState.startDate,
+                    end_date: reportFilterState.endDate,
+                    stage: 'all', // Fetch all to allow instant client-side tab switching
+                    search: reportFilterState.search
+                });
+
+                const res = await fetch(`api/get_reception_reports.php?${params.toString()}`, {
+                    credentials: 'include'
+                });
+                const result = await res.json();
+
+                if (!result.success) {
+                    tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--danger);">${result.error || 'Failed to load report data'}</td></tr>`;
+                    return;
+                }
+
+                const data = result.data;
+                allReportRecords = data.records || [];
+
+                // Update metric counters smoothly
+                const counts = data.counts || {};
+                const elTotal = document.getElementById('repMetricTotal');
+                const elScheduled = document.getElementById('repMetricScheduled');
+                const elAppeared = document.getElementById('repMetricAppeared');
+                const elNotAppeared = document.getElementById('repMetricNotAppeared');
+                const elLeft = document.getElementById('repMetricLeft');
+                const elSentHr = document.getElementById('repMetricSentHr');
+
+                if (elTotal) elTotal.textContent = counts.total || 0;
+                if (elScheduled) elScheduled.textContent = counts.scheduled || 0;
+                if (elAppeared) elAppeared.textContent = counts.appeared || 0;
+                if (elNotAppeared) elNotAppeared.textContent = counts.not_appeared || 0;
+                if (elLeft) elLeft.textContent = counts.left || 0;
+                if (elSentHr) elSentHr.textContent = counts.sent_to_hr || 0;
+
+                applyClientFilterAndRender();
+            } catch (err) {
+                console.error('Error fetching reception report:', err);
+                tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--danger);">Error loading report: ${err.message}</td></tr>`;
+            }
+        }
+
+        function filterReportByStage(stage) {
+            reportFilterState.stage = stage;
+            document.querySelectorAll('.stage-filter-pill').forEach(pill => {
+                if (pill.dataset.stage === stage) {
+                    pill.classList.add('active');
+                } else {
+                    pill.classList.remove('active');
+                }
+            });
+            applyClientFilterAndRender();
+        }
+
+        function applyClientFilterAndRender() {
+            const searchVal = (reportFilterState.search || '').toLowerCase();
+            const stage = reportFilterState.stage || 'all';
+
+            let filtered = allReportRecords.filter(r => {
+                // Stage Match
+                let matchStage = false;
+                if (stage === 'all') {
+                    matchStage = true;
+                } else if (stage === 'appeared' && r.category === 'appeared') {
+                    matchStage = true;
+                } else if (stage === 'not_appeared' && r.category === 'not_appeared') {
+                    matchStage = true;
+                } else if (stage === 'left' && r.category === 'left') {
+                    matchStage = true;
+                } else if (stage === 'scheduled' && r.category === 'scheduled') {
+                    matchStage = true;
+                } else if (stage === 'sent_to_hr' && r.category === 'sent_to_hr') {
+                    matchStage = true;
+                }
+
+                if (!matchStage) return false;
+
+                // Search Match
+                if (searchVal) {
+                    const searchStr = `${r.name} ${r.cnic} ${r.phone} ${r.position} ${r.city} ${r.branch} ${r.recruiterName}`.toLowerCase();
+                    if (!searchStr.includes(searchVal)) return false;
+                }
+
+                return true;
+            });
+
+            currentReportData = filtered;
+
+            const elRecordCount = document.getElementById('repRecordCount');
+            if (elRecordCount) elRecordCount.textContent = `${filtered.length} records found`;
+
+            renderReportTable(filtered);
+        }
+
+        function renderReportTable(records) {
+            const tableBody = document.getElementById('reportTableBody');
+            if (!tableBody) return;
+
+            if (!records || records.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" style="text-align:center; padding:55px 20px; color:var(--text-muted);">
+                            <i class="fas fa-folder-open fa-3x" style="opacity:0.35; margin-bottom:12px;"></i>
+                            <h4 style="color:#fff; font-size:16px;">No Records Found</h4>
+                            <p style="font-size:12px; margin-top:4px;">Try changing the date range or stage filter.</p>
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = records.map((r, idx) => {
+                const initial = (r.name || 'U').charAt(0).toUpperCase();
+                let pillClass = 'scheduled';
+                let stageText = 'Scheduled';
+
+                if (r.category === 'appeared') {
+                    pillClass = 'appeared';
+                    stageText = 'Appeared';
+                } else if (r.category === 'not_appeared') {
+                    pillClass = 'not_appeared';
+                    stageText = 'Not Appeared';
+                } else if (r.category === 'left') {
+                    pillClass = 'left';
+                    stageText = 'Left';
+                } else if (r.category === 'sent_to_hr') {
+                    pillClass = 'sent_to_hr';
+                    stageText = 'Sent to HR (' + (r.rawStage || 'HR') + ')';
+                }
+
+                const sourceLabel = r.source === 'walkin' || r.source === 'mobile'
+                    ? '<span style="color:#10b981; font-weight:600; font-size:11px;"><i class="fas fa-walking"></i> Walk-in (QR)</span>'
+                    : (r.recruiterName ? `<span style="color:#60a5fa; font-weight:600; font-size:11px;"><i class="fas fa-user-tie"></i> ${r.recruiterName}</span>` : '<span style="color:var(--text-muted); font-size:11px;">Recruiter</span>');
+
+                const safeName = (r.name || '').replace(/'/g, "\\'");
+                const safeCnic = (r.cnic || '').replace(/'/g, "\\'");
+
+                return `
+                    <tr style="border-bottom: 1px solid var(--border-light); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+                        <td style="padding:14px 16px; font-weight:700; color:var(--text-muted); font-size:12px; white-space:nowrap;">#${r.id}</td>
+                        <td style="padding:14px 16px;">
+                            <div class="candidate-cell">
+                                <div class="avatar-sm">${initial}</div>
+                                <div class="candidate-meta">
+                                    <h5>${r.name}</h5>
+                                    <span><i class="fas fa-building" style="color:var(--primary); font-size:10px;"></i> ${r.city || r.branch || 'Main Branch'}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="padding:14px 16px; white-space:nowrap;">
+                            ${r.cnic && r.cnic !== '—' ? `<span style="font-family:monospace; background:rgba(255,255,255,0.05); padding:4px 9px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); font-size:12px; color:var(--text-primary);"><i class="fas fa-id-card" style="color:var(--primary); font-size:11px; margin-right:5px;"></i>${r.cnic}</span>` : '<span style="color:var(--text-muted); font-size:12px;">—</span>'}
+                        </td>
+                        <td style="padding:14px 16px; font-size:12px; color:var(--text-secondary); white-space:nowrap;">
+                            <i class="fas fa-phone" style="font-size:10px; color:var(--primary); margin-right:4px;"></i>${r.phone || 'N/A'}
+                        </td>
+                        <td style="padding:14px 16px; font-size:13px; font-weight:600; color:#ffffff;">
+                            ${r.position || 'General'}
+                        </td>
+                        <td style="padding:14px 16px; white-space:nowrap;">
+                            ${sourceLabel}
+                        </td>
+                        <td style="padding:14px 16px; font-size:12px; color:var(--text-secondary); white-space:nowrap;">
+                            <div style="font-weight:600; color:#fff;"><i class="fas fa-calendar-day" style="color:var(--primary); font-size:11px; margin-right:4px;"></i>${r.interviewDate || 'N/A'}</div>
+                            ${r.interviewTime ? `<div style="font-size:11px; color:var(--text-muted); margin-top:2px;"><i class="fas fa-clock" style="margin-right:4px;"></i>${r.interviewTime}</div>` : ''}
+                        </td>
+                        <td style="padding:14px 16px; text-align:center; white-space:nowrap;">
+                            <div class="stage-pill ${pillClass}">
+                                <i class="fas ${pillClass === 'appeared' ? 'fa-check' : (pillClass === 'not_appeared' ? 'fa-times' : (pillClass === 'left' ? 'fa-sign-out-alt' : (pillClass === 'sent_to_hr' ? 'fa-paper-plane' : 'fa-calendar-alt')))}"></i>
+                                ${stageText}
+                            </div>
+                        </td>
+                        <td style="padding:14px 16px; text-align:center; white-space:nowrap;">
+                            <button class="btn-view-log" onclick="showCrossBranchModal(${r.id}, '${safeCnic}')" title="View Cross-Branch Records">
+                                <i class="fas fa-history"></i> History
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function downloadReceptionCSV() {
+            if (!currentReportData || currentReportData.length === 0) {
+                showToast('No records to download', 'warning');
+                return;
+            }
+
+            const headers = [
+                'Candidate ID',
+                'Full Name',
+                'CNIC',
+                'Phone',
+                'Position',
+                'City / Branch',
+                'Source / Recruiter',
+                'Interview Date',
+                'Interview Time',
+                'Reception Status',
+                'System Stage',
+                'Created At',
+                'Updated At'
+            ];
+
+            const rows = currentReportData.map(r => [
+                r.id,
+                `"${(r.name || '').replace(/"/g, '""')}"`,
+                `"${(r.cnic || '').replace(/"/g, '""')}"`,
+                `"${(r.phone || '').replace(/"/g, '""')}"`,
+                `"${(r.position || '').replace(/"/g, '""')}"`,
+                `"${(r.city || r.branch || '').replace(/"/g, '""')}"`,
+                `"${(r.recruiterName || r.source || 'Walk-in').replace(/"/g, '""')}"`,
+                `"${(r.interviewDate || '').replace(/"/g, '""')}"`,
+                `"${(r.interviewTime || '').replace(/"/g, '""')}"`,
+                `"${r.category.toUpperCase()}"`,
+                `"${(r.rawStage || '').replace(/"/g, '""')}"`,
+                `"${(r.createdAt || '').replace(/"/g, '""')}"`,
+                `"${(r.updatedAt || '').replace(/"/g, '""')}"`
+            ]);
+
+            const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+
+            const startStr = reportFilterState.startDate || 'all';
+            const endStr = reportFilterState.endDate || 'all';
+            const fileName = `reception_report_${startStr}_to_${endStr}.csv`;
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', fileName);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            showToast(`📥 Report downloaded: ${fileName}`, 'success');
+        }
+
+        async function showReceptionReportsView(initialStage = 'all', initialPreset = 'today') {
+            const main = document.getElementById('mainContent');
+            if (!main) return;
+
+            // Update sidebar active class
+            document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
+                if (item.textContent.includes('Reception Reports')) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+
+            reportFilterState.stage = initialStage;
+            reportFilterState.preset = initialPreset;
+
+            main.innerHTML = `
+                <div class="top-header" style="padding: 12px 20px; margin-bottom: 14px; border-radius: 16px;">
+                    <div class="page-title">
+                        <h1 style="font-size: 19px;"><i class="fas fa-chart-line" style="color: var(--primary);"></i> Reception Attendance & Analytics</h1>
+                        <p style="font-size: 11px; margin-top: 2px;">Real-time performance, appeared ratio, walk-ins, and schedule logs</p>
+                    </div>
+                    <div class="header-actions" style="gap: 8px;">
+                        <button class="btn-action" style="padding: 6px 14px; font-size: 12px; border-radius: 8px;" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Dashboard</button>
+                        <button class="btn-action primary" style="padding: 6px 14px; font-size: 12px; border-radius: 8px;" onclick="downloadReceptionCSV()"><i class="fas fa-file-csv"></i> Export CSV</button>
+                        <div class="theme-toggle" style="padding: 6px 12px; border-radius: 8px;" onclick="toggleTheme()"><i class="fas fa-moon"></i></div>
+                    </div>
+                </div>
+
+                <!-- Stats Row (Candidate Records Style) -->
+                <div class="reports-stats-row">
+                    <div class="reports-stat-card ${initialStage === 'all' ? 'active' : ''}" onclick="filterReportByStage('all')">
+                        <div class="reports-stat-icon total"><i class="fas fa-users"></i></div>
+                        <div class="reports-stat-meta">
+                            <h4 id="repMetricTotal">0</h4>
+                            <span>Total Leads</span>
+                        </div>
+                    </div>
+                    <div class="reports-stat-card ${initialStage === 'scheduled' ? 'active' : ''}" onclick="filterReportByStage('scheduled')">
+                        <div class="reports-stat-icon scheduled"><i class="fas fa-calendar-check"></i></div>
+                        <div class="reports-stat-meta">
+                            <h4 id="repMetricScheduled">0</h4>
+                            <span>Scheduled</span>
+                        </div>
+                    </div>
+                    <div class="reports-stat-card ${initialStage === 'appeared' ? 'active' : ''}" onclick="filterReportByStage('appeared')">
+                        <div class="reports-stat-icon appeared"><i class="fas fa-user-check"></i></div>
+                        <div class="reports-stat-meta">
+                            <h4 id="repMetricAppeared">0</h4>
+                            <span>Appeared</span>
+                        </div>
+                    </div>
+                    <div class="reports-stat-card ${initialStage === 'not_appeared' ? 'active' : ''}" onclick="filterReportByStage('not_appeared')">
+                        <div class="reports-stat-icon not_appeared"><i class="fas fa-user-times"></i></div>
+                        <div class="reports-stat-meta">
+                            <h4 id="repMetricNotAppeared">0</h4>
+                            <span>Not Appeared</span>
+                        </div>
+                    </div>
+                    <div class="reports-stat-card ${initialStage === 'left' ? 'active' : ''}" onclick="filterReportByStage('left')">
+                        <div class="reports-stat-icon left"><i class="fas fa-sign-out-alt"></i></div>
+                        <div class="reports-stat-meta">
+                            <h4 id="repMetricLeft">0</h4>
+                            <span>Left Reception</span>
+                        </div>
+                    </div>
+                    <div class="reports-stat-card ${initialStage === 'sent_to_hr' ? 'active' : ''}" onclick="filterReportByStage('sent_to_hr')">
+                        <div class="reports-stat-icon sent_to_hr"><i class="fas fa-paper-plane"></i></div>
+                        <div class="reports-stat-meta">
+                            <h4 id="repMetricSentHr">0</h4>
+                            <span>Sent to HR</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters Control Card (Candidate Records Style) -->
+                <div class="reports-filter-card">
+                    <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid var(--border-light);">
+                        <span style="font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-right:4px;">
+                            <i class="fas fa-calendar-alt"></i> Presets:
+                        </span>
+                        <button type="button" class="btn preset-btn ${initialPreset === 'today' ? 'active' : ''}" data-preset="today" onclick="setReportDatePreset('today')" style="padding:4px 10px; font-size:11px; border-radius:6px; border:1px solid var(--border-light); background:rgba(255,255,255,0.05); color:var(--text-primary); cursor:pointer;">Today</button>
+                        <button type="button" class="btn preset-btn ${initialPreset === 'yesterday' ? 'active' : ''}" data-preset="yesterday" onclick="setReportDatePreset('yesterday')" style="padding:4px 10px; font-size:11px; border-radius:6px; border:1px solid var(--border-light); background:rgba(255,255,255,0.05); color:var(--text-primary); cursor:pointer;">Yesterday</button>
+                        <button type="button" class="btn preset-btn ${initialPreset === 'this_week' ? 'active' : ''}" data-preset="this_week" onclick="setReportDatePreset('this_week')" style="padding:4px 10px; font-size:11px; border-radius:6px; border:1px solid var(--border-light); background:rgba(255,255,255,0.05); color:var(--text-primary); cursor:pointer;">This Week</button>
+                        <button type="button" class="btn preset-btn ${initialPreset === 'this_month' ? 'active' : ''}" data-preset="this_month" onclick="setReportDatePreset('this_month')" style="padding:4px 10px; font-size:11px; border-radius:6px; border:1px solid var(--border-light); background:rgba(255,255,255,0.05); color:var(--text-primary); cursor:pointer;">Whole Month</button>
+                        <button type="button" class="btn preset-btn ${initialPreset === 'last_30_days' ? 'active' : ''}" data-preset="last_30_days" onclick="setReportDatePreset('last_30_days')" style="padding:4px 10px; font-size:11px; border-radius:6px; border:1px solid var(--border-light); background:rgba(255,255,255,0.05); color:var(--text-primary); cursor:pointer;">Last 30 Days</button>
+                        <button type="button" class="btn preset-btn ${initialPreset === 'all_time' ? 'active' : ''}" data-preset="all_time" onclick="setReportDatePreset('all_time')" style="padding:4px 10px; font-size:11px; border-radius:6px; border:1px solid var(--border-light); background:rgba(255,255,255,0.05); color:var(--text-primary); cursor:pointer;">All Time</button>
+                    </div>
+                    <div class="reports-filter-grid">
+                        <div class="reports-filter-group">
+                            <input type="text" id="reportSearchInput" oninput="applyClientFilterAndRender()" placeholder="Search Candidate Name, CNIC, Phone, Position, Recruiter...">
+                        </div>
+                        <div class="reports-filter-group">
+                            <select id="reportStageSelect" onchange="filterReportByStage(this.value)">
+                                <option value="all">All Stages & Decisions</option>
+                                <option value="appeared">Appeared at Reception</option>
+                                <option value="not_appeared">Not Appeared</option>
+                                <option value="left">Left Reception Desk</option>
+                                <option value="scheduled">Scheduled Interview</option>
+                                <option value="sent_to_hr">Forwarded to HR</option>
+                            </select>
+                        </div>
+                        <div class="reports-filter-group">
+                            <input type="date" id="reportStartDate" title="From Date" onchange="loadReceptionReport()">
+                        </div>
+                        <div class="reports-filter-group">
+                            <input type="date" id="reportEndDate" title="To Date" onchange="loadReceptionReport()">
+                        </div>
+                        <div>
+                            <button class="btn-action primary" style="padding: 7px 14px; font-size: 12px; border-radius: 8px; width: 100%;" onclick="loadReceptionReport()"><i class="fas fa-sync-alt"></i> Apply</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Records Table (Candidate Records Style) -->
+                <div class="reports-table-card">
+                    <div class="reports-table-header">
+                        <h3><i class="fas fa-list-alt" style="color: var(--primary);"></i> Reception Candidate History Log</h3>
+                        <span id="repRecordCount" style="font-size: 11.5px; color: var(--text-muted); font-weight: 500;">Showing 0 records</span>
+                    </div>
+
+                    <div style="overflow-x:auto; border-radius:14px;">
+                        <table style="width:100%; border-collapse:collapse; text-align:left; font-size:13px;">
+                            <thead>
+                                <tr style="background: rgba(0, 0, 0, 0.4); border-bottom: 1px solid var(--border-light);">
+                                    <th style="padding:14px 16px; font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;">ID</th>
+                                    <th style="padding:14px 16px; font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; min-width:180px;">Candidate Details</th>
+                                    <th style="padding:14px 16px; font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;">CNIC</th>
+                                    <th style="padding:14px 16px; font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;">Phone</th>
+                                    <th style="padding:14px 16px; font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Position</th>
+                                    <th style="padding:14px 16px; font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;">Source / Recruiter</th>
+                                    <th style="padding:14px 16px; font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;">Interview Schedule</th>
+                                    <th style="padding:14px 16px; font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; text-align:center; white-space:nowrap;">Stage / Status</th>
+                                    <th style="padding:14px 16px; font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; text-align:center; white-space:nowrap;">Audit History</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportTableBody">
+                                <!-- Rendered dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            // Setup preset dates and trigger first load
+            setReportDatePreset(initialPreset);
+        }
+
         window.showCrossBranchModal = async function(leadId, cnic) {
             const oldModal = document.querySelector('.modal-overlay');
             if (oldModal) oldModal.remove();
@@ -2124,8 +3281,30 @@
             }
         };
 
+        window.scrollMetricsSlider = function(amount) {
+            const slider = document.getElementById('reportMetricsSlider');
+            if (slider) {
+                slider.scrollBy({ left: amount, behavior: 'smooth' });
+            }
+        };
+
         window.showDashboard = showDashboard;
+        window.showReceptionReportsView = showReceptionReportsView;
+        window.downloadReceptionCSV = downloadReceptionCSV;
+        window.filterReportByStage = filterReportByStage;
+        window.setReportDatePreset = setReportDatePreset;
+        window.loadReceptionReport = loadReceptionReport;
+        window.showScheduledInterviewsView = showScheduledInterviewsView;
+        window.showWalkinLeadsView = showWalkinLeadsView;
         window.showScheduledLeads = showScheduledLeads;
+        window.markCandidateAppearedGeneric = markCandidateAppearedGeneric;
+        window.markCandidateNotAppearedGeneric = markCandidateNotAppearedGeneric;
+        window.markCandidateLeftGeneric = markCandidateLeftGeneric;
+        window.sendScheduledToHRGeneric = sendScheduledToHRGeneric;
+        window.markScheduledAppeared = markScheduledAppeared;
+        window.markScheduledNotAppeared = markScheduledNotAppeared;
+        window.markScheduledLeft = markScheduledLeft;
+        window.triggerCnicChecker = triggerCnicChecker;
         window.callCandidate = callCandidate;
         window.initializeVoice = initializeVoice;
         window.toggleTheme = toggleTheme;

@@ -19,11 +19,35 @@ $branch_clause = "";
 $params = [];
 $types = "";
 
+$branch_req = trim($_GET['branch'] ?? '');
+
 if (!$is_super) {
-    $branch_clause = " AND (l.company_branch = ? OR l.company_branch IS NULL OR TRIM(l.company_branch) = '' OR l.company_branch = 'main') ";
-    $params[] = $branch;
-    $types .= "s";
+    if ($branch === 'main') {
+        $branch_clause = " AND (l.company_branch = 'main' OR l.company_branch IS NULL OR TRIM(l.company_branch) = '') ";
+    } else {
+        $branch_clause = " AND l.company_branch = ? ";
+        $params[] = $branch;
+        $types .= "s";
+    }
+} elseif ($branch_req !== '' && $branch_req !== 'all' && is_valid_company_branch($branch_req)) {
+    $norm_b = normalize_company_branch($branch_req);
+    if ($norm_b === 'main') {
+        $branch_clause = " AND (l.company_branch = 'main' OR l.company_branch IS NULL OR TRIM(l.company_branch) = '') ";
+    } else {
+        $branch_clause = " AND l.company_branch = ? ";
+        $params[] = $norm_b;
+        $types .= "s";
+    }
 }
+
+// Automatically mark candidates as 'left' if they checked in (receptionist) > 8 hours ago without interview completion
+$auto_left_sql = "
+    UPDATE leads 
+    SET current_stage = 'left', updated_at = NOW() 
+    WHERE current_stage = 'receptionist' 
+      AND updated_at < DATE_SUB(NOW(), INTERVAL 8 HOUR)
+";
+@$conn->query($auto_left_sql);
 
 $sql = "
     SELECT
@@ -56,21 +80,17 @@ $sql = "
     LEFT JOIN users u ON u.id = l.assigned_recruiter_id
     LEFT JOIN interviews i ON i.lead_id = l.id AND i.status = 'scheduled'
     WHERE (
-        l.current_stage = 'interview_scheduled'
+        l.current_stage IN ('interview_scheduled', 'receptionist', 'not_appeared', 'left')
         OR i.id IS NOT NULL
         OR (
             l.source IN ('mobile', 'walkin', 'public', 'walk-in')
-            AND l.current_stage IN ('new', 'assigned', 'receptionist', 'interview_scheduled')
-        )
-        OR (
-            l.current_stage = 'receptionist'
-            AND l.updated_at >= DATE_SUB(NOW(), INTERVAL 14 DAY)
+            AND l.current_stage IN ('new', 'assigned', 'receptionist', 'interview_scheduled', 'not_appeared', 'left')
         )
     )
     $branch_clause
     ORDER BY
-        COALESCE(i.scheduled_date, l.interview_date, DATE(l.updated_at)) ASC,
-        COALESCE(i.scheduled_time, '23:59') ASC,
+        COALESCE(i.scheduled_date, l.interview_date, DATE(l.updated_at)) DESC,
+        COALESCE(i.scheduled_time, '23:59') DESC,
         l.updated_at DESC
     LIMIT 500
 ";
@@ -96,18 +116,21 @@ foreach ($rows as $r) {
     $source = strtolower(trim((string)($r['source'] ?? '')));
     $hasInterview = !empty($r['interview_id']);
 
-    if ($hasInterview) {
-        $queueType = 'scheduled';
-        $badge = 'Interview Scheduled';
-    } elseif ($stage === 'interview_scheduled') {
+    if ($stage === 'receptionist') {
+        $queueType = 'checkin';
+        $badge = 'Appeared';
+    } elseif ($stage === 'not_appeared') {
+        $queueType = 'not_appeared';
+        $badge = 'Not Appeared';
+    } elseif ($stage === 'left') {
+        $queueType = 'left';
+        $badge = 'Left';
+    } elseif ($hasInterview || $stage === 'interview_scheduled') {
         $queueType = 'scheduled';
         $badge = 'Interview Scheduled';
     } elseif (in_array($source, ['mobile', 'walkin', 'public', 'walk-in'], true)) {
         $queueType = 'form';
         $badge = 'Form Application';
-    } elseif ($stage === 'receptionist') {
-        $queueType = 'checkin';
-        $badge = 'Checked In';
     } else {
         $queueType = 'lead';
         $badge = 'Awaiting Reception';

@@ -18,12 +18,14 @@ if (!$lead_id) {
 }
 
 $user_id = $_SESSION['user_id'];
-$recruiter_type = $_SESSION['recruiter_type'] ?? 'regular';
+$is_admin_or_super = isSuperRecruiter();
 $user_name = $_SESSION['full_name'] ?? $_SESSION['username'] ?? 'System';
+$active_branch = get_active_company_branch();
 
-// Verify access - regular recruiters can only update their own leads
-if ($recruiter_type !== 'super') {
-    $check = $conn->prepare("SELECT assigned_recruiter_id, current_stage FROM leads WHERE id = ?");
+// Verify access
+if (!$is_admin_or_super) {
+    // Regular recruiters can only update their own leads in their branch
+    $check = $conn->prepare("SELECT assigned_recruiter_id, current_stage, company_branch FROM leads WHERE id = ?");
     $check->bind_param("i", $lead_id);
     $check->execute();
     $check_result = $check->get_result();
@@ -33,13 +35,22 @@ if ($recruiter_type !== 'super') {
     }
     
     $lead_data = $check_result->fetch_assoc();
-    if ($lead_data['assigned_recruiter_id'] != $user_id) {
-        respond(false, null, 'You can only update leads assigned to you');
+    if ($lead_data['assigned_recruiter_id'] != $user_id || ($lead_data['company_branch'] && $lead_data['company_branch'] !== $active_branch)) {
+        respond(false, null, 'You can only update leads assigned to you in your branch');
     }
     
     // Don't allow status change from final stages back to previous stages
     if (in_array($lead_data['current_stage'], ['deployed', 'hired', 'rejected', 'left', 'mock_rejected'])) {
         respond(false, null, 'Cannot update a lead that is already ' . $lead_data['current_stage']);
+    }
+} elseif (!isGlobalSuperAdmin()) {
+    // Admin / HR restricted to their branch
+    $check = $conn->prepare("SELECT company_branch FROM leads WHERE id = ?");
+    $check->bind_param("i", $lead_id);
+    $check->execute();
+    $lead_data = $check->get_result()->fetch_assoc();
+    if (!$lead_data || ($lead_data['company_branch'] && $lead_data['company_branch'] !== $active_branch)) {
+        respond(false, null, 'Access denied: lead belongs to another branch');
     }
 }
 
@@ -67,7 +78,7 @@ try {
         $types .= "s";
     }
     
-    if ($assigned_recruiter_id !== null) {
+    if ($is_admin_or_super && $assigned_recruiter_id !== null) {
         $update_fields[] = "assigned_recruiter_id = ?";
         $update_params[] = $assigned_recruiter_id;
         $types .= "i";

@@ -11,15 +11,25 @@ if (!$lead_id) {
 }
 
 $user_id = getCurrentUserId();
-$recruiter_type = $_SESSION['recruiter_type'] ?? 'regular';
+$is_admin_or_super = isSuperRecruiter();
+$active_branch = get_active_company_branch();
 
 // Verify access
-if ($recruiter_type !== 'super') {
-    $access = $conn->prepare("SELECT id FROM leads WHERE id = ? AND assigned_recruiter_id = ?");
-    $access->bind_param("ii", $lead_id, $user_id);
+if (!$is_admin_or_super) {
+    // Regular recruiter can ONLY view leads assigned to them within their branch
+    $access = $conn->prepare("SELECT id FROM leads WHERE id = ? AND assigned_recruiter_id = ? AND company_branch = ?");
+    $access->bind_param("iis", $lead_id, $user_id, $active_branch);
     $access->execute();
     if ($access->get_result()->num_rows === 0) {
         respond(false, null, 'Access denied');
+    }
+} elseif (!isGlobalSuperAdmin()) {
+    // Branch HR / Admin restricted to their active branch
+    $access = $conn->prepare("SELECT id FROM leads WHERE id = ? AND company_branch = ?");
+    $access->bind_param("is", $lead_id, $active_branch);
+    $access->execute();
+    if ($access->get_result()->num_rows === 0) {
+        respond(false, null, 'Access denied: lead belongs to another branch');
     }
 }
 

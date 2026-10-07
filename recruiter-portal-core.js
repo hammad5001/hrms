@@ -8,6 +8,7 @@ const API = {
   updateLead:'api/update_lead.php',
   addLead:   'api/add_lead.php',
   recruiters:'api/get_recruiters_list.php',
+  performance:'api/recruiter_performance.php',
   createRec: 'api/create_recruiter_account.php',
   toggleRec: 'api/toggle_recruiter_status.php',
   bulkImport:'api/bulk_import_leads.php',
@@ -16,36 +17,58 @@ const API = {
   distribute:'api/distribute_leads.php',
   distributionLogs: 'api/get_lead_distribution_logs.php',
   syncWebsiteLeads: 'api/sync_website_leads.php',
+  exportReport: 'api/export_recruiter_report.php',
 };
 
 let currentUser = null, isSuperAdmin = false, refreshTimer = null, lastRefresh = null;
 
+const COMPANY_BRANCH_OPTIONS = [
+  { key: 'main', label: 'Main Branch' },
+  { key: 'v2', label: '2.0 Branch' },
+  { key: 'v3', label: '3.0 Branch' },
+  { key: 'commercial', label: 'Commercial Branch' },
+  { key: 'I9', label: 'I-9 Branch' },
+  { key: 'workfromhome', label: 'Work From Home' }
+];
+
 const STATUS_OPTIONS = [
-  {value:'new',label:'Lead Intake',cls:'stage-new'},
-  {value:'assigned',label:'Assigned',cls:'stage-assigned'},
-  {value:'outreach_phone',label:'Phone Call',cls:'stage-contacted'},
-  {value:'outreach_whatsapp_call',label:'WhatsApp Call',cls:'stage-contacted'},
-  {value:'outreach_whatsapp_msg',label:'WhatsApp Message',cls:'stage-contacted'},
-  {value:'interview_scheduled',label:'Interview Scheduled',cls:'stage-interview_scheduled'},
-  {value:'not_appeared',label:'Not Appeared',cls:'stage-hr_rejected'},
-  {value:'receptionist',label:'At Reception',cls:'stage-assigned'},
-  {value:'interview_conducted',label:'Interview Conducted',cls:'stage-assigned'},
-  {value:'selected',label:'Selected',cls:'stage-hr_passed'},
-  {value:'pending',label:'Pending',cls:'stage-callback'},
-  {value:'rejected',label:'Rejected',cls:'stage-rejected'},
-  {value:'training',label:'Training',cls:'stage-training'},
-  {value:'deployed',label:'Deployed',cls:'stage-hired'},
-  {value:'mock_rejected',label:'Mock Rejected',cls:'stage-rejected'},
-  {value:'left',label:'Left',cls:'stage-rejected'},
-  // Legacy support
-  {value:'contacted',label:'Contacted',cls:'stage-contacted'},
-  {value:'interested',label:'Interested',cls:'stage-interested'},
-  {value:'callback',label:'Call Back',cls:'stage-callback'},
-  {value:'hired',label:'Hired',cls:'stage-hired'},
-  {value:'hr_passed',label:'HR Passed',cls:'stage-hr_passed'},
-  {value:'hr_rejected',label:'HR Rejected',cls:'stage-hr_rejected'},
-  {value:'gm_passed',label:'GM Passed',cls:'stage-gm_passed'},
-  {value:'gm_rejected',label:'GM Rejected',cls:'stage-gm_rejected'},
+  // Outreach & Calling
+  { value: 'outreach_phone', label: 'Phone Call', group: 'Outreach', icon: 'fa-phone', cls: 'stage-contacted' },
+  { value: 'outreach_whatsapp_call', label: 'WhatsApp Call', group: 'Outreach', icon: 'fab fa-whatsapp', cls: 'stage-contacted' },
+  { value: 'outreach_whatsapp_msg', label: 'Message Dropped', group: 'Outreach', icon: 'fas fa-comment-dots', cls: 'stage-contacted' },
+  { value: 'not_answered', label: 'Not Answered', group: 'Outreach', icon: 'fas fa-phone-slash', cls: 'stage-callback' },
+  { value: 'callback', label: 'Call Back', group: 'Outreach', icon: 'fas fa-clock-rotate-left', cls: 'stage-callback' },
+
+  // Interview & Decision
+  { value: 'interview_scheduled', label: 'Interview Scheduled', group: 'Pipeline', icon: 'fas fa-calendar-check', cls: 'stage-interview_scheduled' },
+  { value: 'pending', label: 'Pending Decision', group: 'Pipeline', icon: 'fas fa-hourglass-half', cls: 'stage-callback' },
+  { value: 'selected', label: 'Selected', group: 'Pipeline', icon: 'fas fa-star', cls: 'stage-hr_passed' },
+  { value: 'rejected', label: 'Rejected', group: 'Pipeline', icon: 'fas fa-times-circle', cls: 'stage-rejected' },
+
+  // Branch Transfer / Referral
+  { value: 'referred_branch', label: 'Referred to Another Branch', group: 'Branch', icon: 'fas fa-building-circle-arrow-right', cls: 'stage-interested' },
+
+  // Reception & Training
+  { value: 'receptionist', label: 'Appeared (At Reception)', group: 'Reception', icon: 'fas fa-building-user', cls: 'stage-hr_passed' },
+  { value: 'not_appeared', label: 'Not Appeared', group: 'Reception', icon: 'fas fa-user-slash', cls: 'stage-hr_rejected' },
+  { value: 'training', label: 'In Training', group: 'Training', icon: 'fas fa-graduation-cap', cls: 'stage-training' },
+  { value: 'deployed', label: 'Deployed / Joined', group: 'Training', icon: 'fas fa-briefcase', cls: 'stage-hired' },
+
+  // Base Intake
+  { value: 'new', label: 'Lead Intake', group: 'Intake', icon: 'fas fa-inbox', cls: 'stage-new' },
+  { value: 'assigned', label: 'Assigned', group: 'Intake', icon: 'fas fa-user-tag', cls: 'stage-assigned' },
+
+  // Legacy mappings for backward display
+  { value: 'contacted', label: 'Phone Call (Legacy)', group: 'Legacy', icon: 'fa-phone', cls: 'stage-contacted' },
+  { value: 'interested', label: 'Interested (Legacy)', group: 'Legacy', icon: 'fa-thumbs-up', cls: 'stage-interested' },
+  { value: 'hired', label: 'Hired (Legacy)', group: 'Legacy', icon: 'fa-check', cls: 'stage-hired' },
+  { value: 'interview_conducted', label: 'Interview Conducted', group: 'Legacy', icon: 'fa-check-double', cls: 'stage-assigned' },
+  { value: 'hr_passed', label: 'HR Passed (Legacy)', group: 'Legacy', icon: 'fa-check', cls: 'stage-hr_passed' },
+  { value: 'hr_rejected', label: 'HR Rejected (Legacy)', group: 'Legacy', icon: 'fa-times', cls: 'stage-rejected' },
+  { value: 'gm_passed', label: 'GM Passed (Legacy)', group: 'Legacy', icon: 'fa-check', cls: 'stage-gm_passed' },
+  { value: 'gm_rejected', label: 'GM Rejected (Legacy)', group: 'Legacy', icon: 'fa-times', cls: 'stage-rejected' },
+  { value: 'mock_rejected', label: 'Mock Rejected (Legacy)', group: 'Legacy', icon: 'fa-times', cls: 'stage-rejected' },
+  { value: 'left', label: 'Left (Legacy)', group: 'Legacy', icon: 'fa-door-open', cls: 'stage-rejected' },
 ];
 
 // ===== UTILITIES =====
@@ -87,7 +110,20 @@ function toast(msg,type='success'){
 }
 
 function setLoading(html='<div class="loading-state"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></div>'){
-  document.getElementById('mainContent').innerHTML=html;
+  const el = document.getElementById('mainContent');
+  if (!el) return;
+  if (!el.firstElementChild || el.querySelector('.loading-state')) {
+    el.innerHTML = html;
+  } else {
+    el.classList.add('view-loading');
+  }
+}
+
+function renderMainView(html){
+  const el = document.getElementById('mainContent');
+  if(!el) return;
+  el.classList.remove('view-loading');
+  el.innerHTML = html;
 }
 
 function closeModal(){const m=document.querySelector('.modal-overlay');if(m)m.remove();}
@@ -165,10 +201,45 @@ function logout(){
   });
 }
 
-function statusSelectHtml(selected=''){
-  return STATUS_OPTIONS.map(o=>`<option value="${o.value}"${selected===o.value?' selected':''}>${o.label}</option>`).join('');
+function statusSelectHtml(selected = '', includeLegacy = false) {
+  const groups = [
+    { label: '📞 Calling & Outreach', keys: ['outreach_phone', 'outreach_whatsapp_call', 'outreach_whatsapp_msg', 'not_answered', 'callback'] },
+    { label: '📅 Pipeline & Interview', keys: ['interview_scheduled', 'pending', 'selected', 'rejected'] },
+    { label: '🏢 Branch Referral', keys: ['referred_branch'] },
+    { label: '🏛 Reception & Training', keys: ['receptionist', 'not_appeared', 'training', 'deployed'] },
+    { label: '📥 Intake Status', keys: ['new', 'assigned'] }
+  ];
+
+  let html = '';
+  const renderedKeys = new Set();
+  
+  groups.forEach(g => {
+    html += `<optgroup label="${g.label}">`;
+    g.keys.forEach(k => {
+      const opt = STATUS_OPTIONS.find(x => x.value === k);
+      if (opt) {
+        renderedKeys.add(opt.value);
+        html += `<option value="${opt.value}" ${selected === opt.value ? 'selected' : ''}>${esc(opt.label)}</option>`;
+      }
+    });
+    html += `</optgroup>`;
+  });
+
+  // If the lead currently has a legacy status that is not yet rendered, preserve it
+  if (selected && !renderedKeys.has(selected)) {
+    const legacyOpt = STATUS_OPTIONS.find(x => x.value === selected);
+    if (legacyOpt) {
+      html += `<optgroup label="⚠️ Legacy Status">`;
+      html += `<option value="${legacyOpt.value}" selected>${esc(legacyOpt.label)}</option>`;
+      html += `</optgroup>`;
+    }
+  }
+
+  return html;
 }
 
+window.renderMainView=renderMainView;
+window.setLoading=setLoading;
 window.closeModal=closeModal;
 window.logout=logout;
 window.init=init;

@@ -18,17 +18,27 @@ if (!$lead_id || !$date || !$time) {
 }
 
 $user_id = $_SESSION['user_id'];
-$recruiter_type = $_SESSION['recruiter_type'] ?? 'regular';
+$is_admin_or_super = isSuperRecruiter();
+$branch = get_active_company_branch();
 
-// Verify access - regular recruiters can only schedule for their own leads
-if ($recruiter_type !== 'super') {
-    $check = $conn->prepare("SELECT id FROM leads WHERE id = ? AND assigned_recruiter_id = ?");
-    $check->bind_param("ii", $lead_id, $user_id);
+// Verify access
+if (!$is_admin_or_super) {
+    // Regular recruiter can only schedule for leads assigned to them in their branch
+    $check = $conn->prepare("SELECT id FROM leads WHERE id = ? AND assigned_recruiter_id = ? AND company_branch = ?");
+    $check->bind_param("iis", $lead_id, $user_id, $branch);
     $check->execute();
     $check_result = $check->get_result();
     
     if ($check_result->num_rows === 0) {
-        respond(false, null, 'You can only schedule interviews for leads assigned to you');
+        respond(false, null, 'You can only schedule interviews for leads assigned to you in your branch');
+    }
+} elseif (!isGlobalSuperAdmin()) {
+    // Admin / HR restricted to their branch
+    $check = $conn->prepare("SELECT id FROM leads WHERE id = ? AND company_branch = ?");
+    $check->bind_param("is", $lead_id, $branch);
+    $check->execute();
+    if ($check->get_result()->num_rows === 0) {
+        respond(false, null, 'Access denied: lead belongs to another branch');
     }
 }
 

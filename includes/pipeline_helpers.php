@@ -9,13 +9,13 @@ function pipeline_stage_labels(): array {
     return [
         'new' => 'New Lead',
         'assigned' => 'Assigned to Recruiter',
-        'contacted' => 'Contacted',
-        'interested' => 'Interested',
-        'callback' => 'Callback',
-        'outreach_phone' => 'Phone Outreach',
+        'outreach_phone' => 'Phone Call',
         'outreach_whatsapp_call' => 'WhatsApp Call',
-        'outreach_whatsapp_msg' => 'WhatsApp Message',
+        'outreach_whatsapp_msg' => 'Message Dropped',
+        'not_answered' => 'Not Answered',
+        'callback' => 'Call Back / Follow-up',
         'interview_scheduled' => 'Interview Scheduled',
+        'referred_branch' => 'Referred to Branch',
         'not_appeared' => 'Not Appeared (Reception)',
         'receptionist' => 'At Reception (Slot Assigned)',
         'interview_conducted' => 'Interview Conducted',
@@ -42,7 +42,7 @@ function pipeline_stage_badge_class(string $stage): string {
     if (in_array($s, ['rejected', 'hr_rejected', 'gm_rejected', 'not_appeared', 'mock_rejected', 'left'], true)) {
         return 'negative';
     }
-    if (in_array($s, ['pending', 'callback', 'interested'], true)) {
+    if (in_array($s, ['pending', 'callback', 'interested', 'not_answered', 'referred_branch'], true)) {
         return 'warning';
     }
     return 'neutral';
@@ -58,43 +58,8 @@ function pipeline_stage_label(string $stage): string {
  * Transition graph from recruitment pipeline diagram.
  */
 function pipeline_transition_allowed(string $from, string $to): bool {
-    $from = canonical_stage($from);
-    $to = canonical_stage($to);
-    if ($from === $to || $from === '' || $to === '') {
-        return true;
-    }
-
-    $allowed = [
-        'new' => ['assigned', 'contacted', 'interested', 'callback', 'outreach_phone', 'outreach_whatsapp_call', 'outreach_whatsapp_msg', 'interview_scheduled', 'rejected'],
-        'assigned' => ['contacted', 'interested', 'callback', 'outreach_phone', 'outreach_whatsapp_call', 'outreach_whatsapp_msg', 'interview_scheduled', 'rejected'],
-        'contacted' => ['interested', 'callback', 'outreach_phone', 'outreach_whatsapp_call', 'outreach_whatsapp_msg', 'interview_scheduled', 'rejected'],
-        'interested' => ['interview_scheduled', 'rejected'],
-        'callback' => ['interview_scheduled', 'rejected'],
-        'outreach_phone' => ['interview_scheduled', 'rejected'],
-        'outreach_whatsapp_call' => ['interview_scheduled', 'rejected'],
-        'outreach_whatsapp_msg' => ['interview_scheduled', 'rejected'],
-        'interview_scheduled' => ['receptionist', 'not_appeared', 'interview_conducted', 'rejected'],
-        'receptionist' => ['interview_conducted', 'not_appeared', 'rejected'],
-        'not_appeared' => ['interview_scheduled', 'rejected'],
-        'interview_conducted' => ['selected', 'pending', 'hr_passed', 'hr_rejected', 'gm_passed', 'gm_rejected', 'hired', 'training', 'rejected'],
-        'selected' => ['hr_passed', 'hired', 'training', 'rejected'],
-        'pending' => ['selected', 'hr_passed', 'hired', 'training', 'hr_rejected', 'rejected'],
-        'hr_passed' => ['gm_passed', 'gm_rejected', 'hired', 'training', 'rejected'],
-        'hr_rejected' => ['rejected'],
-        'gm_passed' => ['hired', 'training', 'rejected'],
-        'gm_rejected' => ['rejected'],
-        'hired' => ['training', 'not_appeared', 'rejected'],
-        'training' => ['deployed', 'mock_rejected', 'left', 'rejected'],
-        'deployed' => [],
-        'mock_rejected' => [],
-        'left' => [],
-        'rejected' => [],
-    ];
-
-    if (!isset($allowed[$from])) {
-        return true;
-    }
-    return in_array($to, $allowed[$from], true);
+    // Defer to stage_transition_allowed in config.php which is canonical
+    return stage_transition_allowed($from, $to);
 }
 
 function pipeline_update_lead_stage(mysqli $conn, int $lead_id, string $new_stage, string $action, ?string $remark = null, ?string $user_role = null): array {

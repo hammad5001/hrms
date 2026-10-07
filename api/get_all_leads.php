@@ -40,9 +40,22 @@ if ($search) {
     $types .= "ssss";
 }
 if ($stage) {
-    $where[] = "l.current_stage = ?";
-    $params[] = $stage;
-    $types .= "s";
+    $can_stage = canonical_stage($stage);
+    if ($can_stage === 'outreach_phone') {
+        $where[] = "(l.current_stage = 'outreach_phone' OR l.current_stage = 'contacted')";
+    } elseif ($can_stage === 'interview_scheduled') {
+        $where[] = "(l.current_stage = 'interview_scheduled' OR l.current_stage = 'scheduled')";
+    } elseif ($can_stage === 'receptionist') {
+        $where[] = "(l.current_stage IN ('receptionist', 'agent_checkin', 'reception_checked_in'))";
+    } elseif ($can_stage === 'referred_branch') {
+        $where[] = "(l.current_stage IN ('referred_branch', 'referred', 'transfer_branch'))";
+    } elseif ($can_stage === 'outreach_whatsapp_msg') {
+        $where[] = "(l.current_stage IN ('outreach_whatsapp_msg', 'message_dropped'))";
+    } else {
+        $where[] = "l.current_stage = ?";
+        $params[] = $can_stage;
+        $types .= "s";
+    }
 }
 if ($rec_id) {
     $where[] = "l.assigned_recruiter_id = ?";
@@ -67,7 +80,7 @@ $data_params[] = $offset;
 
 $data_stmt = $conn->prepare("
     SELECT l.id, l.external_lead_id, l.source, l.cv_file_url, l.full_name, l.phone, l.email, l.city, l.cnic,
-           l.position_applied, l.current_stage, l.call_count,
+           l.position_applied, l.current_stage, l.company_branch, l.call_count,
            l.last_call_date, l.interview_date, l.created_at, l.updated_at, l.assigned_at,
            u.full_name AS recruiter_name, u.id AS recruiter_user_id,
            (SELECT remark FROM lead_remarks WHERE lead_id = l.id ORDER BY created_at DESC LIMIT 1) AS latest_remark

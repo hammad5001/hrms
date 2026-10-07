@@ -26,10 +26,26 @@ $branch_sql = '';
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if (!empty($_SESSION['company_branch'])) {
+$active_branch = get_active_company_branch();
+$branch_req    = trim($_GET['branch'] ?? '');
+
+if (isGlobalSuperAdmin()) {
+    if ($branch_req === 'all') {
+        $branch_sql = ''; // Global Super Admin can see all branches
+    } elseif ($branch_req !== '' && is_valid_company_branch($branch_req)) {
+        $branch_sql = ' AND l.company_branch = ?';
+        $types .= 's';
+        $params[] = normalize_company_branch($branch_req);
+    } else {
+        $branch_sql = ' AND l.company_branch = ?';
+        $types .= 's';
+        $params[] = $active_branch;
+    }
+} else {
+    // Other roles strictly scoped to active branch
     $branch_sql = ' AND l.company_branch = ?';
     $types .= 's';
-    $params[] = get_active_company_branch();
+    $params[] = $active_branch;
 }
 
 if ($light) {

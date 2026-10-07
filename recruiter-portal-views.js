@@ -2,159 +2,303 @@
 
 let charts = {};
 
-// --- DASHBOARD with Charts ---
+// Global Filters
+window.dashBranch = 'all';
+window.dashDateRange = 'all_time';
+
+function destroyCharts() {
+  if (charts && typeof charts === 'object') {
+    Object.keys(charts).forEach(k => {
+      try {
+        if (charts[k] && typeof charts[k].destroy === 'function') {
+          charts[k].destroy();
+        }
+      } catch (e) {}
+    });
+  }
+  charts = {};
+}
+
+function changeDashBranch(b) {
+  window.dashBranch = b;
+  showDashboard();
+}
+
+function changeDashRange(r) {
+  window.dashDateRange = r;
+  showDashboard();
+}
+
+// --- REVAMPED DASHBOARD ---
 async function showDashboard() {
   setActiveNav('dashboard');
   if (!document.getElementById('dashView')) setLoading();
 
-  const res = await apiFetch(API.stats);
+  const bParam = encodeURIComponent(window.dashBranch || 'all');
+  const rParam = encodeURIComponent(window.dashDateRange || 'all_time');
+  const res = await apiFetch(`${API.stats}?branch=${bParam}&range=${rParam}`);
+  
   if (!res.success) {
-    toast(res.error || 'Failed to load stats', 'error');
+    toast(res.error || 'Failed to load dashboard metrics', 'error');
     return;
   }
   const s = res.data || {};
   lastRefresh = new Date();
 
-  // Calculate percentages for progress bars
-  const conversionRate = s.total_leads > 0 
-    ? Math.round((s.hired_leads / s.total_leads) * 100) 
-    : 0;
-  const pendingRate = s.total_leads > 0 
-    ? Math.round((s.pending_leads / s.total_leads) * 100) 
-    : 0;
+  // Branch selector options for Admins / Super Admin / HR
+  let branchSelectHtml = '';
+  if (isSuperAdmin && s.available_branches) {
+    const branches = s.available_branches;
+    branchSelectHtml = `
+      <select class="branch-select-badge" onchange="changeDashBranch(this.value)" title="Filter by Branch">
+        <option value="all" ${window.dashBranch === 'all' ? 'selected' : ''}>🏢 All Branches</option>
+        ${Object.keys(branches).map(k => `
+          <option value="${k}" ${window.dashBranch === k ? 'selected' : ''}>${esc(branches[k].label)}</option>
+        `).join('')}
+      </select>
+    `;
+  }
+
+  // Active date filter helper
+  const rangePills = [
+    { key: 'all_time', label: 'All Time' },
+    { key: 'today', label: 'Today' },
+    { key: 'this_week', label: 'This Week' },
+    { key: 'this_month', label: 'This Month' }
+  ];
 
   let html = `
-    <div class="top-bar" id="dashView">
+    <div class="top-bar" id="dashView" style="margin-bottom: 14px;">
       <div class="page-title">
-        <h1>🔮 Intelligence Hub</h1>
-        <p><i class="fas fa-chart-line"></i> Real-time analytics & predictive insights - 
-          <span id="liveUpdated" class="live-indicator">
-            <div class="live-dot"></div> Live
+        <h1>📊 Recruiter Operations Dashboard</h1>
+        <p style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="color:var(--text-secondary);"><i class="fas fa-building" style="color:var(--primary);"></i> ${esc(s.branch_label || 'Main Branch')}</span>
+          <span style="color:rgba(255,255,255,0.25);">•</span>
+          <span class="live-indicator">
+            <span class="live-dot"></span>
+            <span style="font-weight:600;">Live Activity</span>
+            <span style="opacity:0.4;">•</span>
+            <span id="liveUpdated" style="font-weight:600;">Just now</span>
           </span>
         </p>
       </div>
       <div class="top-actions">
-        <button class="btn btn-primary" onclick="showDashboard()">
+        ${isSuperAdmin ? `
+          <button class="btn btn-warning btn-sm" onclick="showTeamPerformance()">
+            <i class="fas fa-users-cog"></i> Team Performance
+          </button>
+        ` : ''}
+        <button class="btn btn-primary btn-sm" onclick="showDashboard()">
           <i class="fas fa-sync-alt"></i> Refresh Data
         </button>
-        <button class="btn btn-info" onclick="exportDashboardReport()">
-          <i class="fas fa-download"></i> Export Report
+        <button class="btn btn-info btn-sm" onclick="showExportPerformanceModal()">
+          <i class="fas fa-file-excel"></i> Export Report
         </button>
-      </div>
-    </div>`;
-
-  if (isSuperAdmin) {
-    // Super Admin Dashboard
-    html += `
-    <div class="stats-grid stats-5">
-      <div class="stat-card" onclick="showAllLeads()">
-        <div class="stat-icon blue"><i class="fas fa-database"></i></div>
-        <div class="stat-value">${formatNumber(s.total_leads || 0)}</div>
-        <div class="stat-label">Total Leads</div>
-        <div class="stat-trend up"><i class="fas fa-arrow-up"></i> +12% growth</div>
-      </div>
-      <div class="stat-card" onclick="showDistributeLeads()">
-        <div class="stat-icon yellow"><i class="fas fa-funnel-dollar"></i></div>
-        <div class="stat-value">${formatNumber(s.pending_leads || 0)}</div>
-        <div class="stat-label">Active Pipeline</div>
-        <div class="stat-trend warning"><i class="fas fa-clock"></i> Action required</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon purple"><i class="fas fa-calendar-check"></i></div>
-        <div class="stat-value">${formatNumber(s.scheduled_leads || 0)}</div>
-        <div class="stat-label">Interviews Today</div>
-        <div class="stat-trend up"><i class="fas fa-user-clock"></i> Busy day</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon green"><i class="fas fa-check-double"></i></div>
-        <div class="stat-value">${formatNumber(s.hired_this_month || 0)}</div>
-        <div class="stat-label">Hired (MTD)</div>
-        <div class="stat-trend up"><i class="fas fa-chart-line"></i> Above target</div>
-      </div>
-      <div class="stat-card" onclick="showDistributeLeads()">
-        <div class="stat-icon red"><i class="fas fa-user-plus"></i></div>
-        <div class="stat-value">${formatNumber(s.unassigned_leads || 0)}</div>
-        <div class="stat-label">New Unassigned</div>
-        <div class="stat-trend down"><i class="fas fa-exclamation-circle"></i> Needs sorting</div>
       </div>
     </div>
 
+    <!-- Control & Filter Bar -->
+    <div class="dash-control-bar">
+      <div class="dash-filter-group">
+        <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);"><i class="fas fa-calendar-alt"></i> Date Range:</span>
+        <div class="filter-pills">
+          ${rangePills.map(p => `
+            <button class="filter-pill ${window.dashDateRange === p.key ? 'active' : ''}" onclick="changeDashRange('${p.key}')">
+              ${p.label}
+            </button>
+          `).join('')}
+        </div>
+      </div>
+      <div class="dash-filter-group">
+        ${branchSelectHtml}
+        <span style="font-size: 11px; color: var(--text-dim);">Last synced: ${fmtTime(new Date())}</span>
+      </div>
+    </div>
+  `;
+
+  // For Regular Recruiter: Personal Rank Trophy Card
+  if (!isSuperAdmin && s.personal_rank) {
+    const prk = s.personal_rank;
+    const rankEmoji = prk.rank === 1 ? '🥇' : prk.rank === 2 ? '🥈' : prk.rank === 3 ? '🥉' : '⭐';
+    html += `
+      <div class="rank-trophy-card">
+        <div class="rank-trophy-icon">${rankEmoji}</div>
+        <div class="rank-trophy-text">
+          <h3>Your Standing: Rank #${prk.rank} in ${esc(prk.branch)}</h3>
+          <p>Compromising ${prk.total} active recruiters. Keep dialing and converting leads to maintain top performance!</p>
+        </div>
+      </div>
+    `;
+  }
+
+  // Row 1: 6 Real KPI Cards
+  const assignedCnt = s.assigned_leads || 0;
+  const dialedCnt = s.dialed_leads || 0;
+  const remCnt = s.remaining_leads || 0;
+  const schedCnt = s.scheduled_leads || 0;
+  const appearedCnt = s.appeared_leads || 0;
+  const hiredCnt = s.hired_leads || 0;
+
+  html += `
+    <div class="stats-grid stats-6">
+      <!-- Assigned Leads -->
+      <div class="stat-card stat-card-compact theme-blue" onclick="${isSuperAdmin ? 'showTeamPerformance()' : 'showMyLeads()'}" title="Assigned Leads">
+        <div class="stat-card-top">
+          <div class="stat-icon-mini blue"><i class="fas fa-address-book"></i></div>
+          <span class="stat-pill ${s.today_assigned > 0 ? 'active' : ''}">+${s.today_assigned || 0} Today</span>
+        </div>
+        <div class="stat-card-body">
+          <div class="stat-num">${formatNumber(assignedCnt)}</div>
+          <div class="stat-title">Assigned Leads</div>
+        </div>
+      </div>
+
+      <!-- Dialed Leads -->
+      <div class="stat-card stat-card-compact theme-yellow" onclick="${isSuperAdmin ? 'showTeamPerformance()' : 'showMyLeads()'}" title="Dialed Leads">
+        <div class="stat-card-top">
+          <div class="stat-icon-mini yellow"><i class="fas fa-phone-volume"></i></div>
+          <span class="stat-pill ${s.today_dialed > 0 ? 'active' : ''}">+${s.today_dialed || 0} Today</span>
+        </div>
+        <div class="stat-card-body">
+          <div class="stat-num">${formatNumber(dialedCnt)}</div>
+          <div class="stat-title">Dialed Leads</div>
+        </div>
+      </div>
+
+      <!-- Remaining / Not Dialed -->
+      <div class="stat-card stat-card-compact theme-red" onclick="${isSuperAdmin ? 'showTeamPerformance()' : 'showMyLeads()'}" title="Remaining (Uncalled)">
+        <div class="stat-card-top">
+          <div class="stat-icon-mini red"><i class="fas fa-hourglass-start"></i></div>
+          <span class="stat-pill warning">Pending</span>
+        </div>
+        <div class="stat-card-body">
+          <div class="stat-num">${formatNumber(remCnt)}</div>
+          <div class="stat-title">Remaining</div>
+        </div>
+      </div>
+
+      <!-- Scheduled Interviews -->
+      <div class="stat-card stat-card-compact theme-purple" onclick="${isSuperAdmin ? 'showAllLeads(0, \"\", \"interview_scheduled\")' : 'showMyLeads()'}" title="Scheduled Interviews">
+        <div class="stat-card-top">
+          <div class="stat-icon-mini purple"><i class="fas fa-calendar-check"></i></div>
+          <span class="stat-pill ${s.today_scheduled > 0 ? 'active' : ''}">+${s.today_scheduled || 0} Today</span>
+        </div>
+        <div class="stat-card-body">
+          <div class="stat-num">${formatNumber(schedCnt)}</div>
+          <div class="stat-title">Scheduled</div>
+        </div>
+      </div>
+
+      <!-- Appeared -->
+      <div class="stat-card stat-card-compact theme-cyan" title="Appeared Candidates">
+        <div class="stat-card-top">
+          <div class="stat-icon-mini cyan"><i class="fas fa-user-check"></i></div>
+          <span class="stat-pill ${s.today_appeared > 0 ? 'active' : ''}">+${s.today_appeared || 0} Today</span>
+        </div>
+        <div class="stat-card-body">
+          <div class="stat-num">${formatNumber(appearedCnt)}</div>
+          <div class="stat-title">Appeared</div>
+        </div>
+      </div>
+
+      <!-- Hired -->
+      <div class="stat-card stat-card-compact theme-green" title="Hired / Training">
+        <div class="stat-card-top">
+          <div class="stat-icon-mini green"><i class="fas fa-award"></i></div>
+          <span class="stat-pill ${s.today_hired > 0 ? 'active' : ''}">+${s.today_hired || 0} Today</span>
+        </div>
+        <div class="stat-card-body">
+          <div class="stat-num">${formatNumber(hiredCnt)}</div>
+          <div class="stat-title">Hired (Training+)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: 4 Real Interactive ApexCharts -->
+    <div class="charts-grid-4">
+      <!-- 1. Recruitment Conversion Funnel -->
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h4><i class="fas fa-filter" style="color:var(--primary)"></i> Recruitment Conversion Funnel</h4>
+          <span class="badge badge-active" style="font-size: 11px;">
+            Conversion: ${assignedCnt > 0 ? Math.round((hiredCnt / assignedCnt) * 100) : 0}%
+          </span>
+        </div>
+        <div id="recruitmentFunnelChart" style="height: 290px;"></div>
+      </div>
+
+      <!-- 2. 14-Day Performance Trend (Area) -->
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h4><i class="fas fa-chart-area" style="color:var(--info)"></i> 14-Day Department Activity Trend</h4>
+          <span class="badge" style="background: rgba(59,130,246,0.15); color: #60a5fa; font-size: 11px;">
+            Daily Flow
+          </span>
+        </div>
+        <div id="dailyPerformanceChart" style="height: 290px;"></div>
+      </div>
+
+      <!-- 3. Leaderboard or My Activity Chart -->
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h4>
+            <i class="fas ${isSuperAdmin ? 'fa-trophy' : 'fa-chart-bar'}" style="color:var(--warning)"></i> 
+            ${isSuperAdmin ? 'Recruiter Team Leaderboard' : 'My Conversion Metrics'}
+          </h4>
+          <span class="badge badge-active" style="font-size: 11px;">Performance</span>
+        </div>
+        <div id="leaderboardChart" style="height: 290px;"></div>
+      </div>
+
+      <!-- 4. Lead Sources Breakdown -->
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h4><i class="fas fa-pie-chart" style="color:var(--purple)"></i> Lead Acquisition Channels</h4>
+          <span class="badge" style="background: rgba(139,92,246,0.15); color: #a78bfa; font-size: 11px;">
+            Source Channels
+          </span>
+        </div>
+        <div id="sourceBreakdownChart" style="height: 290px;"></div>
+      </div>
+    </div>
+
+    <!-- Row 3: Feeds & Priority Lists Grid -->
     <div class="dashboard-advanced-grid">
-      <!-- Left Column: Activity & Priority -->
+      <!-- Col 1: Real-time Live Activity Feed -->
       <div class="dash-col">
-        <div class="chart-container activity-feed">
+        <div class="chart-container activity-feed" style="height: 100%; min-height: 380px;">
           <div class="chart-header">
-            <h4><i class="fas fa-bolt" style="color:var(--primary)"></i> Real-time Nexus Feed</h4>
+            <h4><i class="fas fa-bolt" style="color:var(--primary)"></i> Real-time Activity Feed</h4>
             <div class="live-indicator">
-              <div class="live-dot"></div>
-              <span>Live Activity</span>
+              <span class="live-dot"></span>
+              <span>Live Updates</span>
             </div>
           </div>
           <div class="activity-list">
             ${(s.recent_activity || []).map(a => `
               <div class="activity-item">
-                <div class="activity-icon ${a.action==='update'?'blue':'green'}">
-                  <i class="fas ${a.action==='update'?'fa-edit':'fa-plus'}"></i>
+                <div class="activity-icon ${a.action==='assign'?'purple':a.action==='update'?'blue':'green'}">
+                  <i class="fas ${a.action==='assign'?'fa-share':a.action==='update'?'fa-edit':'fa-check'}"></i>
                 </div>
                 <div class="activity-content">
-                  <p><strong>${esc(a.user_name || 'System')}</strong> ${esc(a.notes || 'performed an action')}</p>
+                  <p><strong>${esc(a.user_name || 'System')}</strong> ${esc(a.notes || 'updated status')}</p>
                   <div class="activity-meta">
-                    <span><i class="fas fa-user-tie"></i> ${esc(a.lead_name || 'N/A')}</span>
+                    <span><i class="fas fa-user"></i> ${esc(a.lead_name || 'Candidate')}</span>
                     <span><i class="fas fa-clock"></i> ${ago(a.created_at)}</span>
                   </div>
                 </div>
               </div>
-            `).join('') || '<div class="empty-state">No recent activity</div>'}
-          </div>
-        </div>
-
-        <div class="chart-container">
-          <div class="chart-header">
-            <h4><i class="fas fa-fire" style="color:var(--danger)"></i> Priority Outreach</h4>
-            <span class="priority-count-badge">${s.priority_leads?.length || 0}</span>
-          </div>
-          <div class="priority-list">
-            ${(s.priority_leads || []).map(l => `
-              <div class="priority-item" onclick="editLead(${l.id})">
-                <div class="priority-info">
-                  <h5>${esc(l.full_name)}</h5>
-                  <p>${l.phone} - ${esc(l.current_stage)}</p>
-                </div>
-                <div class="priority-actions">
-                  <span class="priority-tag">${l.call_count === 0 ? 'NEVER CALLED' : 'STALE LEAD'}</span>
-                  <button class="btn btn-primary btn-xs"><i class="fas fa-phone"></i></button>
-                </div>
-              </div>
-            `).join('') || '<div class="empty-state">No priority leads</div>'}
+            `).join('') || '<div class="empty-state">No recent activity recorded yet.</div>'}
           </div>
         </div>
       </div>
 
-      <!-- Center Column: Visual Analytics -->
-      <div class="dash-col main-charts">
-        <div class="chart-container">
-          <div class="chart-header">
-            <h4><i class="fas fa-chart-area"></i> Recruitment Conversion Funnel</h4>
-            <div class="chart-actions">
-              <span class="badge badge-active">Efficiency: ${conversionRate}%</span>
-            </div>
-          </div>
-          <div id="funnelChart" style="height: 350px;"></div>
-        </div>
-        
-        <div class="chart-container">
-          <div class="chart-header">
-            <h4><i class="fas fa-users-viewfinder"></i> Team Deployment Metrics</h4>
-          </div>
-          <div id="weeklyBarChart" style="height: 350px;"></div>
-        </div>
-      </div>
-
-      <!-- Right Column: Interviews & Efficiency -->
+      <!-- Col 2: Upcoming Interviews -->
       <div class="dash-col">
-        <div class="chart-container upcoming-interviews">
+        <div class="chart-container upcoming-interviews" style="height: 100%; min-height: 380px;">
           <div class="chart-header">
-            <h4><i class="fas fa-calendar-day" style="color:var(--purple)"></i> Next Interviews</h4>
+            <h4><i class="fas fa-calendar-day" style="color:var(--purple)"></i> Upcoming Interviews</h4>
+            <span class="badge badge-active">${(s.upcoming_interviews || []).length} Scheduled</span>
           </div>
           <div class="upcoming-list">
             ${(s.upcoming_interviews || []).map(i => `
@@ -165,496 +309,297 @@ async function showDashboard() {
                 </div>
                 <div class="upcoming-info">
                   <h5>${esc(i.full_name)}</h5>
-                  <p><i class="fas fa-clock"></i> ${fmt(i.interview_date)}</p>
+                  <p><i class="fas fa-phone-alt"></i> ${esc(i.phone)} ${i.recruiter_name ? `• ${esc(i.recruiter_name)}` : ''}</p>
                 </div>
-                <button class="btn btn-secondary btn-xs" onclick="editLead(${i.id})"><i class="fas fa-chevron-right"></i></button>
+                <button class="btn btn-secondary btn-xs" onclick="editLead(${i.id})"><i class="fas fa-arrow-right"></i></button>
               </div>
-            `).join('') || '<div class="empty-state">No upcoming interviews</div>'}
+            `).join('') || '<div class="empty-state">No scheduled interviews today.</div>'}
           </div>
         </div>
+      </div>
 
-        <div class="chart-container">
+      <!-- Col 3: Priority Outreach (Uncalled / Stale) -->
+      <div class="dash-col">
+        <div class="chart-container" style="height: 100%; min-height: 380px;">
           <div class="chart-header">
-            <h4><i class="fas fa-gauge-high"></i> Global Efficiency</h4>
+            <h4><i class="fas fa-fire" style="color:var(--danger)"></i> Priority Outreach Required</h4>
+            <span class="priority-count-badge">${(s.priority_leads || []).length} Priority</span>
           </div>
-          <div id="conversionGauge" style="height: 250px;"></div>
-          <div class="efficiency-stats">
-            <div class="eff-item">
-              <span class="label">Total Leads</span>
-              <span class="value">${s.total_leads}</span>
-            </div>
-            <div class="eff-item">
-              <span class="label">Assigned</span>
-              <span class="value">${s.assigned_leads}</span>
-            </div>
-            <div class="eff-item">
-              <span class="label">Avg Time to Hire</span>
-              <span class="value">4.2 Days</span>
-            </div>
+          <div class="priority-list">
+            ${(s.priority_leads || []).map(l => `
+              <div class="priority-item" onclick="editLead(${l.id})">
+                <div class="priority-info">
+                  <h5>${esc(l.full_name)}</h5>
+                  <p>${esc(l.phone)} • ${l.recruiter_name ? `${esc(l.recruiter_name)} • ` : ''}${esc(l.current_stage)}</p>
+                </div>
+                <div class="priority-actions">
+                  <span class="priority-tag">${!l.call_count ? 'NEVER CALLED' : 'STALE (3D+)'}</span>
+                  <button class="btn btn-primary btn-xs" onclick="event.stopPropagation(); editLead(${l.id})">
+                    <i class="fas fa-phone"></i> Call
+                  </button>
+                </div>
+              </div>
+            `).join('') || '<div class="empty-state">All leads are up-to-date! Great job.</div>'}
           </div>
         </div>
       </div>
     </div>
-    `;
+  `;
 
-    if (s.recruiter_breakdown && s.recruiter_breakdown.length) {
-      html += `
-      <div class="top-bar" style="margin: 20px 0 16px; padding: 16px 24px;">
-        <div class="page-title">
-          <h1 style="font-size: 18px;">🏆 Team Performance Leaderboard</h1>
-          <p>Real-time ranking based on conversions</p>
-        </div>
-        <div class="top-actions">
-          <button class="btn btn-success btn-sm" onclick="showAddRecruiterModal()">
-            <i class="fas fa-plus"></i> Add Recruiter
-          </button>
-          <button class="btn btn-info btn-sm" onclick="showRecruitersList()">
-            <i class="fas fa-users-cog"></i> Manage Team
-          </button>
-        </div>
-      </div>
-      <div class="stats-grid stats-4">`;
-      
-      // Sort by hired count
-      const sortedRecruiters = [...s.recruiter_breakdown].sort((a, b) => (b.hired || 0) - (a.hired || 0));
-      
-      sortedRecruiters.forEach((r, idx) => {
-        const rankIcon = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '📊';
-        const rankColor = idx === 0 ? '#FFD700' : idx === 1 ? '#C0C0C0' : idx === 2 ? '#CD7F32' : 'var(--text-muted)';
-        const statusBadge = r.status === 'inactive' 
-          ? '<span class="badge badge-inactive" style="margin-left: 8px;"><i class="fas fa-circle"></i> Inactive</span>' 
-          : '<span class="badge badge-active" style="margin-left: 8px;"><i class="fas fa-circle"></i> Active</span>';
-        
-        html += `
-        <div class="rec-card" onclick="viewRecruiterLeads(${r.id}, '${esc(r.full_name)}')">
-          <div class="rec-status-bar ${r.status === 'inactive' ? 'inactive' : ''}"></div>
-          <div class="rec-card-header">
-            <div class="rec-avatar" style="position: relative;">
-              ${r.full_name.charAt(0)}
-              <span style="position: absolute; bottom: -5px; right: -5px; font-size: 14px;">${rankIcon}</span>
-            </div>
-            <div style="flex: 1;">
-              <h4 style="font-size: 14px; color: #fff; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                ${esc(r.full_name)}
-                ${statusBadge}
-                <span style="color: ${rankColor}; font-size: 12px;">${idx === 0 ? 'Top Performer' : idx === 1 ? 'Rising Star' : idx === 2 ? 'Strong Contributor' : ''}</span>
-              </h4>
-              <p style="font-size: 11px; color: var(--text-dim);">
-                ${r.status === 'inactive' ? '⚫ Account Deactivated' : '🟢 Active Recruiter'}
-              </p>
-            </div>
-          </div>
-          <div class="rec-card-stats">
-            <div class="rec-stat-item">
-              <div class="v" style="color: var(--info);">${r.total || 0}</div>
-              <div class="l">Assigned</div>
-            </div>
-            <div class="rec-stat-item">
-              <div class="v" style="color: var(--warning);">${r.pending || 0}</div>
-              <div class="l">Pending</div>
-            </div>
-            <div class="rec-stat-item">
-              <div class="v" style="color: var(--secondary);">${r.hired || 0}</div>
-              <div class="l">Hired</div>
-            </div>
-          </div>
-          <div style="margin-top: 12px;">
-            <div class="progress-bar-bg" style="background: rgba(255,255,255,0.1); border-radius: 20px; height: 4px;">
-              <div class="progress-bar-fill" style="width: ${r.total > 0 ? Math.round((r.hired / r.total) * 100) : 0}%; height: 4px; background: var(--gradient-primary); border-radius: 20px;"></div>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-top: 6px;">
-              <span style="font-size: 9px; color: var(--text-dim);">Conversion Rate</span>
-              <span style="font-size: 10px; font-weight: 600; color: var(--primary);">${r.total > 0 ? Math.round((r.hired / r.total) * 100) : 0}%</span>
-            </div>
-          </div>
-          <div style="margin-top: 12px; display: flex; gap: 8px;">
-            <button class="btn btn-info btn-xs" onclick="event.stopPropagation(); viewRecruiterLeads(${r.id}, '${esc(r.full_name)}')">
-              <i class="fas fa-eye"></i> View Leads
-            </button>
-            ${r.status === 'active' ? 
-              `<button class="btn btn-danger btn-xs" onclick="event.stopPropagation(); deactivateRecruiter(${r.id})">
-                <i class="fas fa-user-slash"></i> Deactivate
-              </button>` :
-              `<button class="btn btn-success btn-xs" onclick="event.stopPropagation(); activateRecruiter(${r.id})">
-                <i class="fas fa-user-check"></i> Activate
-              </button>`
-            }
-          </div>
-        </div>`;
-      });
-      html += `</div>`;
-    }
+  renderMainView(html);
 
-  } else {
-    // Regular Recruiter Dashboard
-    html += `
-    <div class="stats-grid stats-4">
-      <div class="stat-card" onclick="showMyLeads()">
-        <div class="stat-icon blue"><i class="fas fa-clipboard-list"></i></div>
-        <div class="stat-value">${formatNumber(s.total_leads || 0)}</div>
-        <div class="stat-label">My Assigned Leads</div>
-        <div class="stat-trend"><i class="fas fa-tasks"></i> Active pipeline</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon yellow"><i class="fas fa-clock"></i></div>
-        <div class="stat-value">${formatNumber(s.pending_leads || 0)}</div>
-        <div class="stat-label">Pending Actions</div>
-        <div class="stat-trend warning"><i class="fas fa-hourglass"></i> Needs follow-up</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon purple"><i class="fas fa-phone-alt"></i></div>
-        <div class="stat-value">${formatNumber(s.calls_today || 0)}</div>
-        <div class="stat-label">Calls Today</div>
-        <div class="stat-trend up"><i class="fas fa-chart-line"></i> Daily activity</div>
-      </div>
-      <div class="stat-card" onclick="showMyLeads()">
-        <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
-        <div class="stat-value">${formatNumber(s.hired_leads || 0)}</div>
-        <div class="stat-label">My Hired Candidates</div>
-        <div class="stat-trend up"><i class="fas fa-trophy"></i> Success stories</div>
-      </div>
-    </div>
+  // Render Charts after DOM injection
+  setTimeout(() => {
+    renderDashboardCharts(s);
+  }, 100);
 
-    <!-- Performance Metrics -->
-    <div class="stats-grid stats-2" style="grid-template-columns: 1fr 1fr;">
-      <div class="chart-container">
-        <div class="chart-header">
-          <h4><i class="fas fa-chart-line"></i> My Performance Trend</h4>
-          <span class="badge badge-active">Last 30 days</span>
-        </div>
-        <div id="performanceTrendChart" style="height: 300px;"></div>
-      </div>
-      <div class="chart-container">
-        <div class="chart-header">
-          <h4><i class="fas fa-chart-pie"></i> My Lead Status</h4>
-          <span class="badge badge-active">Current pipeline</span>
-        </div>
-        <div id="myStatusChart" style="height: 300px;"></div>
-      </div>
-    </div>
-
-    <!-- Quick Actions Widget -->
-    <div class="top-bar" style="margin-top: 10px; background: linear-gradient(135deg, rgba(249,115,22,0.1), rgba(139,92,246,0.05));">
-      <div class="page-title">
-        <h1 style="font-size: 16px;">⚡ Quick Actions</h1>
-        <p>Accelerate your workflow</p>
-      </div>
-      <div class="top-actions">
-        <button class="btn btn-success btn-sm" onclick="showAddLeadModal()">
-          <i class="fas fa-plus"></i> Add Lead
-        </button>
-        <button class="btn btn-info btn-sm" onclick="showMyLeads()">
-          <i class="fas fa-list"></i> View All Leads
-        </button>
-        <button class="btn btn-primary btn-sm" onclick="showDashboard()">
-          <i class="fas fa-sync-alt"></i> Refresh
-        </button>
-      </div>
-    </div>`;
-
-    // Initialize charts for regular recruiter
-    setTimeout(() => {
-      initRecruiterCharts(s);
-    }, 100);
-  }
-
-  document.getElementById('mainContent').innerHTML = html;
-  
-  // Initialize charts for super admin if needed
-  if (isSuperAdmin && s.recruiter_breakdown) {
-    setTimeout(() => {
-      initSuperAdminCharts(s);
-    }, 100);
-  }
-  
   startAutoRefresh(showDashboard);
 }
 
-// Initialize Super Admin Charts
-function initSuperAdminCharts(stats) {
-  // Funnel Chart Data
-  const funnelData = [
-    stats.total_leads || 0,
-    stats.scheduled_leads || 0,
-    stats.hired_this_month || 0
-  ];
+// Render Dashboard ApexCharts
+function renderDashboardCharts(s) {
+  if (typeof ApexCharts === 'undefined') return;
+  destroyCharts();
 
-  if (typeof ApexCharts !== 'undefined') {
-    // Funnel Chart
+  // 1. Recruitment Funnel Chart (Horizontal Bar)
+  const funnelEl = document.querySelector("#recruitmentFunnelChart");
+  if (funnelEl) {
     const funnelOptions = {
-      series: funnelData,
+      series: [{
+        name: 'Candidates',
+        data: [
+          s.assigned_leads || 0,
+          s.dialed_leads || 0,
+          s.scheduled_leads || 0,
+          s.appeared_leads || 0,
+          s.hired_leads || 0
+        ]
+      }],
       chart: {
         type: 'bar',
-        height: 320,
+        height: 280,
         toolbar: { show: false },
         background: 'transparent'
       },
       plotOptions: {
         bar: {
-          borderRadius: 8,
+          borderRadius: 6,
           horizontal: true,
-          barHeight: '60%',
-          colors: {
-            ranges: [{
-              from: 0,
-              to: 1000,
-              color: '#f97316'
-            }]
-          }
+          barHeight: '55%',
+          distributed: true,
+          dataLabels: { position: 'right' }
         }
       },
-      dataLabels: { enabled: true, style: { colors: ['#fff'], fontSize: '12px' } },
-      xaxis: {
-        categories: ['Total Leads', 'Interviews Scheduled', 'Hired'],
-        labels: { style: { colors: '#94a3b8', fontSize: '11px' } },
-        axisBorder: { show: false },
-        axisTicks: { show: false }
+      colors: ['#3b82f6', '#f59e0b', '#8b5cf6', '#06b6d4', '#10b981'],
+      dataLabels: {
+        enabled: true,
+        textAnchor: 'start',
+        offsetX: 10,
+        style: { colors: ['#fff'], fontSize: '12px', fontWeight: 700 }
       },
-      yaxis: { labels: { style: { colors: '#94a3b8', fontSize: '11px' } } },
-      grid: { show: false },
-      tooltip: { theme: 'dark', x: { show: true } },
-      fill: {
-        type: 'gradient',
-        gradient: { shadeIntensity: 1, opacityFrom: 0.9, opacityTo: 0.7, stops: [0, 100] }
-      }
+      xaxis: {
+        categories: ['Assigned', 'Dialed', 'Scheduled', 'Appeared', 'Hired'],
+        labels: { style: { colors: '#94a3b8', fontSize: '11px' } },
+        axisBorder: { show: false }
+      },
+      yaxis: {
+        labels: { style: { colors: '#e2e8f0', fontSize: '12px', fontWeight: 600 } }
+      },
+      grid: { borderColor: 'rgba(255,255,255,0.05)' },
+      tooltip: { theme: 'dark' },
+      legend: { show: false }
     };
+    const fChart = new ApexCharts(funnelEl, funnelOptions);
+    fChart.render();
+    charts.funnel = fChart;
+  }
 
-    const funnelChart = new ApexCharts(document.querySelector("#funnelChart"), funnelOptions);
-    funnelChart.render();
-    charts.funnel = funnelChart;
-
-    // Status Pie Chart
-    const statusOptions = {
+  // 2. 14-Day Performance Trend Chart (Area)
+  const trendEl = document.querySelector("#dailyPerformanceChart");
+  if (trendEl) {
+    const trendData = s.daily_trend || [];
+    const trendOptions = {
       series: [
-        stats.pending_leads || 0,
-        stats.scheduled_leads || 0,
-        stats.hired_this_month || 0,
-        (stats.total_leads - (stats.pending_leads + stats.scheduled_leads + stats.hired_this_month)) || 0
+        { name: 'Dialed Calls', data: trendData.map(d => d.dialed || 0) },
+        { name: 'Interviews Scheduled', data: trendData.map(d => d.scheduled || 0) },
+        { name: 'Hires', data: trendData.map(d => d.hired || 0) }
       ],
       chart: {
-        type: 'donut',
-        height: 320,
+        type: 'area',
+        height: 280,
         toolbar: { show: false },
         background: 'transparent'
       },
-      labels: ['Pending', 'Scheduled', 'Hired This Month', 'Other'],
-      colors: ['#f59e0b', '#8b5cf6', '#10b981', '#64748b'],
+      colors: ['#f59e0b', '#8b5cf6', '#10b981'],
+      stroke: { curve: 'smooth', width: 2.5 },
+      fill: {
+        type: 'gradient',
+        gradient: {
+          shadeIntensity: 1,
+          opacityFrom: 0.45,
+          opacityTo: 0.05,
+          stops: [0, 90, 100]
+        }
+      },
+      dataLabels: { enabled: false },
+      xaxis: {
+        categories: trendData.map(d => d.label || d.date),
+        labels: { style: { colors: '#94a3b8', fontSize: '10px' } },
+        axisBorder: { show: false }
+      },
+      yaxis: {
+        labels: { style: { colors: '#94a3b8', fontSize: '11px' } }
+      },
+      grid: { borderColor: 'rgba(255,255,255,0.05)' },
+      legend: {
+        position: 'top',
+        horizontalAlign: 'right',
+        labels: { colors: '#94a3b8' },
+        markers: { radius: 6 }
+      },
+      tooltip: { theme: 'dark' }
+    };
+    const tChart = new ApexCharts(trendEl, trendOptions);
+    tChart.render();
+    charts.trend = tChart;
+  }
+
+  // 3. Leaderboard Chart (or Personal breakdown)
+  const lbEl = document.querySelector("#leaderboardChart");
+  if (lbEl) {
+    if (isSuperAdmin && s.recruiter_breakdown && s.recruiter_breakdown.length) {
+      // Top 6 recruiters
+      const topRecs = s.recruiter_breakdown.slice(0, 6);
+      const lbOptions = {
+        series: [
+          { name: 'Dialed', data: topRecs.map(r => r.dialed || 0) },
+          { name: 'Scheduled', data: topRecs.map(r => r.scheduled || 0) },
+          { name: 'Hired', data: topRecs.map(r => r.hired || 0) }
+        ],
+        chart: {
+          type: 'bar',
+          height: 280,
+          toolbar: { show: false },
+          background: 'transparent'
+        },
+        plotOptions: {
+          bar: {
+            horizontal: false,
+            columnWidth: '55%',
+            borderRadius: 5
+          }
+        },
+        colors: ['#f59e0b', '#8b5cf6', '#10b981'],
+        dataLabels: { enabled: false },
+        xaxis: {
+          categories: topRecs.map(r => r.full_name.split(' ')[0]),
+          labels: { style: { colors: '#cbd5e1', fontSize: '11px', fontWeight: 600 } }
+        },
+        yaxis: {
+          labels: { style: { colors: '#94a3b8', fontSize: '11px' } }
+        },
+        grid: { borderColor: 'rgba(255,255,255,0.05)' },
+        legend: {
+          position: 'top',
+          horizontalAlign: 'right',
+          labels: { colors: '#94a3b8' }
+        },
+        tooltip: { theme: 'dark' }
+      };
+      const lChart = new ApexCharts(lbEl, lbOptions);
+      lChart.render();
+      charts.leaderboard = lChart;
+    } else {
+      // Regular Recruiter Personal Status Donut
+      const lbOptions = {
+        series: [
+          s.dialed_leads || 0,
+          s.remaining_leads || 0,
+          s.scheduled_leads || 0,
+          s.hired_leads || 0
+        ],
+        chart: {
+          type: 'donut',
+          height: 280,
+          background: 'transparent'
+        },
+        labels: ['Dialed', 'Remaining', 'Scheduled', 'Hired'],
+        colors: ['#f59e0b', '#ef4444', '#8b5cf6', '#10b981'],
+        legend: {
+          position: 'bottom',
+          labels: { colors: '#94a3b8' }
+        },
+        plotOptions: {
+          pie: {
+            donut: {
+              size: '65%',
+              labels: {
+                show: true,
+                total: {
+                  show: true,
+                  label: 'My Leads',
+                  fontSize: '13px',
+                  color: '#94a3b8',
+                  formatter: () => s.assigned_leads || 0
+                }
+              }
+            }
+          }
+        },
+        stroke: { show: false },
+        tooltip: { theme: 'dark' }
+      };
+      const lChart = new ApexCharts(lbEl, lbOptions);
+      lChart.render();
+      charts.leaderboard = lChart;
+    }
+  }
+
+  // 4. Lead Source Channels Donut Chart
+  const srcEl = document.querySelector("#sourceBreakdownChart");
+  if (srcEl) {
+    const srcList = s.source_breakdown && s.source_breakdown.length 
+      ? s.source_breakdown 
+      : [{ src: 'Direct Intake', cnt: 1 }];
+    
+    const srcOptions = {
+      series: srcList.map(x => parseInt(x.cnt) || 0),
+      labels: srcList.map(x => x.src || 'Direct'),
+      chart: {
+        type: 'donut',
+        height: 280,
+        background: 'transparent'
+      },
+      colors: ['#f97316', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#f59e0b'],
       legend: {
         position: 'bottom',
         labels: { colors: '#94a3b8', fontSize: '11px' },
-        markers: { width: 10, height: 10, radius: 6 }
+        markers: { radius: 6 }
       },
       plotOptions: {
         pie: {
           donut: {
-            size: '65%',
+            size: '68%',
             labels: {
               show: true,
               total: {
                 show: true,
-                label: 'Total',
-                fontSize: '14px',
-                color: '#fff',
-                formatter: () => stats.total_leads || 0
+                label: 'Total Intake',
+                fontSize: '13px',
+                color: '#94a3b8',
+                formatter: () => s.total_leads || (srcList.reduce((a, b) => a + (parseInt(b.cnt) || 0), 0))
               }
             }
           }
         }
       },
       stroke: { show: false },
-      tooltip: { theme: 'dark' },
-      dataLabels: { enabled: false }
-    };
-
-    const pieChart = new ApexCharts(document.querySelector("#statusPieChart"), statusOptions);
-    pieChart.render();
-    charts.statusPie = pieChart;
-
-    // Weekly Bar Chart (mock data - would come from API)
-    const weeklyOptions = {
-      series: [{
-        name: 'New Leads',
-        data: [12, 18, 15, 22, 28, 35, 42]
-      }, {
-        name: 'Interviews',
-        data: [5, 8, 10, 12, 15, 18, 22]
-      }, {
-        name: 'Hires',
-        data: [2, 3, 4, 5, 7, 9, 12]
-      }],
-      chart: {
-        type: 'bar',
-        height: 320,
-        stacked: false,
-        toolbar: { show: false },
-        background: 'transparent'
-      },
-      plotOptions: {
-        bar: {
-          borderRadius: 8,
-          columnWidth: '60%',
-          dataLabels: { position: 'top' }
-        }
-      },
-      colors: ['#f97316', '#8b5cf6', '#10b981'],
-      xaxis: {
-        categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        labels: { style: { colors: '#94a3b8', fontSize: '11px' } }
-      },
-      yaxis: {
-        labels: { style: { colors: '#94a3b8', fontSize: '11px' } },
-        title: { text: 'Count', style: { color: '#94a3b8' } }
-      },
-      legend: {
-        position: 'top',
-        labels: { colors: '#94a3b8' },
-        markers: { width: 8, height: 8, radius: 4 }
-      },
-      grid: { borderColor: 'rgba(255,255,255,0.05)' },
       tooltip: { theme: 'dark' }
     };
-
-    const barChart = new ApexCharts(document.querySelector("#weeklyBarChart"), weeklyOptions);
-    barChart.render();
-    charts.weeklyBar = barChart;
-
-    // Conversion Gauge
-    const conversionRate = stats.total_leads > 0 
-      ? Math.round((stats.hired_this_month / stats.total_leads) * 100) 
-      : 0;
-      
-    const gaugeOptions = {
-      series: [conversionRate],
-      chart: {
-        type: 'radialBar',
-        height: 320,
-        offsetY: -20,
-        toolbar: { show: false },
-        background: 'transparent'
-      },
-      plotOptions: {
-        radialBar: {
-          startAngle: -90,
-          endAngle: 90,
-          track: { background: 'rgba(255,255,255,0.1)', startAngle: -90, endAngle: 90 },
-          dataLabels: {
-            name: { show: true, fontSize: '14px', color: '#94a3b8', offsetY: -10 },
-            value: { fontSize: '32px', fontWeight: 700, color: '#f97316', offsetY: 10, formatter: (val) => `${val}%` }
-          }
-        }
-      },
-      fill: {
-        colors: ['#f97316'],
-        type: 'gradient',
-        gradient: { shade: 'dark', type: 'horizontal', shadeIntensity: 0.5, stops: [0, 100] }
-      },
-      stroke: { lineCap: 'round' },
-      labels: ['Conversion Rate'],
-      tooltip: { theme: 'dark' }
-    };
-
-    const gaugeChart = new ApexCharts(document.querySelector("#conversionGauge"), gaugeOptions);
-    gaugeChart.render();
-    charts.gauge = gaugeChart;
+    const sChart = new ApexCharts(srcEl, srcOptions);
+    sChart.render();
+    charts.source = sChart;
   }
-}
-
-// Initialize Recruiter Charts
-function initRecruiterCharts(stats) {
-  if (typeof ApexCharts === 'undefined') return;
-  
-  // Performance Trend Chart
-  const perfOptions = {
-    series: [{
-      name: 'Leads Processed',
-      data: [5, 8, 12, 10, 15, 18, 22, 25, 28, 30]
-    }, {
-      name: 'Interviews',
-      data: [2, 3, 5, 6, 8, 10, 12, 14, 16, 18]
-    }],
-    chart: {
-      type: 'area',
-      height: 300,
-      toolbar: { show: false },
-      background: 'transparent'
-    },
-    colors: ['#f97316', '#8b5cf6'],
-    fill: {
-      type: 'gradient',
-      gradient: {
-        shadeIntensity: 1,
-        opacityFrom: 0.5,
-        opacityTo: 0.1,
-        stops: [0, 90, 100]
-      }
-    },
-    dataLabels: { enabled: false },
-    stroke: { curve: 'smooth', width: 2 },
-    xaxis: {
-      categories: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8', 'Week 9', 'Week 10'],
-      labels: { style: { colors: '#94a3b8', fontSize: '10px' } }
-    },
-    yaxis: { labels: { style: { colors: '#94a3b8' } } },
-    grid: { borderColor: 'rgba(255,255,255,0.05)' },
-    legend: {
-      position: 'top',
-      labels: { colors: '#94a3b8' },
-      markers: { width: 8, height: 8, radius: 4 }
-    },
-    tooltip: { theme: 'dark' }
-  };
-
-  const perfChart = new ApexCharts(document.querySelector("#performanceTrendChart"), perfOptions);
-  perfChart.render();
-
-  // Status Pie Chart
-  const statusOptions = {
-    series: [
-      stats.pending_leads || 0,
-      stats.scheduled_leads || 0,
-      stats.hired_leads || 0,
-      (stats.total_leads - (stats.pending_leads + stats.scheduled_leads + stats.hired_leads)) || 0
-    ],
-    chart: {
-      type: 'donut',
-      height: 300,
-      toolbar: { show: false },
-      background: 'transparent'
-    },
-    labels: ['Pending', 'Scheduled', 'Hired', 'Other'],
-    colors: ['#f59e0b', '#8b5cf6', '#10b981', '#64748b'],
-    legend: {
-      position: 'bottom',
-      labels: { colors: '#94a3b8', fontSize: '11px' },
-      markers: { width: 10, height: 10, radius: 6 }
-    },
-    plotOptions: {
-      pie: {
-        donut: {
-          size: '65%',
-          labels: {
-            show: true,
-            total: {
-              show: true,
-              label: 'Total',
-              fontSize: '14px',
-              color: '#fff',
-              formatter: () => stats.total_leads || 0
-            }
-          }
-        }
-      }
-    },
-    stroke: { show: false },
-    tooltip: { theme: 'dark' },
-    dataLabels: { enabled: false }
-  };
-
-  const statusChart = new ApexCharts(document.querySelector("#myStatusChart"), statusOptions);
-  statusChart.render();
-  
-  charts.myStatus = statusChart;
-  charts.myPerformance = perfChart;
 }
 
 // Format numbers with K/M suffix
@@ -664,30 +609,290 @@ function formatNumber(num) {
   return num.toString();
 }
 
-// Export Dashboard Report
-async function exportDashboardReport() {
-  const res = await apiFetch(API.stats);
-  if (!res.success) {
-    toast('Failed to fetch data', 'error');
-    return;
+// ==================== PERFORMANCE EXPORT MODAL & DOWNLOAD ====================
+
+// Cache recruiters list for the export selector
+window.cachedRecruiterList = window.cachedRecruiterList || [];
+
+async function getExportRecruitersList() {
+  if (window.cachedRecruiterList && window.cachedRecruiterList.length > 0) {
+    return window.cachedRecruiterList;
   }
+  try {
+    const res = await apiFetch(`${API.performance}?branch=all`);
+    if (res.success && res.data && res.data.recruiters) {
+      window.cachedRecruiterList = res.data.recruiters;
+      return window.cachedRecruiterList;
+    }
+  } catch (e) {
+    console.error('Failed to load recruiters list for export:', e);
+  }
+  return [];
+}
+
+async function showExportPerformanceModal(preselectRecruiterId = null) {
+  const recruiters = await getExportRecruitersList();
+  const currentBranch = window.dashBranch || 'all';
+  const defaultMode = (!isSuperAdmin || preselectRecruiterId) ? 'individual' : 'team';
   
-  const stats = res.data;
-  const reportData = {
-    exportDate: new Date().toISOString(),
-    stats: stats,
-    generatedBy: currentUser?.full_name || 'System'
+  // Real company branches configured in Balitech HRMS
+  const branches = [
+    { key: 'all', label: '🏢 All Branches (Centralized)' },
+    { key: 'main', label: '🏢 Main Branch' },
+    { key: 'v2', label: '🏢 2.0 Branch' },
+    { key: 'v3', label: '🏢 3.0 Branch' },
+    { key: 'commercial', label: '🏢 Commercial Branch' },
+    { key: 'I9', label: '🏢 I-9 Branch' },
+    { key: 'workfromhome', label: '🏠 Work From Home' }
+  ];
+
+  const recBranchLabel = (r) => {
+    if (!r.company_branch) return 'Main Branch';
+    const found = COMPANY_BRANCH_OPTIONS.find(b => b.key.toLowerCase() === r.company_branch.toLowerCase());
+    return found ? found.label : r.company_branch;
   };
-  
-  const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `nexus-report-${new Date().toISOString().split('T')[0]}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-  
-  toast('📊 Report exported successfully', 'success');
+
+  const html = `
+    <div class="modal-overlay" id="exportPerfModal" style="z-index: 9999;">
+      <div class="modal" style="max-width: 520px; width: 92%; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 18px; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.95), 0 0 35px rgba(16, 185, 129, 0.08); overflow: hidden; animation: modalPop 0.22s cubic-bezier(0.16, 1, 0.3, 1);">
+        
+        <!-- Modal Header -->
+        <div class="modal-header" style="background: linear-gradient(180deg, #1e293b, #0f172a); border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 18px 24px; display: flex; align-items: center; justify-content: space-between;">
+          <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-file-excel" style="color: #10b981; font-size: 20px;"></i>
+            <span>Export Performance Report</span>
+          </h3>
+          <button class="modal-close" onclick="closeModal()" title="Close">&times;</button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body" style="padding: 22px 24px; background: #0f172a;">
+          <p style="font-size: 13px; color: #94a3b8; margin: 0 0 18px 0; line-height: 1.5;">
+            Download comprehensive Excel performance reports with call stats, candidate pipelines, conversion metrics, and complete audit history.
+          </p>
+
+          ${isSuperAdmin ? `
+          <!-- Report Scope Selector -->
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+              <i class="fas fa-layer-group" style="color: #f97316;"></i> Report Scope:
+            </label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <label class="export-scope-card ${defaultMode === 'team' ? 'active-team' : ''}" id="scopeCardTeam" onclick="toggleExportScope('team')">
+                <input type="radio" name="exportScope" value="team" ${defaultMode === 'team' ? 'checked' : ''} style="display: none;">
+                <span style="font-size: 13.5px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+                  <i class="fas fa-users" style="color: #f97316; font-size: 15px;"></i> TEAM SUMMARY
+                </span>
+                <span style="font-size: 11px; color: #94a3b8; line-height: 1.4;">
+                  All recruiters ranked by dials, pipeline &amp; conversion
+                </span>
+              </label>
+
+              <label class="export-scope-card ${defaultMode === 'individual' ? 'active-indiv' : ''}" id="scopeCardIndiv" onclick="toggleExportScope('individual')">
+                <input type="radio" name="exportScope" value="individual" ${defaultMode === 'individual' ? 'checked' : ''} style="display: none;">
+                <span style="font-size: 13.5px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+                  <i class="fas fa-user-circle" style="color: #38bdf8; font-size: 15px;"></i> SINGLE RECRUITER
+                </span>
+                <span style="font-size: 11px; color: #94a3b8; line-height: 1.4;">
+                  Detailed candidate-level breakdown &amp; call notes
+                </span>
+              </label>
+            </div>
+          </div>
+          ` : `
+          <input type="hidden" id="exportScopeHidden" value="individual">
+          <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 12px; color: #7dd3fc; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-info-circle"></i> Exporting your personal performance and candidate pipeline breakdown.
+          </div>
+          `}
+
+          <!-- Recruiter Selector (for individual scope) -->
+          <div class="form-group" id="exportRecruiterGroup" style="margin-bottom: 15px; ${defaultMode === 'individual' && isSuperAdmin ? '' : 'display: none;'}">
+            <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; display: flex; align-items: center; gap: 6px; margin-bottom: 7px;">
+              <i class="fas fa-user-tie" style="color: #38bdf8;"></i> Select Recruiter:
+            </label>
+            <select id="exportRecruiterSelect" class="export-field form-control">
+              ${recruiters.map(r => `
+                <option value="${r.id}" ${(preselectRecruiterId && parseInt(preselectRecruiterId) === parseInt(r.id)) ? 'selected' : ''}>
+                  ${esc(r.full_name)} (${esc(recBranchLabel(r))}) - ${r.total_assigned || 0} Leads
+                </option>
+              `).join('')}
+              ${recruiters.length === 0 ? `<option value="${currentUser?.id || 0}">${esc(currentUser?.full_name || 'Current User')}</option>` : ''}
+            </select>
+          </div>
+
+          <!-- Branch Filter (Super Admin only) -->
+          ${isSuperAdmin ? `
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; display: flex; align-items: center; gap: 6px; margin-bottom: 7px;">
+              <i class="fas fa-building" style="color: #3b82f6;"></i> Branch Scope:
+            </label>
+            <select id="exportBranchSelect" class="export-field form-control">
+              ${branches.map(b => `
+                <option value="${b.key}" ${currentBranch === b.key ? 'selected' : ''}>${b.label}</option>
+              `).join('')}
+            </select>
+          </div>
+          ` : ''}
+
+          <!-- Date Range Filter -->
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; display: flex; align-items: center; gap: 6px; margin-bottom: 7px;">
+              <i class="fas fa-calendar-alt" style="color: #10b981;"></i> Date Range:
+            </label>
+            <select id="exportRangeSelect" class="export-field form-control" onchange="toggleExportCustomDates()">
+              <option value="all_time" selected>📅 All Time</option>
+              <option value="today">⚡ Today</option>
+              <option value="this_week">📆 This Week</option>
+              <option value="this_month">🗓️ This Month</option>
+              <option value="custom">🛠️ Custom Date Range...</option>
+            </select>
+          </div>
+
+          <!-- Custom Date Range Inputs -->
+          <div id="exportCustomDateGroup" style="display: none; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px;">
+            <div>
+              <label style="font-size: 11px; font-weight: 600; color: #94a3b8; display: block; margin-bottom: 4px;">From Date:</label>
+              <input type="date" id="exportDateFrom" class="export-field form-control">
+            </div>
+            <div>
+              <label style="font-size: 11px; font-weight: 600; color: #94a3b8; display: block; margin-bottom: 4px;">To Date:</label>
+              <input type="date" id="exportDateTo" class="export-field form-control">
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer" style="padding: 16px 24px; background: #0b1120; border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+          <div style="font-size: 12px; color: #94a3b8; display: flex; align-items: center; gap: 6px;">
+            <i class="fas fa-check-circle" style="color: #10b981; font-size: 13px;"></i>
+            <span>UTF-8 Excel (.CSV)</span>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button type="button" class="btn btn-secondary" onclick="closeModal()" style="background: rgba(255,255,255,0.08); color: #cbd5e1; border: 1px solid rgba(255,255,255,0.14); border-radius: 8px; padding: 9px 18px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+              Cancel
+            </button>
+            <button type="button" class="btn btn-success" id="btnExecuteDownload" onclick="executeReportDownload()" style="background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: none; border-radius: 8px; padding: 9px 20px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35); transition: all 0.2s;">
+              <i class="fas fa-file-excel"></i> Download Excel (.CSV)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const existing = document.getElementById('exportPerfModal');
+  if (existing) existing.remove();
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function toggleExportScope(mode) {
+  const cardTeam = document.getElementById('scopeCardTeam');
+  const cardIndiv = document.getElementById('scopeCardIndiv');
+  const recGroup = document.getElementById('exportRecruiterGroup');
+  const radioTeam = cardTeam ? cardTeam.querySelector('input[type="radio"]') : null;
+  const radioIndiv = cardIndiv ? cardIndiv.querySelector('input[type="radio"]') : null;
+
+  if (mode === 'team') {
+    if (radioTeam) radioTeam.checked = true;
+    if (radioIndiv) radioIndiv.checked = false;
+    if (cardTeam) {
+      cardTeam.className = 'export-scope-card active-team';
+    }
+    if (cardIndiv) {
+      cardIndiv.className = 'export-scope-card';
+    }
+    if (recGroup) recGroup.style.display = 'none';
+  } else {
+    if (radioIndiv) radioIndiv.checked = true;
+    if (radioTeam) radioTeam.checked = false;
+    if (cardIndiv) {
+      cardIndiv.className = 'export-scope-card active-indiv';
+    }
+    if (cardTeam) {
+      cardTeam.className = 'export-scope-card';
+    }
+    if (recGroup) recGroup.style.display = 'block';
+  }
+}
+
+function toggleExportCustomDates() {
+  const sel = document.getElementById('exportRangeSelect');
+  const customGroup = document.getElementById('exportCustomDateGroup');
+  if (customGroup) {
+    customGroup.style.display = (sel && sel.value === 'custom') ? 'grid' : 'none';
+  }
+}
+
+function executeReportDownload() {
+  const isIndividual = !isSuperAdmin || (document.querySelector('input[name="exportScope"]:checked')?.value === 'individual');
+  const branchSel = document.getElementById('exportBranchSelect');
+  const rangeSel = document.getElementById('exportRangeSelect');
+  const recSel = document.getElementById('exportRecruiterSelect');
+  const fromInp = document.getElementById('exportDateFrom');
+  const toInp = document.getElementById('exportDateTo');
+
+  const mode = isIndividual ? 'individual' : 'team';
+  const branch = branchSel ? branchSel.value : (window.dashBranch || 'all');
+  const range = rangeSel ? rangeSel.value : 'all_time';
+  const recruiterId = isIndividual ? (recSel ? recSel.value : (currentUser?.id || 0)) : 0;
+
+  let url = `${API.exportReport}?mode=${mode}&branch=${encodeURIComponent(branch)}&range=${encodeURIComponent(range)}`;
+  if (isIndividual && recruiterId) {
+    url += `&recruiter_id=${recruiterId}`;
+  }
+  if (range === 'custom') {
+    if (fromInp && fromInp.value) url += `&from=${encodeURIComponent(fromInp.value)}`;
+    if (toInp && toInp.value) url += `&to=${encodeURIComponent(toInp.value)}`;
+  }
+
+  const btn = document.getElementById('btnExecuteDownload');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparing Report...';
+  }
+
+  toast('📊 Generating performance report, download started...', 'info');
+
+  const iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  iframe.src = url;
+  document.body.appendChild(iframe);
+
+  setTimeout(() => {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-file-excel"></i> Download Excel (.CSV)';
+    }
+    closeModal();
+    setTimeout(() => { iframe.remove(); }, 6000);
+    toast('✅ Report download completed successfully!', 'success');
+  }, 1200);
+}
+
+// 1-Click download for specific recruiter from table row
+function downloadSingleRecruiterReport(recruiterId, recruiterName) {
+  if (!recruiterId) return;
+  const branch = window.dashBranch || 'all';
+  const range = window.dashDateRange || 'all_time';
+  const url = `${API.exportReport}?mode=individual&recruiter_id=${recruiterId}&branch=${encodeURIComponent(branch)}&range=${encodeURIComponent(range)}`;
+
+  toast(`📊 Downloading performance report for ${recruiterName || 'Recruiter'}...`, 'info');
+
+  const iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  iframe.src = url;
+  document.body.appendChild(iframe);
+
+  setTimeout(() => {
+    iframe.remove();
+    toast(`✅ Downloaded report for ${recruiterName || 'Recruiter'}!`, 'success');
+  }, 2000);
+}
+
+// Backward compatible alias
+function exportDashboardReport() {
+  showExportPerformanceModal();
 }
 
 // --- ALL LEADS (Super Admin) with Advanced Table ---
@@ -714,6 +919,9 @@ async function showAllLeads(offset = 0, search = '', stage = '', branch = '') {
       <p>${total} total leads - ${isGlobalAdmin ? 'All Branches Centralized' : 'Branch Synchronization'}</p>
     </div>
     <div class="top-actions">
+      <button class="btn btn-info" onclick="showExportPerformanceModal()" title="Export Performance Report">
+        <i class="fas fa-file-excel"></i> Export
+      </button>
       <button class="btn btn-warning" onclick="syncWebsiteLeadsModal()" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8); color:#fff; border:none; box-shadow:0 4px 12px rgba(59,130,246,0.35);">
         <i class="fas fa-cloud-download-alt"></i> Sync Website Leads
       </button>
@@ -726,17 +934,13 @@ async function showAllLeads(offset = 0, search = '', stage = '', branch = '') {
                value="${esc(search)}" onkeypress="if(event.key==='Enter') triggerAllLeadsFilter()">
       </div>
       ${isGlobalAdmin ? `
-        <select id="branchFilter" class="form-control" style="width: 150px;" onchange="triggerAllLeadsFilter()">
+        <select id="branchFilter" class="form-control" style="min-width: 160px; width: auto;" onchange="triggerAllLeadsFilter()">
           <option value="" ${!branch ? 'selected' : ''}>🏢 All Branches</option>
-          <option value="main" ${branch === 'main' ? 'selected' : ''}>Main Branch</option>
-          <option value="commercial" ${branch === 'commercial' ? 'selected' : ''}>Commercial</option>
-          <option value="I9" ${branch === 'I9' ? 'selected' : ''}>I-9 Branch</option>
-          <option value="v2" ${branch === 'v2' ? 'selected' : ''}>2.0 Branch</option>
-          <option value="v3" ${branch === 'v3' ? 'selected' : ''}>3.0 Branch</option>
+          ${COMPANY_BRANCH_OPTIONS.map(b => `<option value="${b.key}" ${branch === b.key ? 'selected' : ''}>${esc(b.label)}</option>`).join('')}
         </select>
       ` : ''}
-      <select id="stageFilter" class="form-control" style="width: 140px;" onchange="triggerAllLeadsFilter()">
-        <option value="">📋 All Statuses</option>
+      <select id="stageFilter" class="form-control" style="min-width: 175px; width: auto;" onchange="triggerAllLeadsFilter()">
+        <option value="">📋 All Pipeline Stages</option>
         ${statusSelectHtml(stage)}
       </select>
     </div>
@@ -747,7 +951,7 @@ async function showAllLeads(offset = 0, search = '', stage = '', branch = '') {
         <tr>
           <th>Candidate</th>
           <th>Contact</th>
-          <th>Position/City</th>
+          <th>Position / Branch</th>
           <th>Status</th>
           <th>Last Activity</th>
           <th>Assigned To</th>
@@ -757,37 +961,45 @@ async function showAllLeads(offset = 0, search = '', stage = '', branch = '') {
       <tbody>`;
   
   if (!leads.length) {
-    html += `<tr><td colspan="7" class="empty-state"><i class="fas fa-folder-open"></i><p>No leads found</p><\/td><\/tr>`;
+    html += `<tr><td colspan="7" class="empty-state"><i class="fas fa-folder-open"></i><p>No leads found</p></td></tr>`;
   }
   
   leads.forEach(l => {
     const rawActivity = l.updated_at || l.created_at;
+    const branchObj = COMPANY_BRANCH_OPTIONS.find(b => b.key.toLowerCase() === (l.company_branch || '').toLowerCase());
+    const bLabel = branchObj ? branchObj.label : (l.company_branch || 'Main Branch');
+
     html += `
       <tr>
         <td>
           <strong>${esc(l.full_name)}</strong>
           ${l.source === 'website' ? `<span class="badge" style="background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);font-size:9px;margin-left:4px;padding:2px 6px;"><i class="fas fa-globe"></i> Web</span>` : ''}
+          ${l.cnic ? `<br><span style="font-size: 11px; font-weight:700; color: #fb923c;"><i class="fas fa-id-card"></i> ${esc(l.cnic)}</span>` : ''}
           <br>
           <span style="font-size: 10px; color: var(--text-dim);">ID: #${l.id}</span>
-        <\/td>
+        </td>
         <td>
           <i class="fas fa-phone-alt" style="font-size: 10px; color: var(--primary);"></i> ${esc(l.phone)}<br>
           ${l.email ? `<i class="fas fa-envelope" style="font-size: 10px; color: var(--text-dim);"></i> ${esc(l.email).substring(0, 20)}` : ''}
-        <\/td>
+        </td>
         <td>
-          <strong>${esc(l.position_applied || 'N/A')}</strong><br>
-          <span style="font-size: 11px; color: var(--text-dim);"><i class="fas fa-map-marker-alt"></i> ${esc(l.city || 'N/A')}</span>
-        <\/td>
-        <td>${stageBadge(l.current_stage)}<\/td>
+          <strong>${esc(l.position_applied || 'Dialer')}</strong><br>
+          <span style="font-size: 11px; color: var(--text-dim);"><i class="fas fa-map-marker-alt"></i> ${esc(l.city || 'Islamabad')}</span>
+          <br>
+          <span class="badge" style="font-size:9px;padding:2px 6px;margin-top:3px;background:rgba(249,115,22,0.12);color:#fb923c;border:1px solid rgba(249,115,22,0.25);">
+            <i class="fas fa-building"></i> ${esc(bLabel)}
+          </span>
+        </td>
+        <td>${stageBadge(l.current_stage)}</td>
         <td style="font-size: 11px;">
           <i class="fas fa-clock" style="color:var(--primary);"></i> ${ago(rawActivity)}<br>
           <span style="color: var(--text-dim);">Created: ${fmt(l.created_at)}</span>
-        <\/td>
+        </td>
         <td>
           ${l.recruiter_name ? 
             `<span class="badge badge-active"><i class="fas fa-user-check"></i> ${esc(l.recruiter_name)}</span>` : 
             '<span class="badge badge-inactive" style="background:rgba(239,68,68,0.12);color:#ef4444;"><i class="fas fa-user-clock"></i> Unassigned</span>'}
-        <\/td>
+        </td>
         <td>
           <div style="display:flex;gap:6px;">
             <button class="btn btn-primary btn-sm" onclick="editLead(${l.id})">
@@ -799,7 +1011,7 @@ async function showAllLeads(offset = 0, search = '', stage = '', branch = '') {
               </a>
             ` : ''}
           </div>
-        <\/td>
+        </td>
       </tr>`;
   });
   
@@ -823,7 +1035,7 @@ async function showAllLeads(offset = 0, search = '', stage = '', branch = '') {
     </div>`;
   }
   
-  document.getElementById('mainContent').innerHTML = html;
+  renderMainView(html);
   startAutoRefresh(() => {
     const s = document.getElementById('searchInput')?.value || '';
     const st = document.getElementById('stageFilter')?.value || '';
@@ -839,12 +1051,18 @@ function triggerAllLeadsFilter() {
   showAllLeads(0, s, st, br);
 }
 
-// --- MY LEADS with Enhanced UI ---
-async function showMyLeads() {
+// --- MY LEADS with Enhanced Filters & UI ---
+async function showMyLeads(search = '', stage = '') {
   setActiveNav('myLeads');
   setLoading();
   
-  const res = await apiFetch(API.myLeads);
+  let url = API.myLeads;
+  const q = [];
+  if (search) q.push(`search=${encodeURIComponent(search)}`);
+  if (stage) q.push(`stage=${encodeURIComponent(stage)}`);
+  if (q.length) url += `?${q.join('&')}`;
+
+  const res = await apiFetch(url);
   if (!res.success) return toast('Failed to load', 'error');
   
   lastRefresh = new Date();
@@ -852,21 +1070,38 @@ async function showMyLeads() {
   
   // Calculate stats
   const total = leads.length;
-  const pending = leads.filter(l => ['new','assigned','outreach_phone','outreach_whatsapp_call','outreach_whatsapp_msg'].includes(l.current_stage)).length;
+  const pending = leads.filter(l => ['new','assigned','outreach_phone','outreach_whatsapp_call','outreach_whatsapp_msg','not_answered','callback'].includes(l.current_stage)).length;
   const scheduled = leads.filter(l => l.current_stage === 'interview_scheduled').length;
-  const completed = leads.filter(l => l.current_stage === 'hired' || l.current_stage === 'deployed').length;
+  const completed = leads.filter(l => l.current_stage === 'hired' || l.current_stage === 'deployed' || l.current_stage === 'training').length;
   
   let html = `
   <div class="top-bar">
     <div class="page-title">
-      <h1>📋 Pipeline Manager</h1>
-      <p><span class="live-indicator"><div class="live-dot"></div> Live updates</span></p>
+      <h1>📋 My Leads Pipeline</h1>
+      <p>
+        <span class="live-indicator">
+          <span class="live-dot"></span>
+          <span>Live updates</span>
+        </span>
+      </p>
     </div>
     <div class="top-actions">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="myLeadsSearch" placeholder="Search my leads..." 
+               value="${esc(search)}" onkeypress="if(event.key==='Enter') triggerMyLeadsFilter()">
+      </div>
+      <select id="myLeadsStageFilter" class="form-control" style="min-width: 175px; width: auto;" onchange="triggerMyLeadsFilter()">
+        <option value="">📋 All Pipeline Stages</option>
+        ${statusSelectHtml(stage)}
+      </select>
+      <button class="btn btn-info" onclick="showExportPerformanceModal(${currentUser?.id || 0})" title="Export My Pipeline Report">
+        <i class="fas fa-file-excel"></i> Export
+      </button>
       <button class="btn btn-success" onclick="showAddLeadModal()">
         <i class="fas fa-plus"></i> Add Lead
       </button>
-      <button class="btn btn-primary" onclick="showMyLeads()">
+      <button class="btn btn-primary" onclick="showMyLeads('${esc(search)}', '${stage}')" title="Refresh">
         <i class="fas fa-sync-alt"></i> Refresh
       </button>
     </div>
@@ -882,7 +1117,7 @@ async function showMyLeads() {
     <div class="stat-card" style="padding: 14px;">
       <div class="stat-icon yellow" style="width: 36px; height: 36px; font-size: 14px;"><i class="fas fa-hourglass-half"></i></div>
       <div class="stat-value" style="font-size: 24px;">${pending}</div>
-      <div class="stat-label">Pending</div>
+      <div class="stat-label">Pending / In Reach</div>
     </div>
     <div class="stat-card" style="padding: 14px;">
       <div class="stat-icon purple" style="width: 36px; height: 36px; font-size: 14px;"><i class="fas fa-calendar"></i></div>
@@ -892,14 +1127,14 @@ async function showMyLeads() {
     <div class="stat-card" style="padding: 14px;">
       <div class="stat-icon green" style="width: 36px; height: 36px; font-size: 14px;"><i class="fas fa-check-circle"></i></div>
       <div class="stat-value" style="font-size: 24px;">${completed}</div>
-      <div class="stat-label">Completed</div>
+      <div class="stat-label">Completed / Training</div>
     </div>
   </div>
   
   <div class="table-wrap">
     <div class="table-header">
       <h3><i class="fas fa-list"></i> My Lead Pipeline</h3>
-      <span class="badge badge-active">${total} active leads</span>
+      <span class="badge badge-active">${total} leads listed</span>
     </div>
     <table>
       <thead>
@@ -916,24 +1151,34 @@ async function showMyLeads() {
       <tbody>`;
   
   if (!leads.length) {
-    html += `<tr><td colspan="7" class="empty-state"><i class="fas fa-inbox"></i><p>You have no assigned leads</p><p style="margin-top: 10px;"><button class="btn btn-primary btn-sm" onclick="showAddLeadModal()">+ Add Your First Lead</button></p><\/td><\/tr>`;
+    html += `<tr><td colspan="7" class="empty-state"><i class="fas fa-inbox"></i><p>No leads found in this filter</p><p style="margin-top: 10px;"><button class="btn btn-primary btn-sm" onclick="showAddLeadModal()">+ Add New Lead</button></p></td></tr>`;
   }
   
   leads.forEach(l => {
     const lastContact = l.last_call_date ? fmtTime(l.last_call_date) : 'Not contacted';
     html += `
       <tr>
-        <td><strong>${esc(l.full_name)}</strong><\/td>
-        <td><i class="fas fa-phone-alt" style="font-size: 11px; color: var(--primary);"></i> ${esc(l.phone)}<\/td>
-        <td>${esc(l.position_applied || '-')}<\/td>
-        <td>${stageBadge(l.current_stage)}<\/td>
-        <td style="font-size: 12px;"><i class="fas fa-clock"></i> ${lastContact}<\/td>
-        <td><span class="badge" style="background: rgba(249,115,22,0.1); color: var(--primary);">${l.call_count || 0} calls</span><\/td>
+        <td>
+          <strong>${esc(l.full_name)}</strong>
+          ${l.cnic ? `<br><span style="font-size: 11px; font-weight:700; color: #fb923c;"><i class="fas fa-id-card"></i> ${esc(l.cnic)}</span>` : ''}
+        </td>
+        <td>
+          <i class="fas fa-phone-alt" style="font-size: 11px; color: var(--primary);"></i> ${esc(l.phone)}
+          ${l.phone ? `
+            <a href="https://wa.me/${(l.phone || '').replace(/[^0-9]/g, '')}" target="_blank" class="btn btn-xs" style="background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.3);text-decoration:none;padding:1px 6px;margin-left:6px;font-size:10px;">
+              <i class="fab fa-whatsapp"></i> WA
+            </a>
+          ` : ''}
+        </td>
+        <td>${esc(l.position_applied || '-')}</td>
+        <td>${stageBadge(l.current_stage)}</td>
+        <td style="font-size: 12px;"><i class="fas fa-clock"></i> ${lastContact}</td>
+        <td><span class="badge" style="background: rgba(249,115,22,0.1); color: var(--primary);">${l.call_count || 0} calls</span></td>
         <td>
           <button class="btn btn-primary btn-sm" onclick="editLead(${l.id})">
             <i class="fas fa-arrow-right"></i> Work Lead
           </button>
-        <\/td>
+        </td>
       </tr>`;
   });
   
@@ -941,8 +1186,18 @@ async function showMyLeads() {
     </table>
   </div>`;
   
-  document.getElementById('mainContent').innerHTML = html;
-  startAutoRefresh(showMyLeads);
+  renderMainView(html);
+  startAutoRefresh(() => {
+    const s = document.getElementById('myLeadsSearch')?.value || '';
+    const st = document.getElementById('myLeadsStageFilter')?.value || '';
+    showMyLeads(s, st);
+  });
+}
+
+function triggerMyLeadsFilter() {
+  const s = document.getElementById('myLeadsSearch')?.value || '';
+  const st = document.getElementById('myLeadsStageFilter')?.value || '';
+  showMyLeads(s, st);
 }
 
 // --- RECRUITER VIEW (Super Admin) ---
@@ -1055,356 +1310,418 @@ async function viewRecruiterLeads(recId, name) {
   document.getElementById('mainContent').innerHTML = html;
 }
 
-// --- DISTRIBUTE LEADS with Enhanced UI ---
-async function showDistributeLeads() {
-  if (!isSuperAdmin) return;
-  setActiveNav('distribute');
-  setLoading();
-  
-  const [res, unassignedRes] = await Promise.all([
-    apiFetch(API.recruiters),
-    apiFetch(API.distribute)
-  ]);
-  
-  const recs = res.data?.filter(r => r.status === 'active') || [];
-  const unassignedList = unassignedRes.data?.unassigned_leads || [];
-  const unassigned = unassignedList.length;
-  
-  let html = `
-  <div class="top-bar">
-    <div class="page-title">
-      <h1>🎯 Smart Distribution Center</h1>
-      <p><span style="color: var(--warning); font-weight: 700;">${unassigned}</span> leads ready for intelligent distribution</p>
-    </div>
-    <div class="top-actions">
-      <button class="btn btn-warning" onclick="distributeEqually()" ${unassigned ? '' : 'disabled'}>
-        <i class="fas fa-balance-scale"></i> Distribute Equally
-      </button>
-      <button class="btn btn-info" onclick="showRecruitersList()">
-        <i class="fas fa-users-cog"></i> Manage Recruiters
-      </button>
-    </div>
-  </div>`;
+// ==========================================================================
+// UNIFIED: TEAM PERFORMANCE & LEAD MANAGEMENT
+// ==========================================================================
+let teamPerformanceData = null;
 
-  if (unassigned === 0) {
-    html += `<div class="empty-state">
-      <i class="fas fa-check-circle" style="color: var(--secondary);"></i>
-      <h3>All Caught Up! 🎉</h3>
-      <p>There are zero unassigned leads in the system. Great job team!</p>
-    </div>`;
-  } else {
-    html += `
-    <div class="stats-grid stats-2" style="grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));">
-      <div class="chart-container" style="padding: 20px;">
-        <div class="chart-header">
-          <h4><i class="fas fa-chart-pie"></i> Distribution Preview</h4>
-          <span class="badge badge-active">${unassigned} leads to assign</span>
-        </div>
-        <div id="distributionPreview" style="height: 200px;"></div>
-        <p style="text-align: center; font-size: 11px; color: var(--text-dim); margin-top: 12px;">
-          <i class="fas fa-users"></i> ${recs.length} active recruiters available
+async function showTeamPerformance() {
+  if (!isSuperAdmin) {
+    return showMyLeads();
+  }
+  setActiveNav('teamPerformance');
+  setLoading();
+
+  const bParam = encodeURIComponent(window.dashBranch || 'all');
+  const res = await apiFetch(`${API.performance}?branch=${bParam}`);
+
+  if (!res.success) {
+    toast(res.error || 'Failed to load team performance data', 'error');
+    return;
+  }
+
+  teamPerformanceData = res.data || {};
+  const data = teamPerformanceData;
+  const sum = data.summary || {};
+  const recs = data.recruiters || [];
+  window.cachedRecruiterList = recs;
+  const unassigned = sum.unassigned_pool || 0;
+  const staleCount = sum.stale_pool || 0;
+
+  // Branch selector for Admin
+  let branchSelectHtml = '';
+  if (isSuperAdmin && data.available_branches) {
+    const branches = data.available_branches;
+    branchSelectHtml = `
+      <select class="branch-select-badge" onchange="window.dashBranch = this.value; showTeamPerformance();" title="Filter by Branch">
+        <option value="all" ${window.dashBranch === 'all' ? 'selected' : ''}>🏢 All Branches</option>
+        ${Object.keys(branches).map(k => `
+          <option value="${k}" ${window.dashBranch === k ? 'selected' : ''}>${esc(branches[k].label)}</option>
+        `).join('')}
+      </select>
+    `;
+  }
+
+  let html = `
+    <div class="top-bar">
+      <div class="page-title">
+        <h1>👥 Team Performance & Leads</h1>
+        <p style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="color:var(--text-secondary);"><i class="fas fa-building" style="color:var(--primary);"></i> ${esc(data.branch_label || 'All Branches')}</span>
+          <span style="color:rgba(255,255,255,0.25);">•</span>
+          <span class="live-indicator">
+            <span class="live-dot"></span>
+            <span>Real-time Team Activity</span>
+          </span>
         </p>
       </div>
-      
-      <div class="chart-container" style="padding: 20px;">
-        <div class="chart-header">
-          <h4><i class="fas fa-tachometer-alt"></i> Team Workload</h4>
-          <span class="badge badge-active">Current load</span>
-        </div>
-        <div id="workloadChart" style="height: 200px;"></div>
-        <div style="margin-top: 12px; text-align: center;">
-          <button class="btn btn-primary btn-sm" onclick="showRecruitersList()">
-            <i class="fas fa-user-plus"></i> Manage Team Members
-          </button>
-        </div>
+      <div class="top-actions">
+        ${branchSelectHtml}
+        <button class="btn btn-info" onclick="showExportPerformanceModal()" title="Download Excel performance reports">
+          <i class="fas fa-file-excel"></i> Export Report
+        </button>
+        <button class="btn btn-warning" onclick="distributeEquallyTeam()" ${unassigned > 0 ? '' : 'disabled'} title="Distribute all unassigned leads equally among active recruiters">
+          <i class="fas fa-balance-scale"></i> Distribute Pool (${unassigned})
+        </button>
+        <button class="btn btn-danger" onclick="reassignStaleTeam()" ${staleCount > 0 ? '' : 'disabled'} title="Reassign leads uncalled for 3+ days to other recruiters">
+          <i class="fas fa-redo"></i> Reassign Stale (${staleCount})
+        </button>
+        <button class="btn btn-success" onclick="showAddRecruiterModal()">
+          <i class="fas fa-user-plus"></i> Add Recruiter
+        </button>
+        <button class="btn btn-primary" onclick="showTeamPerformance()">
+          <i class="fas fa-sync-alt"></i> Refresh
+        </button>
       </div>
-    </div>
-    
-    <div class="top-bar" style="margin: 10px 0 16px; padding: 16px;">
-      <div class="page-title">
-        <h1 style="font-size: 16px;">📋 Batch Distribution (By Count)</h1>
-        <p>Assign specific number of leads to each recruiter</p>
-      </div>
-    </div>
-    
-    <div class="form-grid" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); margin-bottom: 28px;">
-      ${recs.map(r => `
-        <div class="dist-recruiter-card">
-          <div class="rec-avatar" style="width: 44px; height: 44px; font-size: 18px;">${r.full_name.charAt(0)}</div>
-          <div class="info">
-            <h4>${esc(r.full_name)}</h4>
-            <p><i class="fas fa-tasks"></i> ${r.pending_leads || 0} pending - <i class="fas fa-trophy"></i> ${r.hired_leads || 0} hired</p>
-          </div>
-          <input type="number" id="dist_${r.id}" class="dist-input" placeholder="0" min="0" max="${unassigned}" value="0">
-          <button class="btn btn-primary btn-sm" onclick="assignCount(${r.id})">
-            <i class="fas fa-arrow-right"></i> Assign
-          </button>
-        </div>
-      `).join('')}
     </div>
 
-    <!-- Unassigned Leads Master Table -->
+    <!-- Summary Strip -->
+    <div class="stats-grid stats-4" style="margin-bottom: 20px;">
+      <div class="stat-card">
+        <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+        <div class="stat-value">${sum.active_recruiters || 0} <span style="font-size: 14px; font-weight: 500; color: var(--text-muted);">/ ${sum.total_recruiters || 0}</span></div>
+        <div class="stat-label">Active Recruiters</div>
+        <div class="stat-today-badge">${sum.inactive_recruiters || 0} Inactive</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon yellow"><i class="fas fa-inbox"></i></div>
+        <div class="stat-value">${unassigned}</div>
+        <div class="stat-label">Unassigned Pool</div>
+        <div class="stat-today-badge ${unassigned > 0 ? 'has-today' : ''}">
+          ${unassigned > 0 ? '⚡ Needs Distribution' : '✅ Pool Clear'}
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon red"><i class="fas fa-phone-slash"></i></div>
+        <div class="stat-value">${staleCount}</div>
+        <div class="stat-label">Stale Leads (3D+ No Call)</div>
+        <div class="stat-today-badge" style="color: var(--danger); background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2);">
+          Action Required
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="fas fa-chart-line"></i></div>
+        <div class="stat-value">${sum.avg_conversion || 0}%</div>
+        <div class="stat-label">Avg Team Conversion</div>
+        <div class="stat-today-badge has-today">Hired / Assigned</div>
+      </div>
+    </div>
+
+    <!-- Quick Lead Allocation Strip -->
+    ${unassigned > 0 ? `
+      <div class="dash-control-bar" style="background: linear-gradient(135deg, rgba(249,115,22,0.12), rgba(17,23,38,0.9)); border-color: rgba(249,115,22,0.3); margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <i class="fas fa-bolt" style="color: var(--primary); font-size: 18px;"></i>
+          <div>
+            <strong style="color: #fff; font-size: 13px;">Fast Lead Allocation:</strong>
+            <span style="font-size: 12px; color: var(--text-secondary); margin-left: 6px;">Assign from the pool of ${unassigned} unassigned leads:</span>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <select id="fastAssignRecSelect" class="form-control" style="width: 190px; padding: 6px 12px; font-size: 12px;">
+            <option value="">-- Choose Recruiter --</option>
+            ${recs.filter(r => r.status === 'active').map(r => `
+              <option value="${r.id}">${esc(r.full_name)} (${esc(r.branch_label)})</option>
+            `).join('')}
+          </select>
+          <input type="number" id="fastAssignCount" class="form-control" style="width: 90px; padding: 6px 10px; font-size: 12px;" min="1" max="${unassigned}" value="${Math.min(10, unassigned)}" placeholder="Count">
+          <button class="btn btn-primary btn-sm" onclick="executeFastAssign()">
+            <i class="fas fa-share"></i> Assign Leads
+          </button>
+        </div>
+      </div>
+    ` : ''}
+
+    <!-- Recruiter Performance Directory Table -->
     <div class="table-wrap">
       <div class="table-header">
-        <h3><i class="fas fa-user-plus" style="color:var(--primary)"></i> Unassigned Candidate Queue (${unassignedList.length} Leads)</h3>
-        <span class="badge badge-inactive" style="background:rgba(239,68,68,0.12);color:#ef4444;">Needs Assignment</span>
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <h3><i class="fas fa-users-cog" style="color: var(--primary);"></i> Recruiter Performance & Pipeline</h3>
+          <span class="badge badge-active">${recs.length} Members</span>
+        </div>
+        <div>
+          <input type="text" id="teamSearchInput" class="form-control" placeholder="Search recruiter..." style="width: 220px; padding: 6px 12px; font-size: 12px;" oninput="filterTeamRecruitersTable(this.value)">
+        </div>
       </div>
-      <table>
+      <table style="width: 100%;">
         <thead>
           <tr>
-            <th>Candidate</th>
-            <th>Contact</th>
-            <th>Position / City</th>
-            <th>Source</th>
-            <th>Received Date</th>
-            <th style="text-align:right;">Quick Assign to Recruiter</th>
+            <th>Recruiter</th>
+            <th>Assigned</th>
+            <th style="min-width: 120px;">Dialed Rate</th>
+            <th>Remaining</th>
+            <th>Scheduled</th>
+            <th>Appeared</th>
+            <th>Hired</th>
+            <th>Stale</th>
+            <th>Conversion %</th>
+            <th>Last Active</th>
+            <th style="text-align: right;">Actions</th>
           </tr>
         </thead>
-        <tbody>
-          ${unassignedList.map(l => `
-            <tr>
-              <td>
-                <strong>${esc(l.full_name)}</strong><br>
-                <span style="font-size:10px; color:var(--text-dim);">ID: #${l.id}</span>
-              </td>
-              <td>
-                <i class="fas fa-phone-alt" style="font-size:10px; color:var(--primary);"></i> ${esc(l.phone)}<br>
-                ${l.email ? `<span style="font-size:11px; color:var(--text-muted);">${esc(l.email)}</span>` : ''}
-              </td>
-              <td>
-                <strong>${esc(l.position_applied || 'N/A')}</strong><br>
-                <span style="font-size:11px; color:var(--text-dim);"><i class="fas fa-map-marker-alt"></i> ${esc(l.city || 'N/A')}</span>
-              </td>
-              <td>
-                ${l.source === 'website' ? `<span class="badge" style="background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);"><i class="fas fa-globe"></i> Website</span>` : `<span class="badge" style="background:rgba(255,255,255,0.06);">${esc(l.source || 'Manual')}</span>`}
-              </td>
-              <td style="font-size:11px; color:var(--text-muted);">
-                ${fmt(l.created_at)}
-              </td>
-              <td style="text-align:right;">
-                <div style="display:inline-flex; gap:8px; align-items:center;">
-                  <select id="quick_assign_${l.id}" class="form-control" style="width:180px; padding:6px 12px; font-size:12px;">
-                    <option value="">-- Choose Recruiter --</option>
-                    ${recs.map(r => `<option value="${r.id}">${esc(r.full_name)}</option>`).join('')}
-                  </select>
-                  <button class="btn btn-primary btn-sm" onclick="quickAssignSingleLead(${l.id})">
-                    <i class="fas fa-user-check"></i> Assign
-                  </button>
-                  ${(l.external_lead_id || l.cv_file_url) ? `
-                    <a href="api/fetch_lead_cv.php?external_id=${encodeURIComponent(l.external_lead_id || l.id)}" target="_blank" class="btn btn-info btn-sm" title="View CV" style="text-decoration:none; padding:6px 10px;">
-                      <i class="fas fa-file-pdf"></i>
-                    </a>
-                  ` : ''}
-                </div>
-              </td>
-            </tr>
-          `).join('')}
+        <tbody id="teamRecruitersTableBody">`;
+
+  if (!recs.length) {
+    html += `<tr><td colspan="11" class="empty-state"><i class="fas fa-users-slash"></i><p>No recruiters found in this branch.</p></td></tr>`;
+  }
+
+  recs.forEach(r => {
+    const isAct = r.status === 'active';
+    const convScore = r.conversion_rate >= 20 ? 'perf-score-high' : r.conversion_rate >= 10 ? 'perf-score-mid' : 'perf-score-low';
+    const convIcon = r.conversion_rate >= 20 ? '🟢' : r.conversion_rate >= 10 ? '🟡' : '🔴';
+    const dialPct = r.assigned > 0 ? Math.round((r.dialed / r.assigned) * 100) : 0;
+    const initial = r.full_name ? r.full_name.charAt(0).toUpperCase() : '?';
+
+    html += `
+      <tr class="team-rec-row" data-name="${esc(r.full_name).toLowerCase()}">
+        <td>
+          <div class="rec-tbl-user">
+            <div class="rec-avatar-circle">${initial}</div>
+            <div>
+              <div class="rec-tbl-name">
+                ${esc(r.full_name)}
+                ${isAct ? '<span style="color:#10b981;font-size:8px;margin-left:4px;">●</span>' : '<span style="color:#ef4444;font-size:8px;margin-left:4px;">●</span>'}
+              </div>
+              <span class="rec-tbl-branch">${esc(r.branch_label)}</span>
+            </div>
+          </div>
+        </td>
+        <td><strong>${r.assigned}</strong></td>
+        <td>
+          <div style="font-size: 12px; font-weight: 600; color: #fff;">
+            ${r.dialed} <span style="font-size: 10px; color: var(--text-muted);">(${dialPct}%)</span>
+          </div>
+          <div class="tbl-prog-wrap">
+            <div class="tbl-prog-fill" style="width: ${dialPct}%;"></div>
+          </div>
+        </td>
+        <td><span style="color: ${r.remaining > 0 ? 'var(--warning)' : 'var(--text-muted)'}; font-weight: 600;">${r.remaining}</span></td>
+        <td><span style="color: var(--purple); font-weight: 700;">${r.scheduled}</span></td>
+        <td><span style="color: var(--info); font-weight: 700;">${r.appeared}</span></td>
+        <td><span style="color: var(--secondary); font-weight: 800;">${r.hired}</span></td>
+        <td>
+          ${r.stale_leads > 0 ? `
+            <span class="badge" style="background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3);" title="Leads uncalled for 3+ days">
+              <i class="fas fa-clock"></i> ${r.stale_leads}
+            </span>
+          ` : `<span style="color: var(--text-dim); font-size: 11px;">0</span>`}
+        </td>
+        <td>
+          <span class="perf-score-pill ${convScore}">
+            ${convIcon} ${r.conversion_rate}%
+          </span>
+        </td>
+        <td style="font-size: 11px; color: var(--text-muted);">
+          ${r.last_active ? ago(r.last_active) : 'Never'}
+        </td>
+        <td style="text-align: right;">
+          <div style="display: inline-flex; gap: 6px; align-items: center;">
+            <button class="btn btn-info btn-xs" onclick="downloadSingleRecruiterReport(${r.id}, '${esc(r.full_name)}')" title="Download Excel report for ${esc(r.full_name)}">
+              <i class="fas fa-file-excel"></i> Report
+            </button>
+            <button class="btn btn-warning btn-xs" onclick="openQuickAssignModal(${r.id}, '${esc(r.full_name)}', ${unassigned})" title="Assign leads to this recruiter">
+              <i class="fas fa-plus"></i> Assign
+            </button>
+            <button class="btn btn-primary btn-xs" onclick="viewRecruiterLeads(${r.id}, '${esc(r.full_name)}')" title="View this recruiter's pipeline">
+              <i class="fas fa-eye"></i> Leads
+            </button>
+            ${isAct ? `
+              <button class="btn btn-danger btn-xs" onclick="toggleRecruiterStatusTeam(${r.id}, 'inactive')" title="Deactivate account">
+                <i class="fas fa-user-slash"></i>
+              </button>
+            ` : `
+              <button class="btn btn-success btn-xs" onclick="toggleRecruiterStatusTeam(${r.id}, 'active')" title="Activate account">
+                <i class="fas fa-user-check"></i>
+              </button>
+            `}
+          </div>
+        </td>
+      </tr>`;
+  });
+
+  html += `
         </tbody>
       </table>
-    </div>`;
-    
-    // Initialize distribution charts
-    setTimeout(() => {
-      initDistributionCharts(recs, unassigned);
-    }, 100);
-  }
-  
-  document.getElementById('mainContent').innerHTML = html;
+    </div>
+
+    <!-- Quick Assign Modal Container -->
+    <div id="quickAssignModalContainer"></div>
+  `;
+
+  renderMainView(html);
   clearInterval(refreshTimer);
 }
 
-async function quickAssignSingleLead(leadId) {
-  const recSelect = document.getElementById(`quick_assign_${leadId}`);
-  const recId = recSelect ? parseInt(recSelect.value) : 0;
-  if (!recId) return toast('Please select a recruiter first', 'warning');
+// Fast lead assign from top strip
+async function executeFastAssign() {
+  const sel = document.getElementById('fastAssignRecSelect');
+  const countInp = document.getElementById('fastAssignCount');
+  const recId = sel ? parseInt(sel.value) : 0;
+  const count = countInp ? parseInt(countInp.value) : 0;
 
-  const res = await apiFetch(API.distribute, {
+  if (!recId || count <= 0) {
+    return toast('Select a recruiter and specify valid number of leads', 'warning');
+  }
+
+  const res = await apiFetch(API.performance, {
     method: 'POST',
     body: JSON.stringify({
-      mode: 'manual',
-      assignments: [{ lead_id: leadId, recruiter_id: recId }]
+      action: 'assign_leads',
+      recruiter_id: recId,
+      count: count,
+      branch: window.dashBranch || 'all'
     })
   });
 
   if (res.success) {
-    toast('Lead assigned successfully', 'success');
-    showDistributeLeads();
+    toast(`✅ ${res.message || 'Leads assigned successfully!'}`, 'success');
+    showTeamPerformance();
   } else {
-    toast(res.error || 'Failed to assign lead', 'error');
+    toast(res.error || 'Assignment failed', 'error');
   }
 }
 
-// Distribution Charts
-function initDistributionCharts(recruiters, unassigned) {
-  if (typeof ApexCharts === 'undefined') return;
-  
-  // Preview Chart
-  const previewOptions = {
-    series: [unassigned],
-    chart: {
-      type: 'radialBar',
-      height: 200,
-      toolbar: { show: false },
-      background: 'transparent'
-    },
-    plotOptions: {
-      radialBar: {
-        hollow: { size: '60%' },
-        track: { background: 'rgba(255,255,255,0.1)' },
-        dataLabels: {
-          name: { show: true, fontSize: '12px', color: '#94a3b8' },
-          value: { fontSize: '28px', fontWeight: 700, color: '#f97316', formatter: (val) => `${val}` }
-        }
-      }
-    },
-    fill: { colors: ['#f97316'], type: 'gradient', gradient: { shade: 'dark', stops: [0, 100] } },
-    labels: ['Unassigned'],
-    tooltip: { theme: 'dark' }
-  };
-  
-  const previewChart = new ApexCharts(document.querySelector("#distributionPreview"), previewOptions);
-  previewChart.render();
-  
-  // Workload Chart
-  const workloadData = recruiters.map(r => ({
-    name: r.full_name.split(' ')[0],
-    leads: r.pending_leads || 0
-  }));
-  
-  const workloadOptions = {
-    series: [{
-      name: 'Pending Leads',
-      data: workloadData.map(w => w.leads)
-    }],
-    chart: {
-      type: 'bar',
-      height: 200,
-      toolbar: { show: false },
-      background: 'transparent'
-    },
-    plotOptions: {
-      bar: {
-        borderRadius: 8,
-        columnWidth: '50%',
-        distributed: true
-      }
-    },
-    colors: ['#f97316', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899'],
-    xaxis: {
-      categories: workloadData.map(w => w.name),
-      labels: { style: { colors: '#94a3b8', fontSize: '11px' } }
-    },
-    yaxis: { labels: { style: { colors: '#94a3b8' } } },
-    grid: { borderColor: 'rgba(255,255,255,0.05)' },
-    tooltip: { theme: 'dark' }
-  };
-  
-  const workloadChart = new ApexCharts(document.querySelector("#workloadChart"), workloadOptions);
-  workloadChart.render();
-}
-
-// ==================== RECRUITER MANAGEMENT FUNCTIONS ====================
-
-// --- Show Recruiters List with Active/Inactive Management ---
-async function showRecruitersList() {
-  if (!isSuperAdmin) return;
-  setActiveNav('manageRec');
-  setLoading();
-  
-  const res = await apiFetch(API.recruiters);
-  if (!res.success) return toast('Failed to load recruiters', 'error');
-  clearInterval(refreshTimer);
-  
-  const list = res.data || [];
-  const activeCount = list.filter(r => r.status === 'active').length;
-  const inactiveCount = list.filter(r => r.status === 'inactive').length;
-  
-  let html = `
-  <div class="top-bar">
-    <div class="page-title">
-      <h1><i class="fas fa-users-cog"></i> Recruiter Management</h1>
-      <p>${activeCount} active - ${inactiveCount} inactive - Total ${list.length} recruiters</p>
-    </div>
-    <div class="top-actions">
-      <button class="btn btn-success" onclick="showAddRecruiterModal()">
-        <i class="fas fa-plus"></i> Add New Recruiter
-      </button>
-      <button class="btn btn-primary" onclick="showRecruitersList()">
-        <i class="fas fa-sync-alt"></i> Refresh
-      </button>
-    </div>
-  </div>
-  
-  <div class="table-wrap">
-    <div class="table-header">
-      <h3><i class="fas fa-list"></i> Recruiters Directory</h3>
-    </div>
-    <table style="width: 100%;">
-      <thead>
-        <tr>
-          <th>Recruiter</th>
-          <th>Contact</th>
-          <th>Leads</th>
-          <th>Performance</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>`;
-  
-  if (!list.length) {
-    html += `<tr><td colspan="6" class="empty-state">No recruiters found<\/td><\/tr>`;
-  }
-  
-  list.forEach(r => {
-    const conversionRate = r.total_leads > 0 ? Math.round((r.hired_leads / r.total_leads) * 100) : 0;
-    const statusBadge = r.status === 'active' 
-      ? '<span class="badge badge-active">🟢 Active</span>' 
-      : '<span class="badge badge-inactive">⚫ Inactive</span>';
-    
-    html += `
-      <tr>
-        <td>
-          <strong>${esc(r.full_name)}</strong><br>
-          <span style="font-size: 10px; color: var(--text-dim);">ID: ${r.employee_code || 'N/A'}</span>
-        <\/td>
-        <td>
-          <i class="fas fa-envelope"></i> ${esc(r.email)}<br>
-          <i class="fas fa-phone"></i> ${r.phone || 'N/A'}
-        <\/td>
-        <td>
-          <strong>${r.total_leads || 0}</strong> Total<br>
-          <span style="color: var(--warning);">${r.pending_leads || 0} Pending</span>
-        <\/td>
-        <td>
-          <span style="color: var(--secondary);">${r.hired_leads || 0} Hired</span><br>
-          ${r.total_calls || 0} Calls - ${conversionRate}% Conv
-        <\/td>
-        <td>${statusBadge}<\/td>
-        <td>
-          <div style="display: flex; gap: 6px;">
-            <button class="btn btn-info btn-xs" onclick="viewRecruiterLeads(${r.id}, '${esc(r.full_name)}')">
-              <i class="fas fa-eye"></i> Leads
-            </button>
-            ${r.status === 'active' ? 
-              `<button class="btn btn-danger btn-xs" onclick="deactivateRecruiter(${r.id})">
-                <i class="fas fa-user-slash"></i> Deactivate
-              </button>` :
-              `<button class="btn btn-success btn-xs" onclick="activateRecruiter(${r.id})">
-                <i class="fas fa-user-check"></i> Activate
-              </button>`
-            }
+// Modal for quick assigning leads to a specific recruiter
+function openQuickAssignModal(recId, recName, unassignedMax) {
+  const max = unassignedMax || 0;
+  const html = `
+    <div class="modal-overlay" id="quickAssignModal">
+      <div class="modal" style="max-width: 440px;">
+        <div class="modal-header">
+          <h3><i class="fas fa-user-plus"></i> Assign Leads to ${esc(recName)}</h3>
+          <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+            Available Unassigned Pool: <strong>${max} leads</strong>
+          </p>
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label>Number of Leads to Assign *</label>
+            <input type="number" id="modalAssignCount" class="form-control" min="1" max="${max}" value="${Math.min(10, max)}" placeholder="e.g. 15">
           </div>
-        <\/td>
-      </tr>`;
-  });
-  
-  html += `</tbody>
-    </table>
-  </div>`;
-  
-  document.getElementById('mainContent').innerHTML = html;
+          <div style="display: flex; gap: 8px; justify-content: flex-end;">
+            <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="submitModalAssign(${recId})">
+              <i class="fas fa-check"></i> Confirm Assignment
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('quickAssignModalContainer').innerHTML = html;
 }
+
+async function submitModalAssign(recId) {
+  const inp = document.getElementById('modalAssignCount');
+  const count = inp ? parseInt(inp.value) : 0;
+  if (!count || count <= 0) return toast('Enter valid number of leads', 'warning');
+
+  const res = await apiFetch(API.performance, {
+    method: 'POST',
+    body: JSON.stringify({
+      action: 'assign_leads',
+      recruiter_id: recId,
+      count: count,
+      branch: window.dashBranch || 'all'
+    })
+  });
+
+  if (res.success) {
+    toast(`✅ ${res.message || 'Leads assigned successfully!'}`, 'success');
+    closeModal();
+    showTeamPerformance();
+  } else {
+    toast(res.error || 'Failed to assign leads', 'error');
+  }
+}
+
+// Distribute Unassigned Pool Equally
+async function distributeEquallyTeam() {
+  if (!confirm('⚡ Distribute all unassigned pool leads equally among all active recruiters in this branch?')) return;
+
+  const res = await apiFetch(API.distribute, {
+    method: 'POST',
+    body: JSON.stringify({ mode: 'equal' })
+  });
+
+  if (res.success) {
+    toast(`✅ ${res.message || 'Leads distributed equally!'}`, 'success');
+    showTeamPerformance();
+  } else {
+    toast(res.error || 'Distribution failed', 'error');
+  }
+}
+
+// Reassign Stale Leads (3+ Days No Call)
+async function reassignStaleTeam() {
+  if (!confirm('🔄 Reassign stale leads (uncalled for 3+ days) to active recruiters in this branch?')) return;
+
+  const res = await apiFetch(API.performance, {
+    method: 'POST',
+    body: JSON.stringify({
+      action: 'reassign_stale',
+      branch: window.dashBranch || 'all'
+    })
+  });
+
+  if (res.success) {
+    toast(`✅ ${res.message || 'Stale leads reassigned successfully!'}`, 'success');
+    showTeamPerformance();
+  } else {
+    toast(res.error || 'Reassignment failed', 'error');
+  }
+}
+
+// Toggle Recruiter Active/Inactive Status
+async function toggleRecruiterStatusTeam(recId, newStatus) {
+  const verb = newStatus === 'active' ? 'ACTIVATE' : 'DEACTIVATE';
+  if (!confirm(`Are you sure you want to ${verb} this recruiter account?`)) return;
+
+  const res = await apiFetch(API.toggleRec, {
+    method: 'POST',
+    body: JSON.stringify({ recruiter_id: recId, status: newStatus })
+  });
+
+  if (res.success) {
+    toast(`✅ Recruiter account set to ${newStatus}`, 'success');
+    showTeamPerformance();
+  } else {
+    toast(res.error || 'Failed to update recruiter status', 'error');
+  }
+}
+
+// Filter Recruiter rows by search query
+function filterTeamRecruitersTable(query) {
+  const q = (query || '').toLowerCase().trim();
+  const rows = document.querySelectorAll('.team-rec-row');
+  rows.forEach(r => {
+    const name = r.getAttribute('data-name') || '';
+    if (!q || name.includes(q)) {
+      r.style.display = '';
+    } else {
+      r.style.display = 'none';
+    }
+  });
+}
+
+// Aliases for seamless legacy support
+window.showTeamPerformance = showTeamPerformance;
+window.showDistributeLeads = showTeamPerformance;
+window.showRecruitersList = showTeamPerformance;
 
 // --- Show Add Recruiter Modal ---
 function showAddRecruiterModal() {
@@ -1438,6 +1755,12 @@ function showAddRecruiterModal() {
             <input type="text" id="new_rec_bid" class="form-control" placeholder="e.g. 508 - from biometric / roster" required>
             <small style="color: var(--text-dim);">Required for attendance &amp; payroll in portal</small>
           </div>
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label>Branch Assignment *</label>
+            <select id="new_rec_branch" class="form-control">
+              ${COMPANY_BRANCH_OPTIONS.map(b => `<option value="${b.key}" ${window.dashBranch === b.key ? 'selected' : ''}>${esc(b.label)}</option>`).join('')}
+            </select>
+          </div>
           <div class="form-group">
             <label>Password</label>
             <input type="text" id="new_rec_password" class="form-control" value="Recruiter@123" readonly>
@@ -1465,6 +1788,7 @@ async function createNewRecruiter(e) {
   const phone = document.getElementById('new_rec_phone').value.trim();
   const employee_code = document.getElementById('new_rec_bid').value.trim();
   const password = document.getElementById('new_rec_password').value;
+  const company_branch = document.getElementById('new_rec_branch')?.value || '';
   
   if (!full_name || !email || !username || !employee_code) {
     toast('Please fill all required fields (including BID)', 'warning');
@@ -1478,7 +1802,7 @@ async function createNewRecruiter(e) {
   
   const res = await apiFetch(API.createRec, {
     method: 'POST',
-    body: JSON.stringify({ full_name, email, username, phone, password, employee_code })
+    body: JSON.stringify({ full_name, email, username, phone, password, employee_code, company_branch })
   });
   
   btn.innerHTML = originalText;
@@ -1707,7 +2031,7 @@ async function showDistributionAuditLogs(search = '', recruiterId = 0, offset = 
     </div>
   `;
 
-  document.getElementById('mainContent').innerHTML = html;
+  renderMainView(html);
 }
 
 function filterAuditLogs() {
@@ -1818,9 +2142,12 @@ async function runWebsiteSync() {
 
 // ==================== EXPORTS ====================
 window.showDashboard = showDashboard;
+window.changeDashBranch = changeDashBranch;
+window.changeDashRange = changeDashRange;
 window.showAllLeads = showAllLeads;
 window.triggerAllLeadsFilter = triggerAllLeadsFilter;
 window.showMyLeads = showMyLeads;
+window.triggerMyLeadsFilter = triggerMyLeadsFilter;
 window.viewRecruiterLeads = viewRecruiterLeads;
 window.showDistributeLeads = showDistributeLeads;
 window.showDistributionAuditLogs = showDistributionAuditLogs;
@@ -1831,11 +2158,24 @@ window.quickAssignSingleLead = quickAssignSingleLead;
 window.assignCount = assignCount;
 window.distributeEqually = distributeEqually;
 window.exportDashboardReport = exportDashboardReport;
+window.showExportPerformanceModal = showExportPerformanceModal;
+window.toggleExportScope = toggleExportScope;
+window.toggleExportCustomDates = toggleExportCustomDates;
+window.executeReportDownload = executeReportDownload;
+window.downloadSingleRecruiterReport = downloadSingleRecruiterReport;
 window.initSuperAdminCharts = initSuperAdminCharts;
 window.initRecruiterCharts = initRecruiterCharts;
 window.initDistributionCharts = initDistributionCharts;
 
 // Recruiter Management Exports
+window.showTeamPerformance = showTeamPerformance;
+window.executeFastAssign = executeFastAssign;
+window.openQuickAssignModal = openQuickAssignModal;
+window.submitModalAssign = submitModalAssign;
+window.distributeEquallyTeam = distributeEquallyTeam;
+window.reassignStaleTeam = reassignStaleTeam;
+window.toggleRecruiterStatusTeam = toggleRecruiterStatusTeam;
+window.filterTeamRecruitersTable = filterTeamRecruitersTable;
 window.showRecruitersList = showRecruitersList;
 window.showAddRecruiterModal = showAddRecruiterModal;
 window.createNewRecruiter = createNewRecruiter;

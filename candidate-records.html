@@ -566,7 +566,6 @@
             </div>
             <div class="sidebar-nav">
                 <div class="nav-section-title">PORTALS</div>
-                <div class="nav-item" onclick="window.location.href='reception-portal.html'"><i class="fas fa-concierge-bell"></i> Reception Desk</div>
                 <div class="nav-item" onclick="window.location.href='hr-portal.html'"><i class="fas fa-users-cog"></i> HR Command Center</div>
                 <div class="nav-item" onclick="window.location.href='management-portal.html'"><i class="fas fa-crown"></i> Management Portal</div>
                 <div class="nav-item" onclick="window.location.href='recruiter-portal.html'"><i class="fas fa-user-tie"></i> Recruiter Portal</div>
@@ -722,7 +721,25 @@
         </div>
     </div>
 
+    <script src="js/portal-performance.js"></script>
+    <script src="js/portal-access.js"></script>
+    <script src="js/portal-session-guard.js"></script>
     <script>
+        // Restrict receptionist / data entry / agent from directly loading candidate records archive
+        (async function enforceCandidateRecordsAccess() {
+            try {
+                const res = await fetch('api/portal_auth_check.php', { credentials: 'include' });
+                const authData = await res.json();
+                if (authData && authData.success && authData.data) {
+                    const role = authData.data.portal_role;
+                    if (role === 'receptionist' || role === 'agent' || role === 'data_entry') {
+                        alert('Access Denied: Reception desk does not have access to Candidate Records archive.');
+                        window.location.replace('reception-portal.html');
+                    }
+                }
+            } catch (e) {}
+        })();
+
         let currentOffset = 0;
         const pageSize = 50;
         let totalRecords = 0;

@@ -267,17 +267,31 @@ $has_history = ($other_records_count > 0);
 $summary_text = 'No prior history across other branches';
 $alert_level = 'none'; // 'danger', 'warning', 'info', 'none'
 
+$latest_rejection = null;
 if ($has_rejection) {
-    $alert_level = 'danger';
-    $summary_text = '⚠️ Previously Rejected: ' . implode(' | ', array_slice($rejection_summaries, 0, 2));
-} elseif ($has_history) {
-    $alert_level = 'warning';
-    $summary_text = "ℹ️ Candidate applied previously in " . count($branches_encountered) . " branch(es)";
+    foreach ($history as $h) {
+        if ($h['is_rejected']) {
+            $latest_rejection = $h;
+            break;
+        }
+    }
+}
+
+$rejection_remarks_formatted = '';
+if ($has_rejection && $latest_rejection) {
+    $r_branch = $latest_rejection['branch_label'] ?? 'Main';
+    $r_date = $latest_rejection['applied_date'] ?? '';
+    $r_stage = $latest_rejection['status_title'] ?? 'Rejected';
+    $r_reason = $latest_rejection['rejection_reason'] ?: 'Did not meet requirements';
+    $rejection_remarks_formatted = "Candidate was previously $r_stage at $r_branch on $r_date. Reason/Remarks: $r_reason";
 }
 
 respond(true, [
     'has_history' => $has_history,
     'has_rejection' => $has_rejection,
+    'is_already_rejected' => $has_rejection,
+    'rejection_remarks' => $rejection_remarks_formatted,
+    'latest_rejection' => $latest_rejection,
     'alert_level' => $alert_level,
     'total_records' => $total_records,
     'other_records_count' => $other_records_count,

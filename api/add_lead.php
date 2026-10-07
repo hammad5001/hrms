@@ -26,7 +26,9 @@ if ($check->get_result()->num_rows > 0) {
 
 $user_id = getCurrentUserId();
 $is_super = isSuperRecruiter();
-$company_branch = get_active_company_branch();
+$company_branch = (!empty($data['company_branch']) && is_valid_company_branch($data['company_branch']))
+    ? normalize_company_branch($data['company_branch'])
+    : get_active_company_branch();
 
 // Determine assigned recruiter
 $assigned_to = null;

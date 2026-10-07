@@ -34,42 +34,48 @@ if ($check_result->num_rows > 0) {
 }
 
 $user_id = $_SESSION['user_id'];
-$recruiter_type = $_SESSION['recruiter_type'] ?? 'regular';
+$is_super = isSuperRecruiter();
+$branch_input = trim($data['company_branch'] ?? '');
+$active_branch = get_active_company_branch();
+$company_branch = ($is_super && $branch_input !== '' && is_valid_company_branch($branch_input)) 
+    ? normalize_company_branch($branch_input) 
+    : $active_branch;
 
 // For regular recruiters, auto-assign to themselves
 $assigned_recruiter_id = $user_id;
 $current_stage = 'new';
 
-// For super admin, leave unassigned for distribution
-if ($recruiter_type === 'super') {
-    $assigned_recruiter_id = null;
-    $current_stage = 'new';
+// For super admin, leave unassigned for distribution unless specified
+if ($is_super) {
+    $assigned_recruiter_id = isset($data['assigned_recruiter_id']) && $data['assigned_recruiter_id'] ? intval($data['assigned_recruiter_id']) : null;
+    $current_stage = $assigned_recruiter_id ? 'assigned' : 'new';
 }
 
 $stmt = $conn->prepare("
     INSERT INTO leads (
         full_name, father_name, phone, email, cnic, city, dob, education, 
-        position_applied, referred_by, source, assigned_recruiter_id, current_stage, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        position_applied, referred_by, source, company_branch, assigned_recruiter_id, current_stage, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
 ");
 
 $stmt->bind_param(
-    "sssssssssssis",
+    "ssssssssssssis",
     $full_name, $father_name, $phone, $email, $cnic, $city, $dob, $education,
-    $position_applied, $referred_by, $source, $assigned_recruiter_id, $current_stage
+    $position_applied, $referred_by, $source, $company_branch, $assigned_recruiter_id, $current_stage
 );
 
 if ($stmt->execute()) {
     $lead_id = $conn->insert_id;
     
     // Update recruiter stats
-    if ($recruiter_type !== 'super') {
+    if (!$is_super || $assigned_recruiter_id) {
+        $target_rec_id = $assigned_recruiter_id ?: $user_id;
         $update_stats = $conn->prepare("UPDATE recruiters SET total_leads = total_leads + 1 WHERE user_id = ?");
-        $update_stats->bind_param("i", $user_id);
+        $update_stats->bind_param("i", $target_rec_id);
         $update_stats->execute();
     }
     
-    respond(true, ['id' => $lead_id, 'message' => 'Lead added successfully']);
+    respond(true, ['id' => $lead_id, 'branch' => $company_branch, 'message' => 'Lead added successfully']);
 } else {
     respond(false, null, 'Database error: ' . $conn->error);
 }

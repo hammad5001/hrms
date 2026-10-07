@@ -8,16 +8,16 @@ if (!isAuthenticated()) {
 }
 
 $user_id = getCurrentUserId();
-$recruiter_type = $_SESSION['recruiter_type'] ?? 'regular';
+$is_admin_or_super = isSuperRecruiter();
 
-// Only super admin can view other recruiters' leads
+// Only super admin/hr/management can view other recruiters' leads
 $target_recruiter_id = isset($_GET['recruiter_id']) ? intval($_GET['recruiter_id']) : null;
 
-if ($target_recruiter_id && $recruiter_type !== 'super') {
+if ($target_recruiter_id && !$is_admin_or_super) {
     respond(false, null, 'Access denied');
 }
 
-$filter_id = $target_recruiter_id ?? $user_id;
+$filter_id = ($target_recruiter_id && $is_admin_or_super) ? $target_recruiter_id : $user_id;
 
 // Filters
 $stage  = $_GET['stage'] ?? '';
@@ -26,14 +26,51 @@ $limit  = min(intval($_GET['limit'] ?? 100), 500);
 $offset = intval($_GET['offset'] ?? 0);
 
 $active_branch = get_active_company_branch();
-$where_clauses = ["l.assigned_recruiter_id = ?", "l.company_branch = ?"];
-$params = [$filter_id, $active_branch];
-$types  = "is";
+$branch_req = trim($_GET['branch'] ?? '');
+
+if (!$is_admin_or_super) {
+    // Regular recruiter strictly locked to their own active branch
+    $selected_branch = $active_branch;
+} else {
+    // Admin / Super Admin / HR
+    if ($branch_req === 'all') {
+        $selected_branch = null;
+    } elseif ($branch_req !== '' && is_valid_company_branch($branch_req)) {
+        $selected_branch = normalize_company_branch($branch_req);
+    } elseif ($target_recruiter_id) {
+        $selected_branch = null; // Inspect recruiter's full pipeline unless branch explicitly specified
+    } else {
+        $selected_branch = $active_branch;
+    }
+}
+
+$where_clauses = ["l.assigned_recruiter_id = ?"];
+$params = [$filter_id];
+$types  = "i";
+
+if ($selected_branch !== null) {
+    $where_clauses[] = "l.company_branch = ?";
+    $params[] = $selected_branch;
+    $types .= "s";
+}
 
 if ($stage) {
-    $where_clauses[] = "l.current_stage = ?";
-    $params[] = $stage;
-    $types .= "s";
+    $can_stage = canonical_stage($stage);
+    if ($can_stage === 'outreach_phone') {
+        $where_clauses[] = "(l.current_stage = 'outreach_phone' OR l.current_stage = 'contacted')";
+    } elseif ($can_stage === 'interview_scheduled') {
+        $where_clauses[] = "(l.current_stage = 'interview_scheduled' OR l.current_stage = 'scheduled')";
+    } elseif ($can_stage === 'receptionist') {
+        $where_clauses[] = "(l.current_stage IN ('receptionist', 'agent_checkin', 'reception_checked_in'))";
+    } elseif ($can_stage === 'referred_branch') {
+        $where_clauses[] = "(l.current_stage IN ('referred_branch', 'referred', 'transfer_branch'))";
+    } elseif ($can_stage === 'outreach_whatsapp_msg') {
+        $where_clauses[] = "(l.current_stage IN ('outreach_whatsapp_msg', 'message_dropped'))";
+    } else {
+        $where_clauses[] = "l.current_stage = ?";
+        $params[] = $can_stage;
+        $types .= "s";
+    }
 }
 if ($search) {
     $where_clauses[] = "(l.full_name LIKE ? OR l.phone LIKE ? OR l.position_applied LIKE ?)";
@@ -54,7 +91,7 @@ $total = $count_stmt->get_result()->fetch_assoc()['total'];
 
 // Data
 $data_stmt = $conn->prepare("
-    SELECT l.id, l.external_lead_id, l.source, l.cv_file_url, l.full_name, l.phone, l.email, l.city, l.position_applied,
+    SELECT l.id, l.external_lead_id, l.source, l.cv_file_url, l.full_name, l.cnic, l.phone, l.email, l.city, l.education, l.position_applied,
            l.current_stage, l.call_count, l.last_call_date, l.interview_date,
            l.created_at, l.updated_at, l.assigned_at,
            (SELECT remark FROM lead_remarks WHERE lead_id = l.id ORDER BY created_at DESC LIMIT 1) AS latest_remark,
@@ -71,6 +108,7 @@ $data_stmt->execute();
 $leads = $data_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 // Stats for this recruiter
+$branch_stats_sql = $selected_branch !== null ? " AND company_branch = ?" : "";
 $stats_stmt = $conn->prepare("
     SELECT
         COUNT(*) AS total,
@@ -80,9 +118,13 @@ $stats_stmt = $conn->prepare("
         SUM(current_stage = 'interview_scheduled') AS scheduled,
         SUM(current_stage IN ('hired','deployed')) AS hired,
         SUM(current_stage IN ('rejected','left','mock_rejected','hr_rejected','gm_rejected')) AS rejected
-    FROM leads WHERE assigned_recruiter_id = ?
+    FROM leads WHERE assigned_recruiter_id = ? $branch_stats_sql
 ");
-$stats_stmt->bind_param("i", $filter_id);
+if ($selected_branch !== null) {
+    $stats_stmt->bind_param("is", $filter_id, $selected_branch);
+} else {
+    $stats_stmt->bind_param("i", $filter_id);
+}
 $stats_stmt->execute();
 $stats = $stats_stmt->get_result()->fetch_assoc();
 

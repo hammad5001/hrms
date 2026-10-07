@@ -10,8 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="css/dropdown-fix.css">
-    <link rel="stylesheet" href="css/portal-ui-polish.css?v=1">
+    <link rel="stylesheet" href="css/dropdown-fix.css?v=2.3">
+    <link rel="stylesheet" href="css/portal-ui-polish.css?v=2.3">
     <style>
         * {
             margin: 0;
@@ -1387,6 +1387,10 @@
                 <span>Selected</span>
                 <span class="menu-badge" id="selectedBadge">0</span>
             </div>
+            <div class="menu-item" id="menu-reports" onclick="switchView('reports')">
+                <i class="fas fa-file-invoice" style="color: #fb923c;"></i>
+                <span>Reports (Audit Trail)</span>
+            </div>
             <div class="menu-item" onclick="window.location.href='candidate-records.html'">
                 <i class="fas fa-database"></i>
                 <span>Candidate Records</span>
@@ -1395,27 +1399,18 @@
                 <i class="fas fa-comments"></i>
                 <span>Chat</span>
             </div>
-            <div style="margin: 20px 15px 10px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">
-                Navigation</div>
+            <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.8px; margin: 14px 14px 6px;">Portals</div>
             <div class="menu-item" onclick="window.location.href='recruiter-portal.html'">
-                <i class="fas fa-user-plus"></i>
+                <i class="fas fa-user-astronaut"></i>
                 <span>Recruiter Portal</span>
             </div>
             <div class="menu-item" onclick="window.location.href='reception-portal.html'">
                 <i class="fas fa-concierge-bell"></i>
                 <span>Reception Portal</span>
             </div>
-            <div class="menu-item" onclick="window.location.href='management-portal.html'">
-                <i class="fas fa-crown"></i>
-                <span>Management Portal</span>
-            </div>
-            <div class="menu-item" onclick="window.location.href='training-portal.html'">
-                <i class="fas fa-graduation-cap"></i>
-                <span>Training Portal</span>
-            </div>
-            <div class="menu-item" onclick="window.location.href='attendance/attendance-dashboard.html'">
-                <i class="fas fa-clock"></i>
-                <span>Attendance Portal</span>
+            <div class="menu-item" onclick="window.location.href='employee-portal.html'">
+                <i class="fas fa-id-card"></i>
+                <span>Employee Portal</span>
             </div>
         </div>
 
@@ -1529,6 +1524,42 @@
                     <input type="text" id="selectedSearch" placeholder="Search selected candidates...">
                 </div>
                 <div class="candidate-list" id="selectedList"></div>
+            </div>
+        </div>
+
+        <!-- Candidate Full Audit & Lifecycle Reports View -->
+        <div id="view-reports" style="display: none;">
+            <div class="dashboard-card" style="width: 100%; margin-bottom: 24px; padding: 26px; border-radius: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 20px;">
+                    <div>
+                        <h2 style="font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 6px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-history" style="color: var(--primary);"></i> Candidate Lifecycle & Audit Trail Reports
+                        </h2>
+                        <p style="font-size: 13px; color: var(--text-muted); margin: 0;">
+                            Instant complete history by CNIC / Phone: tracks candidate entry, recruiter assignment, interview outcome, reception check-in, remarks, rejection or hiring stage.
+                        </p>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; max-width: 600px; margin-bottom: 12px;">
+                    <div style="position: relative; flex: 1;">
+                        <i class="fas fa-id-card" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 16px;"></i>
+                        <input type="text" id="reportCnicInput" class="form-control" placeholder="Enter CNIC (e.g. 37405-1234567-1) or Phone" onkeydown="if(event.key==='Enter') searchCandidateAuditReport()" style="width: 100%; padding: 12px 16px 12px 46px; border-radius: 12px; background: var(--bg-tertiary); border: 1px solid var(--border-secondary); color: #fff; font-size: 14px;">
+                    </div>
+                    <button class="btn btn-primary" onclick="searchCandidateAuditReport()" style="padding: 12px 24px; border-radius: 12px; font-weight: 700; white-space: nowrap;">
+                        <i class="fas fa-search"></i> Generate Report
+                    </button>
+                </div>
+            </div>
+
+            <div id="auditReportResultContainer">
+                <div class="empty-state" style="padding: 50px 20px; text-align: center; background: var(--bg-card); border-radius: 20px; border: 1px dashed var(--border-secondary);">
+                    <i class="fas fa-id-card-alt fa-3x" style="color: var(--primary); opacity: 0.6; margin-bottom: 14px;"></i>
+                    <h4 style="font-size: 16px; color: var(--text-primary); margin-bottom: 6px;">Enter Candidate CNIC or Phone to Generate Full Audit</h4>
+                    <p style="font-size: 13px; color: var(--text-muted); max-width: 500px; margin: 0 auto;">
+                        Shows detailed step-by-step history from the moment candidate entered, recruiter actions, reception appearance, interview results, to final outcome.
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -2098,7 +2129,7 @@
             const pageSubtitle = document.getElementById('pageSubtitle');
 
             // Hide all view containers
-            const views = ['dashboard', 'hr-interviews', 'final-interviews', 'selected'];
+            const views = ['dashboard', 'hr-interviews', 'final-interviews', 'selected', 'reports'];
             views.forEach(v => {
                 const el = document.getElementById(`view-${v}`);
                 if (el) el.style.display = 'none';
@@ -2126,6 +2157,152 @@
                 if (pageTitle) pageTitle.textContent = 'Selected Candidates';
                 if (pageSubtitle) pageSubtitle.textContent = 'Selected for Onboarding & Training Pipeline';
                 renderSelectedView();
+            } else if (viewName === 'reports') {
+                if (pageTitle) pageTitle.textContent = 'Candidate Audit Trail & Reports';
+                if (pageSubtitle) pageSubtitle.textContent = 'Full Lifecycle History from Entry to Hiring / Rejection by CNIC';
+            }
+        }
+
+        async function searchCandidateAuditReport(forcedCnic = '') {
+            const input = document.getElementById('reportCnicInput');
+            const cnic = forcedCnic || (input ? input.value.trim() : '');
+            const container = document.getElementById('auditReportResultContainer');
+            if (!container) return;
+
+            if (!cnic) {
+                showToast('Please enter CNIC or Phone number to search', 'warning');
+                return;
+            }
+
+            container.innerHTML = `
+                <div style="text-align: center; padding: 60px 20px; color: var(--text-muted); background: var(--bg-card); border-radius: 20px;">
+                    <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--primary); margin-bottom: 16px;"></i>
+                    <h4>Generating Comprehensive Audit Trail...</h4>
+                    <p style="font-size: 13px;">Pulling all branch records, interviewer evaluations, stages, and remarks...</p>
+                </div>
+            `;
+
+            try {
+                const res = await fetch(`api/candidate_audit_report.php?cnic=${encodeURIComponent(cnic)}`, { credentials: 'include' });
+                const json = await res.json();
+
+                if (!json.success || !json.data) {
+                    container.innerHTML = `
+                        <div class="empty-state" style="padding: 50px 20px; text-align: center; background: var(--bg-card); border-radius: 20px; border: 1px dashed var(--danger);">
+                            <i class="fas fa-user-slash fa-3x" style="color: var(--danger); opacity: 0.8; margin-bottom: 14px;"></i>
+                            <h4 style="font-size: 18px; color: var(--text-primary); margin-bottom: 6px;">No Candidate Records Found</h4>
+                            <p style="font-size: 13px; color: var(--text-muted);">${json.error || 'No record matched with this CNIC or Phone.'}</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const data = json.data;
+                const c = data.candidate;
+                const timeline = data.timeline || [];
+                const apps = data.applications || [];
+
+                let html = `
+                    <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; margin-bottom: 24px;">
+                        <!-- Candidate Identity Profile Card -->
+                        <div class="dashboard-card" style="padding: 24px; border-radius: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px;">
+                                <div style="display: flex; gap: 14px; align-items: center;">
+                                    <div style="width: 52px; height: 52px; border-radius: 14px; background: var(--gradient-primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700;">
+                                        ${c.full_name.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <h3 style="font-size: 20px; font-weight: 800; color: #fff; margin: 0;">${c.full_name}</h3>
+                                        <div style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">Father: ${c.father_name}</div>
+                                    </div>
+                                </div>
+                                <span style="padding: 4px 12px; border-radius: 12px; background: rgba(249,115,22,0.15); color: var(--primary); font-weight: 700; font-size: 12px;">
+                                    ${c.branch_label}
+                                </span>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
+                                <div style="padding: 10px; background: var(--bg-tertiary); border-radius: 10px;"><strong style="color: var(--text-muted); font-size: 11px; display: block;">CNIC NUMBER</strong><span style="font-weight: 600; color: #fff;">${c.cnic}</span></div>
+                                <div style="padding: 10px; background: var(--bg-tertiary); border-radius: 10px;"><strong style="color: var(--text-muted); font-size: 11px; display: block;">PHONE NUMBER</strong><span style="font-weight: 600; color: #fff;">${c.phone}</span></div>
+                                <div style="padding: 10px; background: var(--bg-tertiary); border-radius: 10px;"><strong style="color: var(--text-muted); font-size: 11px; display: block;">POSITION APPLIED</strong><span style="font-weight: 600; color: var(--primary);">${c.position}</span></div>
+                                <div style="padding: 10px; background: var(--bg-tertiary); border-radius: 10px;"><strong style="color: var(--text-muted); font-size: 11px; display: block;">CURRENT STAGE</strong><span style="font-weight: 600; color: #10b981; text-transform: capitalize;">${c.current_stage.replace(/_/g, ' ')}</span></div>
+                                <div style="padding: 10px; background: var(--bg-tertiary); border-radius: 10px;"><strong style="color: var(--text-muted); font-size: 11px; display: block;">EDUCATION</strong><span>${c.education}</span></div>
+                                <div style="padding: 10px; background: var(--bg-tertiary); border-radius: 10px;"><strong style="color: var(--text-muted); font-size: 11px; display: block;">SOURCE / REFERRED BY</strong><span>${c.referred_by}</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Application Summary & Quick Highlights -->
+                        <div class="dashboard-card" style="padding: 24px; border-radius: 20px;">
+                            <h4 style="font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-layer-group" style="color: var(--primary);"></i> Application Attempts (${apps.length})
+                            </h4>
+                            <div style="display: flex; flex-direction: column; gap: 10px; max-height: 240px; overflow-y: auto;">
+                                ${apps.map(a => `
+                                    <div style="padding: 12px 14px; background: var(--bg-tertiary); border-radius: 12px; border-left: 3px solid var(--primary); display: flex; justify-content: space-between; align-items: center;">
+                                        <div>
+                                            <div style="font-weight: 700; font-size: 13px; color: #fff;">${a.position} &nbsp;<span style="font-size: 11px; color: var(--text-muted);">(${a.branch_label})</span></div>
+                                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Applied: ${new Date(a.applied_at).toLocaleDateString()} | Recruiter: ${a.recruiter_name}</div>
+                                            ${a.rejection_reason ? `<div style="font-size: 11px; color: #f87171; margin-top: 2px;">Reason: ${a.rejection_reason}</div>` : ''}
+                                        </div>
+                                        <span style="font-size: 11px; padding: 3px 8px; border-radius: 6px; background: rgba(255,255,255,0.06); font-weight: 600; text-transform: capitalize;">
+                                            ${a.current_stage.replace(/_/g, ' ')}
+                                        </span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step-by-Step Complete Audit Trail & Journey -->
+                    <div class="dashboard-card" style="padding: 28px; border-radius: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                            <h3 style="font-size: 18px; font-weight: 800; color: #fff; margin: 0; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-route" style="color: var(--primary);"></i> Complete Lifecycle Audit Timeline
+                            </h3>
+                            <span style="font-size: 12px; padding: 4px 12px; border-radius: 12px; background: var(--bg-tertiary); color: var(--text-muted);">
+                                ${timeline.length} Recorded Actions
+                            </span>
+                        </div>
+
+                        ${timeline.length === 0 ? `
+                            <div class="empty-state" style="padding: 30px;"><p>No audit events recorded yet for this candidate.</p></div>
+                        ` : `
+                            <div style="position: relative; padding-left: 28px; border-left: 2px solid rgba(249, 115, 22, 0.3); margin-left: 14px;">
+                                ${timeline.map((item, idx) => `
+                                    <div style="position: relative; margin-bottom: 24px;">
+                                        <!-- Timeline node bullet -->
+                                        <div style="position: absolute; left: -39px; top: 2px; width: 22px; height: 22px; border-radius: 50%; background: ${item.badge_color}; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; box-shadow: 0 0 10px ${item.badge_color};">
+                                            <i class="fas ${item.icon}"></i>
+                                        </div>
+
+                                        <div style="background: var(--bg-tertiary); border: 1px solid var(--border-secondary); border-radius: 14px; padding: 16px 20px;">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
+                                                <div style="font-size: 15px; font-weight: 700; color: #fff;">
+                                                    ${item.title}
+                                                </div>
+                                                <div style="font-size: 12px; color: var(--text-muted); font-weight: 500;">
+                                                    <i class="fas fa-clock" style="margin-right: 4px;"></i> ${item.date}
+                                                </div>
+                                            </div>
+
+                                            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 8px;">
+                                                ${item.description || 'Action processed'}
+                                            </div>
+
+                                            <div style="font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
+                                                <i class="fas fa-user-check"></i> Action taken by: <strong style="color: #fb923c;">${item.actor}</strong> ${item.role ? `(${item.role})` : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `}
+                    </div>
+                `;
+
+                container.innerHTML = html;
+            } catch (err) {
+                container.innerHTML = `<div style="padding: 20px; color: var(--danger); text-align: center;">Failed to load audit report: ${err.message}</div>`;
             }
         }
 
@@ -2664,7 +2841,9 @@
             }
         };
 
+        window.switchView = switchView;
         window.showHrCrossBranchModal = showHrCrossBranchModal;
+        window.searchCandidateAuditReport = searchCandidateAuditReport;
         window.toggleTheme = toggleTheme;
         window.forceSync = forceSync;
         window.logout = logout;

@@ -71,9 +71,9 @@ for ($page = 1; $page <= $max_pages; $page++) {
     $chk_stmt = $conn->prepare("SELECT id FROM leads WHERE (external_lead_id = ? AND external_lead_id IS NOT NULL) OR (phone = ? AND phone != '') LIMIT 1");
     $ins_stmt = $conn->prepare("
         INSERT INTO leads (
-            external_lead_id, full_name, phone, email, city, position_applied, 
+            external_lead_id, full_name, cnic, phone, email, city, education, position_applied, 
             company_branch, source, current_stage, cv_file_url, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'website', 'new', ?, NOW(), NOW())
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
     ");
     $aud_stmt = $conn->prepare("
         INSERT INTO lead_audit (lead_id, user_id, user_name, action, new_value, notes, created_at)
@@ -90,6 +90,48 @@ for ($page = 1; $page <= $max_pages; $page++) {
         $city     = trim((string)($item['city'] ?? 'Islamabad'));
         $company_raw = strtolower(trim((string)($item['company'] ?? '')));
         $message  = trim((string)($item['message'] ?? ''));
+        
+        // Deep parsing of CNIC, education and details from website payload
+        $cnic = trim((string)($item['cnic'] ?? ''));
+        $education = trim((string)($item['education'] ?? $item['qualification'] ?? ''));
+        $heard_about = '';
+
+        // Check if details JSON string is present
+        if (!empty($item['details'])) {
+            $details = is_array($item['details']) ? $item['details'] : json_decode($item['details'], true);
+            if (!empty($details['answers'])) {
+                $ans = $details['answers'];
+                if (empty($cnic) && !empty($ans['cnic'])) {
+                    $cnic = trim((string)$ans['cnic']);
+                }
+                if (empty($education) && !empty($ans['qualification'])) {
+                    $education = trim((string)$ans['qualification']);
+                }
+                if (!empty($ans['heardAbout'])) {
+                    $heard_about = strtolower(trim((string)$ans['heardAbout']));
+                }
+            }
+        }
+
+        // Check source JSON string or field
+        if (!empty($item['source'])) {
+            $source_data = is_array($item['source']) ? $item['source'] : json_decode($item['source'], true);
+            if (is_array($source_data) && !empty($source_data['heardAbout'])) {
+                $heard_about = strtolower(trim((string)$source_data['heardAbout']));
+            }
+        }
+
+        // Determine walk-in vs regular website intake
+        $raw_source_str = strtolower(trim((string)(is_string($item['source'] ?? '') ? $item['source'] : '')));
+        $is_walkin = (
+            !empty($item['is_walkin']) || 
+            str_contains($heard_about, 'walk') || 
+            str_contains($raw_source_str, 'walk') ||
+            strtolower(trim((string)($item['apply_type'] ?? ''))) === 'walkin'
+        );
+
+        $lead_source = $is_walkin ? 'walkin' : 'website';
+        $init_stage  = $is_walkin ? 'interview_scheduled' : 'new';
 
         // Smart branch normalization
         $branch = 'main';
@@ -114,6 +156,13 @@ for ($page = 1; $page <= $max_pages; $page++) {
         $chk_res = $chk_stmt->get_result();
 
         if ($chk_res->num_rows > 0) {
+            $existing_lead = $chk_res->fetch_assoc();
+            // If existing lead was missing CNIC or education, update it
+            if (!empty($cnic) || !empty($education)) {
+                $upd_existing = $conn->prepare("UPDATE leads SET cnic = COALESCE(NULLIF(cnic, ''), ?), education = COALESCE(NULLIF(education, ''), ?) WHERE id = ?");
+                $upd_existing->bind_param("ssi", $cnic, $education, $existing_lead['id']);
+                $upd_existing->execute();
+            }
             $total_skipped++;
             continue;
         }
@@ -121,8 +170,8 @@ for ($page = 1; $page <= $max_pages; $page++) {
         // Insert new lead
         $cv_url = $ext_id ? "api/fetch_lead_cv.php?external_id=" . urlencode($ext_id) : null;
         $ins_stmt->bind_param(
-            "ssssssss",
-            $ext_id, $name, $phone, $email, $city, $position, $branch, $cv_url
+            "ssssssssssss",
+            $ext_id, $name, $cnic, $phone, $email, $city, $education, $position, $branch, $lead_source, $init_stage, $cv_url
         );
         
         if ($ins_stmt->execute()) {
@@ -130,11 +179,29 @@ for ($page = 1; $page <= $max_pages; $page++) {
             $aud_stmt->bind_param("iis", $new_lid, $user_id, $user_name);
             $aud_stmt->execute();
 
-            // Log initial website message as first remark if present
-            if ($message) {
+            // Log initial website message or summary as first remark
+            $initial_note = $message ?: ($is_walkin ? 'Walk-in applicant arrived via website portal' : '');
+            if ($initial_note) {
                 $rem_stmt = $conn->prepare("INSERT INTO lead_remarks (lead_id, added_by, added_by_name, added_by_role, remark, created_at) VALUES (?, ?, ?, 'Website Intake', ?, NOW())");
-                $rem_stmt->bind_param("iiss", $new_lid, $user_id, $user_name, $message);
+                $rem_stmt->bind_param("iiss", $new_lid, $user_id, $user_name, $initial_note);
                 $rem_stmt->execute();
+            }
+
+            // Ensure scheduled/walkin queue entry if walk-in
+            if ($is_walkin) {
+                $chk_int = $conn->prepare("SELECT id FROM interviews WHERE lead_id = ? LIMIT 1");
+                $chk_int->bind_param("i", $new_lid);
+                $chk_int->execute();
+                if ($chk_int->get_result()->num_rows === 0) {
+                    $cur_date = date('Y-m-d');
+                    $cur_time = date('H:i');
+                    $ins_int = $conn->prepare("
+                        INSERT INTO interviews (lead_id, scheduled_by, scheduled_date, scheduled_time, location, interviewer_name, status, company_branch, created_at, updated_at)
+                        VALUES (?, ?, ?, ?, 'Reception', 'HR Manager', 'scheduled', ?, NOW(), NOW())
+                    ");
+                    $ins_int->bind_param("iisss", $new_lid, $user_id, $cur_date, $cur_time, $branch);
+                    $ins_int->execute();
+                }
             }
 
             $total_imported++;

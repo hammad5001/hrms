@@ -53,10 +53,10 @@ if ($res->num_rows > 0) {
         }
         $branch = get_active_company_branch();
         if (!empty($position) && $position !== 'Unknown') {
-            $upd = $conn->prepare("UPDATE leads SET current_stage = ?, position_applied = ?, company_branch = ?, updated_at = NOW() WHERE id = ?");
+            $upd = $conn->prepare("UPDATE leads SET current_stage = ?, position_applied = ?, company_branch = COALESCE(NULLIF(TRIM(company_branch), ''), ?), updated_at = NOW() WHERE id = ?");
             $upd->bind_param("sssi", $new_stage, $position, $branch, $lead_id);
         } else {
-            $upd = $conn->prepare("UPDATE leads SET current_stage = ?, company_branch = ?, updated_at = NOW() WHERE id = ?");
+            $upd = $conn->prepare("UPDATE leads SET current_stage = ?, company_branch = COALESCE(NULLIF(TRIM(company_branch), ''), ?), updated_at = NOW() WHERE id = ?");
             $upd->bind_param("ssi", $new_stage, $branch, $lead_id);
         }
         $upd->execute();

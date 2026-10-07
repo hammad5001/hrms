@@ -93,9 +93,15 @@ function canonical_stage(string $stage): string {
         'contacted' => 'contacted',
         'interested' => 'interested',
         'callback' => 'callback',
+        'not_answered' => 'not_answered',
+        'no_answer' => 'not_answered',
         'outreach_phone' => 'outreach_phone',
         'outreach_whatsapp_call' => 'outreach_whatsapp_call',
         'outreach_whatsapp_msg' => 'outreach_whatsapp_msg',
+        'message_dropped' => 'outreach_whatsapp_msg',
+        'referred' => 'referred_branch',
+        'referred_branch' => 'referred_branch',
+        'transfer_branch' => 'referred_branch',
         'interview_scheduled' => 'interview_scheduled',
         'scheduled' => 'interview_scheduled',
         'receptionist' => 'receptionist',
@@ -126,7 +132,7 @@ function canonical_stage(string $stage): string {
 
 function stage_group(string $stage): string {
     $s = canonical_stage($stage);
-    if (in_array($s, ['new', 'assigned', 'contacted', 'interested', 'callback', 'outreach_phone', 'outreach_whatsapp_call', 'outreach_whatsapp_msg'], true)) {
+    if (in_array($s, ['new', 'assigned', 'contacted', 'interested', 'callback', 'not_answered', 'outreach_phone', 'outreach_whatsapp_call', 'outreach_whatsapp_msg', 'referred_branch'], true)) {
         return 'recruiting';
     }
     if ($s === 'interview_scheduled') return 'scheduled';
@@ -141,36 +147,45 @@ function stage_group(string $stage): string {
  * Recruitment pipeline transition guard (see pipeline diagram).
  */
 function stage_transition_allowed(string $from, string $to): bool {
+    // If super admin / admin / HR is managing, allow any stage adjustment
+    if (isset($_SESSION['recruiter_type']) && $_SESSION['recruiter_type'] === 'super') return true;
+    if (isset($_SESSION['portal_role']) && in_array($_SESSION['portal_role'], ['admin', 'super_admin', 'hr', 'management'], true)) return true;
+
     $from = canonical_stage($from);
     $to = canonical_stage($to);
     if ($from === $to || $from === '' || $to === '') {
         return true;
     }
+
+    $outreach_set = ['assigned', 'contacted', 'interested', 'callback', 'not_answered', 'outreach_phone', 'outreach_whatsapp_call', 'outreach_whatsapp_msg', 'interview_scheduled', 'pending', 'selected', 'rejected', 'referred_branch'];
+
     $allowed = [
-        'new' => ['assigned', 'contacted', 'interested', 'callback', 'outreach_phone', 'outreach_whatsapp_call', 'outreach_whatsapp_msg', 'interview_scheduled', 'rejected'],
-        'assigned' => ['contacted', 'interested', 'callback', 'outreach_phone', 'outreach_whatsapp_call', 'outreach_whatsapp_msg', 'interview_scheduled', 'rejected'],
-        'contacted' => ['interested', 'callback', 'outreach_phone', 'outreach_whatsapp_call', 'outreach_whatsapp_msg', 'interview_scheduled', 'rejected'],
-        'interested' => ['interview_scheduled', 'rejected'],
-        'callback' => ['interview_scheduled', 'rejected'],
-        'outreach_phone' => ['interview_scheduled', 'rejected'],
-        'outreach_whatsapp_call' => ['interview_scheduled', 'rejected'],
-        'outreach_whatsapp_msg' => ['interview_scheduled', 'rejected'],
-        'interview_scheduled' => ['receptionist', 'not_appeared', 'interview_conducted', 'rejected'],
-        'receptionist' => ['interview_conducted', 'not_appeared', 'rejected'],
-        'not_appeared' => ['interview_scheduled', 'rejected'],
-        'interview_conducted' => ['selected', 'pending', 'hr_passed', 'hr_rejected', 'gm_passed', 'gm_rejected', 'hired', 'training', 'rejected'],
-        'selected' => ['hr_passed', 'hired', 'training', 'rejected'],
-        'pending' => ['selected', 'hr_passed', 'hired', 'training', 'hr_rejected', 'rejected'],
-        'hr_passed' => ['gm_passed', 'gm_rejected', 'hired', 'training', 'rejected'],
-        'hr_rejected' => ['rejected'],
-        'gm_passed' => ['hired', 'training', 'rejected'],
-        'gm_rejected' => ['rejected'],
+        'new' => $outreach_set,
+        'assigned' => $outreach_set,
+        'contacted' => $outreach_set,
+        'interested' => $outreach_set,
+        'callback' => $outreach_set,
+        'not_answered' => $outreach_set,
+        'outreach_phone' => $outreach_set,
+        'outreach_whatsapp_call' => $outreach_set,
+        'outreach_whatsapp_msg' => $outreach_set,
+        'referred_branch' => $outreach_set,
+        'interview_scheduled' => ['receptionist', 'not_appeared', 'left', 'interview_conducted', 'interview_scheduled', 'callback', 'outreach_phone', 'rejected', 'referred_branch'],
+        'receptionist' => ['interview_conducted', 'not_appeared', 'left', 'rejected', 'interview_scheduled'],
+        'not_appeared' => ['interview_scheduled', 'receptionist', 'callback', 'outreach_phone', 'outreach_whatsapp_msg', 'not_answered', 'rejected', 'referred_branch'],
+        'interview_conducted' => ['selected', 'pending', 'hr_passed', 'hr_rejected', 'gm_passed', 'gm_rejected', 'hired', 'training', 'rejected', 'referred_branch'],
+        'selected' => ['hr_passed', 'hired', 'training', 'rejected', 'referred_branch', 'pending'],
+        'pending' => ['selected', 'hr_passed', 'hired', 'training', 'hr_rejected', 'rejected', 'interview_scheduled', 'referred_branch', 'callback'],
+        'hr_passed' => ['gm_passed', 'gm_rejected', 'hired', 'training', 'rejected', 'referred_branch'],
+        'hr_rejected' => ['rejected', 'referred_branch', 'interview_scheduled'],
+        'gm_passed' => ['hired', 'training', 'rejected', 'referred_branch'],
+        'gm_rejected' => ['rejected', 'referred_branch', 'interview_scheduled'],
         'hired' => ['training', 'not_appeared', 'rejected'],
         'training' => ['deployed', 'mock_rejected', 'left', 'rejected'],
         'deployed' => [],
-        'mock_rejected' => [],
-        'left' => [],
-        'rejected' => [],
+        'mock_rejected' => ['training', 'rejected'],
+        'left' => ['interview_scheduled', 'receptionist', 'callback', 'rejected'],
+        'rejected' => ['assigned', 'outreach_phone', 'callback', 'interview_scheduled', 'referred_branch'],
     ];
     if (!isset($allowed[$from])) {
         return true;

@@ -25,6 +25,10 @@ $import_stmt->bind_param("isi", $user_id, $file_name, $total);
 $import_stmt->execute();
 $bulk_import_id = $conn->insert_id;
 
+$target_branch = (!empty($data['company_branch']) && is_valid_company_branch($data['company_branch']))
+    ? normalize_company_branch($data['company_branch'])
+    : get_active_company_branch();
+
 $inserted = 0;
 $skipped = 0;
 $errors = [];
@@ -35,8 +39,8 @@ try {
     $check_stmt  = $conn->prepare("SELECT id FROM leads WHERE phone = ?");
     $insert_stmt = $conn->prepare("
         INSERT INTO leads (full_name, father_name, phone, email, cnic, city, dob, education,
-                          position_applied, referred_by, source, bulk_import_id, current_stage, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'import', ?, 'new', NOW())
+                          position_applied, referred_by, source, company_branch, bulk_import_id, current_stage, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'import', ?, ?, 'new', NOW())
     ");
 
     foreach ($leads as $idx => $lead) {
@@ -64,10 +68,13 @@ try {
         $edu      = trim($lead['education'] ?? '');
         $pos      = trim($lead['position_applied'] ?? $lead['position'] ?? '');
         $ref      = trim($lead['referred_by'] ?? 'Import');
+        $row_branch = (!empty($lead['company_branch']) && is_valid_company_branch($lead['company_branch']))
+            ? normalize_company_branch($lead['company_branch'])
+            : $target_branch;
 
-        $insert_stmt->bind_param("ssssssssssi",
+        $insert_stmt->bind_param("sssssssssssi",
             $name, $father, $phone, $email, $cnic, $city, $dob, $edu,
-            $pos, $ref, $bulk_import_id
+            $pos, $ref, $row_branch, $bulk_import_id
         );
 
         if ($insert_stmt->execute()) {

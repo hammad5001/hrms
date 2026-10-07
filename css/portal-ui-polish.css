@@ -1010,6 +1010,217 @@ img, video {
     color: #ffffff !important;
 }
 
+/* ==================== SMOOTH CROSS-PORTAL NAVIGATION & CONTRAST ==================== */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Fluid view animations across all portals */
+.main-content,
+#mainContent,
+.dashboard-container,
+.tab-content,
+.view-panel {
+    animation: portalViewFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes portalViewFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Nav Item smoothness */
+.nav-item,
+.menu-item,
+.nav-item-link,
+.action-btn {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.nav-item:active,
+.menu-item:active,
+.action-btn:active {
+    transform: scale(0.98);
+}
+
+/* Global Fix for dark text on dark backgrounds: ensure readability */
+body[data-theme="dark"] p,
+body.dark p,
+body:not([data-theme="light"]) .page-title p,
+body:not([data-theme="light"]) .top-bar p {
+    color: #cbd5e1;
+}
+
+/* Universal Live Indicator Polish */
+.live-indicator,
+.drc-live-indicator {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    color: #34d399 !important;
+    background: rgba(16, 185, 129, 0.12) !important;
+    border: 1px solid rgba(16, 185, 129, 0.28) !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+    vertical-align: middle !important;
+    border-radius: 40px !important;
+    padding: 3px 10px !important;
+}
+
+.live-indicator *,
+.drc-live-indicator * {
+    color: #34d399 !important;
+}
+
+.live-dot,
+.drc-live-dot {
+    width: 7px !important;
+    height: 7px !important;
+    background-color: #10b981 !important;
+    border-radius: 50% !important;
+    display: inline-block !important;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.8) !important;
+    flex-shrink: 0 !important;
+}
+
+/* ==========================================================================
+   PERFORMANCE EXPORT MODAL POLISH (DARK THEME & HIGH CONTRAST)
+   ========================================================================== */
+#exportPerfModal .modal {
+    background: #0f172a !important;
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 35px rgba(16, 185, 129, 0.08) !important;
+    overflow: hidden !important;
+}
+
+#exportPerfModal .modal-header {
+    background: linear-gradient(180deg, #1e293b, #0f172a) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: 18px 24px !important;
+}
+
+#exportPerfModal .modal-header h3 {
+    color: #ffffff !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+}
+
+#exportPerfModal .modal-header .modal-close {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #cbd5e1 !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 8px !important;
+    font-size: 20px !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+}
+
+#exportPerfModal .modal-header .modal-close:hover {
+    background: rgba(239, 68, 68, 0.25) !important;
+    border-color: rgba(239, 68, 68, 0.5) !important;
+    color: #ef4444 !important;
+}
+
+#exportPerfModal .modal-body {
+    padding: 22px 24px !important;
+    background: #0f172a !important;
+    max-height: calc(85vh - 130px) !important;
+    overflow-y: auto !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent !important;
+}
+
+#exportPerfModal .modal-body::-webkit-scrollbar {
+    width: 5px !important;
+}
+
+#exportPerfModal .modal-body::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.22) !important;
+    border-radius: 10px !important;
+}
+
+#exportPerfModal .modal-footer {
+    padding: 16px 24px !important;
+    background: #0b1120 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+#exportPerfModal select.export-field,
+#exportPerfModal input.export-field {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.16) !important;
+    border-radius: 9px !important;
+    padding: 10px 14px !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    width: 100% !important;
+    color-scheme: dark !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+
+#exportPerfModal select.export-field:focus,
+#exportPerfModal input.export-field:focus {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.22) !important;
+}
+
+#exportPerfModal select.export-field option {
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
+    padding: 10px 12px !important;
+    font-size: 13.5px !important;
+}
+
+.export-scope-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1.5px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.02);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    user-select: none;
+}
+
+.export-scope-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+}
+
+.export-scope-card.active-team {
+    border-color: #f97316 !important;
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.16), rgba(249, 115, 22, 0.03)) !important;
+    box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.4), 0 4px 18px rgba(249, 115, 22, 0.12) !important;
+}
+
+.export-scope-card.active-indiv {
+    border-color: #38bdf8 !important;
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.16), rgba(56, 189, 248, 0.03)) !important;
+    box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.4), 0 4px 18px rgba(56, 189, 248, 0.12) !important;
+}
+
+
+
 
 
 
