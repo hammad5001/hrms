@@ -1,8 +1,11 @@
 <?php
 require_once 'config.php';
 
-if (!isAuthenticated() || !isSuperRecruiter()) {
-    respond(false, null, 'Unauthorized: HR and Super Admin only');
+$portal_role = strtolower(trim((string)($_SESSION['portal_role'] ?? '')));
+$is_reception = in_array($portal_role, ['receptionist', 'agent'], true);
+
+if (!isAuthenticated() || (!isSuperRecruiter() && !$is_reception)) {
+    respond(false, null, 'Unauthorized: HR, Super Admin, and Reception only');
 }
 
 $api_token = 'btk_crm_mWl9wKuxqfd5YwRgfd1ws6FvwbjVvRi3rtx7wdTm5Po';
@@ -67,13 +70,25 @@ for ($page = 1; $page <= $max_pages; $page++) {
 
     $total_fetched += count($leads_batch);
 
+    // Experience dictionary mapping
+    $exp_map = [
+        'none'  => 'Fresh / No experience',
+        'lt6m'  => 'Less than 6 months',
+        '6m1y'  => '6 months to 1 year',
+        '1y2y'  => '1 to 2 years',
+        '2y3y'  => '2 to 3 years',
+        '3y5y'  => '3 to 5 years',
+        'gt5y'  => '5 years or more'
+    ];
+
     // Prepare DB statements
-    $chk_stmt = $conn->prepare("SELECT id FROM leads WHERE (external_lead_id = ? AND external_lead_id IS NOT NULL) OR (phone = ? AND phone != '') LIMIT 1");
+    $chk_stmt = $conn->prepare("SELECT id, source, current_stage FROM leads WHERE (external_lead_id = ? AND external_lead_id IS NOT NULL) OR (phone = ? AND phone != '') LIMIT 1");
     $ins_stmt = $conn->prepare("
         INSERT INTO leads (
-            external_lead_id, full_name, cnic, phone, email, city, education, position_applied, 
-            company_branch, source, current_stage, cv_file_url, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+            external_lead_id, reference_id, full_name, cnic, phone, email, city, education,
+            experience, position_applied, queue_name, duplicate_flags, company_branch,
+            source, heard_about, current_stage, cv_file_url, applicant_notes, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
     ");
     $aud_stmt = $conn->prepare("
         INSERT INTO lead_audit (lead_id, user_id, user_name, action, new_value, notes, created_at)
@@ -81,19 +96,30 @@ for ($page = 1; $page <= $max_pages; $page++) {
     ");
 
     foreach ($leads_batch as $item) {
-        $ext_id   = (string)($item['id'] ?? $item['_id'] ?? '');
-        $name     = trim((string)($item['name'] ?? $item['full_name'] ?? ''));
-        $raw_phone= trim((string)($item['phone'] ?? $item['contact'] ?? ''));
-        $phone    = preg_replace('/[^0-9]/', '', $raw_phone);
-        $email    = trim((string)($item['email'] ?? ''));
-        $position = trim((string)($item['position'] ?? $item['department'] ?? 'General'));
-        $city     = trim((string)($item['city'] ?? 'Islamabad'));
-        $company_raw = strtolower(trim((string)($item['company'] ?? '')));
-        $message  = trim((string)($item['message'] ?? ''));
+        $ext_id       = (string)($item['id'] ?? $item['_id'] ?? '');
+        $reference_id = trim((string)($item['referenceId'] ?? ''));
+        $name         = trim((string)($item['name'] ?? $item['full_name'] ?? ''));
+        $raw_phone    = trim((string)($item['phone'] ?? $item['contact'] ?? ''));
+        $phone        = preg_replace('/[^0-9]/', '', $raw_phone);
+        $email        = trim((string)($item['email'] ?? ''));
+        $position     = trim((string)($item['position'] ?? $item['department'] ?? 'General'));
+        $city         = trim((string)($item['city'] ?? 'Islamabad'));
+        $company_raw  = strtolower(trim((string)($item['company'] ?? '')));
+        $message      = trim((string)($item['message'] ?? ''));
+        $queue_name   = trim((string)($item['queue'] ?? 'recruitment'));
         
-        // Deep parsing of CNIC, education and details from website payload
+        $flags_raw = $item['flags'] ?? null;
+        $duplicate_flags = '';
+        if (is_array($flags_raw)) {
+            $duplicate_flags = implode(', ', $flags_raw);
+        } elseif (is_string($flags_raw) && !empty($flags_raw) && $flags_raw !== '[]') {
+            $duplicate_flags = trim($flags_raw, '[]"\' ');
+        }
+        
+        // Deep parsing of CNIC, education, experience and details from website payload
         $cnic = trim((string)($item['cnic'] ?? ''));
         $education = trim((string)($item['education'] ?? $item['qualification'] ?? ''));
+        $experience = '';
         $heard_about = '';
 
         // Check if details JSON string is present
@@ -108,16 +134,44 @@ for ($page = 1; $page <= $max_pages; $page++) {
                     $education = trim((string)$ans['qualification']);
                 }
                 if (!empty($ans['heardAbout'])) {
-                    $heard_about = strtolower(trim((string)$ans['heardAbout']));
+                    $heard_about = trim((string)$ans['heardAbout']);
                 }
+                if (!empty($ans['experience'])) {
+                    $exp_code = trim((string)$ans['experience']);
+                    $experience = $exp_map[$exp_code] ?? $exp_code;
+                }
+            }
+
+            // Check details.summary for clean human labels
+            if (!empty($details['summary']) && is_array($details['summary'])) {
+                foreach ($details['summary'] as $step) {
+                    if (!empty($step['items']) && is_array($step['items'])) {
+                        foreach ($step['items'] as $summaryItem) {
+                            $lbl = strtolower((string)($summaryItem['label'] ?? ''));
+                            if (str_contains($lbl, 'experience') && !empty($summaryItem['value'])) {
+                                $experience = (string)$summaryItem['value'];
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Check if duplicates list has entries
+            if (!empty($details['duplicates']) && is_array($details['duplicates']) && empty($duplicate_flags)) {
+                $duplicate_flags = 'possible-duplicate';
             }
         }
 
         // Check source JSON string or field
+        $source_data = [];
         if (!empty($item['source'])) {
             $source_data = is_array($item['source']) ? $item['source'] : json_decode($item['source'], true);
-            if (is_array($source_data) && !empty($source_data['heardAbout'])) {
-                $heard_about = strtolower(trim((string)$source_data['heardAbout']));
+            if (is_array($source_data)) {
+                if (empty($heard_about) && !empty($source_data['heardAbout'])) {
+                    $heard_about = (string)$source_data['heardAbout'];
+                }
+            } else {
+                $source_data = [];
             }
         }
 
@@ -125,13 +179,23 @@ for ($page = 1; $page <= $max_pages; $page++) {
         $raw_source_str = strtolower(trim((string)(is_string($item['source'] ?? '') ? $item['source'] : '')));
         $is_walkin = (
             !empty($item['is_walkin']) || 
-            str_contains($heard_about, 'walk') || 
+            str_contains(strtolower($heard_about), 'walk') || 
             str_contains($raw_source_str, 'walk') ||
-            strtolower(trim((string)($item['apply_type'] ?? ''))) === 'walkin'
+            strtolower(trim((string)($item['apply_type'] ?? ''))) === 'walkin' ||
+            (isset($source_data['channel']) && strtolower($source_data['channel']) === 'walk-in') ||
+            (isset($source_data['medium']) && strtolower($source_data['medium']) === 'reception-qr') ||
+            (isset($source_data['landing']) && str_contains(strtolower($source_data['landing']), 'source=walk-in'))
         );
 
-        $lead_source = $is_walkin ? 'walkin' : 'website';
-        $init_stage  = $is_walkin ? 'interview_scheduled' : 'new';
+        if ($is_walkin) {
+            $lead_source = 'walkin';
+            $heard_about = 'Walk-in (Website QR)';
+            $init_stage  = 'interview_scheduled';
+        } else {
+            $lead_source = 'website';
+            $heard_about = $heard_about ?: 'Website';
+            $init_stage  = 'new';
+        }
 
         // Smart branch normalization
         $branch = 'main';
@@ -150,6 +214,10 @@ for ($page = 1; $page <= $max_pages; $page++) {
             continue;
         }
 
+        $created_timestamp = !empty($item['createdAt']) ? date('Y-m-d H:i:s', strtotime($item['createdAt'])) : date('Y-m-d H:i:s');
+        $applicant_notes = $message ?: ($experience ? "Experience: $experience" : '');
+        $cv_url = $ext_id ? "api/fetch_lead_cv.php?external_id=" . urlencode($ext_id) : null;
+
         // Check if duplicate
         $chk_stmt->bind_param("ss", $ext_id, $phone);
         $chk_stmt->execute();
@@ -157,21 +225,46 @@ for ($page = 1; $page <= $max_pages; $page++) {
 
         if ($chk_res->num_rows > 0) {
             $existing_lead = $chk_res->fetch_assoc();
-            // If existing lead was missing CNIC or education, update it
-            if (!empty($cnic) || !empty($education)) {
-                $upd_existing = $conn->prepare("UPDATE leads SET cnic = COALESCE(NULLIF(cnic, ''), ?), education = COALESCE(NULLIF(education, ''), ?) WHERE id = ?");
-                $upd_existing->bind_param("ssi", $cnic, $education, $existing_lead['id']);
-                $upd_existing->execute();
+            $upd_existing = $conn->prepare("
+                UPDATE leads SET 
+                    reference_id = COALESCE(NULLIF(reference_id, ''), ?),
+                    experience = COALESCE(NULLIF(experience, ''), ?),
+                    heard_about = COALESCE(NULLIF(heard_about, ''), ?),
+                    queue_name = COALESCE(NULLIF(queue_name, ''), ?),
+                    duplicate_flags = COALESCE(NULLIF(duplicate_flags, ''), ?),
+                    cv_file_url = COALESCE(NULLIF(cv_file_url, ''), ?),
+                    email = COALESCE(NULLIF(email, ''), ?),
+                    cnic = COALESCE(NULLIF(cnic, ''), ?),
+                    education = COALESCE(NULLIF(education, ''), ?),
+                    applicant_notes = COALESCE(NULLIF(applicant_notes, ''), ?)
+                WHERE id = ?
+            ");
+            $upd_existing->bind_param(
+                "ssssssssssi",
+                $reference_id, $experience, $heard_about, $queue_name, $duplicate_flags,
+                $cv_url, $email, $cnic, $education, $applicant_notes, $existing_lead['id']
+            );
+            $upd_existing->execute();
+
+            // If it's a walkin lead, ensure its interview entry has proper labels
+            if ($is_walkin) {
+                $conn->query("
+                    UPDATE interviews 
+                    SET interviewer_name = 'Walk-in Desk', location = 'Reception Desk' 
+                    WHERE lead_id = {$existing_lead['id']} AND (interviewer_name = 'HR Manager' OR interviewer_name IS NULL)
+                ");
             }
+
             $total_skipped++;
             continue;
         }
 
-        // Insert new lead
-        $cv_url = $ext_id ? "api/fetch_lead_cv.php?external_id=" . urlencode($ext_id) : null;
+        // Insert new lead with rich metadata
         $ins_stmt->bind_param(
-            "ssssssssssss",
-            $ext_id, $name, $cnic, $phone, $email, $city, $education, $position, $branch, $lead_source, $init_stage, $cv_url
+            "sssssssssssssssssss",
+            $ext_id, $reference_id, $name, $cnic, $phone, $email, $city, $education,
+            $experience, $position, $queue_name, $duplicate_flags, $branch,
+            $lead_source, $heard_about, $init_stage, $cv_url, $applicant_notes, $created_timestamp
         );
         
         if ($ins_stmt->execute()) {
@@ -180,7 +273,7 @@ for ($page = 1; $page <= $max_pages; $page++) {
             $aud_stmt->execute();
 
             // Log initial website message or summary as first remark
-            $initial_note = $message ?: ($is_walkin ? 'Walk-in applicant arrived via website portal' : '');
+            $initial_note = $applicant_notes ?: ($is_walkin ? 'Walk-in applicant arrived via website portal' : '');
             if ($initial_note) {
                 $rem_stmt = $conn->prepare("INSERT INTO lead_remarks (lead_id, added_by, added_by_name, added_by_role, remark, created_at) VALUES (?, ?, ?, 'Website Intake', ?, NOW())");
                 $rem_stmt->bind_param("iiss", $new_lid, $user_id, $user_name, $initial_note);
@@ -193,13 +286,17 @@ for ($page = 1; $page <= $max_pages; $page++) {
                 $chk_int->bind_param("i", $new_lid);
                 $chk_int->execute();
                 if ($chk_int->get_result()->num_rows === 0) {
-                    $cur_date = date('Y-m-d');
-                    $cur_time = date('H:i');
+                    $cur_date = !empty($item['createdAt']) ? date('Y-m-d', strtotime($item['createdAt'])) : date('Y-m-d');
+                    $cur_time = !empty($item['createdAt']) ? date('H:i:s', strtotime($item['createdAt'])) : date('H:i:s');
+                    $walkin_location = 'Reception Desk';
+                    $walkin_interviewer = 'Walk-in Desk';
+                    $walkin_notes = 'Walk-in applicant arrived via QR code' . ($reference_id ? " (Ref: $reference_id)" : '');
+                    
                     $ins_int = $conn->prepare("
-                        INSERT INTO interviews (lead_id, scheduled_by, scheduled_date, scheduled_time, location, interviewer_name, status, company_branch, created_at, updated_at)
-                        VALUES (?, ?, ?, ?, 'Reception', 'HR Manager', 'scheduled', ?, NOW(), NOW())
+                        INSERT INTO interviews (lead_id, scheduled_by, scheduled_date, scheduled_time, location, interviewer_name, status, notes, company_branch, created_at, updated_at)
+                        VALUES (?, ?, ?, ?, ?, ?, 'scheduled', ?, ?, NOW(), NOW())
                     ");
-                    $ins_int->bind_param("iisss", $new_lid, $user_id, $cur_date, $cur_time, $branch);
+                    $ins_int->bind_param("iissssss", $new_lid, $user_id, $cur_date, $cur_time, $walkin_location, $walkin_interviewer, $walkin_notes, $branch);
                     $ins_int->execute();
                 }
             }

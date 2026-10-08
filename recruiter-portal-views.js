@@ -973,7 +973,9 @@ async function showAllLeads(offset = 0, search = '', stage = '', branch = '') {
       <tr>
         <td>
           <strong>${esc(l.full_name)}</strong>
-          ${l.source === 'website' ? `<span class="badge" style="background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);font-size:9px;margin-left:4px;padding:2px 6px;"><i class="fas fa-globe"></i> Web</span>` : ''}
+          ${l.reference_id ? `<br><span style="font-size: 10px; font-weight:700; color:var(--primary); background:rgba(249,115,22,0.15); border:1px solid rgba(249,115,22,0.3); padding:1px 5px; border-radius:4px;">Ref: ${esc(l.reference_id)}</span>` : ''}
+          ${l.duplicate_flags ? `<br><span class="badge" style="background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.3);font-size:9px;padding:2px 5px;"><i class="fas fa-exclamation-triangle"></i> Duplicate</span>` : ''}
+          ${(l.source === 'website' || l.source === 'walkin') ? `<span class="badge" style="background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);font-size:9px;margin-left:4px;padding:2px 6px;"><i class="fas fa-globe"></i> ${l.source === 'walkin' ? 'Walk-in' : 'Web'}</span>` : ''}
           ${l.cnic ? `<br><span style="font-size: 11px; font-weight:700; color: #fb923c;"><i class="fas fa-id-card"></i> ${esc(l.cnic)}</span>` : ''}
           <br>
           <span style="font-size: 10px; color: var(--text-dim);">ID: #${l.id}</span>
@@ -983,7 +985,9 @@ async function showAllLeads(offset = 0, search = '', stage = '', branch = '') {
           ${l.email ? `<i class="fas fa-envelope" style="font-size: 10px; color: var(--text-dim);"></i> ${esc(l.email).substring(0, 20)}` : ''}
         </td>
         <td>
-          <strong>${esc(l.position_applied || 'Dialer')}</strong><br>
+          <strong>${esc(l.position_applied || 'Dialer')}</strong>
+          ${l.experience ? `<br><span style="font-size: 10px; color: var(--text-dim);"><i class="fas fa-business-time"></i> ${esc(l.experience)}</span>` : ''}
+          <br>
           <span style="font-size: 11px; color: var(--text-dim);"><i class="fas fa-map-marker-alt"></i> ${esc(l.city || 'Islamabad')}</span>
           <br>
           <span class="badge" style="font-size:9px;padding:2px 6px;margin-top:3px;background:rgba(249,115,22,0.12);color:#fb923c;border:1px solid rgba(249,115,22,0.25);">
@@ -1160,6 +1164,8 @@ async function showMyLeads(search = '', stage = '') {
       <tr>
         <td>
           <strong>${esc(l.full_name)}</strong>
+          ${l.reference_id ? `<br><span style="font-size: 10px; font-weight:700; color:var(--primary); background:rgba(249,115,22,0.15); border:1px solid rgba(249,115,22,0.3); padding:1px 5px; border-radius:4px;">Ref: ${esc(l.reference_id)}</span>` : ''}
+          ${l.duplicate_flags ? `<br><span class="badge" style="background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.3);font-size:9px;padding:2px 5px;"><i class="fas fa-exclamation-triangle"></i> Duplicate</span>` : ''}
           ${l.cnic ? `<br><span style="font-size: 11px; font-weight:700; color: #fb923c;"><i class="fas fa-id-card"></i> ${esc(l.cnic)}</span>` : ''}
         </td>
         <td>
@@ -1170,7 +1176,10 @@ async function showMyLeads(search = '', stage = '') {
             </a>
           ` : ''}
         </td>
-        <td>${esc(l.position_applied || '-')}</td>
+        <td>
+          <strong>${esc(l.position_applied || '-')}</strong>
+          ${l.experience ? `<br><span style="font-size: 10px; color: var(--text-dim);"><i class="fas fa-business-time"></i> ${esc(l.experience)}</span>` : ''}
+        </td>
         <td>${stageBadge(l.current_stage)}</td>
         <td style="font-size: 12px;"><i class="fas fa-clock"></i> ${lastContact}</td>
         <td><span class="badge" style="background: rgba(249,115,22,0.1); color: var(--primary);">${l.call_count || 0} calls</span></td>

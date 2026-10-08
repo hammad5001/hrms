@@ -79,8 +79,9 @@ $data_params[] = $limit;
 $data_params[] = $offset;
 
 $data_stmt = $conn->prepare("
-    SELECT l.id, l.external_lead_id, l.source, l.cv_file_url, l.full_name, l.phone, l.email, l.city, l.cnic,
-           l.position_applied, l.current_stage, l.company_branch, l.call_count,
+    SELECT l.id, l.reference_id, l.external_lead_id, l.source, l.cv_file_url, l.full_name, l.phone, l.email, l.city, l.cnic,
+           l.position_applied, l.experience, l.heard_about, l.duplicate_flags,
+           l.current_stage, l.company_branch, l.call_count,
            l.last_call_date, l.interview_date, l.created_at, l.updated_at, l.assigned_at,
            u.full_name AS recruiter_name, u.id AS recruiter_user_id,
            (SELECT remark FROM lead_remarks WHERE lead_id = l.id ORDER BY created_at DESC LIMIT 1) AS latest_remark

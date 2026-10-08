@@ -1818,6 +1818,25 @@
             }
         }
 
+        let isSyncingLeads = false;
+        async function syncWebsiteWalkinLeads(notify = false) {
+            if (isSyncingLeads) return null;
+            isSyncingLeads = true;
+            try {
+                const res = await fetch('api/sync_website_leads.php?pages=1', { credentials: 'include' });
+                const data = await res.json();
+                if (notify && data.success) {
+                    showToast(`Synced ${data.synced_count || 0} latest leads from website!`, 'success');
+                }
+                return data;
+            } catch (e) {
+                if (notify) showToast('Sync failed: ' + e.message, 'error');
+                return null;
+            } finally {
+                isSyncingLeads = false;
+            }
+        }
+
         async function loadData() {
             recruiterLeads = [];
             walkinCandidates = [];
@@ -1828,6 +1847,8 @@
                 if (data.success && Array.isArray(data.data)) {
                     recruiterLeads = data.data.map(row => ({
                         id: row.leadId || row.id,
+                        referenceId: row.referenceId || '',
+                        externalLeadId: row.externalLeadId || '',
                         interviewId: row.interviewId || null,
                         name: row.fullName || row.name,
                         fullName: row.fullName || row.name,
@@ -1838,23 +1859,36 @@
                         city: row.city || '',
                         dob: row.dob || '',
                         graduation: row.graduation || '',
+                        experience: row.experience || '',
                         position: row.position || 'Interview Candidate',
                         referredBy: row.referredBy || 'Walk-in',
                         interviewDateTime: row.interviewDateTime || '',
                         interviewDate: row.interviewDate || '',
                         interviewTime: row.interviewTime || '',
                         interviewLocation: row.interviewLocation || 'Main Office',
-                        interviewer: row.interviewer || 'HR Manager',
+                        interviewer: row.interviewer || 'Walk-in Desk',
                         recruiterName: row.recruiterName || '',
                         source: row.source || 'recruiter',
                         queueType: row.queueType || 'scheduled',
                         badge: row.badge || 'Interview Scheduled',
-                        currentStage: row.currentStage || ''
+                        currentStage: row.currentStage || '',
+                        heardAbout: row.heardAbout || '',
+                        duplicateFlags: row.duplicateFlags || '',
+                        isDuplicate: !!row.isDuplicate || !!(row.duplicateFlags && row.duplicateFlags.length > 0),
+                        applicantNotes: row.applicantNotes || '',
+                        cvFileUrl: row.cvFileUrl || '',
+                        hasCv: !!row.hasCv || !!row.cvFileUrl,
+                        companyBranch: row.companyBranch || 'Islamabad',
+                        isWalkin: !!row.isWalkin || (row.source || '').toLowerCase().includes('walk') || (row.source || '').toLowerCase() === 'mobile',
+                        hasPreviousRejection: !!row.hasPreviousRejection,
+                        previousRejectionSummary: row.previousRejectionSummary || '',
+                        previousRejections: row.previousRejections || []
                     }));
                     walkinCandidates = recruiterLeads.filter(c =>
+                        c.isWalkin ||
                         c.queueType === 'form' ||
-                        (c.source || '').includes('walk') ||
-                        (c.source || '') === 'mobile'
+                        (c.source || '').toLowerCase().includes('walk') ||
+                        (c.source || '').toLowerCase() === 'mobile'
                     );
                 } else if (!data.success) {
                     console.error('Reception queue API:', data.error);
@@ -1864,9 +1898,13 @@
                 console.error('Failed to load reception data from database', e);
                 showToast('Failed to load scheduled interviews', 'error');
             }
-            const badge = document.getElementById('scheduledBadge');
-            if (badge) {
-                badge.textContent = recruiterLeads.length;
+            const scheduledBadge = document.getElementById('scheduledBadge');
+            if (scheduledBadge) {
+                scheduledBadge.textContent = recruiterLeads.filter(l => l.queueType === 'scheduled' || (!l.isWalkin && l.source !== 'walkin' && l.source !== 'mobile')).length;
+            }
+            const walkinBadge = document.getElementById('walkinBadge');
+            if (walkinBadge) {
+                walkinBadge.textContent = walkinCandidates.length;
             }
             return recruiterLeads;
         }
@@ -1880,15 +1918,148 @@
                 }
                 return raw;
             }
+            if (lead.isWalkin) return 'Walk-in Form Submitted';
             if (lead.queueType === 'form') return 'Form submitted - assign slot';
             return 'Date not set';
+        }
+
+        function generateCandidateCardHtml(lead, isGeneric = false) {
+            const safeName = (lead.fullName || lead.name || '').replace(/'/g, "\\'");
+            const safePos = (lead.position || '').replace(/'/g, "\\'");
+            const stage = lead.currentStage;
+            
+            let badgeClass = 'scheduled';
+            let badgeText = lead.badge || 'Scheduled';
+            if (stage === 'receptionist') {
+                badgeClass = 'appeared';
+                badgeText = 'Appeared';
+            } else if (stage === 'not_appeared') {
+                badgeClass = 'not_appeared';
+                badgeText = 'Not Appeared';
+            } else if (stage === 'left') {
+                badgeClass = 'left';
+                badgeText = 'Left';
+            }
+
+            const isWalkinLead = lead.isWalkin || (lead.source || '').toLowerCase().includes('walk') || (lead.source || '').toLowerCase() === 'mobile';
+            
+            const clickFnAppeared = isGeneric ? `markCandidateAppearedGeneric(${lead.id}, '${safeName}', '${lead.phone}')` : `markScheduledAppeared(${lead.id}, '${safeName}', '${lead.phone}')`;
+            const clickFnNotAppeared = isGeneric ? `markCandidateNotAppearedGeneric(${lead.id}, '${safeName}', '${lead.phone}')` : `markScheduledNotAppeared(${lead.id}, '${safeName}', '${lead.phone}')`;
+            const clickFnLeft = isGeneric ? `markCandidateLeftGeneric(${lead.id}, '${safeName}', '${lead.phone}')` : `markScheduledLeft(${lead.id}, '${safeName}', '${lead.phone}')`;
+            const clickFnSendHr = isGeneric ? `sendScheduledToHRGeneric(${lead.id}, '${safeName}', '${lead.phone}', '${safePos}')` : `sendScheduledToHR(${lead.id}, '${safeName}', '${lead.phone}', '${safePos}')`;
+
+            // Duplicate detection
+            const hasDuplicate = lead.isDuplicate || (lead.duplicateFlags && lead.duplicateFlags.length > 0);
+            
+            // CV link
+            let cvLink = lead.cvFileUrl;
+            if (!cvLink && lead.externalLeadId) {
+                cvLink = `api/fetch_lead_cv.php?external_id=${encodeURIComponent(lead.externalLeadId)}`;
+            }
+
+            return `
+                <div class="candidate-item" ${lead.hasPreviousRejection ? 'style="border-left: 3px solid var(--danger);"' : ''}>
+                    <div class="candidate-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+                        <div style="display:flex; align-items:center; gap:14px;">
+                            <div class="candidate-avatar" ${lead.hasPreviousRejection ? 'style="background: rgba(239, 68, 68, 0.15); color: var(--danger);"' : (stage === 'receptionist' ? 'style="background: linear-gradient(135deg, #10b981, #059669); color: #fff;"' : '')}>
+                                <i class="fas ${lead.hasPreviousRejection ? 'fa-user-times' : (stage === 'receptionist' ? 'fa-user-check' : (isWalkinLead ? 'fa-walking' : 'fa-user'))}"></i>
+                            </div>
+                            <div class="candidate-info">
+                                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                    <h4 style="font-size:16px; font-weight:700; color:#fff; margin:0;">${lead.fullName || lead.name}</h4>
+                                    ${lead.referenceId ? `
+                                        <span style="font-size:11px; font-weight:700; color:var(--primary); background:rgba(249,115,22,0.15); border:1px solid rgba(249,115,22,0.35); padding:2px 8px; border-radius:6px; letter-spacing:0.5px;">
+                                            Ref: ${lead.referenceId}
+                                        </span>
+                                    ` : `
+                                        <span style="font-size:11px; font-weight:600; color:var(--text-muted); background:rgba(255,255,255,0.06); padding:2px 8px; border-radius:6px;">
+                                            ID: #${lead.id}
+                                        </span>
+                                    `}
+                                </div>
+                                <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:6px;">
+                                    <div class="status-badge ${badgeClass}">${badgeText}</div>
+                                    ${hasDuplicate ? `
+                                        <div class="status-badge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.5); font-weight:700;">
+                                            <i class="fas fa-exclamation-triangle"></i> Possible Duplicate
+                                        </div>
+                                    ` : ''}
+                                    <div class="status-badge" style="background: rgba(59, 130, 246, 0.15); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3);">
+                                        <i class="fas fa-building"></i> ${lead.companyBranch || lead.branch || 'Islamabad'}
+                                    </div>
+                                    ${isWalkinLead ? `
+                                        <div class="status-badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3);">
+                                            <i class="fas fa-qrcode"></i> Walk-in QR
+                                        </div>
+                                    ` : `
+                                        <div class="status-badge" style="background: rgba(139, 92, 246, 0.15); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.3);">
+                                            <i class="fas fa-user-tie"></i> Recruiter Lead
+                                        </div>
+                                    `}
+                                    ${lead.hasPreviousRejection ? `
+                                        <div class="status-badge" style="background: rgba(239, 68, 68, 0.25); color: #f87171; border: 1px solid rgba(239,68,68,0.5); cursor:pointer;" onclick="showCrossBranchModal(${lead.id}, '${lead.cnic || ''}')" title="Click to view past interview rejection details">
+                                            <i class="fas fa-exclamation-triangle"></i> ${lead.previousRejectionSummary || 'Prev. Rejected'}
+                                        </div>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div style="text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+                            ${(cvLink || lead.hasCv) ? `
+                                <a href="${cvLink}" target="_blank" class="btn" style="background: rgba(14, 165, 233, 0.15); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.4); text-decoration: none; padding: 5px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseover="this.style.background='rgba(14, 165, 233, 0.3)'" onmouseout="this.style.background='rgba(14, 165, 233, 0.15)'">
+                                    <i class="fas fa-file-pdf"></i> View / Download CV
+                                </a>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <div class="candidate-details" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px 14px; margin: 10px 0; padding: 10px 14px; background: rgba(0,0,0,0.25); border-radius: 10px; border: 1px solid rgba(255,255,255,0.04);">
+                        <div class="detail-item"><i class="fas fa-phone"></i> <strong>Phone:</strong> ${lead.phone || 'N/A'}</div>
+                        <div class="detail-item"><i class="fas fa-id-card"></i> <strong>CNIC:</strong> ${lead.cnic || 'N/A'}</div>
+                        <div class="detail-item"><i class="fas fa-envelope"></i> <strong>Email:</strong> ${lead.email || 'N/A'}</div>
+                        <div class="detail-item"><i class="fas fa-briefcase"></i> <strong>Job Applied:</strong> ${lead.position || 'N/A'}</div>
+                        <div class="detail-item"><i class="fas fa-business-time"></i> <strong>Experience:</strong> ${lead.experience || 'Not specified'}</div>
+                        <div class="detail-item"><i class="fas fa-building"></i> <strong>Branch:</strong> ${lead.companyBranch || lead.branch || lead.interviewLocation || 'Main Office'}</div>
+                        <div class="detail-item"><i class="fas fa-bullhorn"></i> <strong>Heard About:</strong> ${lead.heardAbout || (isWalkinLead ? 'Walk-in (Website QR)' : (lead.referredBy || 'Direct'))}</div>
+                        <div class="detail-item"><i class="fas fa-calendar-alt"></i> <strong>Date / Time:</strong> ${formatInterviewWhen(lead)}</div>
+                        ${isWalkinLead ? `
+                            <div class="detail-item" style="color: #38bdf8;"><i class="fas fa-walking"></i> <strong>Channel:</strong> Direct Walk-in (Reception Desk)</div>
+                        ` : `
+                            <div class="detail-item"><i class="fas fa-user-tie"></i> <strong>Recruiter:</strong> ${lead.interviewer || lead.recruiterName || 'HR Desk'}</div>
+                        `}
+                    </div>
+
+                    ${lead.hasPreviousRejection ? `
+                    <div style="margin: 10px 0 14px 0; padding: 10px 14px; background: rgba(239,68,68,0.1); border: 1px dashed rgba(239,68,68,0.3); border-radius: 10px; font-size: 12px; color: #fca5a5;">
+                        <i class="fas fa-history" style="color: #ef4444; margin-right: 6px;"></i> <strong>Cross-Branch Alert:</strong> Candidate previously attended interview at <strong>${lead.previousRejections && lead.previousRejections[0] ? lead.previousRejections[0].branch : 'another branch'}</strong> and was <strong>Rejected</strong>. Reason: <em>${lead.previousRejections && lead.previousRejections[0] ? lead.previousRejections[0].reason : 'N/A'}</em>
+                    </div>` : ''}
+
+                    <div class="action-buttons">
+                        <button class="btn btn-appeared" onclick="${clickFnAppeared}" title="Candidate has arrived at reception">
+                            <i class="fas fa-check-circle"></i> Appeared
+                        </button>
+                        <button class="btn btn-not-appeared" onclick="${clickFnNotAppeared}" title="Candidate did not attend interview">
+                            <i class="fas fa-times-circle"></i> Not Appeared
+                        </button>
+                        <button class="btn btn-left" onclick="${clickFnLeft}" title="Candidate left reception before/during interview">
+                            <i class="fas fa-sign-out-alt"></i> Left
+                        </button>
+                        <button class="btn btn-send-hr" onclick="${clickFnSendHr}" title="Send candidate directly to HR interview queue">
+                            <i class="fas fa-paper-plane"></i> Send to HR
+                        </button>
+                        ${(lead.hasPreviousHistory || lead.hasPreviousRejection) ? `
+                        <button class="btn btn-warning" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);" onclick="showCrossBranchModal(${lead.id}, '${lead.cnic || ''}')">
+                            <i class="fas fa-history"></i> Past History
+                        </button>` : ''}
+                    </div>
+                </div>
+            `;
         }
 
         function renderScheduledList(targetElementId = 'scheduledLeadsList') {
             const container = document.getElementById(targetElementId);
             if (!container) return;
 
-            const scheduledCount = recruiterLeads.filter(l => l.queueType === 'scheduled').length;
+            const scheduledCount = recruiterLeads.filter(l => l.queueType === 'scheduled' || (!l.isWalkin && l.source !== 'walkin' && l.source !== 'mobile')).length;
             const appearedCount = recruiterLeads.filter(l => l.currentStage === 'receptionist').length;
             const notAppearedCount = recruiterLeads.filter(l => l.currentStage === 'not_appeared').length;
             const leftCount = recruiterLeads.filter(l => l.currentStage === 'left').length;
@@ -1910,86 +2081,7 @@
                 return;
             }
 
-            container.innerHTML = recruiterLeads.map(lead => {
-                const safeName = (lead.fullName || lead.name || '').replace(/'/g, "\\'");
-                const safePos = (lead.position || '').replace(/'/g, "\\'");
-                const stage = lead.currentStage;
-                
-                let badgeClass = 'scheduled';
-                let badgeText = lead.badge || 'Scheduled';
-                if (stage === 'receptionist') {
-                    badgeClass = 'appeared';
-                    badgeText = 'Appeared';
-                } else if (stage === 'not_appeared') {
-                    badgeClass = 'not_appeared';
-                    badgeText = 'Not Appeared';
-                } else if (stage === 'left') {
-                    badgeClass = 'left';
-                    badgeText = 'Left';
-                }
-
-                const sourceLabel = lead.source === 'walkin' ? 'Walk-in (Website QR)' : (lead.recruiterName ? `Recruiter: ${lead.recruiterName}` : (lead.referredBy || 'Walk-in'));
-                
-                return `
-                    <div class="candidate-item" ${lead.hasPreviousRejection ? 'style="border-left: 3px solid var(--danger);"' : ''}>
-                        <div class="candidate-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
-                            <div style="display:flex; align-items:center; gap:14px;">
-                                <div class="candidate-avatar" ${lead.hasPreviousRejection ? 'style="background: rgba(239, 68, 68, 0.15); color: var(--danger);"' : ''}>
-                                    <i class="fas ${lead.hasPreviousRejection ? 'fa-user-times' : (stage === 'receptionist' ? 'fa-user-check' : 'fa-user')}"></i>
-                                </div>
-                                <div class="candidate-info">
-                                    <h4 style="font-size:16px; font-weight:700; color:#fff;">${lead.fullName || lead.name}</h4>
-                                    <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:4px;">
-                                        <div class="status-badge ${badgeClass}">${badgeText}</div>
-                                        ${lead.hasPreviousRejection ? `
-                                            <div class="status-badge" style="background: rgba(239, 68, 68, 0.25); color: #f87171; border: 1px solid rgba(239,68,68,0.5); cursor:pointer;" onclick="showCrossBranchModal(${lead.id}, '${lead.cnic || ''}')" title="Click to view past interview rejection details">
-                                                <i class="fas fa-exclamation-triangle"></i> ${lead.previousRejectionSummary || 'Prev. Rejected'}
-                                            </div>` : ''}
-                                    </div>
-                                </div>
-                            </div>
-                            <div style="text-align:right;">
-                                <span style="font-size:11px; padding:4px 10px; border-radius:10px; background:rgba(255,255,255,0.05); color:var(--text-muted); font-weight:600;">
-                                    ID: #${lead.id}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="candidate-details">
-                            <div class="detail-item"><i class="fas fa-phone"></i> ${lead.phone || 'N/A'}</div>
-                            <div class="detail-item"><i class="fas fa-id-card"></i> ${lead.cnic || 'N/A'}</div>
-                            <div class="detail-item"><i class="fas fa-briefcase"></i> ${lead.position || 'N/A'}</div>
-                            <div class="detail-item"><i class="fas fa-calendar-alt"></i> ${formatInterviewWhen(lead)}</div>
-                            <div class="detail-item"><i class="fas fa-building"></i> ${lead.interviewLocation || 'Main Office'}</div>
-                            <div class="detail-item"><i class="fas fa-tag"></i> ${sourceLabel}</div>
-                            ${lead.interviewer ? `<div class="detail-item"><i class="fas fa-user-tie"></i> Recruiter / Interviewer: ${lead.interviewer}</div>` : ''}
-                        </div>
-
-                        ${lead.hasPreviousRejection ? `
-                        <div style="margin: 10px 0 14px 0; padding: 10px 14px; background: rgba(239,68,68,0.1); border: 1px dashed rgba(239,68,68,0.3); border-radius: 10px; font-size: 12px; color: #fca5a5;">
-                            <i class="fas fa-history" style="color: #ef4444; margin-right: 6px;"></i> <strong>Cross-Branch Alert:</strong> Candidate previously attended interview at <strong>${lead.previousRejections && lead.previousRejections[0] ? lead.previousRejections[0].branch : 'another branch'}</strong> and was <strong>Rejected</strong>. Reason: <em>${lead.previousRejections && lead.previousRejections[0] ? lead.previousRejections[0].reason : 'N/A'}</em>
-                        </div>` : ''}
-
-                        <div class="action-buttons">
-                            <button class="btn btn-appeared" onclick="markScheduledAppeared(${lead.id}, '${safeName}', '${lead.phone}')" title="Candidate has arrived at reception">
-                                <i class="fas fa-check-circle"></i> Appeared
-                            </button>
-                            <button class="btn btn-not-appeared" onclick="markScheduledNotAppeared(${lead.id}, '${safeName}', '${lead.phone}')" title="Candidate did not attend interview">
-                                <i class="fas fa-times-circle"></i> Not Appeared
-                            </button>
-                            <button class="btn btn-left" onclick="markScheduledLeft(${lead.id}, '${safeName}', '${lead.phone}')" title="Candidate left reception before/during interview">
-                                <i class="fas fa-sign-out-alt"></i> Left
-                            </button>
-                            <button class="btn btn-send-hr" onclick="sendScheduledToHR(${lead.id}, '${safeName}', '${lead.phone}', '${safePos}')" title="Send candidate directly to HR interview queue">
-                                <i class="fas fa-paper-plane"></i> Send to HR
-                            </button>
-                            ${(lead.hasPreviousHistory || lead.hasPreviousRejection) ? `
-                            <button class="btn btn-warning" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);" onclick="showCrossBranchModal(${lead.id}, '${lead.cnic || ''}')">
-                                <i class="fas fa-history"></i> Past History
-                            </button>` : ''}
-                        </div>
-                    </div>`;
-            }).join('');
+            container.innerHTML = recruiterLeads.map(lead => generateCandidateCardHtml(lead, false)).join('');
         }
 
         async function updateLeadStage(payload) {
@@ -2015,7 +2107,7 @@
             if (data.success) {
                 showToast(`✅ ${name} marked as Appeared`, 'success');
                 await loadData();
-                renderScheduledList();
+                refreshActiveView();
             } else {
                 showToast(data.error || 'Check-in failed', 'error');
             }
@@ -2033,7 +2125,7 @@
             if (data.success) {
                 showToast(`⚠️ ${name} marked as Not Appeared`, 'warning');
                 await loadData();
-                renderScheduledList();
+                refreshActiveView();
             } else {
                 showToast(data.error || 'Update failed', 'error');
             }
@@ -2051,7 +2143,7 @@
             if (data.success) {
                 showToast(`ℹ️ ${name} marked as Left`, 'info');
                 await loadData();
-                renderScheduledList();
+                refreshActiveView();
             } else {
                 showToast(data.error || 'Update failed', 'error');
             }
@@ -2073,8 +2165,8 @@
                 dob: lead.dob || '',
                 graduation: lead.graduation || '',
                 position: position,
-                referredBy: lead.referredBy || 'Recruiter',
-                source: lead.source || 'recruiter',
+                referredBy: lead.referredBy || (lead.isWalkin ? 'Walk-in' : 'Recruiter'),
+                source: lead.source || (lead.isWalkin ? 'walkin' : 'recruiter'),
                 user_role: 'Reception'
             };
 
@@ -2098,7 +2190,7 @@
                     }
                 } catch (e) {}
                 await loadData();
-                renderScheduledList();
+                refreshActiveView();
             } else {
                 showToast(toHr.error || 'Failed to send to HR', 'error');
             }
@@ -2296,29 +2388,39 @@
         }
 
         // ==================== DEDICATED VIEW: WALKIN LEADS (QR) ====================
-        async function showWalkinLeadsView() {
+        async function showWalkinLeadsView(forceSync = false) {
+            if (forceSync) {
+                const btn = document.getElementById('syncWalkinBtn');
+                if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+                await syncWebsiteWalkinLeads(true);
+            } else {
+                syncWebsiteWalkinLeads(false);
+            }
             await loadData();
-            const list = recruiterLeads.filter(l => l.source === 'walkin' || l.source === 'mobile' || l.queueType === 'form');
+            const list = recruiterLeads.filter(l => l.isWalkin || (l.source && l.source.includes('walk')) || l.source === 'mobile' || l.queueType === 'form');
 
             const html = `
                 <div class="top-header">
                     <div class="page-title">
                         <h1>Walk-in Leads (Website QR)</h1>
-                        <p>Candidates who scanned QR code and submitted walk-in application form</p>
+                        <p>Live applicants scanning the reception QR code and applying on balitech.org</p>
                     </div>
                     <div class="header-actions">
                         <button class="action-btn" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
-                        <button class="action-btn primary" onclick="showWalkinLeadsView()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        <button class="action-btn" id="syncWalkinBtn" onclick="showWalkinLeadsView(true)" style="background: rgba(14, 165, 233, 0.15); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.35);">
+                            <i class="fas fa-cloud-download-alt"></i> Sync Website Leads
+                        </button>
+                        <button class="action-btn primary" onclick="showWalkinLeadsView(false)"><i class="fas fa-sync-alt"></i> Refresh</button>
                     </div>
                 </div>
 
                 <div class="form-card" style="padding: 26px; border-radius:24px;">
-                    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:16px;">
+                    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid rgba(255,255,255,0.06);">
                         <div style="display:flex; align-items:center; gap:12px;">
-                            <i class="fas fa-walking" style="color:var(--secondary); font-size:24px;"></i>
+                            <i class="fas fa-walking" style="color:var(--secondary); font-size:26px;"></i>
                             <div>
-                                <h3 style="font-size:20px; margin:0;">Walk-in Candidates (${list.length})</h3>
-                                <p style="font-size:12px; color:var(--text-muted); margin:0;">Applicants arriving directly via online QR code scan</p>
+                                <h3 style="font-size:20px; margin:0; font-weight:700; color:#fff;">Walk-in Candidates (${list.length})</h3>
+                                <p style="font-size:12px; color:var(--text-muted); margin:3px 0 0 0;">Applicants arriving directly via online QR code scan</p>
                             </div>
                         </div>
                         <div>
@@ -2331,14 +2433,14 @@
                 </div>
             `;
             document.getElementById('mainContent').innerHTML = html;
-            renderSpecificLeadList(list, 'walkinLeadsContainer', () => showWalkinLeadsView());
+            renderSpecificLeadList(list, 'walkinLeadsContainer', () => showWalkinLeadsView(false));
 
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             const nav = document.querySelector('.nav-item[onclick="showWalkinLeadsView()"]');
             if (nav) nav.classList.add('active');
         }
 
-        // Generic renderer for any lead list
+        // Generic renderer for any lead list using the rich candidate card design
         function renderSpecificLeadList(items, containerId, refreshFn) {
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -2348,106 +2450,23 @@
                 return;
             }
 
-            container.innerHTML = items.map(lead => {
-                const safeName = (lead.fullName || lead.name || '').replace(/'/g, "\\'");
-                const safePos = (lead.position || '').replace(/'/g, "\\'");
-                const stage = lead.currentStage;
-                
-                let badgeClass = 'scheduled';
-                let badgeText = lead.badge || 'Scheduled';
-                if (stage === 'receptionist') {
-                    badgeClass = 'appeared';
-                    badgeText = 'Appeared';
-                } else if (stage === 'not_appeared') {
-                    badgeClass = 'not_appeared';
-                    badgeText = 'Not Appeared';
-                } else if (stage === 'left') {
-                    badgeClass = 'left';
-                    badgeText = 'Left';
-                }
-
-                const sourceLabel = lead.source === 'walkin' ? 'Walk-in (Website QR)' : (lead.recruiterName ? `Recruiter: ${lead.recruiterName}` : (lead.referredBy || 'Walk-in'));
-                
-                return `
-                    <div class="candidate-item" ${lead.hasPreviousRejection ? 'style="border-left: 3px solid var(--danger);"' : ''}>
-                        <div class="candidate-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
-                            <div style="display:flex; align-items:center; gap:14px;">
-                                <div class="candidate-avatar" ${lead.hasPreviousRejection ? 'style="background: rgba(239, 68, 68, 0.15); color: var(--danger);"' : ''}>
-                                    <i class="fas ${lead.hasPreviousRejection ? 'fa-user-times' : (stage === 'receptionist' ? 'fa-user-check' : 'fa-user')}"></i>
-                                </div>
-                                <div class="candidate-info">
-                                    <h4 style="font-size:16px; font-weight:700; color:#fff;">${lead.fullName || lead.name}</h4>
-                                    <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:4px;">
-                                        <div class="status-badge ${badgeClass}">${badgeText}</div>
-                                        ${lead.hasPreviousRejection ? `
-                                            <div class="status-badge" style="background: rgba(239, 68, 68, 0.25); color: #f87171; border: 1px solid rgba(239,68,68,0.5); cursor:pointer;" onclick="showCrossBranchModal(${lead.id}, '${lead.cnic || ''}')" title="Click to view past interview rejection details">
-                                                <i class="fas fa-exclamation-triangle"></i> ${lead.previousRejectionSummary || 'Prev. Rejected'}
-                                            </div>` : ''}
-                                    </div>
-                                </div>
-                            </div>
-                            <div style="text-align:right;">
-                                <span style="font-size:11px; padding:4px 10px; border-radius:10px; background:rgba(255,255,255,0.05); color:var(--text-muted); font-weight:600;">
-                                    ID: #${lead.id}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="candidate-details">
-                            <div class="detail-item"><i class="fas fa-phone"></i> ${lead.phone || 'N/A'}</div>
-                            <div class="detail-item"><i class="fas fa-id-card"></i> ${lead.cnic || 'N/A'}</div>
-                            <div class="detail-item"><i class="fas fa-briefcase"></i> ${lead.position || 'N/A'}</div>
-                            <div class="detail-item"><i class="fas fa-calendar-alt"></i> ${formatInterviewWhen(lead)}</div>
-                            <div class="detail-item"><i class="fas fa-building"></i> ${lead.interviewLocation || 'Main Office'}</div>
-                            <div class="detail-item"><i class="fas fa-tag"></i> ${sourceLabel}</div>
-                            ${lead.interviewer ? `<div class="detail-item"><i class="fas fa-user-tie"></i> Recruiter / Interviewer: ${lead.interviewer}</div>` : ''}
-                        </div>
-
-                        ${lead.hasPreviousRejection ? `
-                        <div style="margin: 10px 0 14px 0; padding: 10px 14px; background: rgba(239,68,68,0.1); border: 1px dashed rgba(239,68,68,0.3); border-radius: 10px; font-size: 12px; color: #fca5a5;">
-                            <i class="fas fa-history" style="color: #ef4444; margin-right: 6px;"></i> <strong>Cross-Branch Alert:</strong> Candidate previously attended interview at <strong>${lead.previousRejections && lead.previousRejections[0] ? lead.previousRejections[0].branch : 'another branch'}</strong> and was <strong>Rejected</strong>. Reason: <em>${lead.previousRejections && lead.previousRejections[0] ? lead.previousRejections[0].reason : 'N/A'}</em>
-                        </div>` : ''}
-
-                        <div class="action-buttons">
-                            <button class="btn btn-appeared" onclick="markCandidateAppearedGeneric(${lead.id}, '${safeName}', '${lead.phone}')" title="Candidate has arrived at reception">
-                                <i class="fas fa-check-circle"></i> Appeared
-                            </button>
-                            <button class="btn btn-not-appeared" onclick="markCandidateNotAppearedGeneric(${lead.id}, '${safeName}', '${lead.phone}')" title="Candidate did not attend interview">
-                                <i class="fas fa-times-circle"></i> Not Appeared
-                            </button>
-                            <button class="btn btn-left" onclick="markCandidateLeftGeneric(${lead.id}, '${safeName}', '${lead.phone}')" title="Candidate left reception">
-                                <i class="fas fa-sign-out-alt"></i> Left
-                            </button>
-                            <button class="btn btn-send-hr" onclick="sendScheduledToHRGeneric(${lead.id}, '${safeName}', '${lead.phone}', '${safePos}')" title="Send candidate directly to HR interview queue">
-                                <i class="fas fa-paper-plane"></i> Send to HR
-                            </button>
-                            ${(lead.hasPreviousHistory || lead.hasPreviousRejection) ? `
-                            <button class="btn btn-warning" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);" onclick="showCrossBranchModal(${lead.id}, '${lead.cnic || ''}')">
-                                <i class="fas fa-history"></i> Past History
-                            </button>` : ''}
-                        </div>
-                    </div>`;
-            }).join('');
+            container.innerHTML = items.map(lead => generateCandidateCardHtml(lead, true)).join('');
         }
 
         async function markCandidateAppearedGeneric(leadId, name, phone) {
             await markScheduledAppeared(leadId, name, phone);
-            refreshActiveView();
         }
 
         async function markCandidateNotAppearedGeneric(leadId, name, phone) {
             await markScheduledNotAppeared(leadId, name, phone);
-            refreshActiveView();
         }
 
         async function markCandidateLeftGeneric(leadId, name, phone) {
             await markScheduledLeft(leadId, name, phone);
-            refreshActiveView();
         }
 
         async function sendScheduledToHRGeneric(leadId, name, phone, position) {
             await sendScheduledToHR(leadId, name, phone, position);
-            refreshActiveView();
         }
 
         function refreshActiveView() {
@@ -2456,53 +2475,15 @@
             if (scheduledActive) {
                 showScheduledInterviewsView();
             } else if (walkinActive) {
-                showWalkinLeadsView();
+                showWalkinLeadsView(false);
             } else {
                 showDashboard();
             }
         }
 
-        // ==================== SCHEDULED LEADS PAGE ====================
+        // ==================== SCHEDULED LEADS PAGE ALIAS ====================
         async function showScheduledLeads() {
             await showScheduledInterviewsView();
-        }
-
-        async function sendScheduledToHR(id, name, phone, position) {
-            const lead = recruiterLeads.find(l => l.id === id);
-            if (!lead) return;
-
-            const candidateForHR = {
-                leadId: id,
-                fullName: name,
-                fatherName: lead.fatherName || '',
-                phone: phone,
-                email: lead.email || '',
-                cnic: lead.cnic || '',
-                city: lead.city || '',
-                dob: lead.dob || '',
-                graduation: lead.graduation || '',
-                position: position,
-                referredBy: lead.referredBy || 'Recruiter',
-                source: 'recruiter'
-            };
-
-            const ok = await sendToHR(candidateForHR, id);
-            if (ok) {
-                try {
-                    if (lead.interviewId) {
-                        await fetch('api/complete_interview.php', {
-                            method: 'POST',
-                            credentials: 'include',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ interview_id: lead.interviewId })
-                        });
-                    }
-                } catch (e) {
-                    console.warn('Interview completion sync skipped', e);
-                }
-                await loadData();
-                showScheduledLeads();
-            }
         }
 
         function showQRCode() {
@@ -2548,7 +2529,7 @@
         }
 
         function copyMobileLink() {
-            const url = window.location.origin + '/interview-forms/walkin-mobile.html';
+            const url = 'https://balitech.org/join-us?source=walk-in';
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(url).then(() => {
                     showToast('📋 Application form link copied to clipboard!', 'success');
@@ -2590,9 +2571,15 @@
         if (window.PortalPoll) {
             PortalPoll.start('reception-queue', async () => {
                 await loadData();
-                const badge = document.getElementById('scheduledBadge');
-                if (badge) badge.textContent = recruiterLeads.length;
-                if (document.getElementById('scheduledLeadsList')) {
+                const scheduledActive = document.querySelector('.nav-item[onclick="showScheduledInterviewsView()"].active');
+                const walkinActive = document.querySelector('.nav-item[onclick="showWalkinLeadsView()"].active');
+                if (scheduledActive) {
+                    const list = recruiterLeads.filter(l => l.queueType === 'scheduled' || (!l.isWalkin && l.source !== 'walkin' && l.source !== 'mobile'));
+                    renderSpecificLeadList(list, 'scheduledLeadsContainer', () => showScheduledInterviewsView());
+                } else if (walkinActive) {
+                    const list = recruiterLeads.filter(l => l.isWalkin || (l.source && l.source.includes('walk')) || l.source === 'mobile' || l.queueType === 'form');
+                    renderSpecificLeadList(list, 'walkinLeadsContainer', () => showWalkinLeadsView(false));
+                } else if (document.getElementById('scheduledLeadsList')) {
                     renderScheduledList();
                 }
             }, 25000, { pauseWhenHidden: true });

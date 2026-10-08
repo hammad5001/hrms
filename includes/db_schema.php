@@ -841,10 +841,26 @@ function ensure_website_leads_schema(mysqli $conn): void {
         @$conn->query("ALTER TABLE `leads` ADD INDEX `idx_leads_ext_id` (`external_lead_id`)");
     }
 
-    // Check if cv_file_url exists in leads table
-    $chk2 = $conn->query("SHOW COLUMNS FROM `leads` LIKE 'cv_file_url'");
-    if ($chk2 && $chk2->num_rows === 0) {
-        @$conn->query("ALTER TABLE `leads` ADD COLUMN `cv_file_url` VARCHAR(500) NULL AFTER `referred_by`");
+    $extraCols = [
+        'reference_id'    => "VARCHAR(50) NULL AFTER `external_lead_id`",
+        'experience'      => "VARCHAR(100) NULL AFTER `education`",
+        'heard_about'     => "VARCHAR(100) NULL AFTER `source`",
+        'queue_name'      => "VARCHAR(80) NULL DEFAULT 'recruitment' AFTER `position_applied`",
+        'duplicate_flags' => "VARCHAR(255) NULL AFTER `referred_by`",
+        'cv_file_url'     => "VARCHAR(500) NULL AFTER `referred_by`",
+        'applicant_notes' => "TEXT NULL AFTER `rejection_reason`"
+    ];
+
+    foreach ($extraCols as $col => $def) {
+        $chk = $conn->query("SHOW COLUMNS FROM `leads` LIKE '$col'");
+        if ($chk && $chk->num_rows === 0) {
+            @$conn->query("ALTER TABLE `leads` ADD COLUMN `$col` $def");
+        }
+    }
+
+    $idxChk = $conn->query("SHOW INDEX FROM `leads` WHERE Key_name = 'idx_leads_reference_id'");
+    if ($idxChk && $idxChk->num_rows === 0) {
+        @$conn->query("ALTER TABLE `leads` ADD INDEX `idx_leads_reference_id` (`reference_id`)");
     }
 
     // Ensure website_sync_logs table exists

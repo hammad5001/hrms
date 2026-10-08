@@ -71,5 +71,5 @@ CREATE TABLE IF NOT EXISTS `chat_message_receipts` (
     INDEX `idx_msg` (`message_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-ALTER TABLE `chat_participants` ADD COLUMN `last_active_at` DATETIME DEFAULT NULL;
-ALTER TABLE `chat_participants` ADD COLUMN `typing_until` DATETIME DEFAULT NULL;
+ALTER TABLE `chat_participants` ADD COLUMN IF NOT EXISTS `last_active_at` DATETIME DEFAULT NULL;
+ALTER TABLE `chat_participants` ADD COLUMN IF NOT EXISTS `typing_until` DATETIME DEFAULT NULL;

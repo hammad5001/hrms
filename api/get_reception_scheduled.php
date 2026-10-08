@@ -52,6 +52,8 @@ $auto_left_sql = "
 $sql = "
     SELECT
         l.id AS lead_id,
+        l.external_lead_id,
+        l.reference_id,
         l.full_name,
         l.father_name,
         l.phone,
@@ -60,9 +62,15 @@ $sql = "
         l.city,
         l.dob,
         l.education,
+        l.experience,
         l.position_applied,
+        l.queue_name,
         l.referred_by,
         l.source,
+        l.heard_about,
+        l.duplicate_flags,
+        l.cv_file_url,
+        l.applicant_notes,
         l.current_stage,
         l.interview_date,
         l.company_branch,
@@ -115,6 +123,7 @@ foreach ($rows as $r) {
     $stage = canonical_stage((string)$r['current_stage']);
     $source = strtolower(trim((string)($r['source'] ?? '')));
     $hasInterview = !empty($r['interview_id']);
+    $isWalkin = in_array($source, ['mobile', 'walkin', 'public', 'walk-in'], true) || str_contains(strtolower($r['heard_about'] ?? ''), 'walk');
 
     if ($stage === 'receptionist') {
         $queueType = 'checkin';
@@ -125,12 +134,12 @@ foreach ($rows as $r) {
     } elseif ($stage === 'left') {
         $queueType = 'left';
         $badge = 'Left';
+    } elseif ($isWalkin) {
+        $queueType = 'walkin';
+        $badge = 'Walk-in Applicant';
     } elseif ($hasInterview || $stage === 'interview_scheduled') {
         $queueType = 'scheduled';
         $badge = 'Interview Scheduled';
-    } elseif (in_array($source, ['mobile', 'walkin', 'public', 'walk-in'], true)) {
-        $queueType = 'form';
-        $badge = 'Form Application';
     } else {
         $queueType = 'lead';
         $badge = 'Awaiting Reception';
@@ -140,9 +149,16 @@ foreach ($rows as $r) {
     $time = $r['scheduled_time'] ?? '';
     $dateTime = trim(($date ?: '') . ' ' . ($time ?: ''));
 
+    $interviewerLabel = $r['interviewer_name'];
+    if (empty($interviewerLabel) || ($isWalkin && $interviewerLabel === 'HR Manager')) {
+        $interviewerLabel = $isWalkin ? 'Walk-in Desk' : ($r['recruiter_name'] ?: 'Reception Desk');
+    }
+
     $out[] = [
         'id' => $leadId,
         'leadId' => $leadId,
+        'referenceId' => $r['reference_id'] ?? '',
+        'externalLeadId' => $r['external_lead_id'] ?? '',
         'interviewId' => $hasInterview ? (int)$r['interview_id'] : null,
         'name' => $r['full_name'],
         'fullName' => $r['full_name'],
@@ -153,19 +169,28 @@ foreach ($rows as $r) {
         'city' => $r['city'] ?? '',
         'dob' => $r['dob'] ?? '',
         'graduation' => $r['education'] ?? '',
+        'experience' => $r['experience'] ?? '',
         'position' => $r['position_applied'] ?? 'Interview Candidate',
-        'referredBy' => $r['referred_by'] ?? 'Walk-in',
+        'queueName' => $r['queue_name'] ?? 'recruitment',
+        'referredBy' => $r['referred_by'] ?? ($isWalkin ? 'Walk-in' : 'Direct'),
         'source' => $source ?: 'recruiter',
+        'heardAbout' => $r['heard_about'] ?? '',
+        'duplicateFlags' => $r['duplicate_flags'] ?? '',
+        'cvFileUrl' => $r['cv_file_url'] ?? '',
+        'hasCv' => !empty($r['cv_file_url']),
+        'applicantNotes' => $r['applicant_notes'] ?? '',
+        'companyBranch' => $r['company_branch'] ?? 'main',
         'recruiterName' => $r['recruiter_name'] ?? '',
         'currentStage' => $stage,
         'queueType' => $queueType,
         'badge' => $badge,
+        'isWalkin' => $isWalkin,
         'interviewDateTime' => $dateTime,
         'interviewDate' => $date,
         'interviewTime' => $time,
-        'interviewLocation' => $r['interview_location'] ?? 'Main Office',
-        'interviewer' => $r['interviewer_name'] ?? ($r['recruiter_name'] ?: 'HR Manager'),
-        'notes' => $r['interview_notes'] ?? '',
+        'interviewLocation' => $r['interview_location'] ?? ($isWalkin ? 'Reception Desk' : 'Main Office'),
+        'interviewer' => $interviewerLabel,
+        'notes' => $r['interview_notes'] ?? ($r['applicant_notes'] ?? ''),
     ];
 }
 

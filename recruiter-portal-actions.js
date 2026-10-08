@@ -108,10 +108,12 @@ async function editLead(id){
       <div>
         <h3 style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <span>Edit Lead - ${esc(l.full_name)}</span>
+          ${l.reference_id ? `<span class="badge" style="background:rgba(249,115,22,0.15);color:var(--primary);border:1px solid rgba(249,115,22,0.3);font-size:11px;font-weight:700;">Ref: ${esc(l.reference_id)}</span>` : ''}
+          ${l.duplicate_flags ? `<span class="badge" style="background:rgba(245,158,11,0.2);color:#fbbf24;border:1px solid rgba(245,158,11,0.5);font-size:11px;font-weight:700;"><i class="fas fa-exclamation-triangle"></i> Possible Duplicate</span>` : ''}
           <span class="badge" style="background:rgba(249,115,22,0.15);color:#fb923c;border:1px solid rgba(249,115,22,0.3);font-size:11px;">
             <i class="fas fa-building"></i> ${esc(currentBranchLabel)}
           </span>
-          ${l.source === 'website' ? `<span class="badge" style="background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);font-size:11px;"><i class="fas fa-globe"></i> Website Lead</span>` : ''}
+          ${(l.source === 'website' || l.source === 'walkin') ? `<span class="badge" style="background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);font-size:11px;"><i class="fas fa-globe"></i> ${l.source === 'walkin' ? 'Walk-in Application' : 'Website Lead'}</span>` : ''}
         </h3>
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
@@ -149,6 +151,14 @@ async function editLead(id){
             <div class="form-group">
               <label>Position <span style="font-size:10px;color:var(--text-muted);">(Locked)</span></label>
               <input type="text" id="l_pos" class="form-control" value="${esc(l.position_applied || 'Dialer')}" readonly style="opacity:0.85;background:rgba(255,255,255,0.03);cursor:not-allowed;">
+            </div>
+            <div class="form-group">
+              <label>Experience <span style="font-size:10px;color:var(--text-muted);">(Applicant)</span></label>
+              <input type="text" id="l_exp" class="form-control" value="${esc(l.experience || 'Not specified')}" readonly style="opacity:0.85;background:rgba(255,255,255,0.03);cursor:not-allowed;">
+            </div>
+            <div class="form-group">
+              <label>Source / Channel <span style="font-size:10px;color:var(--text-muted);">(Intake)</span></label>
+              <input type="text" id="l_src" class="form-control" value="${esc(l.heard_about || l.source || 'Walk-in')}" readonly style="opacity:0.85;background:rgba(255,255,255,0.03);cursor:not-allowed;">
             </div>
             <div class="form-group">
               <label>City <span style="font-size:10px;color:var(--text-muted);">(Locked)</span></label>
